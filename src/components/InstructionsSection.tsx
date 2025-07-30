@@ -188,17 +188,23 @@ export const InstructionsSection = () => {
                       <div className="border rounded-lg p-4">
                         <h4 className="font-semibold mb-2">Федеральный закон "Об образовании в Российской Федерации"</h4>
                         <p className="text-sm text-muted-foreground mb-2">№ 273-ФЗ от 29.12.2012</p>
-                        <p className="text-sm">
+                        <p className="text-sm mb-2">
                           Определяет правовые основы организации образовательного процесса и психолого-педагогического сопровождения обучающихся.
                         </p>
+                        <a href="http://www.consultant.ru/document/cons_doc_LAW_140174/" target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
+                          Официальный текст на КонсультантПлюс
+                        </a>
                       </div>
                       
                       <div className="border rounded-lg p-4">
                         <h4 className="font-semibold mb-2">Федеральный закон "О социальной защите инвалидов в РФ"</h4>
                         <p className="text-sm text-muted-foreground mb-2">№ 181-ФЗ от 24.11.1995</p>
-                        <p className="text-sm">
+                        <p className="text-sm mb-2">
                           Регулирует вопросы образования и реабилитации детей с ограниченными возможностями здоровья.
                         </p>
+                        <a href="http://www.consultant.ru/document/cons_doc_LAW_8559/" target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
+                          Официальный текст на КонсультантПлюс
+                        </a>
                       </div>
                     </div>
                   </AccordionContent>
@@ -211,9 +217,12 @@ export const InstructionsSection = () => {
                       <div className="border rounded-lg p-4">
                         <h4 className="font-semibold mb-2">Приказ об утверждении Положения о ППк</h4>
                         <p className="text-sm text-muted-foreground mb-2">№ Р-93 от 09.09.2019</p>
-                        <p className="text-sm">
+                        <p className="text-sm mb-2">
                           Устанавливает порядок создания и деятельности психолого-педагогических консилиумов в образовательных организациях.
                         </p>
+                        <a href="https://docs.edu.gov.ru/document/6f205375c5b33320e8416ddb5a5704e3/" target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
+                          Официальный документ Минобразования
+                        </a>
                       </div>
 
                       <div className="border rounded-lg p-4">

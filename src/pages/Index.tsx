@@ -4,11 +4,15 @@ import { EducationLevelSelector, EducationLevel } from "@/components/EducationLe
 import { StatisticsPanel } from "@/components/StatisticsPanel";
 import { ConsentForm } from "@/components/ConsentForm";
 import { InstructionsSection } from "@/components/InstructionsSection";
+import { ProtocolForm } from "@/components/ProtocolForm";
+import { PPKList } from "@/components/PPKList";
+import { DifficultiesChecklist } from "@/components/DifficultiesChecklist";
 import { getChecklistData, ChecklistSection } from "@/data/checklistData";
+import { getDifficultiesData, calculateDifficultiesScore, DifficultiesBlock, DifficultiesItem } from "@/data/difficultiesData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Users, Calendar, BookOpen, Download } from "lucide-react";
+import { FileText, Users, Calendar, BookOpen, Download, ClipboardList, Database, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -16,11 +20,17 @@ const Index = () => {
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>(
     getChecklistData("elementary")
   );
+  const [difficultiesBlocks, setDifficultiesBlocks] = useState<DifficultiesBlock[]>(
+    getDifficultiesData("elementary")
+  );
+  const [calculationResult, setCalculationResult] = useState<any>(null);
   const { toast } = useToast();
 
   const handleLevelChange = (level: EducationLevel) => {
     setSelectedLevel(level);
     setChecklistSections(getChecklistData(level));
+    setDifficultiesBlocks(getDifficultiesData(level));
+    setCalculationResult(null);
     toast({
       title: "Уровень образования изменен",
       description: `Загружены чеклисты для ${getLevelName(level)}`,
@@ -50,6 +60,33 @@ const Index = () => {
           : section
       )
     );
+  };
+
+  const handleDifficultyChange = (itemId: string, status: DifficultiesItem["status"]) => {
+    setDifficultiesBlocks(blocks =>
+      blocks.map(block => ({
+        ...block,
+        items: block.items.map(item =>
+          item.id === itemId ? { ...item, status } : item
+        )
+      }))
+    );
+    // Сбрасываем результат расчета при изменении данных
+    setCalculationResult(null);
+  };
+
+  const handleCalculate = () => {
+    const result = calculateDifficultiesScore(difficultiesBlocks);
+    setCalculationResult(result);
+    toast({
+      title: "Расчет завершен",
+      description: `Уровень трудностей: ${result.percentage.toFixed(1)}%`,
+    });
+  };
+
+  const handleProtocolSave = (protocolData: any) => {
+    console.log("Saved protocol:", protocolData);
+    // Здесь можно добавить логику сохранения в базу данных
   };
 
   const generateReport = () => {
@@ -89,11 +126,23 @@ const Index = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="checklists" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+        <Tabs defaultValue="protocol" className="w-full">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
+            <TabsTrigger value="protocol" className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Протокол ППк
+            </TabsTrigger>
             <TabsTrigger value="checklists" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Чеклисты ППк
+              Чеклисты
+            </TabsTrigger>
+            <TabsTrigger value="difficulties" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Трудности
+            </TabsTrigger>
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Список ППк
             </TabsTrigger>
             <TabsTrigger value="documents" className="flex items-center gap-2">
               <Download className="h-4 w-4" />
@@ -104,6 +153,10 @@ const Index = () => {
               Инструкции
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="protocol" className="space-y-6">
+            <ProtocolForm onProtocolSave={handleProtocolSave} />
+          </TabsContent>
 
           <TabsContent value="checklists" className="space-y-6">
             {/* Level Selector */}
@@ -160,6 +213,20 @@ const Index = () => {
                 ))}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="difficulties" className="space-y-6">
+            <DifficultiesChecklist
+              level={selectedLevel}
+              onItemChange={handleDifficultyChange}
+              blocks={difficultiesBlocks}
+              onCalculate={handleCalculate}
+              calculationResult={calculationResult}
+            />
+          </TabsContent>
+
+          <TabsContent value="list" className="space-y-6">
+            <PPKList />
           </TabsContent>
 
           <TabsContent value="documents" className="space-y-6">
