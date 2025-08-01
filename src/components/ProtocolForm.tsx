@@ -6,8 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, ChevronLeft, User, FileText, CheckCircle } from "lucide-react";
+import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList } from "lucide-react";
+import { getProtocolChecklistData, ChecklistBlock } from "@/data/protocolChecklistData";
 
 interface ChildData {
   fullName: string;
@@ -50,6 +53,8 @@ const initialDocuments: DocumentCheck[] = [
 
 export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: ProtocolData) => void }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedLevel, setSelectedLevel] = useState<"preschool" | "elementary" | "middle" | "high">("elementary");
+  const [checklistBlocks, setChecklistBlocks] = useState<ChecklistBlock[]>([]);
   const { toast } = useToast();
   
   const [formData, setFormData] = useState<ProtocolData>({
@@ -88,7 +93,7 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
   };
 
   const nextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -119,11 +124,36 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
     });
   };
 
+  const handleLevelChange = (level: "preschool" | "elementary" | "middle" | "high") => {
+    setSelectedLevel(level);
+    setChecklistBlocks(getProtocolChecklistData(level));
+  };
+
+  const handleChecklistItemChange = (blockId: string, itemId: string, value: 0 | 1) => {
+    setChecklistBlocks(blocks =>
+      blocks.map(block =>
+        block.id === blockId
+          ? {
+              ...block,
+              items: block.items.map(item =>
+                item.id === itemId ? { ...item, score: value } : item
+              )
+            }
+          : block
+      )
+    );
+  };
+
+  const calculateBlockScore = (block: ChecklistBlock) => {
+    return block.items.reduce((sum, item) => sum + item.score, 0);
+  };
+
   const getStepTitle = () => {
     switch (currentStep) {
       case 1: return "Данные ребенка и родителя";
       case 2: return "Проверка документов";
-      case 3: return "Завершение протокола";
+      case 3: return "Чек-лист оценки";
+      case 4: return "Завершение протокола";
       default: return "";
     }
   };
@@ -133,7 +163,7 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Заполнение протокола ППк - Шаг {currentStep} из 3
+          Заполнение протокола ППк - Шаг {currentStep} из 4
         </CardTitle>
         <p className="text-muted-foreground">{getStepTitle()}</p>
       </CardHeader>
@@ -276,8 +306,97 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
           </div>
         )}
 
-        {/* Шаг 3: Завершение протокола */}
+        {/* Шаг 3: Чек-лист оценки */}
         {currentStep === 3 && (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Оценка развития ребенка
+              </h3>
+              <p className="text-muted-foreground">
+                Оцените каждый параметр: 1 - присутствует, 0 - отсутствует
+              </p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Выберите уровень образования</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={selectedLevel} onValueChange={handleLevelChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="preschool">Дошкольное образование</SelectItem>
+                    <SelectItem value="elementary">Начальное образование</SelectItem>
+                    <SelectItem value="middle">Основное образование</SelectItem>
+                    <SelectItem value="high">Среднее образование</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            {checklistBlocks.map((block) => (
+              <Card key={block.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg">{block.title}</CardTitle>
+                    <Badge variant="outline">
+                      Баллов: {calculateBlockScore(block)} / {block.items.length}
+                    </Badge>
+                  </div>
+                  {block.description && (
+                    <p className="text-sm text-muted-foreground">{block.description}</p>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {block.themes.map((theme) => (
+                      <div key={theme.id} className="space-y-3">
+                        <h4 className="font-medium text-primary">{theme.title}</h4>
+                        {theme.subtopics.map((subtopic) => (
+                          <div key={subtopic.id} className="pl-4 space-y-2">
+                            <h5 className="font-medium text-sm">{subtopic.title}</h5>
+                            <div className="pl-4 space-y-2">
+                              {block.items
+                                .filter(item => item.themeId === theme.id && item.subtopicId === subtopic.id)
+                                .map((item) => (
+                                <div key={item.id} className="flex items-start justify-between p-3 border rounded-lg">
+                                  <div className="flex-1">
+                                    <p className="text-sm">{item.description}</p>
+                                  </div>
+                                  <RadioGroup
+                                    value={item.score.toString()}
+                                    onValueChange={(value) => handleChecklistItemChange(block.id, item.id, parseInt(value) as 0 | 1)}
+                                    className="flex flex-row space-x-4 ml-4"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="0" id={`${item.id}-0`} />
+                                      <Label htmlFor={`${item.id}-0`} className="text-sm">0</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="1" id={`${item.id}-1`} />
+                                      <Label htmlFor={`${item.id}-1`} className="text-sm">1</Label>
+                                    </div>
+                                  </RadioGroup>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Шаг 4: Завершение протокола */}
+        {currentStep === 4 && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -350,7 +469,7 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
             Назад
           </Button>
           
-          {currentStep < 3 ? (
+          {currentStep < 4 ? (
             <Button onClick={nextStep}>
               Далее
               <ChevronRight className="h-4 w-4 ml-2" />
