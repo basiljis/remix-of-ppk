@@ -28,8 +28,24 @@ export interface ChecklistBlock {
 export const getProtocolChecklistData = (level: "preschool" | "elementary" | "middle" | "high"): ChecklistBlock[] => {
   const baseBlocks: ChecklistBlock[] = [
     {
+      id: "speech",
+      title: "РЕЧЕВОЙ БЛОК",
+      description: "Оценка речевого развития ребенка",
+      themes: [
+        {
+          id: "pronunciation-errors",
+          title: "Ошибки в произносительной стороне речи (ДО, НОО ООО)",
+          subtopics: [
+            { id: "sound-side", title: "Звуковая сторона речи согласно возрастной норме" },
+            { id: "general-blur", title: "Общая «смазанность» речи" }
+          ]
+        }
+      ],
+      items: []
+    },
+    {
       id: "cognitive",
-      title: "Познавательное развитие",
+      title: "ПОЗНАВАТЕЛЬНЫЙ БЛОК",
       description: "Оценка когнитивных способностей и познавательных процессов",
       themes: [
         {
@@ -57,41 +73,6 @@ export const getProtocolChecklistData = (level: "preschool" | "elementary" | "mi
             { id: "logical", title: "Логическое мышление" },
             { id: "abstract", title: "Абстрактное мышление" },
             { id: "creative", title: "Творческое мышление" }
-          ]
-        }
-      ],
-      items: []
-    },
-    {
-      id: "speech",
-      title: "Речевое развитие",
-      description: "Оценка развития речи и коммуникативных навыков",
-      themes: [
-        {
-          id: "phonetics",
-          title: "Фонетическая сторона речи",
-          subtopics: [
-            { id: "pronunciation", title: "Произношение звуков" },
-            { id: "phonemic", title: "Фонематический слух" },
-            { id: "rhythm", title: "Ритмико-интонационная сторона" }
-          ]
-        },
-        {
-          id: "vocabulary",
-          title: "Лексическая сторона речи",
-          subtopics: [
-            { id: "active", title: "Активный словарь" },
-            { id: "passive", title: "Пассивный словарь" },
-            { id: "understanding", title: "Понимание значений слов" }
-          ]
-        },
-        {
-          id: "grammar",
-          title: "Грамматическая сторона речи",
-          subtopics: [
-            { id: "morphology", title: "Морфологический строй" },
-            { id: "syntax", title: "Синтаксический строй" },
-            { id: "wordformation", title: "Словообразование" }
           ]
         }
       ],
@@ -188,15 +169,13 @@ const addPreschoolItems = (blocks: ChecklistBlock[]): ChecklistBlock[] => {
         return {
           ...block,
           items: [
-            { id: "ph_1", description: "Произносит все звуки родного языка", score: 0, themeId: "phonetics", subtopicId: "pronunciation" },
-            { id: "ph_2", description: "Различает звуки в словах", score: 0, themeId: "phonetics", subtopicId: "phonemic" },
-            { id: "ph_3", description: "Использует интонацию при общении", score: 0, themeId: "phonetics", subtopicId: "rhythm" },
-            { id: "voc_1", description: "Активно использует словарь 3000-4000 слов", score: 0, themeId: "vocabulary", subtopicId: "active" },
-            { id: "voc_2", description: "Понимает значение большинства слов", score: 0, themeId: "vocabulary", subtopicId: "passive" },
-            { id: "voc_3", description: "Объясняет значение знакомых слов", score: 0, themeId: "vocabulary", subtopicId: "understanding" },
-            { id: "gr_1", description: "Правильно изменяет слова по родам, числам", score: 0, themeId: "grammar", subtopicId: "morphology" },
-            { id: "gr_2", description: "Строит простые и сложные предложения", score: 0, themeId: "grammar", subtopicId: "syntax" },
-            { id: "gr_3", description: "Образует новые слова", score: 0, themeId: "grammar", subtopicId: "wordformation" }
+            { id: "speech_1", description: "испытывает трудности при произнесении звуков: пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_2", description: "испытывает трудности, когда произносит слова, состоящие из 2-х и более слогов", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_3", description: "пропускает звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_4", description: "произносит лишние звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_5", description: "меняет звуки/слоги местами", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_6", description: "недоговаривает окончания", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_7", description: "может произносить звуки по отдельности правильно, а в слове или предложении пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "general-blur" }
           ]
         };
       case "emotional":
@@ -251,15 +230,13 @@ const addElementaryItems = (blocks: ChecklistBlock[]): ChecklistBlock[] => {
         return {
           ...block,
           items: [
-            { id: "ph_1", description: "Четко произносит все звуки в речи", score: 0, themeId: "phonetics", subtopicId: "pronunciation" },
-            { id: "ph_2", description: "Различает звуки при письме и чтении", score: 0, themeId: "phonetics", subtopicId: "phonemic" },
-            { id: "ph_3", description: "Использует выразительность речи при чтении", score: 0, themeId: "phonetics", subtopicId: "rhythm" },
-            { id: "voc_1", description: "Активно использует школьную лексику", score: 0, themeId: "vocabulary", subtopicId: "active" },
-            { id: "voc_2", description: "Понимает значение учебных терминов", score: 0, themeId: "vocabulary", subtopicId: "passive" },
-            { id: "voc_3", description: "Объясняет значение слов из учебников", score: 0, themeId: "vocabulary", subtopicId: "understanding" },
-            { id: "gr_1", description: "Правильно склоняет и спрягает слова", score: 0, themeId: "grammar", subtopicId: "morphology" },
-            { id: "gr_2", description: "Строит распространенные предложения", score: 0, themeId: "grammar", subtopicId: "syntax" },
-            { id: "gr_3", description: "Образует слова с помощью приставок и суффиксов", score: 0, themeId: "grammar", subtopicId: "wordformation" }
+            { id: "speech_1", description: "испытывает трудности при произнесении звуков: пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_2", description: "испытывает трудности, когда произносит слова, состоящие из 2-х и более слогов", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_3", description: "пропускает звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_4", description: "произносит лишние звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_5", description: "меняет звуки/слоги местами", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_6", description: "недоговаривает окончания", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_7", description: "может произносить звуки по отдельности правильно, а в слове или предложении пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "general-blur" }
           ]
         };
       case "emotional":
@@ -314,15 +291,13 @@ const addMiddleItems = (blocks: ChecklistBlock[]): ChecklistBlock[] => {
         return {
           ...block,
           items: [
-            { id: "ph_1", description: "Владеет орфоэпическими нормами языка", score: 0, themeId: "phonetics", subtopicId: "pronunciation" },
-            { id: "ph_2", description: "Различает фонетические особенности слов", score: 0, themeId: "phonetics", subtopicId: "phonemic" },
-            { id: "ph_3", description: "Использует интонацию для выражения смысла", score: 0, themeId: "phonetics", subtopicId: "rhythm" },
-            { id: "voc_1", description: "Активно использует предметную лексику", score: 0, themeId: "vocabulary", subtopicId: "active" },
-            { id: "voc_2", description: "Понимает научную терминологию", score: 0, themeId: "vocabulary", subtopicId: "passive" },
-            { id: "voc_3", description: "Работает со словарями и справочниками", score: 0, themeId: "vocabulary", subtopicId: "understanding" },
-            { id: "gr_1", description: "Применяет сложные грамматические конструкции", score: 0, themeId: "grammar", subtopicId: "morphology" },
-            { id: "gr_2", description: "Строит сложные синтаксические конструкции", score: 0, themeId: "grammar", subtopicId: "syntax" },
-            { id: "gr_3", description: "Анализирует словообразовательные модели", score: 0, themeId: "grammar", subtopicId: "wordformation" }
+            { id: "speech_1", description: "испытывает трудности при произнесении звуков: пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_2", description: "испытывает трудности, когда произносит слова, состоящие из 2-х и более слогов", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_3", description: "пропускает звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_4", description: "произносит лишние звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_5", description: "меняет звуки/слоги местами", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_6", description: "недоговаривает окончания", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_7", description: "может произносить звуки по отдельности правильно, а в слове или предложении пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "general-blur" }
           ]
         };
       case "emotional":
@@ -377,15 +352,13 @@ const addHighItems = (blocks: ChecklistBlock[]): ChecklistBlock[] => {
         return {
           ...block,
           items: [
-            { id: "ph_1", description: "Владеет нормами литературного произношения", score: 0, themeId: "phonetics", subtopicId: "pronunciation" },
-            { id: "ph_2", description: "Анализирует фонетические процессы в языке", score: 0, themeId: "phonetics", subtopicId: "phonemic" },
-            { id: "ph_3", description: "Использует просодические средства выразительности", score: 0, themeId: "phonetics", subtopicId: "rhythm" },
-            { id: "voc_1", description: "Владеет профессиональной лексикой", score: 0, themeId: "vocabulary", subtopicId: "active" },
-            { id: "voc_2", description: "Понимает специализированные тексты", score: 0, themeId: "vocabulary", subtopicId: "passive" },
-            { id: "voc_3", description: "Анализирует семантические отношения", score: 0, themeId: "vocabulary", subtopicId: "understanding" },
-            { id: "gr_1", description: "Владеет сложными морфологическими формами", score: 0, themeId: "grammar", subtopicId: "morphology" },
-            { id: "gr_2", description: "Создает сложные синтаксические структуры", score: 0, themeId: "grammar", subtopicId: "syntax" },
-            { id: "gr_3", description: "Анализирует деривационные процессы", score: 0, themeId: "grammar", subtopicId: "wordformation" }
+            { id: "speech_1", description: "испытывает трудности при произнесении звуков: пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_2", description: "испытывает трудности, когда произносит слова, состоящие из 2-х и более слогов", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_3", description: "пропускает звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_4", description: "произносит лишние звуки/слоги", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_5", description: "меняет звуки/слоги местами", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_6", description: "недоговаривает окончания", score: 0, themeId: "pronunciation-errors", subtopicId: "sound-side" },
+            { id: "speech_7", description: "может произносить звуки по отдельности правильно, а в слове или предложении пропускает, искажает, заменяет, смешивает", score: 0, themeId: "pronunciation-errors", subtopicId: "general-blur" }
           ]
         };
       case "emotional":

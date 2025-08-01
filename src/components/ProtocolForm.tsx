@@ -152,8 +152,8 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
     switch (currentStep) {
       case 1: return "Данные ребенка и родителя";
       case 2: return "Проверка документов";
-      case 3: return "Чек-лист оценки";
-      case 4: return "Завершение протокола";
+      case 3: return "Завершение протокола";
+      case 4: return "Чек-лист оценки";
       default: return "";
     }
   };
@@ -198,12 +198,35 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                 </div>
                 <div>
                   <Label htmlFor="age">Возраст *</Label>
-                  <Input
-                    id="age"
-                    value={formData.childData.age}
-                    onChange={(e) => updateChildData("age", e.target.value)}
-                    placeholder="7 лет"
-                  />
+                  <Select value={formData.childData.age} onValueChange={(value) => {
+                    updateChildData("age", value);
+                    // Автоматическое определение уровня образования по возрасту
+                    const ageNum = parseInt(value);
+                    if (ageNum >= 3 && ageNum <= 6) {
+                      setSelectedLevel("preschool");
+                      setChecklistBlocks(getProtocolChecklistData("preschool"));
+                    } else if (ageNum >= 7 && ageNum <= 10) {
+                      setSelectedLevel("elementary");
+                      setChecklistBlocks(getProtocolChecklistData("elementary"));
+                    } else if (ageNum >= 11 && ageNum <= 15) {
+                      setSelectedLevel("middle");
+                      setChecklistBlocks(getProtocolChecklistData("middle"));
+                    } else if (ageNum >= 16 && ageNum <= 18) {
+                      setSelectedLevel("high");
+                      setChecklistBlocks(getProtocolChecklistData("high"));
+                    }
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите возраст" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 16 }, (_, i) => i + 3).map(age => (
+                        <SelectItem key={age} value={age.toString()}>
+                          {age} {age === 1 ? 'год' : age <= 4 ? 'года' : 'лет'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="class">Класс/группа *</Label>
@@ -306,97 +329,8 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
           </div>
         )}
 
-        {/* Шаг 3: Чек-лист оценки */}
+        {/* Шаг 3: Завершение протокола */}
         {currentStep === 3 && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
-                <ClipboardList className="h-5 w-5" />
-                Оценка развития ребенка
-              </h3>
-              <p className="text-muted-foreground">
-                Оцените каждый параметр: 1 - присутствует, 0 - отсутствует
-              </p>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Выберите уровень образования</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Select value={selectedLevel} onValueChange={handleLevelChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="preschool">Дошкольное образование</SelectItem>
-                    <SelectItem value="elementary">Начальное образование</SelectItem>
-                    <SelectItem value="middle">Основное образование</SelectItem>
-                    <SelectItem value="high">Среднее образование</SelectItem>
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-
-            {checklistBlocks.map((block) => (
-              <Card key={block.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg">{block.title}</CardTitle>
-                    <Badge variant="outline">
-                      Баллов: {calculateBlockScore(block)} / {block.items.length}
-                    </Badge>
-                  </div>
-                  {block.description && (
-                    <p className="text-sm text-muted-foreground">{block.description}</p>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {block.themes.map((theme) => (
-                      <div key={theme.id} className="space-y-3">
-                        <h4 className="font-medium text-primary">{theme.title}</h4>
-                        {theme.subtopics.map((subtopic) => (
-                          <div key={subtopic.id} className="pl-4 space-y-2">
-                            <h5 className="font-medium text-sm">{subtopic.title}</h5>
-                            <div className="pl-4 space-y-2">
-                              {block.items
-                                .filter(item => item.themeId === theme.id && item.subtopicId === subtopic.id)
-                                .map((item) => (
-                                <div key={item.id} className="flex items-start justify-between p-3 border rounded-lg">
-                                  <div className="flex-1">
-                                    <p className="text-sm">{item.description}</p>
-                                  </div>
-                                  <RadioGroup
-                                    value={item.score.toString()}
-                                    onValueChange={(value) => handleChecklistItemChange(block.id, item.id, parseInt(value) as 0 | 1)}
-                                    className="flex flex-row space-x-4 ml-4"
-                                  >
-                                    <div className="flex items-center space-x-2">
-                                      <RadioGroupItem value="0" id={`${item.id}-0`} />
-                                      <Label htmlFor={`${item.id}-0`} className="text-sm">0</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <RadioGroupItem value="1" id={`${item.id}-1`} />
-                                      <Label htmlFor={`${item.id}-1`} className="text-sm">1</Label>
-                                    </div>
-                                  </RadioGroup>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Шаг 4: Завершение протокола */}
-        {currentStep === 4 && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -450,11 +384,102 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
               <h4 className="font-semibold mb-2">Сводка по протоколу:</h4>
               <ul className="text-sm space-y-1">
                 <li>• Ребенок: {formData.childData.fullName || "Не указано"}</li>
+                <li>• Возраст: {formData.childData.age || "Не указано"}</li>
+                <li>• Уровень образования: {
+                  selectedLevel === "preschool" ? "Дошкольное" :
+                  selectedLevel === "elementary" ? "Начальное" :
+                  selectedLevel === "middle" ? "Основное" : "Среднее"
+                }</li>
                 <li>• Тип консультации: {formData.consultationType === "primary" ? "Первичная" : "Вторичная"}</li>
                 <li>• Документов предоставлено: {formData.documents.filter(d => d.present).length} из {formData.documents.length}</li>
                 <li>• Обязательных документов: {formData.documents.filter(d => d.required && d.present).length} из {formData.documents.filter(d => d.required).length}</li>
               </ul>
             </div>
+          </div>
+        )}
+
+        {/* Шаг 4: Чек-лист оценки */}
+        {currentStep === 4 && (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Оценка развития ребенка
+              </h3>
+              <p className="text-muted-foreground">
+                Оцените каждый параметр: Да - есть трудности, Нет - нет трудностей
+              </p>
+            </div>
+
+            {!checklistBlocks.length && (
+              <div className="text-center p-6 bg-muted/50 rounded-lg">
+                <p className="text-muted-foreground">
+                  Выберите возраст ребенка на первом шаге для загрузки соответствующего чек-листа
+                </p>
+              </div>
+            )}
+
+            {checklistBlocks.map((block, blockIndex) => (
+              <div key={block.id}>
+                {blockIndex > 0 && <div className="border-t my-6"></div>}
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-xl font-bold">{block.title}</CardTitle>
+                      <Badge variant="outline" className="text-base px-3 py-1">
+                        Баллов: {calculateBlockScore(block)} / {block.items.length}
+                      </Badge>
+                    </div>
+                    {block.description && (
+                      <p className="text-sm text-muted-foreground">{block.description}</p>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {block.themes.map((theme) => (
+                        <div key={theme.id} className="space-y-4">
+                          <div className="border-l-4 border-primary pl-4">
+                            <h4 className="text-lg font-semibold text-primary">{theme.title}</h4>
+                          </div>
+                          {theme.subtopics.map((subtopic) => (
+                            <div key={subtopic.id} className="pl-6 space-y-3">
+                              <h5 className="text-base font-medium text-foreground bg-muted/50 p-2 rounded">
+                                {subtopic.title}
+                              </h5>
+                              <div className="pl-4 space-y-3">
+                                {block.items
+                                  .filter(item => item.themeId === theme.id && item.subtopicId === subtopic.id)
+                                  .map((item) => (
+                                  <div key={item.id} className="flex items-start justify-between p-4 border rounded-lg bg-background">
+                                    <div className="flex-1 pr-4">
+                                      <p className="text-sm leading-relaxed">{item.description}</p>
+                                    </div>
+                                    <RadioGroup
+                                      value={item.score.toString()}
+                                      onValueChange={(value) => handleChecklistItemChange(block.id, item.id, parseInt(value) as 0 | 1)}
+                                      className="flex flex-row space-x-6"
+                                    >
+                                      <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="0" id={`${item.id}-0`} />
+                                        <Label htmlFor={`${item.id}-0`} className="text-sm font-medium cursor-pointer">Нет</Label>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="1" id={`${item.id}-1`} />
+                                        <Label htmlFor={`${item.id}-1`} className="text-sm font-medium cursor-pointer">Да</Label>
+                                      </div>
+                                    </RadioGroup>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
           </div>
         )}
 
