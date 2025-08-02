@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { getProtocolChecklistData, ChecklistBlock } from "@/data/protocolChecklistData";
+import { getProtocolChecklistData, ChecklistBlock, ChecklistItem, updateItemScore, calculateBlockScore } from "@/data/protocolChecklistData";
 
 interface ChildData {
   fullName: string;
@@ -130,23 +130,8 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
     setChecklistBlocks(getProtocolChecklistData(level));
   };
 
-  const handleChecklistItemChange = (blockId: string, itemId: string, value: 0 | 1) => {
-    setChecklistBlocks(blocks =>
-      blocks.map(block =>
-        block.id === blockId
-          ? {
-              ...block,
-              items: block.items.map(item =>
-                item.id === itemId ? { ...item, score: value } : item
-              )
-            }
-          : block
-      )
-    );
-  };
-
-  const calculateBlockScore = (block: ChecklistBlock) => {
-    return block.items.reduce((sum, item) => sum + item.score, 0);
+  const handleChecklistItemChange = (itemId: string, value: 0 | 1) => {
+    setChecklistBlocks(blocks => updateItemScore(blocks, itemId, value));
   };
 
   const getStepTitle = () => {
@@ -487,9 +472,6 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                         Баллов: {calculateBlockScore(block)} / {block.items.length}
                       </Badge>
                     </div>
-                    {block.description && (
-                      <p className="text-sm text-muted-foreground">{block.description}</p>
-                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
@@ -505,24 +487,24 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                               </h5>
                               <div className="pl-4 space-y-3">
                                 {block.items
-                                  .filter(item => item.themeId === theme.id && item.subtopicId === subtopic.id)
+                                  .filter(item => item.topic === theme.title && item.subtopic === subtopic.title)
                                   .map((item) => (
-                                  <div key={item.id} className="flex items-start justify-between p-4 border rounded-lg bg-background">
+                                  <div key={item.checklist_item_id} className="flex items-start justify-between p-4 border rounded-lg bg-background">
                                     <div className="flex-1 pr-4">
                                       <p className="text-sm leading-relaxed">{item.description}</p>
                                     </div>
                                     <RadioGroup
-                                      value={item.score.toString()}
-                                      onValueChange={(value) => handleChecklistItemChange(block.id, item.id, parseInt(value) as 0 | 1)}
+                                      value={item.score?.toString() || "0"}
+                                      onValueChange={(value) => handleChecklistItemChange(item.checklist_item_id, parseInt(value) as 0 | 1)}
                                       className="flex flex-row space-x-6"
                                     >
                                       <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="0" id={`${item.id}-0`} />
-                                        <Label htmlFor={`${item.id}-0`} className="text-sm font-medium cursor-pointer">Нет</Label>
+                                        <RadioGroupItem value="0" id={`${item.checklist_item_id}-0`} />
+                                        <Label htmlFor={`${item.checklist_item_id}-0`} className="text-sm font-medium cursor-pointer">Нет</Label>
                                       </div>
                                       <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="1" id={`${item.id}-1`} />
-                                        <Label htmlFor={`${item.id}-1`} className="text-sm font-medium cursor-pointer">Да</Label>
+                                        <RadioGroupItem value="1" id={`${item.checklist_item_id}-1`} />
+                                        <Label htmlFor={`${item.checklist_item_id}-1`} className="text-sm font-medium cursor-pointer">Да</Label>
                                       </div>
                                     </RadioGroup>
                                   </div>
