@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData, ChecklistBlock } from "@/data/protocolChecklistData";
 
 interface ChildData {
@@ -158,6 +159,43 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
     }
   };
 
+  const calculateProgress = () => {
+    let progress = 0;
+    
+    // Шаг 1: проверка заполнения основных полей
+    const requiredFields = [
+      formData.childData.fullName,
+      formData.childData.birthDate,
+      formData.childData.age,
+      formData.childData.class,
+      formData.childData.parentName,
+      formData.childData.parentPhone,
+      formData.childData.whobrought
+    ];
+    const filledFields = requiredFields.filter(field => field.trim() !== "").length;
+    progress += (filledFields / requiredFields.length) * 25;
+    
+    // Шаг 2: проверка документов
+    const requiredDocs = formData.documents.filter(doc => doc.required);
+    const presentRequiredDocs = requiredDocs.filter(doc => doc.present);
+    progress += (presentRequiredDocs.length / requiredDocs.length) * 25;
+    
+    // Шаг 3: завершение протокола
+    const protocolFields = [formData.consultationDate, formData.reason];
+    const filledProtocolFields = protocolFields.filter(field => field.trim() !== "").length;
+    progress += (filledProtocolFields / protocolFields.length) * 25;
+    
+    // Шаг 4: чек-лист
+    const totalChecklistItems = checklistBlocks.reduce((sum, block) => sum + block.items.length, 0);
+    const filledChecklistItems = checklistBlocks.reduce((sum, block) => 
+      sum + block.items.filter(item => item.score !== undefined).length, 0);
+    if (totalChecklistItems > 0) {
+      progress += (filledChecklistItems / totalChecklistItems) * 25;
+    }
+    
+    return Math.round(progress);
+  };
+
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
@@ -166,6 +204,13 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
           Заполнение протокола ППк - Шаг {currentStep} из 4
         </CardTitle>
         <p className="text-muted-foreground">{getStepTitle()}</p>
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-muted-foreground">Прогресс заполнения</span>
+            <span className="text-sm font-medium">{calculateProgress()}%</span>
+          </div>
+          <Progress value={calculateProgress()} className="w-full" />
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         
@@ -289,12 +334,24 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                 </div>
                 <div>
                   <Label htmlFor="relationship">Степень родства</Label>
-                  <Input
-                    id="relationship"
-                    value={formData.childData.relationship}
-                    onChange={(e) => updateChildData("relationship", e.target.value)}
-                    placeholder="мать, отец, опекун..."
-                  />
+                  <Select value={formData.childData.relationship} onValueChange={(value) => updateChildData("relationship", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите степень родства" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mother">Мать</SelectItem>
+                      <SelectItem value="father">Отец</SelectItem>
+                      <SelectItem value="guardian">Опекун</SelectItem>
+                      <SelectItem value="trustee">Попечитель</SelectItem>
+                      <SelectItem value="grandmother">Бабушка</SelectItem>
+                      <SelectItem value="grandfather">Дедушка</SelectItem>
+                      <SelectItem value="aunt">Тетя</SelectItem>
+                      <SelectItem value="uncle">Дядя</SelectItem>
+                      <SelectItem value="sister">Сестра</SelectItem>
+                      <SelectItem value="brother">Брат</SelectItem>
+                      <SelectItem value="other">Другой родственник</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
