@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Download } from "lucide-react";
+import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData, ChecklistBlock, ChecklistItem, updateItemScore, calculateBlockScore } from "@/data/protocolChecklistData";
 
@@ -205,7 +205,7 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
             <div>
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Информация о ребенке и степень родства заявителя
+                Информация о ребенке
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -318,7 +318,7 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="relationship">Степень родства заявителя *</Label>
+                  <Label htmlFor="relationship">Степень родства</Label>
                   <Select value={formData.childData.relationship} onValueChange={(value) => updateChildData("relationship", value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите степень родства" />
@@ -338,93 +338,6 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </div>
-
-            {/* Генерация документов */}
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Генерация документов
-              </h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="consultationDatePDF">Дата консилиума</Label>
-                    <Input
-                      id="consultationDatePDF"
-                      type="date"
-                      value={formData.consultationDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, consultationDate: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="consultationReasonPDF">Цель обследования</Label>
-                    <Textarea
-                      id="consultationReasonPDF"
-                      value={formData.reason}
-                      onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-                      placeholder="Определение особых образовательных потребностей..."
-                      className="min-h-20"
-                    />
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => {
-                    // Простая генерация PDF без дополнительных библиотек
-                    const printWindow = window.open('', '_blank');
-                    if (printWindow) {
-                      printWindow.document.write(`
-                        <html>
-                          <head>
-                            <title>Согласие родителя</title>
-                            <style>
-                              body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
-                              .header { text-align: center; margin-bottom: 30px; }
-                              .content { margin: 20px 0; }
-                              .signature { margin-top: 50px; }
-                            </style>
-                          </head>
-                          <body>
-                            <div class="header">
-                              <h2>СОГЛАСИЕ РОДИТЕЛЯ (ЗАКОННОГО ПРЕДСТАВИТЕЛЯ)</h2>
-                              <h3>НА ПРОВЕДЕНИЕ ПСИХОЛОГО-ПЕДАГОГИЧЕСКОГО ОБСЛЕДОВАНИЯ РЕБЕНКА</h3>
-                            </div>
-                            <div class="content">
-                              <p><strong>Дата:</strong> ${new Date().toLocaleDateString()}</p>
-                              <p>Я, ${formData.childData.parentName || "___________________"}, являясь родителем (законным представителем) ребенка ${formData.childData.fullName || "___________________"}, обучающегося в ${formData.childData.class || "____"} классе, даю согласие на проведение психолого-педагогического обследования моего ребенка в рамках деятельности психолого-педагогического консилиума образовательной организации.</p>
-                              <p><strong>Цель обследования:</strong> ${formData.reason || "Определение особых образовательных потребностей обучающегося и выработка рекомендаций по организации психолого-педагогического сопровождения."}</p>
-                              <p><strong>Дата проведения консилиума:</strong> ${formData.consultationDate || "___________________"}</p>
-                              <p>Я ознакомлен(а) с тем, что:</p>
-                              <ul>
-                                <li>имею право получить информацию о результатах обследования;</li>
-                                <li>имею право присутствовать при обследовании;</li>
-                                <li>данное согласие действует до окончания обследования;</li>
-                                <li>согласие может быть отозвано мною в письменной форме.</li>
-                              </ul>
-                            </div>
-                            <div class="signature">
-                              <p>Родитель (законный представитель): _________________ / ${formData.childData.parentName || "___________________"} /</p>
-                              <p>Телефон: ${formData.childData.parentPhone || "___________________"}</p>
-                              <p>Дата: ___________________</p>
-                            </div>
-                          </body>
-                        </html>
-                      `);
-                      printWindow.document.close();
-                      printWindow.print();
-                    }
-                    
-                    toast({
-                      title: "Документ готов к печати",
-                      description: "Согласие родителя открыто для печати",
-                    });
-                  }}
-                  className="w-full"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Сгенерировать согласие родителя
-                </Button>
               </div>
             </div>
           </div>
