@@ -59,13 +59,15 @@ export const PPKList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterReason, setFilterReason] = useState<string>("all");
   const [selectedRecord, setSelectedRecord] = useState<PPKRecord | null>(null);
 
   const filteredRecords = records.filter(record => {
     const matchesSearch = record.childName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || record.status === filterStatus;
     const matchesType = filterType === "all" || record.consultationType === filterType;
-    return matchesSearch && matchesStatus && matchesType;
+    const matchesReason = filterReason === "all" || record.reason.toLowerCase().includes(filterReason.toLowerCase());
+    return matchesSearch && matchesStatus && matchesType && matchesReason;
   });
 
   const getStatusBadge = (status: PPKRecord["status"]) => {
@@ -129,6 +131,19 @@ export const PPKList = () => {
                 <SelectItem value="all">Все типы</SelectItem>
                 <SelectItem value="primary">Первичные</SelectItem>
                 <SelectItem value="secondary">Вторичные</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterReason} onValueChange={setFilterReason}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Причина" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все причины</SelectItem>
+                <SelectItem value="трудности в освоении">Трудности в освоении программы</SelectItem>
+                <SelectItem value="повторное обследование">Повторное обследование</SelectItem>
+                <SelectItem value="социальная дезадаптация">Социальная дезадаптация</SelectItem>
+                <SelectItem value="нарушения речи">Нарушения речи</SelectItem>
+                <SelectItem value="поведенческие нарушения">Поведенческие нарушения</SelectItem>
               </SelectContent>
             </Select>
             <Button>

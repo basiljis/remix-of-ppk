@@ -23,6 +23,7 @@ interface ChildData {
   parentPhone: string;
   whobrought: string;
   relationship: string;
+  educationalOrganization: string;
 }
 
 interface DocumentCheck {
@@ -68,7 +69,8 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
       parentName: "",
       parentPhone: "",
       whobrought: "",
-      relationship: ""
+      relationship: "",
+      educationalOrganization: ""
     },
     documents: initialDocuments,
     consultationType: "primary",
@@ -205,7 +207,7 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
             <div>
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Информация о ребенке
+                Информация о ребенке и степень родства заявителя
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -267,7 +269,16 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                     placeholder="1А"
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div>
+                  <Label htmlFor="educationalOrganization">Образовательная организация</Label>
+                  <Input
+                    id="educationalOrganization"
+                    value={formData.childData.educationalOrganization}
+                    onChange={(e) => updateChildData("educationalOrganization", e.target.value)}
+                    placeholder="МБОУ СОШ №1"
+                  />
+                </div>
+                <div>
                   <Label htmlFor="address">Адрес проживания</Label>
                   <Input
                     id="address"
@@ -374,6 +385,32 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
         {/* Шаг 3: Завершение протокола */}
         {currentStep === 3 && (
           <div className="space-y-6">
+            {/* Генерация документов */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Генерация документов
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button variant="outline" className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Протокол ППк
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Заключение ППк
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Представление педагога
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Характеристика обучающегося
+                </Button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="consultationType">Тип консультации *</Label>

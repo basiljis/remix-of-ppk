@@ -127,7 +127,7 @@ const Index = () => {
         </div>
 
         <Tabs defaultValue="protocol" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="protocol" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
               Протокол ППк
@@ -143,10 +143,6 @@ const Index = () => {
             <TabsTrigger value="list" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               Список ППк
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Документы
             </TabsTrigger>
             <TabsTrigger value="instructions" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
@@ -229,12 +225,9 @@ const Index = () => {
             <PPKList />
           </TabsContent>
 
-          <TabsContent value="documents" className="space-y-6">
-            <ConsentForm />
-          </TabsContent>
-
           <TabsContent value="instructions" className="space-y-6">
             <InstructionsSection />
+            <ConsentForm />
           </TabsContent>
         </Tabs>
       </div>

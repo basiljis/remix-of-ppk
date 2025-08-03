@@ -40,8 +40,25 @@ export interface ChecklistBlock {
   blockScore: number;
 }
 
-// Полный набор данных чек-листа согласно предоставленной структуре
-const checklistData: ChecklistItem[] = [
+// Функция для разбиения описания на подэлементы
+const splitDescriptionIntoItems = (baseItem: ChecklistItem): ChecklistItem[] => {
+  const descriptions = baseItem.description.split(';').map(desc => desc.trim()).filter(desc => desc.length > 0);
+  
+  if (descriptions.length <= 1) {
+    return [baseItem];
+  }
+  
+  return descriptions.map((desc, index) => ({
+    ...baseItem,
+    checklist_item_id: `${baseItem.checklist_item_id}_${index + 1}`,
+    description: desc,
+    score_0_label: "нет",
+    score_1_label: "да"
+  }));
+};
+
+// Базовые данные чек-листа
+const baseChecklistData: ChecklistItem[] = [
   {
     checklist_item_id: "001",
     block: "I РЕЧЕВОЙ БЛОК",
@@ -55,8 +72,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Звуковая сторона речи",
     subtopic_order: 1,
     description: "испытывает трудности при произнесении звуков: пропускает, искажает, заменяет, смешивает; испытывает трудности, когда произносит слова, состоящие из 2-х и более слогов; пропускает звуки/слоги; произносит лишние звуки/слоги; меняет звуки/слоги местами; недоговаривает окончания",
-    score_0_label: "Звуковая сторона речи согласно возрастной норме",
-    score_1_label: "испытывает трудности при произнесении звуков: пропускает, искажает, заменяет, смешивает",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -73,8 +90,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Общая «смазанность» речи",
     subtopic_order: 2,
     description: "может произносить звуки по отдельности правильно, а в слове или предложении пропускает, искажает, заменяет, смешивает",
-    score_0_label: "Произношение четкое, внятное",
-    score_1_label: "может произносить звуки по отдельности правильно, а в слове или предложении пропускает, искажает, заменяет, смешивает",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -91,8 +108,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Концентрация внимания",
     subtopic_order: 1,
     description: "не может сосредоточиться на задании; легко отвлекается на внешние стимулы; не доводит начатое дело до конца",
-    score_0_label: "Внимание соответствует возрастной норме",
-    score_1_label: "не может сосредоточиться на задании; легко отвлекается на внешние стимулы; не доводит начатое дело до конца",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -109,8 +126,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Переключение внимания",
     subtopic_order: 2,
     description: "испытывает трудности при переключении с одного вида деятельности на другой; застревает на выполнении одного задания",
-    score_0_label: "Переключается легко и быстро",
-    score_1_label: "испытывает трудности при переключении с одного вида деятельности на другой; застревает на выполнении одного задания",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -127,8 +144,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Зрительная память",
     subtopic_order: 1,
     description: "не запоминает зрительно предъявленную информацию; путает детали изображений; не может воспроизвести последовательность зрительных стимулов",
-    score_0_label: "Зрительная память соответствует возрасту",
-    score_1_label: "не запоминает зрительно предъявленную информацию; путает детали изображений; не может воспроизвести последовательность зрительных стимулов",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -145,8 +162,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Слуховая память",
     subtopic_order: 2,
     description: "не запоминает на слух информацию; не может повторить ряд слов; забывает устные инструкции",
-    score_0_label: "Слуховая память в норме",
-    score_1_label: "не запоминает на слух информацию; не может повторить ряд слов; забывает устные инструкции",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -163,8 +180,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Выражение эмоций",
     subtopic_order: 1,
     description: "не умеет адекватно выражать эмоции; проявляет неадекватные эмоциональные реакции; эмоции не соответствуют ситуации",
-    score_0_label: "Адекватно выражает эмоции",
-    score_1_label: "не умеет адекватно выражать эмоции; проявляет неадекватные эмоциональные реакции; эмоции не соответствуют ситуации",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -181,8 +198,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Самоконтроль",
     subtopic_order: 1,
     description: "не может контролировать свое поведение; импульсивен; действует необдуманно; не соблюдает правила",
-    score_0_label: "Самоконтроль соответствует возрасту",
-    score_1_label: "не может контролировать свое поведение; импульсивен; действует необдуманно; не соблюдает правила",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -199,8 +216,8 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Вербальная коммуникация",
     subtopic_order: 1,
     description: "не инициирует общение; избегает общения; не отвечает на вопросы; речь неразборчива или неадекватна ситуации",
-    score_0_label: "Коммуникация соответствует возрасту",
-    score_1_label: "не инициирует общение; избегает общения; не отвечает на вопросы; речь неразборчива или неадекватна ситуации",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   },
@@ -217,12 +234,15 @@ const checklistData: ChecklistItem[] = [
     subtopic: "Взаимодействие со сверстниками",
     subtopic_order: 1,
     description: "избегает контакта со сверстниками; конфликтует с другими детьми; не умеет играть совместно; не делится; не может договориться",
-    score_0_label: "Взаимодействует адекватно возрасту",
-    score_1_label: "избегает контакта со сверстниками; конфликтует с другими детьми; не умеет играть совместно; не делится; не может договориться",
+    score_0_label: "нет",
+    score_1_label: "да",
     score: 0,
     weight: 1.0
   }
 ];
+
+// Обрабатываем базовые данные и разбиваем descriptions
+const checklistData: ChecklistItem[] = baseChecklistData.flatMap(item => splitDescriptionIntoItems(item));
 
 export const getProtocolChecklistData = (level: "preschool" | "elementary" | "middle" | "high"): ChecklistBlock[] => {
   // Определяем какие уровни образования применимы
