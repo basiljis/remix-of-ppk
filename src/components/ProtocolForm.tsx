@@ -19,6 +19,8 @@ interface ChildData {
   age: string;
   class: string;
   address: string;
+  registrationAddress: string;
+  sameAsAddress: boolean;
   parentName: string;
   parentPhone: string;
   whobrought: string;
@@ -66,6 +68,8 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
       age: "",
       class: "",
       address: "",
+      registrationAddress: "",
+      sameAsAddress: false,
       parentName: "",
       parentPhone: "",
       whobrought: "",
@@ -207,7 +211,7 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
             <div>
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Информация о ребенке и степень родства заявителя
+                Информация о ребенке
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -286,6 +290,36 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                     onChange={(e) => updateChildData("address", e.target.value)}
                     placeholder="г. Москва, ул. Примерная, д. 1, кв. 1"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="registrationAddress">Место регистрации</Label>
+                  <Input
+                    id="registrationAddress"
+                    value={formData.childData.registrationAddress}
+                    onChange={(e) => updateChildData("registrationAddress", e.target.value)}
+                    placeholder="г. Москва, ул. Примерная, д. 1, кв. 1"
+                    disabled={formData.childData.sameAsAddress}
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="sameAsAddress"
+                      checked={formData.childData.sameAsAddress}
+                      onCheckedChange={(checked) => {
+                        const isChecked = checked as boolean;
+                        setFormData(prev => ({
+                          ...prev,
+                          childData: {
+                            ...prev.childData,
+                            sameAsAddress: isChecked,
+                            registrationAddress: isChecked ? prev.childData.address : prev.childData.registrationAddress
+                          }
+                        }));
+                      }}
+                    />
+                    <Label htmlFor="sameAsAddress" className="text-sm cursor-pointer">
+                      Совпадает с местом проживания
+                    </Label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -394,6 +428,10 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button variant="outline" className="w-full">
                   <FileText className="h-4 w-4 mr-2" />
+                  Согласие родителя
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
                   Протокол ППк
                 </Button>
                 <Button variant="outline" className="w-full">
@@ -404,14 +442,12 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
                   <FileText className="h-4 w-4 mr-2" />
                   Представление педагога
                 </Button>
-                <Button variant="outline" className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Характеристика обучающегося
-                </Button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Данные протокола</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="consultationType">Тип консультации *</Label>
                 <Select value={formData.consultationType} onValueChange={(value: "primary" | "secondary") => setFormData(prev => ({ ...prev, consultationType: value }))}>
@@ -459,20 +495,21 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
               </div>
             )}
             
-            <div className="bg-accent/50 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">Сводка по протоколу:</h4>
-              <ul className="text-sm space-y-1">
-                <li>• Ребенок: {formData.childData.fullName || "Не указано"}</li>
-                <li>• Возраст: {formData.childData.age || "Не указано"}</li>
-                <li>• Уровень образования: {
-                  selectedLevel === "preschool" ? "Дошкольное" :
-                  selectedLevel === "elementary" ? "Начальное" :
-                  selectedLevel === "middle" ? "Основное" : "Среднее"
-                }</li>
-                <li>• Тип консультации: {formData.consultationType === "primary" ? "Первичная" : "Вторичная"}</li>
-                <li>• Документов предоставлено: {formData.documents.filter(d => d.present).length} из {formData.documents.length}</li>
-                <li>• Обязательных документов: {formData.documents.filter(d => d.required && d.present).length} из {formData.documents.filter(d => d.required).length}</li>
-              </ul>
+              <div className="bg-accent/50 p-4 rounded-lg">
+                <h4 className="font-semibold mb-2">Сводка по протоколу:</h4>
+                <ul className="text-sm space-y-1">
+                  <li>• Ребенок: {formData.childData.fullName || "Не указано"}</li>
+                  <li>• Возраст: {formData.childData.age || "Не указано"}</li>
+                  <li>• Уровень образования: {
+                    selectedLevel === "preschool" ? "Дошкольное" :
+                    selectedLevel === "elementary" ? "Начальное" :
+                    selectedLevel === "middle" ? "Основное" : "Среднее"
+                  }</li>
+                  <li>• Тип консультации: {formData.consultationType === "primary" ? "Первичная" : "Вторичная"}</li>
+                  <li>• Документов предоставлено: {formData.documents.filter(d => d.present).length} из {formData.documents.length}</li>
+                  <li>• Обязательных документов: {formData.documents.filter(d => d.required && d.present).length} из {formData.documents.filter(d => d.required).length}</li>
+                </ul>
+              </div>
             </div>
           </div>
         )}

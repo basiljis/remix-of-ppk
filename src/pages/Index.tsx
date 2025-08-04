@@ -227,7 +227,6 @@ const Index = () => {
 
           <TabsContent value="instructions" className="space-y-6">
             <InstructionsSection />
-            <ConsentForm />
           </TabsContent>
         </Tabs>
       </div>
