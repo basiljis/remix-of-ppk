@@ -6,7 +6,6 @@ import { ConsentForm } from "@/components/ConsentForm";
 import { InstructionsSection } from "@/components/InstructionsSection";
 import { ProtocolForm } from "@/components/ProtocolForm";
 import { PPKList } from "@/components/PPKList";
-import { useProtocolStorage } from "@/hooks/useProtocolStorage";
 import { DifficultiesChecklist } from "@/components/DifficultiesChecklist";
 import { getChecklistData, ChecklistSection } from "@/data/checklistData";
 import { getDifficultiesData, calculateDifficultiesScore, DifficultiesBlock, DifficultiesItem } from "@/data/difficultiesData";
@@ -151,13 +150,9 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-            <TabsContent value="protocol" className="space-y-6">
-              <ProtocolForm 
-                onProtocolSave={handleProtocolSave}
-                editingProtocol={editingProtocol ? getProtocol(editingProtocol) : undefined}
-                onSaveDraft={handleSaveDraft}
-              />
-            </TabsContent>
+          <TabsContent value="protocol" className="space-y-6">
+            <ProtocolForm onProtocolSave={handleProtocolSave} />
+          </TabsContent>
 
           <TabsContent value="checklists" className="space-y-6">
             {/* Level Selector */}

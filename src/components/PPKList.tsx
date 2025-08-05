@@ -248,8 +248,7 @@ export const PPKList = () => {
                             </div>
                           )}
                         </DialogContent>
-                        </Dialog>
-                      </div>
+                      </Dialog>
                     </TableCell>
                   </TableRow>
                 ))}
