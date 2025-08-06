@@ -7,12 +7,13 @@ import { InstructionsSection } from "@/components/InstructionsSection";
 import { ProtocolForm } from "@/components/ProtocolForm";
 import { PPKList } from "@/components/PPKList";
 import { DifficultiesChecklist } from "@/components/DifficultiesChecklist";
+import { Dashboard } from "@/components/Dashboard";
 import { getChecklistData, ChecklistSection } from "@/data/checklistData";
 import { getDifficultiesData, calculateDifficultiesScore, DifficultiesBlock, DifficultiesItem } from "@/data/difficultiesData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Users, Calendar, BookOpen, Download, ClipboardList, Database, AlertTriangle } from "lucide-react";
+import { FileText, Users, Calendar, BookOpen, Download, ClipboardList, Database, AlertTriangle, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -24,6 +25,7 @@ const Index = () => {
     getDifficultiesData("elementary")
   );
   const [calculationResult, setCalculationResult] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("protocol");
   const { toast } = useToast();
 
   const handleLevelChange = (level: EducationLevel) => {
@@ -126,8 +128,8 @@ const Index = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="protocol" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="protocol" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
               Протокол ППк
@@ -143,6 +145,10 @@ const Index = () => {
             <TabsTrigger value="list" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               Список ППк
+            </TabsTrigger>
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Дашборд
             </TabsTrigger>
             <TabsTrigger value="instructions" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
@@ -222,7 +228,11 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="list" className="space-y-6">
-            <PPKList />
+            <PPKList onNewProtocol={() => setActiveTab("protocol")} />
+          </TabsContent>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            <Dashboard />
           </TabsContent>
 
           <TabsContent value="instructions" className="space-y-6">

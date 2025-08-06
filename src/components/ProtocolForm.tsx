@@ -9,9 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList } from "lucide-react";
+import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData, ChecklistBlock, ChecklistItem, updateItemScore, calculateBlockScore } from "@/data/protocolChecklistData";
+import { useProtocolStorage } from "@/hooks/useProtocolStorage";
 
 interface ChildData {
   fullName: string;
@@ -55,10 +56,14 @@ const initialDocuments: DocumentCheck[] = [
   { id: "products", name: "Результаты продуктивной деятельности", required: false, present: false },
 ];
 
-export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: ProtocolData) => void }) => {
+export const ProtocolForm = ({ onProtocolSave, editingProtocol }: { 
+  onProtocolSave: (data: ProtocolData) => void;
+  editingProtocol?: any;
+}) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLevel, setSelectedLevel] = useState<"preschool" | "elementary" | "middle" | "high">("elementary");
   const [checklistBlocks, setChecklistBlocks] = useState<ChecklistBlock[]>([]);
+  const { saveProtocol, updateProtocol } = useProtocolStorage();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState<ProtocolData>({
@@ -111,24 +116,40 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
     }
   };
 
-  const saveProtocol = () => {
-    const requiredDocs = formData.documents.filter(doc => doc.required);
-    const missingRequired = requiredDocs.filter(doc => !doc.present);
+  const saveProtocolData = (isDraft: boolean = false) => {
+    const completionPercentage = calculateProgress();
     
-    if (missingRequired.length > 0) {
+    if (!isDraft && completionPercentage < 100) {
       toast({
-        title: "Отсутствуют обязательные документы",
-        description: `Не хватает: ${missingRequired.map(doc => doc.name).join(", ")}`,
+        title: "Протокол не завершен",
+        description: "Заполните все обязательные поля для финального сохранения",
         variant: "destructive"
       });
       return;
     }
 
+    const checklistData = {
+      level: selectedLevel,
+      blocks: checklistBlocks
+    };
+
+    if (editingProtocol) {
+      updateProtocol(editingProtocol.id, formData, checklistData, completionPercentage);
+      toast({
+        title: "Протокол обновлен",
+        description: `Данные успешно обновлены (${completionPercentage}% готовности)`
+      });
+    } else {
+      const protocolId = saveProtocol(formData, checklistData, completionPercentage);
+      toast({
+        title: isDraft ? "Черновик сохранен" : "Протокол завершен",
+        description: isDraft 
+          ? `Данные сохранены как черновик (${completionPercentage}% готовности)`
+          : "Протокол успешно завершен и сохранен"
+      });
+    }
+
     onProtocolSave(formData);
-    toast({
-      title: "Протокол сохранен",
-      description: "Данные успешно внесены в систему"
-    });
   };
 
   const handleLevelChange = (level: "preschool" | "elementary" | "middle" | "high") => {
@@ -607,17 +628,32 @@ export const ProtocolForm = ({ onProtocolSave }: { onProtocolSave: (data: Protoc
             Назад
           </Button>
           
-          {currentStep < 4 ? (
-            <Button onClick={nextStep}>
-              Далее
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          ) : (
-            <Button onClick={saveProtocol}>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Сохранить протокол
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {currentStep === 4 && (
+              <Button 
+                variant="outline" 
+                onClick={() => saveProtocolData(true)}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Сохранить черновик
+              </Button>
+            )}
+            
+            {currentStep < 4 ? (
+              <Button onClick={nextStep}>
+                Далее
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => saveProtocolData(false)}
+                disabled={calculateProgress() < 100}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Завершить протокол
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
