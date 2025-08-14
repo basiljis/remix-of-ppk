@@ -67,7 +67,7 @@ export const ChecklistCard = ({ title, items, onItemToggle, variant }: Checklist
       <CardContent>
         <div className="space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="flex items-start space-x-3">
+            <div key={item.id} className={`flex items-start space-x-3 p-2 rounded ${item.required && !item.completed ? "bg-destructive/5 border border-destructive/20" : ""}`}>
               <Checkbox
                 id={item.id}
                 checked={item.completed}
@@ -78,7 +78,7 @@ export const ChecklistCard = ({ title, items, onItemToggle, variant }: Checklist
                 htmlFor={item.id}
                 className={`text-sm cursor-pointer flex-1 ${
                   item.completed ? "line-through text-muted-foreground" : ""
-                }`}
+                } ${item.required && !item.completed ? "font-medium" : ""}`}
               >
                 {item.text}
                 {item.required && (

@@ -8,6 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { EducationLevel } from "@/components/EducationLevelSelector";
 import { Calculator, CheckCircle, AlertTriangle } from "lucide-react";
+import { useChecklistData } from "@/hooks/useChecklistData";
+import { useEffect } from "react";
 
 interface DifficultiesItem {
   id: string;
@@ -70,6 +72,13 @@ export const DifficultiesChecklist = ({
   onCalculate, 
   calculationResult 
 }: DifficultiesChecklistProps) => {
+  const { getChecklistByLevelAndType } = useChecklistData();
+  
+  // Get checklist items from Supabase if available
+  const supabaseChecklist = getChecklistByLevelAndType(level, 'difficulties');
+  const hasRequiredItems = supabaseChecklist?.items.some(item => item.isRequired) || blocks.some(block => 
+    block.items.some(item => item.weight > 0)
+  );
   
   const getBlockProgress = (block: DifficultiesBlock) => {
     const assessedItems = block.items.filter(item => item.status !== "not_assessed");
@@ -126,10 +135,15 @@ export const DifficultiesChecklist = ({
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="space-y-4">
-                      {block.items.map((item) => (
-                        <div key={item.id} className="border rounded-lg p-4">
+                      {block.items.map((item) => {
+                        const isRequired = item.weight > 0; // Required items have weight > 0
+                        return (
+                        <div key={item.id} className={`border rounded-lg p-4 ${isRequired && item.status === "not_assessed" ? "border-destructive bg-destructive/5" : ""}`}>
                           <div className="flex items-start justify-between mb-3">
-                            <p className="text-sm flex-1">{item.text}</p>
+                            <p className={`text-sm flex-1 ${isRequired ? "font-medium" : ""}`}>
+                              {item.text}
+                              {isRequired && <span className="text-destructive ml-1">*</span>}
+                            </p>
                             <Badge variant={getDifficultyStatusColor(item.status)}>
                               {getDifficultyStatusText(item.status)}
                             </Badge>
@@ -158,7 +172,8 @@ export const DifficultiesChecklist = ({
                             </div>
                           </RadioGroup>
                         </div>
-                      ))}
+                        );
+                      })}
                     </AccordionContent>
                   </AccordionItem>
                 ))}

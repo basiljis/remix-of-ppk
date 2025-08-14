@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      checklist: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: string
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      checklist_item: {
+        Row: {
+          checklist_id: string
+          created_at: string
+          id: string
+          is_required: boolean
+          order_index: number
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          checklist_id: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          order_index?: number
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          checklist_id?: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          order_index?: number
+          text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_item_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

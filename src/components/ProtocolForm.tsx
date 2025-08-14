@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { getProtocolChecklistData, ChecklistBlock, ChecklistItem, updateItemScor
 import { useProtocolStorage } from "@/hooks/useProtocolStorage";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { generateConsentPDF } from "@/components/ConsentPDF";
+import { useChecklistData } from "@/hooks/useChecklistData";
 
 interface ChildData {
   fullName: string;
@@ -68,6 +69,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   const [checklistBlocks, setChecklistBlocks] = useState<ChecklistBlock[]>([]);
   const { saveProtocol, updateProtocol } = useProtocolStorage();
   const { toast } = useToast();
+  const { getChecklistByLevelAndType, loading: checklistLoading } = useChecklistData();
   
   const [formData, setFormData] = useState<ProtocolData>({
     childData: {
@@ -104,7 +106,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   };
 
   const getRequiredFieldClass = (value: string) => {
-    return isRequiredFieldEmpty(value) ? "border-red-500" : "";
+    return isRequiredFieldEmpty(value) ? "border-destructive focus:border-destructive" : "";
   };
 
   const canSaveProtocol = () => {
@@ -118,6 +120,34 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       formData.childData.whobrought
     ];
     return requiredFields.every(field => !isRequiredFieldEmpty(field));
+  };
+
+  const canFinalizeProtocol = () => {
+    if (!canSaveProtocol()) return false;
+    
+    // Check required documents
+    const requiredDocs = formData.documents.filter(doc => doc.required);
+    const allRequiredDocsPresent = requiredDocs.every(doc => doc.present);
+    
+    // Check required protocol fields
+    const protocolFieldsFilled = !isRequiredFieldEmpty(formData.reason) && 
+                                 !isRequiredFieldEmpty(formData.consultationDate);
+    
+    // Check checklist items from Supabase if available
+    const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+    if (supabaseChecklist) {
+      const requiredChecklistItems = supabaseChecklist.items.filter(item => item.isRequired);
+      const completedRequiredItems = checklistBlocks.reduce((sum, block) => 
+        sum + block.items.filter(item => 
+          requiredChecklistItems.some(req => req.id === item.checklist_item_id) && 
+          item.score !== undefined
+        ).length, 0);
+      
+      return allRequiredDocsPresent && protocolFieldsFilled && 
+             (requiredChecklistItems.length === 0 || completedRequiredItems === requiredChecklistItems.length);
+    }
+    
+    return allRequiredDocsPresent && protocolFieldsFilled;
   };
 
   const generateConsent = () => {
@@ -168,16 +198,16 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       return;
     }
 
-    const completionPercentage = calculateProgress();
-    
-    if (!isDraft && completionPercentage < 100) {
+    if (!isDraft && !canFinalizeProtocol()) {
       toast({
-        title: "Протокол не завершен",
-        description: "Заполните все обязательные поля для финального сохранения",
+        title: "Протокол не готов к завершению",
+        description: "Заполните все обязательные поля: данные обучающегося, документы, причина направления и обязательные пункты чек-листа",
         variant: "destructive"
       });
       return;
     }
+
+    const completionPercentage = calculateProgress();
 
     const checklistData = {
       level: selectedLevel,
@@ -375,9 +405,14 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                       <SelectValue placeholder="Выберите литеру" />
                     </SelectTrigger>
                     <SelectContent>
-                      {['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'].map(letter => (
-                        <SelectItem key={letter} value={letter}>{letter}</SelectItem>
-                      ))}
+                      {selectedLevel !== "preschool" ? 
+                        ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'].map(letter => (
+                          <SelectItem key={letter} value={letter}>{letter}</SelectItem>
+                        )) :
+                        ['1', '2', '3', '4', '5'].map(num => (
+                          <SelectItem key={num} value={num}>Группа {num}</SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>
@@ -509,15 +544,15 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
               <p className="text-sm text-muted-foreground mb-4">
                 Отметьте документы, которые присутствуют. Документы с * являются обязательными.
               </p>
-              <div className="space-y-3">
+               <div className="space-y-3">
                 {formData.documents.map((doc) => (
-                  <div key={doc.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                  <div key={doc.id} className={`flex items-center space-x-3 p-3 border rounded-lg ${doc.required && !doc.present ? "border-destructive bg-destructive/5" : ""}`}>
                     <Checkbox
                       id={doc.id}
                       checked={doc.present}
                       onCheckedChange={(checked) => updateDocument(doc.id, checked as boolean)}
                     />
-                    <label htmlFor={doc.id} className="flex-1 cursor-pointer">
+                    <label htmlFor={doc.id} className={`flex-1 cursor-pointer ${doc.required && !doc.present ? "font-medium" : ""}`}>
                       {doc.name}
                       {doc.required && <span className="text-destructive ml-1">*</span>}
                     </label>
@@ -679,10 +714,36 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                                 {block.items
                                   .filter(item => item.topic === theme.title && item.subtopic === subtopic.title)
                                   .map((item) => (
-                                  <div key={item.checklist_item_id} className="flex items-start justify-between p-4 border rounded-lg bg-background">
-                                    <div className="flex-1 pr-4">
-                                      <p className="text-sm leading-relaxed">{item.description}</p>
-                                    </div>
+                                   <div key={item.checklist_item_id} className={`flex items-start justify-between p-4 border rounded-lg bg-background ${
+                                     // Check if this item is required in Supabase data
+                                     (() => {
+                                       const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+                                       const isRequired = supabaseChecklist?.items.some(sItem => 
+                                         sItem.id === item.checklist_item_id && sItem.isRequired
+                                       );
+                                       return isRequired && item.score === undefined ? "border-destructive bg-destructive/5" : "";
+                                     })()
+                                   }`}>
+                                     <div className="flex-1 pr-4">
+                                       <p className={`text-sm leading-relaxed ${
+                                         (() => {
+                                           const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+                                           const isRequired = supabaseChecklist?.items.some(sItem => 
+                                             sItem.id === item.checklist_item_id && sItem.isRequired
+                                           );
+                                           return isRequired ? "font-medium" : "";
+                                         })()
+                                       }`}>
+                                         {item.description}
+                                         {(() => {
+                                           const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+                                           const isRequired = supabaseChecklist?.items.some(sItem => 
+                                             sItem.id === item.checklist_item_id && sItem.isRequired
+                                           );
+                                           return isRequired ? <span className="text-destructive ml-1">*</span> : null;
+                                         })()}
+                                       </p>
+                                     </div>
                                     <RadioGroup
                                       value={item.score?.toString() || "0"}
                                       onValueChange={(value) => handleChecklistItemChange(item.checklist_item_id, parseInt(value) as 0 | 1)}
@@ -742,7 +803,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
             ) : (
               <Button 
                 onClick={() => saveProtocolData(false)}
-                disabled={calculateProgress() < 100}
+                disabled={!canFinalizeProtocol()}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Завершить протокол
