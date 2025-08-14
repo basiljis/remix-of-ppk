@@ -20,7 +20,8 @@ interface ChildData {
   fullName: string;
   birthDate: string;
   age: string;
-  class: string;
+  classNumber: string;
+  classLetter: string;
   address: string;
   registrationAddress: string;
   sameAsAddress: boolean;
@@ -73,7 +74,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       fullName: "",
       birthDate: "",
       age: "",
-      class: "",
+      classNumber: "",
+      classLetter: "",
       address: "",
       registrationAddress: "",
       sameAsAddress: false,
@@ -85,7 +87,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     },
     documents: initialDocuments,
     consultationType: "primary",
-    consultationDate: "",
+    consultationDate: new Date().toISOString().split('T')[0], // Автоматически заполняем текущей датой
     reason: "",
     previousConsultations: ""
   });
@@ -110,7 +112,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       formData.childData.fullName,
       formData.childData.birthDate,
       formData.childData.age,
-      formData.childData.class,
+      formData.childData.classNumber,
       formData.childData.parentName,
       formData.childData.parentPhone,
       formData.childData.whobrought
@@ -228,7 +230,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       formData.childData.fullName,
       formData.childData.birthDate,
       formData.childData.age,
-      formData.childData.class,
+      formData.childData.classNumber,
       formData.childData.parentName,
       formData.childData.parentPhone,
       formData.childData.whobrought
@@ -343,16 +345,41 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="class" className={isRequiredFieldEmpty(formData.childData.class) ? "text-red-500" : ""}>
-                    Класс/группа *
+                  <Label htmlFor="classNumber" className={isRequiredFieldEmpty(formData.childData.classNumber) ? "text-red-500" : ""}>
+                    Номер класса/группы *
                   </Label>
-                  <Input
-                    id="class"
-                    value={formData.childData.class}
-                    onChange={(e) => updateChildData("class", e.target.value)}
-                    placeholder="1А"
-                    className={getRequiredFieldClass(formData.childData.class)}
-                  />
+                  <Select value={formData.childData.classNumber} onValueChange={(value) => updateChildData("classNumber", value)}>
+                    <SelectTrigger className={getRequiredFieldClass(formData.childData.classNumber)}>
+                      <SelectValue placeholder="Выберите номер" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedLevel === "preschool" ? (
+                        <>
+                          <SelectItem value="младшая">Младшая</SelectItem>
+                          <SelectItem value="средняя">Средняя</SelectItem>
+                          <SelectItem value="старшая">Старшая</SelectItem>
+                          <SelectItem value="подготовительная">Подготовительная</SelectItem>
+                        </>
+                      ) : (
+                        Array.from({ length: 11 }, (_, i) => i + 1).map(num => (
+                          <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="classLetter">Литера класса</Label>
+                  <Select value={formData.childData.classLetter} onValueChange={(value) => updateChildData("classLetter", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите литеру" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'].map(letter => (
+                        <SelectItem key={letter} value={letter}>{letter}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <OrganizationSelector
@@ -526,9 +553,9 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
               <h3 className="text-lg font-semibold mb-4">Данные протокола</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="consultationType">Тип консультации *</Label>
+                <Label htmlFor="consultationType" className={isRequiredFieldEmpty(formData.consultationType) ? "text-red-500" : ""}>Тип консультации *</Label>
                 <Select value={formData.consultationType} onValueChange={(value: "primary" | "secondary") => setFormData(prev => ({ ...prev, consultationType: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className={getRequiredFieldClass(formData.consultationType)}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -538,24 +565,25 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="consultationDate">Дата проведения ППк *</Label>
+                <Label htmlFor="consultationDate" className={isRequiredFieldEmpty(formData.consultationDate) ? "text-red-500" : ""}>Дата проведения ППк *</Label>
                 <Input
                   id="consultationDate"
                   type="date"
                   value={formData.consultationDate}
                   onChange={(e) => setFormData(prev => ({ ...prev, consultationDate: e.target.value }))}
+                  className={getRequiredFieldClass(formData.consultationDate)}
                 />
               </div>
             </div>
             
             <div>
-              <Label htmlFor="reason">Причина направления на ППк *</Label>
+              <Label htmlFor="reason" className={isRequiredFieldEmpty(formData.reason) ? "text-red-500" : ""}>Причина направления на ППк *</Label>
               <Textarea
                 id="reason"
                 value={formData.reason}
                 onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
                 placeholder="Опишите причины направления ребенка на консилиум..."
-                className="min-h-24"
+                className={`min-h-24 ${getRequiredFieldClass(formData.reason)}`}
               />
             </div>
 
@@ -608,7 +636,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                    <div className="text-sm text-blue-800 grid grid-cols-1 md:grid-cols-2 gap-2">
                      <p><strong>ФИО:</strong> {formData.childData.fullName}</p>
                      <p><strong>Возраст:</strong> {formData.childData.age} лет</p>
-                     <p><strong>Класс:</strong> {formData.childData.class}</p>
+                     <p><strong>Класс:</strong> {formData.childData.classNumber}{formData.childData.classLetter}</p>
                      <p><strong>Дата рождения:</strong> {formData.childData.birthDate}</p>
                    </div>
                  </div>

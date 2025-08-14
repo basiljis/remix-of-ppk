@@ -4,7 +4,8 @@ interface ChildData {
   fullName: string;
   birthDate: string;
   age: string;
-  class: string;
+  classNumber: string;
+  classLetter: string;
   address: string;
   parentName: string;
   parentPhone: string;
@@ -40,7 +41,8 @@ export const generateConsentPDF = (childData: ChildData) => {
   doc.setFontSize(12);
   doc.setFont('times', 'normal');
 
-  const text = `Я, ${childData.parentName || '_'.repeat(40)}, являющийся родителем (законным представителем) ребенка ${childData.fullName || '_'.repeat(40)}, ${childData.birthDate || '_'.repeat(15)} года рождения, обучающегося в ${childData.educationalOrganization || '_'.repeat(40)}, класс/группа ${childData.class || '_'.repeat(10)},
+  const classInfo = `${childData.classNumber || '_'.repeat(5)}${childData.classLetter || ''}`;
+  const text = `Я, ${childData.parentName || '_'.repeat(40)}, являющийся родителем (законным представителем) ребенка ${childData.fullName || '_'.repeat(40)}, ${childData.birthDate || '_'.repeat(15)} года рождения, обучающегося в ${childData.educationalOrganization || '_'.repeat(40)}, класс/группа ${classInfo},
 
 даю согласие на проведение психолого-педагогического обследования моего ребенка специалистами психолого-педагогического консилиума образовательной организации.
 

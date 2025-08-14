@@ -24,6 +24,7 @@ export const Dashboard = () => {
   const [districtFilter, setDistrictFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [parallelFilter, setParallelFilter] = useState("all");
   const [reasonFilter, setReasonFilter] = useState("");
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
@@ -39,7 +40,7 @@ export const Dashboard = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, reasonFilter, dateFrom, dateTo]);
+  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, dateFrom, dateTo]);
 
   const loadApiData = async () => {
     setLoading(true);
@@ -78,6 +79,20 @@ export const Dashboard = () => {
       filtered = filtered.filter(p => p.consultationType === typeFilter);
     }
 
+    if (parallelFilter && parallelFilter !== "all") {
+      // Фильтр по параллели - извлекаем номер класса или тип группы из protocolData
+      filtered = filtered.filter(p => {
+        const classNumber = p.protocolData?.childData?.classNumber || "";
+        const isPreschool = p.level === "preschool";
+        
+        if (isPreschool) {
+          return classNumber.toLowerCase().includes(parallelFilter.toLowerCase());
+        } else {
+          return classNumber === parallelFilter;
+        }
+      });
+    }
+
     if (reasonFilter) {
       filtered = filtered.filter(p => p.reason.toLowerCase().includes(reasonFilter.toLowerCase()));
     }
@@ -98,6 +113,7 @@ export const Dashboard = () => {
     setDistrictFilter("all");
     setLevelFilter("all");
     setTypeFilter("all");
+    setParallelFilter("all");
     setReasonFilter("");
     setDateFrom(undefined);
     setDateTo(undefined);
@@ -242,6 +258,27 @@ export const Dashboard = () => {
                   <SelectItem value="all">Все типы</SelectItem>
                   <SelectItem value="primary">Первичный</SelectItem>
                   <SelectItem value="secondary">Вторичный</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Параллель</Label>
+              <Select value={parallelFilter} onValueChange={setParallelFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите параллель" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все параллели</SelectItem>
+                  {/* Классы общего образования */}
+                  {Array.from({ length: 11 }, (_, i) => i + 1).map(num => (
+                    <SelectItem key={`class-${num}`} value={num.toString()}>{num} класс</SelectItem>
+                  ))}
+                  {/* Группы дошкольного образования */}
+                  <SelectItem value="младшая">Младшая группа</SelectItem>
+                  <SelectItem value="средняя">Средняя группа</SelectItem>
+                  <SelectItem value="старшая">Старшая группа</SelectItem>
+                  <SelectItem value="подготовительная">Подготовительная группа</SelectItem>
                 </SelectContent>
               </Select>
             </div>
