@@ -24,8 +24,8 @@ export const OrganizationsList = () => {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     name: "",
-    district: "",
-    type: ""
+    district: "all",
+    type: "all"
   });
   const { toast } = useToast();
 
@@ -76,11 +76,11 @@ export const OrganizationsList = () => {
       );
     }
 
-    if (filters.district) {
+    if (filters.district && filters.district !== "all") {
       filtered = filtered.filter(org => org.district === filters.district);
     }
 
-    if (filters.type) {
+    if (filters.type && filters.type !== "all") {
       filtered = filtered.filter(org => org.type === filters.type);
     }
 
@@ -88,7 +88,7 @@ export const OrganizationsList = () => {
   };
 
   const clearFilters = () => {
-    setFilters({ name: "", district: "", type: "" });
+    setFilters({ name: "", district: "all", type: "all" });
   };
 
   return (
@@ -127,7 +127,7 @@ export const OrganizationsList = () => {
                   <SelectValue placeholder="Все округа" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Все округа</SelectItem>
+                  <SelectItem value="all">Все округа</SelectItem>
                   {districts.map(district => (
                     <SelectItem key={district} value={district}>{district}</SelectItem>
                   ))}
@@ -145,7 +145,7 @@ export const OrganizationsList = () => {
                   <SelectValue placeholder="Все типы" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Все типы</SelectItem>
+                  <SelectItem value="all">Все типы</SelectItem>
                   {types.map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}

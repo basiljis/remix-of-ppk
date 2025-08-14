@@ -21,9 +21,9 @@ export const Dashboard = () => {
   
   // Фильтры
   const [eduOrgFilter, setEduOrgFilter] = useState("");
-  const [districtFilter, setDistrictFilter] = useState("");
-  const [levelFilter, setLevelFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
+  const [districtFilter, setDistrictFilter] = useState("all");
+  const [levelFilter, setLevelFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [reasonFilter, setReasonFilter] = useState("");
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
@@ -63,18 +63,18 @@ export const Dashboard = () => {
       filtered = filtered.filter(p => p.educationalOrganization.includes(eduOrgFilter));
     }
 
-    if (districtFilter) {
+    if (districtFilter && districtFilter !== "all") {
       const orgsByDistrict = eduOrgs.filter(org => org.district === districtFilter);
       filtered = filtered.filter(p => 
         orgsByDistrict.some(org => p.educationalOrganization.includes(org.name))
       );
     }
 
-    if (levelFilter) {
+    if (levelFilter && levelFilter !== "all") {
       filtered = filtered.filter(p => p.level === levelFilter);
     }
 
-    if (typeFilter) {
+    if (typeFilter && typeFilter !== "all") {
       filtered = filtered.filter(p => p.consultationType === typeFilter);
     }
 
@@ -95,9 +95,9 @@ export const Dashboard = () => {
 
   const resetFilters = () => {
     setEduOrgFilter("");
-    setDistrictFilter("");
-    setLevelFilter("");
-    setTypeFilter("");
+    setDistrictFilter("all");
+    setLevelFilter("all");
+    setTypeFilter("all");
     setReasonFilter("");
     setDateFrom(undefined);
     setDateTo(undefined);
@@ -208,7 +208,7 @@ export const Dashboard = () => {
                   <SelectValue placeholder="Выберите округ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Все округа</SelectItem>
+                  <SelectItem value="all">Все округа</SelectItem>
                   {districts.map(district => (
                     <SelectItem key={district} value={district}>{district}</SelectItem>
                   ))}
@@ -223,7 +223,7 @@ export const Dashboard = () => {
                   <SelectValue placeholder="Выберите уровень" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Все уровни</SelectItem>
+                  <SelectItem value="all">Все уровни</SelectItem>
                   <SelectItem value="preschool">Дошкольное</SelectItem>
                   <SelectItem value="elementary">Начальное</SelectItem>
                   <SelectItem value="middle">Основное</SelectItem>
@@ -239,7 +239,7 @@ export const Dashboard = () => {
                   <SelectValue placeholder="Выберите тип" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Все типы</SelectItem>
+                  <SelectItem value="all">Все типы</SelectItem>
                   <SelectItem value="primary">Первичный</SelectItem>
                   <SelectItem value="secondary">Вторичный</SelectItem>
                 </SelectContent>
