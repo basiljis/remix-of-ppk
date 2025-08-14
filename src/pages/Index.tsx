@@ -6,10 +6,9 @@ import { ConsentForm } from "@/components/ConsentForm";
 import { InstructionsSection } from "@/components/InstructionsSection";
 import { ProtocolForm } from "@/components/ProtocolForm";
 import { PPKList } from "@/components/PPKList";
-import { DifficultiesChecklist } from "@/components/DifficultiesChecklist";
 import { Dashboard } from "@/components/Dashboard";
+import { OrganizationsList } from "@/components/OrganizationsList";
 import { getChecklistData, ChecklistSection } from "@/data/checklistData";
-import { getDifficultiesData, calculateDifficultiesScore, DifficultiesBlock, DifficultiesItem } from "@/data/difficultiesData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,18 +20,12 @@ const Index = () => {
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>(
     getChecklistData("elementary")
   );
-  const [difficultiesBlocks, setDifficultiesBlocks] = useState<DifficultiesBlock[]>(
-    getDifficultiesData("elementary")
-  );
-  const [calculationResult, setCalculationResult] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("protocol");
   const { toast } = useToast();
 
   const handleLevelChange = (level: EducationLevel) => {
     setSelectedLevel(level);
     setChecklistSections(getChecklistData(level));
-    setDifficultiesBlocks(getDifficultiesData(level));
-    setCalculationResult(null);
     toast({
       title: "Уровень образования изменен",
       description: `Загружены чеклисты для ${getLevelName(level)}`,
@@ -64,27 +57,6 @@ const Index = () => {
     );
   };
 
-  const handleDifficultyChange = (itemId: string, status: DifficultiesItem["status"]) => {
-    setDifficultiesBlocks(blocks =>
-      blocks.map(block => ({
-        ...block,
-        items: block.items.map(item =>
-          item.id === itemId ? { ...item, status } : item
-        )
-      }))
-    );
-    // Сбрасываем результат расчета при изменении данных
-    setCalculationResult(null);
-  };
-
-  const handleCalculate = () => {
-    const result = calculateDifficultiesScore(difficultiesBlocks);
-    setCalculationResult(result);
-    toast({
-      title: "Расчет завершен",
-      description: `Уровень трудностей: ${result.percentage.toFixed(1)}%`,
-    });
-  };
 
   const handleProtocolSave = (protocolData: any) => {
     console.log("Saved protocol:", protocolData);
@@ -138,13 +110,13 @@ const Index = () => {
               <Users className="h-4 w-4" />
               Чеклисты
             </TabsTrigger>
-            <TabsTrigger value="difficulties" className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Трудности
-            </TabsTrigger>
             <TabsTrigger value="list" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               Список ППк
+            </TabsTrigger>
+            <TabsTrigger value="organizations" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Организации
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -217,18 +189,13 @@ const Index = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="difficulties" className="space-y-6">
-            <DifficultiesChecklist
-              level={selectedLevel}
-              onItemChange={handleDifficultyChange}
-              blocks={difficultiesBlocks}
-              onCalculate={handleCalculate}
-              calculationResult={calculationResult}
-            />
-          </TabsContent>
 
           <TabsContent value="list" className="space-y-6">
             <PPKList onNewProtocol={() => setActiveTab("protocol")} />
+          </TabsContent>
+
+          <TabsContent value="organizations" className="space-y-6">
+            <OrganizationsList />
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-6">

@@ -9,10 +9,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save } from "lucide-react";
+import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save, Download } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData, ChecklistBlock, ChecklistItem, updateItemScore, calculateBlockScore } from "@/data/protocolChecklistData";
 import { useProtocolStorage } from "@/hooks/useProtocolStorage";
+import { OrganizationSelector } from "@/components/OrganizationSelector";
+import { generateConsentPDF } from "@/components/ConsentPDF";
 
 interface ChildData {
   fullName: string;
@@ -95,6 +97,44 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     }));
   };
 
+  const isRequiredFieldEmpty = (value: string) => {
+    return !value || value.trim() === "";
+  };
+
+  const getRequiredFieldClass = (value: string) => {
+    return isRequiredFieldEmpty(value) ? "border-red-500" : "";
+  };
+
+  const canSaveProtocol = () => {
+    const requiredFields = [
+      formData.childData.fullName,
+      formData.childData.birthDate,
+      formData.childData.age,
+      formData.childData.class,
+      formData.childData.parentName,
+      formData.childData.parentPhone,
+      formData.childData.whobrought
+    ];
+    return requiredFields.every(field => !isRequiredFieldEmpty(field));
+  };
+
+  const generateConsent = () => {
+    if (!canSaveProtocol()) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля для генерации согласия",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    generateConsentPDF(formData.childData);
+    toast({
+      title: "Согласие сгенерировано",
+      description: "PDF документ готов к скачиванию"
+    });
+  };
+
   const updateDocument = (id: string, present: boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -117,6 +157,15 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   };
 
   const saveProtocolData = (isDraft: boolean = false) => {
+    if (!canSaveProtocol() && !isDraft) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля данных об обучающемся",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const completionPercentage = calculateProgress();
     
     if (!isDraft && completionPercentage < 100) {
@@ -236,25 +285,33 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="fullName">ФИО ребенка *</Label>
+                  <Label htmlFor="fullName" className={isRequiredFieldEmpty(formData.childData.fullName) ? "text-red-500" : ""}>
+                    ФИО ребенка *
+                  </Label>
                   <Input
                     id="fullName"
                     value={formData.childData.fullName}
                     onChange={(e) => updateChildData("fullName", e.target.value)}
                     placeholder="Иванов Иван Иванович"
+                    className={getRequiredFieldClass(formData.childData.fullName)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="birthDate">Дата рождения *</Label>
+                  <Label htmlFor="birthDate" className={isRequiredFieldEmpty(formData.childData.birthDate) ? "text-red-500" : ""}>
+                    Дата рождения *
+                  </Label>
                   <Input
                     id="birthDate"
                     type="date"
                     value={formData.childData.birthDate}
                     onChange={(e) => updateChildData("birthDate", e.target.value)}
+                    className={getRequiredFieldClass(formData.childData.birthDate)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="age">Возраст *</Label>
+                  <Label htmlFor="age" className={isRequiredFieldEmpty(formData.childData.age) ? "text-red-500" : ""}>
+                    Возраст *
+                  </Label>
                   <Select value={formData.childData.age} onValueChange={(value) => {
                     updateChildData("age", value);
                     // Автоматическое определение уровня образования по возрасту
@@ -273,7 +330,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                       setChecklistBlocks(getProtocolChecklistData("high"));
                     }
                   }}>
-                    <SelectTrigger>
+                    <SelectTrigger className={getRequiredFieldClass(formData.childData.age)}>
                       <SelectValue placeholder="Выберите возраст" />
                     </SelectTrigger>
                     <SelectContent>
@@ -286,21 +343,21 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="class">Класс/группа *</Label>
+                  <Label htmlFor="class" className={isRequiredFieldEmpty(formData.childData.class) ? "text-red-500" : ""}>
+                    Класс/группа *
+                  </Label>
                   <Input
                     id="class"
                     value={formData.childData.class}
                     onChange={(e) => updateChildData("class", e.target.value)}
                     placeholder="1А"
+                    className={getRequiredFieldClass(formData.childData.class)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="educationalOrganization">Образовательная организация</Label>
-                  <Input
-                    id="educationalOrganization"
+                  <OrganizationSelector
                     value={formData.childData.educationalOrganization}
-                    onChange={(e) => updateChildData("educationalOrganization", e.target.value)}
-                    placeholder="МБОУ СОШ №1"
+                    onChange={(value) => updateChildData("educationalOrganization", value)}
                   />
                 </div>
                 <div>
@@ -349,27 +406,35 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
               <h3 className="text-lg font-semibold mb-4">Информация о родителе/законном представителе</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="parentName">ФИО родителя/законного представителя *</Label>
+                  <Label htmlFor="parentName" className={isRequiredFieldEmpty(formData.childData.parentName) ? "text-red-500" : ""}>
+                    ФИО родителя/законного представителя *
+                  </Label>
                   <Input
                     id="parentName"
                     value={formData.childData.parentName}
                     onChange={(e) => updateChildData("parentName", e.target.value)}
                     placeholder="Иванова Мария Петровна"
+                    className={getRequiredFieldClass(formData.childData.parentName)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="parentPhone">Контактный телефон *</Label>
+                  <Label htmlFor="parentPhone" className={isRequiredFieldEmpty(formData.childData.parentPhone) ? "text-red-500" : ""}>
+                    Контактный телефон *
+                  </Label>
                   <Input
                     id="parentPhone"
                     value={formData.childData.parentPhone}
                     onChange={(e) => updateChildData("parentPhone", e.target.value)}
                     placeholder="+7 (999) 123-45-67"
+                    className={getRequiredFieldClass(formData.childData.parentPhone)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="whobrought">Кто привел ребенка *</Label>
+                  <Label htmlFor="whobrought" className={isRequiredFieldEmpty(formData.childData.whobrought) ? "text-red-500" : ""}>
+                    Кто привел ребенка *
+                  </Label>
                   <Select value={formData.childData.whobrought} onValueChange={(value) => updateChildData("whobrought", value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className={getRequiredFieldClass(formData.childData.whobrought)}>
                       <SelectValue placeholder="Выберите..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -446,24 +511,15 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                 <FileText className="h-5 w-5" />
                 Генерация документов
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="outline" className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button onClick={generateConsent} variant="outline" className="w-full" disabled={!canSaveProtocol()}>
+                  <Download className="h-4 w-4 mr-2" />
                   Согласие родителя
                 </Button>
-                <Button variant="outline" className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Протокол ППк
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Заключение ППк
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Представление педагога
-                </Button>
               </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Для генерации согласия необходимо заполнить все обязательные поля данных об обучающемся.
+              </p>
             </div>
 
             <div>
@@ -538,15 +594,26 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
         {/* Шаг 4: Чек-лист оценки */}
         {currentStep === 4 && (
           <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
-                <ClipboardList className="h-5 w-5" />
-                Оценка развития ребенка
-              </h3>
-              <p className="text-muted-foreground">
-                Оцените каждый параметр: Да - есть трудности, Нет - нет трудностей
-              </p>
-            </div>
+             <div className="text-center mb-6">
+               <h3 className="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
+                 <ClipboardList className="h-5 w-5" />
+                 Оценка развития ребенка
+               </h3>
+               <p className="text-muted-foreground">
+                 Оцените каждый параметр: Да - есть трудности, Нет - нет трудностей
+               </p>
+               {formData.childData.fullName && (
+                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                   <h4 className="font-semibold text-blue-900 mb-2">Данные обучающегося:</h4>
+                   <div className="text-sm text-blue-800 grid grid-cols-1 md:grid-cols-2 gap-2">
+                     <p><strong>ФИО:</strong> {formData.childData.fullName}</p>
+                     <p><strong>Возраст:</strong> {formData.childData.age} лет</p>
+                     <p><strong>Класс:</strong> {formData.childData.class}</p>
+                     <p><strong>Дата рождения:</strong> {formData.childData.birthDate}</p>
+                   </div>
+                 </div>
+               )}
+             </div>
 
             {!checklistBlocks.length && (
               <div className="text-center p-6 bg-muted/50 rounded-lg">
