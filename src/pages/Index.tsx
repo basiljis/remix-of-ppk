@@ -7,7 +7,7 @@ import { InstructionsSection } from "@/components/InstructionsSection";
 import { ProtocolForm } from "@/components/ProtocolForm";
 import { PPKList } from "@/components/PPKList";
 import { Dashboard } from "@/components/Dashboard";
-import { OrganizationsList } from "@/components/OrganizationsList";
+import { OrganizationsManagement } from "@/components/OrganizationsManagement";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -227,7 +227,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="organizations" className="space-y-6">
-            <OrganizationsList />
+            <OrganizationsManagement />
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-6">

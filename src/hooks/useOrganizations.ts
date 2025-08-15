@@ -52,25 +52,37 @@ export const useOrganizations = () => {
       const ekisData = await apiService.getActualEduorgs();
       const ekisOrgs = ekisData.data.eduorgs;
 
-      // Insert or update EKIS organizations
-      for (const org of ekisOrgs) {
+      // Batch upsert organizations in chunks for better performance
+      const BATCH_SIZE = 50;
+      const batches = [];
+      
+      for (let i = 0; i < ekisOrgs.length; i += BATCH_SIZE) {
+        batches.push(ekisOrgs.slice(i, i + BATCH_SIZE));
+      }
+
+      for (const batch of batches) {
+        const orgsToUpsert = batch.map(org => ({
+          external_id: org.id,
+          name: org.name,
+          district: org.district,
+          type: org.type,
+          is_manual: false
+        }));
+
         await supabase
           .from('organizations')
-          .upsert({
-            external_id: org.id,
-            name: org.name,
-            district: org.district,
-            type: org.type,
-            is_manual: false
-          }, {
+          .upsert(orgsToUpsert, {
             onConflict: 'external_id'
           });
       }
 
       // Reload organizations after sync
-      loadOrganizations();
+      await loadOrganizations();
+      
+      console.log(`Successfully synced ${ekisOrgs.length} organizations from EKIS`);
     } catch (err) {
       console.warn('Could not sync EKIS organizations:', err);
+      throw err; // Re-throw to allow error handling in UI
     }
   };
 

@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useOrganizations, Organization } from '@/hooks/useOrganizations';
 
 interface OrganizationSelectorProps {
@@ -20,35 +18,11 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   label = "Образовательная организация",
   placeholder = "Выберите организацию"
 }) => {
-  const { organizations, loading, addOrganization, searchOrganizations } = useOrganizations();
+  const { organizations, loading, searchOrganizations } = useOrganizations();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newOrgName, setNewOrgName] = useState('');
-  const [newOrgDistrict, setNewOrgDistrict] = useState('');
-  const [newOrgType, setNewOrgType] = useState('');
 
   const filteredOrganizations = searchOrganizations(searchQuery);
   const selectedOrg = organizations.find(org => org.id === value);
-
-  const handleAddOrganization = async () => {
-    if (!newOrgName.trim()) return;
-
-    try {
-      const newOrg = await addOrganization({
-        name: newOrgName,
-        district: newOrgDistrict,
-        type: newOrgType
-      });
-      
-      onChange(newOrg.id);
-      setShowAddDialog(false);
-      setNewOrgName('');
-      setNewOrgDistrict('');
-      setNewOrgType('');
-    } catch (error) {
-      console.error('Error adding organization:', error);
-    }
-  };
 
   return (
     <div className="space-y-2">
@@ -108,56 +82,6 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
             </SelectContent>
           </Select>
         </div>
-
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Добавить новую организацию</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="new-org-name">Название организации</Label>
-                <Input
-                  id="new-org-name"
-                  value={newOrgName}
-                  onChange={(e) => setNewOrgName(e.target.value)}
-                  placeholder="Введите название организации"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-org-district">Округ</Label>
-                <Input
-                  id="new-org-district"
-                  value={newOrgDistrict}
-                  onChange={(e) => setNewOrgDistrict(e.target.value)}
-                  placeholder="Введите округ"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-org-type">Тип организации</Label>
-                <Input
-                  id="new-org-type"
-                  value={newOrgType}
-                  onChange={(e) => setNewOrgType(e.target.value)}
-                  placeholder="Введите тип организации"
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                  Отмена
-                </Button>
-                <Button onClick={handleAddOrganization} disabled={!newOrgName.trim()}>
-                  Добавить
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
