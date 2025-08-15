@@ -438,7 +438,6 @@ export const OrganizationsManagement = () => {
                   <SelectValue placeholder="Выберите округ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не указан</SelectItem>
                   {MOSCOW_DISTRICTS.map((district) => (
                     <SelectItem key={district} value={district}>
                       {district}
@@ -454,7 +453,6 @@ export const OrganizationsManagement = () => {
                   <SelectValue placeholder="Выберите тип" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не указан</SelectItem>
                   <SelectItem value="Школа">Школа</SelectItem>
                   <SelectItem value="Гимназия">Гимназия</SelectItem>
                   <SelectItem value="Лицей">Лицей</SelectItem>
