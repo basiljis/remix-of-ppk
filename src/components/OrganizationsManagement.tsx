@@ -27,8 +27,8 @@ export const OrganizationsManagement = () => {
   const [newOrgDistrict, setNewOrgDistrict] = useState('');
   const [newOrgType, setNewOrgType] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterDistrict, setFilterDistrict] = useState('');
-  const [filterType, setFilterType] = useState('');
+  const [filterDistrict, setFilterDistrict] = useState('all');
+  const [filterType, setFilterType] = useState('all');
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleAddOrganization = async () => {
@@ -72,13 +72,13 @@ export const OrganizationsManagement = () => {
   // Apply all filters
   let filteredOrganizations = searchOrganizations(searchQuery);
   
-  if (filterDistrict) {
+  if (filterDistrict && filterDistrict !== 'all') {
     filteredOrganizations = filteredOrganizations.filter(org => 
       org.district === filterDistrict
     );
   }
   
-  if (filterType) {
+  if (filterType && filterType !== 'all') {
     filteredOrganizations = filteredOrganizations.filter(org => 
       org.type === filterType
     );
@@ -92,8 +92,8 @@ export const OrganizationsManagement = () => {
 
   const clearFilters = () => {
     setSearchQuery('');
-    setFilterDistrict('');
-    setFilterType('');
+    setFilterDistrict('all');
+    setFilterType('all');
   };
 
   return (
@@ -237,7 +237,7 @@ export const OrganizationsManagement = () => {
                 <SelectValue placeholder="Все округа" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все округа</SelectItem>
+                <SelectItem value="all">Все округа</SelectItem>
                 {uniqueDistricts.map((district) => (
                   <SelectItem key={district} value={district}>
                     {district}
@@ -251,7 +251,7 @@ export const OrganizationsManagement = () => {
                 <SelectValue placeholder="Все типы" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все типы</SelectItem>
+                <SelectItem value="all">Все типы</SelectItem>
                 {uniqueTypes.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
