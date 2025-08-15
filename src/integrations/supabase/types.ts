@@ -81,31 +81,37 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
           created_at: string
           district: string | null
           external_id: string | null
           id: string
           is_manual: boolean
+          mrsd: string | null
           name: string
           type: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
           district?: string | null
           external_id?: string | null
           id?: string
           is_manual?: boolean
+          mrsd?: string | null
           name: string
           type?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           created_at?: string
           district?: string | null
           external_id?: string | null
           id?: string
           is_manual?: boolean
+          mrsd?: string | null
           name?: string
           type?: string | null
           updated_at?: string
