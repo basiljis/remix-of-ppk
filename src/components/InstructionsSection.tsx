@@ -7,7 +7,9 @@ import { useInstructions } from "@/hooks/useInstructions";
 import { Button } from "@/components/ui/button";
 
 export const InstructionsSection = () => {
-  const { instructions, loading, error } = useInstructions();
+  const { instructions: customInstructions, loading: customLoading, error: customError } = useInstructions('custom');
+  const { instructions: workInstructions, loading: workLoading, error: workError } = useInstructions('work');
+  const { instructions: legalInstructions, loading: legalLoading, error: legalError } = useInstructions('legal');
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -180,23 +182,119 @@ export const InstructionsSection = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Dynamic Work Instructions */}
+          {workInstructions.map((instruction) => (
+            <Card key={instruction.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  {instruction.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  {instruction.content.map((section, sectionIndex) => (
+                    <AccordionItem key={section.id} value={`work-section-${sectionIndex}`}>
+                      <AccordionTrigger className="text-left">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">Раздел {sectionIndex + 1}</Badge>
+                          {section.title}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-3">
+                        {section.content && (
+                          <div className="whitespace-pre-wrap text-sm">
+                            {section.content}
+                          </div>
+                        )}
+                        
+                        {section.documents && section.documents.length > 0 && (
+                          <div className="space-y-2">
+                            <h5 className="text-sm font-medium">Документы:</h5>
+                            {section.documents.map((doc) => (
+                              <div key={doc.id} className="flex items-center justify-between bg-muted p-2 rounded">
+                                <div className="flex items-center">
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  <span className="text-sm">{doc.name}</span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => window.open(doc.url, '_blank')}
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {section.subsections && section.subsections.length > 0 && (
+                          <div className="space-y-3 ml-4">
+                            {section.subsections.map((subsection, subIndex) => (
+                              <div key={subsection.id} className="border-l-2 border-l-secondary pl-4">
+                                <h5 className="font-medium text-sm flex items-center gap-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    Подраздел {subIndex + 1}
+                                  </Badge>
+                                  {subsection.title}
+                                </h5>
+                                
+                                {subsection.content && (
+                                  <div className="whitespace-pre-wrap text-sm text-muted-foreground mt-2">
+                                    {subsection.content}
+                                  </div>
+                                )}
+                                
+                                {subsection.documents && subsection.documents.length > 0 && (
+                                  <div className="space-y-2 mt-2">
+                                    <h6 className="text-xs font-medium">Документы подраздела:</h6>
+                                    {subsection.documents.map((doc) => (
+                                      <div key={doc.id} className="flex items-center justify-between bg-muted p-2 rounded">
+                                        <div className="flex items-center">
+                                          <FileText className="w-4 h-4 mr-2" />
+                                          <span className="text-sm">{doc.name}</span>
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => window.open(doc.url, '_blank')}
+                                        >
+                                          <Download className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          ))}
         </TabsContent>
 
         <TabsContent value="custom" className="space-y-6">
-          {loading ? (
+          {customLoading ? (
             <Card>
               <CardContent className="p-6 text-center">
                 <p>Загрузка пользовательских инструкций...</p>
               </CardContent>
             </Card>
-          ) : error ? (
+          ) : customError ? (
             <Card>
               <CardContent className="p-6 text-center">
                 <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
-                <p className="text-destructive">Ошибка загрузки: {error}</p>
+                <p className="text-destructive">Ошибка загрузки: {customError}</p>
               </CardContent>
             </Card>
-          ) : instructions.length === 0 ? (
+          ) : customInstructions.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
                 <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
@@ -209,7 +307,7 @@ export const InstructionsSection = () => {
               </CardContent>
             </Card>
           ) : (
-            instructions.map((instruction) => (
+            customInstructions.map((instruction) => (
               <Card key={instruction.id}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -307,6 +405,103 @@ export const InstructionsSection = () => {
         </TabsContent>
 
         <TabsContent value="legal" className="space-y-6">
+          {/* Dynamic Legal Instructions */}
+          {legalInstructions.map((instruction) => (
+            <Card key={instruction.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  {instruction.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  {instruction.content.map((section, sectionIndex) => (
+                    <AccordionItem key={section.id} value={`legal-section-${sectionIndex}`}>
+                      <AccordionTrigger className="text-left">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">Раздел {sectionIndex + 1}</Badge>
+                          {section.title}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-3">
+                        {section.content && (
+                          <div className="whitespace-pre-wrap text-sm">
+                            {section.content}
+                          </div>
+                        )}
+                        
+                        {section.documents && section.documents.length > 0 && (
+                          <div className="space-y-2">
+                            <h5 className="text-sm font-medium">Документы:</h5>
+                            {section.documents.map((doc) => (
+                              <div key={doc.id} className="flex items-center justify-between bg-muted p-2 rounded">
+                                <div className="flex items-center">
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  <span className="text-sm">{doc.name}</span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => window.open(doc.url, '_blank')}
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {section.subsections && section.subsections.length > 0 && (
+                          <div className="space-y-3 ml-4">
+                            {section.subsections.map((subsection, subIndex) => (
+                              <div key={subsection.id} className="border-l-2 border-l-secondary pl-4">
+                                <h5 className="font-medium text-sm flex items-center gap-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    Подраздел {subIndex + 1}
+                                  </Badge>
+                                  {subsection.title}
+                                </h5>
+                                
+                                {subsection.content && (
+                                  <div className="whitespace-pre-wrap text-sm text-muted-foreground mt-2">
+                                    {subsection.content}
+                                  </div>
+                                )}
+                                
+                                {subsection.documents && subsection.documents.length > 0 && (
+                                  <div className="space-y-2 mt-2">
+                                    <h6 className="text-xs font-medium">Документы подраздела:</h6>
+                                    {subsection.documents.map((doc) => (
+                                      <div key={doc.id} className="flex items-center justify-between bg-muted p-2 rounded">
+                                        <div className="flex items-center">
+                                          <FileText className="w-4 h-4 mr-2" />
+                                          <span className="text-sm">{doc.name}</span>
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => window.open(doc.url, '_blank')}
+                                        >
+                                          <Download className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          ))}
+
+          {/* Static Legal Content */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

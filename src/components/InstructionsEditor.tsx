@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Trash2, Plus, Upload, FileText, Download } from 'lucide-react';
@@ -34,7 +35,8 @@ interface Document {
 interface Instruction {
   id: string;
   title: string;
-  content: any; // Using any for JSONB compatibility
+  content: any;
+  type: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -45,6 +47,7 @@ export function InstructionsEditor() {
   const [editingInstruction, setEditingInstruction] = useState<Instruction | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('work');
 
   useEffect(() => {
     fetchInstructions();
@@ -56,12 +59,20 @@ export function InstructionsEditor() {
         .from('instructions')
         .select('*')
         .eq('is_active', true)
+        .order('type')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setInstructions((data || []).map(item => ({
         ...item,
-        content: Array.isArray(item.content) ? item.content : []
+        content: (() => {
+          try {
+            const parsed = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })()
       })));
     } catch (error) {
       console.error('Error fetching instructions:', error);
@@ -71,9 +82,10 @@ export function InstructionsEditor() {
 
   const generateId = () => crypto.randomUUID();
 
-  const createNewInstruction = (): Instruction => ({
+  const createNewInstruction = (type: string): Instruction => ({
     id: '',
     title: '',
+    type: type,
     content: [{
       id: generateId(),
       title: 'Новый раздел',
@@ -97,6 +109,7 @@ export function InstructionsEditor() {
       const instructionData = {
         title: editingInstruction.title,
         content: JSON.stringify(editingInstruction.content),
+        type: editingInstruction.type,
         is_active: true
       };
 
@@ -302,17 +315,47 @@ export function InstructionsEditor() {
     }
   };
 
+  const getInstructionsByType = (type: string) => 
+    instructions.filter(instruction => instruction.type === type);
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'work':
+        return 'Инструкции по работе';
+      case 'legal':
+        return 'Нормативно-правовая информация';
+      default:
+        return 'Пользовательские инструкции';
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Управление инструкциями</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setEditingInstruction(createNewInstruction())}>
-              <Plus className="w-4 h-4 mr-2" />
-              Новая инструкция
-            </Button>
-          </DialogTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="work">Инструкции по работе</TabsTrigger>
+          <TabsTrigger value="legal">Нормативно-правовая информация</TabsTrigger>
+        </TabsList>
+
+        {['work', 'legal'].map((type) => (
+          <TabsContent key={type} value={type} className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">{getTypeLabel(type)}</h3>
+              <Dialog open={isDialogOpen && editingInstruction?.type === type} onOpenChange={(open) => {
+                if (!open) {
+                  setIsDialogOpen(false);
+                  setEditingInstruction(null);
+                }
+              }}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => {
+                    setEditingInstruction(createNewInstruction(type));
+                    setIsDialogOpen(true);
+                  }}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Новая инструкция
+                  </Button>
+                </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -517,14 +560,14 @@ export function InstructionsEditor() {
                     {isLoading ? 'Сохранение...' : 'Сохранить'}
                   </Button>
                 </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </div>
 
       <div className="grid gap-4">
-        {instructions.map((instruction) => (
+        {getInstructionsByType(type).map((instruction) => (
           <Card key={instruction.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg">{instruction.title}</CardTitle>
@@ -558,7 +601,20 @@ export function InstructionsEditor() {
             </CardContent>
           </Card>
         ))}
+        
+        {getInstructionsByType(type).length === 0 && (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">
+                Нет инструкций типа "{getTypeLabel(type)}"
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }

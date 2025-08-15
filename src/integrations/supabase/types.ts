@@ -86,6 +86,7 @@ export type Database = {
           id: string
           is_active: boolean
           title: string
+          type: string
           updated_at: string
         }
         Insert: {
@@ -94,6 +95,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           title: string
+          type?: string
           updated_at?: string
         }
         Update: {
@@ -102,6 +104,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           title?: string
+          type?: string
           updated_at?: string
         }
         Relationships: []

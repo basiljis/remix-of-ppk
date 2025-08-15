@@ -26,13 +26,14 @@ interface Document {
 interface Instruction {
   id: string;
   title: string;
-  content: any; // Using any for JSONB compatibility
+  content: any;
+  type: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export const useInstructions = () => {
+export const useInstructions = (type?: string) => {
   const [instructions, setInstructions] = useState<Instruction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,11 +43,17 @@ export const useInstructions = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('instructions')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
+
+      if (type) {
+        query = query.eq('type', type);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
