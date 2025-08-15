@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { useProtocols } from '@/hooks/useProtocols';
 import { useToast } from '@/hooks/use-toast';
-import { formatProtocolToText, exportProtocolToText, exportProtocolToXLS } from '@/utils/protocolExportUtils';
+import { formatProtocolToText, exportProtocolToText, exportProtocolToXLS, formatChecklistResults } from '@/utils/protocolExportUtils';
 
 interface PPKListProps {
   onNewProtocol: () => void;
@@ -262,7 +262,13 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                   </div>
                                   <div>
                                     <p className="font-semibold">Уровень образования:</p>
-                                    <p>{record.education_level || 'Не указан'}</p>
+                                    <p>{record.education_level === 'preschool' ? 'Дошкольное образование' :
+                                        record.education_level === 'primary' ? 'Начальное общее образование' :
+                                        record.education_level === 'secondary' ? 'Основное общее образование' :
+                                        record.education_level === 'high' ? 'Среднее общее образование' :
+                                        record.education_level === 'vocational' ? 'Среднее профессиональное образование' :
+                                        record.education_level === 'higher' ? 'Высшее образование' :
+                                        record.education_level || 'Не указан'}</p>
                                   </div>
                                   <div>
                                     <p className="font-semibold">Тип консультации:</p>
@@ -280,21 +286,10 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                 
                                 {record.checklist_data && Object.keys(record.checklist_data).length > 0 && (
                                   <div>
-                                    <p className="font-semibold mb-2">Данные чек-листов:</p>
+                                    <p className="font-semibold mb-2">Результаты чек-листов:</p>
                                     <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
-                                      <div className="text-sm whitespace-pre-wrap">
-                                        {formatProtocolToText({
-                                          child_name: record.child_name,
-                                          education_level: record.education_level,
-                                          organization: record.organizations,
-                                          status: record.status,
-                                          consultation_type: record.consultation_type,
-                                          consultation_reason: record.consultation_reason,
-                                          completion_percentage: record.completion_percentage,
-                                          created_at: record.created_at,
-                                          protocol_data: record.protocol_data,
-                                          checklist_data: record.checklist_data
-                                        }).split('\n\nДАННЫЕ ЧЕКЛ-ЛИСТОВ:\n------------------')[1]?.split('\n\nДАННЫЕ ПРОТОКОЛА:')[0] || 'Данные отсутствуют'}
+                                      <div className="text-sm whitespace-pre-wrap font-mono">
+                                        {formatChecklistResults(record.checklist_data)}
                                       </div>
                                     </div>
                                   </div>

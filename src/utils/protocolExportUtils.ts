@@ -13,6 +13,67 @@ export interface ProtocolData {
   checklist_data?: any;
 }
 
+// Перевод уровней образования на кириллицу
+const educationLevelTranslations: Record<string, string> = {
+  'preschool': 'Дошкольное образование',
+  'primary': 'Начальное общее образование',
+  'secondary': 'Основное общее образование',
+  'high': 'Среднее общее образование',
+  'vocational': 'Среднее профессиональное образование',
+  'higher': 'Высшее образование'
+};
+
+const translateEducationLevel = (level: string): string => {
+  return educationLevelTranslations[level] || level;
+};
+
+// Форматирование результатов чек-листов
+export const formatChecklistResults = (checklistData: any): string => {
+  if (!checklistData || Object.keys(checklistData).length === 0) {
+    return 'Данные отсутствуют';
+  }
+
+  let result = '';
+  
+  Object.entries(checklistData).forEach(([categoryKey, items], categoryIndex) => {
+    if (categoryIndex > 0) result += '\n';
+    
+    // Форматируем название категории
+    const categoryName = categoryKey.replace(/_/g, ' ').toUpperCase();
+    result += `${categoryName}:\n`;
+    
+    if (Array.isArray(items)) {
+      let completedCount = 0;
+      let totalCount = items.length;
+      
+      items.forEach((item: any, index: number) => {
+        if (typeof item === 'object' && item !== null) {
+          const status = item.isCompleted ? '✓' : '✗';
+          const text = item.text || item.name || `Пункт ${index + 1}`;
+          result += `  ${status} ${text}\n`;
+          
+          if (item.isCompleted) completedCount++;
+        } else {
+          result += `  • ${item}\n`;
+        }
+      });
+      
+      if (totalCount > 0) {
+        const percentage = Math.round((completedCount / totalCount) * 100);
+        result += `  Выполнено: ${completedCount}/${totalCount} (${percentage}%)\n`;
+      }
+    } else if (typeof items === 'object' && items !== null) {
+      Object.entries(items).forEach(([key, value]) => {
+        result += `  ${key}: ${value}\n`;
+      });
+    } else {
+      result += `  ${items}\n`;
+    }
+  });
+
+  return result;
+};
+
 export const formatProtocolToText = (protocol: ProtocolData): string => {
   let text = `ПРОТОКОЛ ПСИХОЛОГО-ПЕДАГОГИЧЕСКОЙ КОНСУЛЬТАЦИИ\n`;
   text += `==============================================\n\n`;
@@ -20,7 +81,7 @@ export const formatProtocolToText = (protocol: ProtocolData): string => {
   text += `ОБЩАЯ ИНФОРМАЦИЯ:\n`;
   text += `- ФИО ребенка: ${protocol.child_name}\n`;
   text += `- Организация: ${protocol.organization?.name || 'Не указана'}\n`;
-  text += `- Уровень образования: ${protocol.education_level}\n`;
+  text += `- Уровень образования: ${translateEducationLevel(protocol.education_level)}\n`;
   text += `- Тип консультации: ${protocol.consultation_type}\n`;
   text += `- Причина консультации: ${protocol.consultation_reason}\n`;
   text += `- Статус: ${protocol.status}\n`;
@@ -28,33 +89,10 @@ export const formatProtocolToText = (protocol: ProtocolData): string => {
   text += `- Дата создания: ${new Date(protocol.created_at).toLocaleDateString()}\n\n`;
 
   if (protocol.checklist_data && Object.keys(protocol.checklist_data).length > 0) {
-    text += `ДАННЫЕ ЧЕКЛ-ЛИСТОВ:\n`;
-    text += `------------------\n`;
-    
-    Object.entries(protocol.checklist_data).forEach(([key, value]) => {
-      text += `\n${key.toUpperCase()}:\n`;
-      if (Array.isArray(value)) {
-        value.forEach((item: any, index: number) => {
-          if (typeof item === 'object' && item !== null) {
-            text += `  ${index + 1}. ${item.text || item.name || JSON.stringify(item)}\n`;
-            if (item.isCompleted !== undefined) {
-              text += `     Статус: ${item.isCompleted ? 'Выполнено' : 'Не выполнено'}\n`;
-            }
-            if (item.isRequired !== undefined) {
-              text += `     Обязательный: ${item.isRequired ? 'Да' : 'Нет'}\n`;
-            }
-          } else {
-            text += `  ${index + 1}. ${item}\n`;
-          }
-        });
-      } else if (typeof value === 'object' && value !== null) {
-        Object.entries(value).forEach(([subKey, subValue]) => {
-          text += `  ${subKey}: ${typeof subValue === 'object' ? JSON.stringify(subValue, null, 2) : subValue}\n`;
-        });
-      } else {
-        text += `  ${value}\n`;
-      }
-    });
+    text += `РЕЗУЛЬТАТЫ ЧЕКЛ-ЛИСТОВ:\n`;
+    text += `----------------------\n`;
+    text += formatChecklistResults(protocol.checklist_data);
+    text += `\n`;
   }
 
   if (protocol.protocol_data && Object.keys(protocol.protocol_data).length > 0) {
@@ -90,7 +128,7 @@ export const exportProtocolToXLS = (protocol: ProtocolData) => {
   const mainData = [
     { 'Поле': 'ФИО ребенка', 'Значение': protocol.child_name },
     { 'Поле': 'Организация', 'Значение': protocol.organization?.name || 'Не указана' },
-    { 'Поле': 'Уровень образования', 'Значение': protocol.education_level },
+    { 'Поле': 'Уровень образования', 'Значение': translateEducationLevel(protocol.education_level) },
     { 'Поле': 'Тип консультации', 'Значение': protocol.consultation_type },
     { 'Поле': 'Причина консультации', 'Значение': protocol.consultation_reason },
     { 'Поле': 'Статус', 'Значение': protocol.status },
