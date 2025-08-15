@@ -723,13 +723,21 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                )}
              </div>
 
-            {!checklistBlocks.length && (
-              <div className="text-center p-6 bg-muted/50 rounded-lg">
-                <p className="text-muted-foreground">
-                  Выберите возраст ребенка на первом шаге для загрузки соответствующего чек-листа
-                </p>
-              </div>
-            )}
+             {!checklistBlocks.length && !checklistLoading && (
+               <div className="text-center p-6 bg-muted/50 rounded-lg">
+                 <p className="text-muted-foreground">
+                   Выберите возраст ребенка на первом шаге для загрузки соответствующего чек-листа
+                 </p>
+               </div>
+             )}
+
+             {checklistLoading && (
+               <div className="text-center p-6 bg-muted/50 rounded-lg">
+                 <p className="text-muted-foreground">
+                   Загрузка данных чек-листа из базы данных...
+                 </p>
+               </div>
+             )}
 
             {checklistBlocks.map((block, blockIndex) => (
               <div key={block.id}>
@@ -763,6 +771,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                                      // Check if this item is required in Supabase data
                                      (() => {
                                        const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+                                       console.log('Checking item:', item.checklist_item_id, 'in Supabase checklist:', supabaseChecklist);
                                        const isRequired = supabaseChecklist?.items.some(sItem => 
                                          sItem.id === item.checklist_item_id && sItem.isRequired
                                        );
