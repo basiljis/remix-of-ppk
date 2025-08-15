@@ -12,8 +12,9 @@ import { useChecklistData } from "@/hooks/useChecklistData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Users, Calendar, BookOpen, Download, ClipboardList, Database, AlertTriangle, BarChart3 } from "lucide-react";
+import { FileText, Users, Calendar, BookOpen, Download, ClipboardList, Database, AlertTriangle, BarChart3, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Administration } from "@/components/Administration";
 
 const Index = () => {
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel>("elementary");
@@ -88,7 +89,7 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="protocol" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
               Протокол ППк
@@ -108,6 +109,10 @@ const Index = () => {
             <TabsTrigger value="instructions" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               Инструкции
+            </TabsTrigger>
+            <TabsTrigger value="administration" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Администрирование
             </TabsTrigger>
           </TabsList>
 
@@ -238,6 +243,10 @@ const Index = () => {
 
           <TabsContent value="instructions" className="space-y-6">
             <InstructionsSection />
+          </TabsContent>
+
+          <TabsContent value="administration" className="space-y-6">
+            <Administration />
           </TabsContent>
         </Tabs>
       </div>
