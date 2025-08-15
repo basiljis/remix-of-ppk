@@ -1,5 +1,14 @@
 const API_BASE = "https://api-st.educom.ru/v1";
 
+// Fallback data for when API is not available
+const FALLBACK_ORGANIZATIONS = [
+  { id: "1", name: "МБОУ СОШ №1", district: "Центральный", type: "Общеобразовательная школа" },
+  { id: "2", name: "МБДОУ Детский сад №5", district: "Северный", type: "Дошкольное образовательное учреждение" },
+  { id: "3", name: "МАОУ Гимназия №3", district: "Западный", type: "Гимназия" },
+  { id: "4", name: "МБОУ СОШ №7", district: "Восточный", type: "Общеобразовательная школа" },
+  { id: "5", name: "МБДОУ Детский сад №12", district: "Южный", type: "Дошкольное образовательное учреждение" }
+];
+
 // Интерфейсы для API ответов
 export interface EduOrgResponse {
   data: {
@@ -48,11 +57,11 @@ class ApiService {
 
   // Запрос к методу getActual с токеном
   async getActualEduorgs(): Promise<EduOrgResponse> {
-    if (!this.apiToken) {
-      await this.createSession();
-    }
-
     try {
+      if (!this.apiToken) {
+        await this.createSession();
+      }
+
       const response = await fetch(`${API_BASE}/eduorg/getActual`, {
         method: 'POST',
         headers: {
@@ -67,8 +76,13 @@ class ApiService {
 
       return await response.json();
     } catch (error) {
-      console.error('Ошибка при получении образовательных организаций:', error);
-      throw error;
+      console.warn('API недоступен, используем резервные данные:', error);
+      // Return fallback data when API is not available
+      return {
+        data: {
+          eduorgs: FALLBACK_ORGANIZATIONS
+        }
+      };
     }
   }
 

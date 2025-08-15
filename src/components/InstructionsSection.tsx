@@ -42,20 +42,20 @@ export const InstructionsSection = () => {
                   <AccordionTrigger className="text-left">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">Шаг 1</Badge>
-                      Выбор уровня образования
+                      Заполнение протокола ППк
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="space-y-3">
-                    <p>Начните работу с выбора соответствующего уровня образования:</p>
+                    <p>Начните работу с заполнения протокола психолого-педагогического консилиума:</p>
                     <ul className="list-disc list-inside space-y-1 ml-4">
-                      <li><strong>Дошкольное образование</strong> - для детей 3-7 лет</li>
-                      <li><strong>Начальное образование</strong> - для учащихся 1-4 классов</li>
-                      <li><strong>Основное образование</strong> - для учащихся 5-9 классов</li>
-                      <li><strong>Среднее образование</strong> - для учащихся 10-11 классов</li>
+                      <li><strong>Образовательная организация</strong> - выберите из списка ЕКИС</li>
+                      <li><strong>Данные обучающегося</strong> - заполните ФИО, дату рождения, класс</li>
+                      <li><strong>Специалисты</strong> - укажите состав консилиума</li>
+                      <li><strong>Цели консилиума</strong> - опишите задачи обследования</li>
                     </ul>
-                    <div className="bg-accent/50 p-3 rounded-lg">
-                      <p className="text-sm"><CheckCircle className="h-4 w-4 inline mr-1" />
-                        Система автоматически адаптирует чеклисты под выбранный уровень образования.
+                    <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                      <p className="text-sm text-red-800"><AlertTriangle className="h-4 w-4 inline mr-1" />
+                        Поля, отмеченные красным, являются обязательными для заполнения.
                       </p>
                     </div>
                   </AccordionContent>
@@ -65,20 +65,20 @@ export const InstructionsSection = () => {
                   <AccordionTrigger className="text-left">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">Шаг 2</Badge>
-                      Подготовка к консилиуму
+                      Работа с чеклистами
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="space-y-3">
-                    <p>Выполните все задачи из раздела "Подготовка к консилиуму":</p>
+                    <p>Используйте чеклисты из базы данных для систематизации работы:</p>
                     <ul className="list-disc list-inside space-y-1 ml-4">
-                      <li>Уведомите родителей/законных представителей</li>
-                      <li>Получите письменное согласие на обследование</li>
-                      <li>Сформируйте состав консилиума</li>
-                      <li>Назначьте дату и время проведения</li>
+                      <li>Выберите уровень образования в разделе "Чеклисты"</li>
+                      <li>Проверьте все пункты диагностических процедур</li>
+                      <li>Отметьте выполненные задачи</li>
+                      <li>Используйте статистику для контроля прогресса</li>
                     </ul>
-                    <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
-                      <p className="text-sm text-orange-800"><AlertTriangle className="h-4 w-4 inline mr-1" />
-                        Обязательные задачи отмечены красным индикатором и должны быть выполнены.
+                    <div className="bg-accent/50 p-3 rounded-lg">
+                      <p className="text-sm"><CheckCircle className="h-4 w-4 inline mr-1" />
+                        Чеклисты загружаются из базы данных Supabase и адаптируются под выбранный уровень.
                       </p>
                     </div>
                   </AccordionContent>
@@ -88,18 +88,22 @@ export const InstructionsSection = () => {
                   <AccordionTrigger className="text-left">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">Шаг 3</Badge>
-                      Документооборот
+                      Работа с организациями ЕКИС
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="space-y-3">
-                    <p>Подготовьте необходимую документацию:</p>
+                    <p>Используйте данные из системы ЕКИС для выбора образовательных организаций:</p>
                     <ul className="list-disc list-inside space-y-1 ml-4">
-                      <li>Представление педагога на обучающегося</li>
-                      <li>Психологическое заключение</li>
-                      <li>Характеристика обучающегося</li>
-                      <li>Результаты психолого-педагогического обследования</li>
-                      <li>Медицинская справка (при необходимости)</li>
+                      <li>В протоколе система автоматически подгружает организации из ЕКИС</li>
+                      <li>Фильтруйте организации по округу и типу</li>
+                      <li>Используйте поиск для быстрого нахождения нужной организации</li>
+                      <li>Просматривайте актуальную информацию об организациях</li>
                     </ul>
+                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                      <p className="text-sm text-blue-800"><CheckCircle className="h-4 w-4 inline mr-1" />
+                        При недоступности API используются резервные данные для продолжения работы.
+                      </p>
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
 

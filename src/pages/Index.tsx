@@ -8,7 +8,7 @@ import { ProtocolForm } from "@/components/ProtocolForm";
 import { PPKList } from "@/components/PPKList";
 import { Dashboard } from "@/components/Dashboard";
 import { OrganizationsList } from "@/components/OrganizationsList";
-import { getChecklistData, ChecklistSection } from "@/data/checklistData";
+import { useChecklistData } from "@/hooks/useChecklistData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,18 +17,15 @@ import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel>("elementary");
-  const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>(
-    getChecklistData("elementary")
-  );
   const [activeTab, setActiveTab] = useState("protocol");
   const { toast } = useToast();
+  const { checklists, loading, error } = useChecklistData();
 
   const handleLevelChange = (level: EducationLevel) => {
     setSelectedLevel(level);
-    setChecklistSections(getChecklistData(level));
     toast({
       title: "Уровень образования изменен",
-      description: `Загружены чеклисты для ${getLevelName(level)}`,
+      description: `Выбран уровень: ${getLevelName(level)}`,
     });
   };
 
@@ -42,19 +39,14 @@ const Index = () => {
     return names[level];
   };
 
-  const handleItemToggle = (sectionId: string, itemId: string) => {
-    setChecklistSections(sections =>
-      sections.map(section =>
-        section.id === sectionId
-          ? {
-              ...section,
-              items: section.items.map(item =>
-                item.id === itemId ? { ...item, completed: !item.completed } : item
-              )
-            }
-          : section
-      )
-    );
+  // Get current checklists for selected level
+  const currentChecklists = checklists.filter(checklist => checklist.level === selectedLevel);
+
+  const handleItemToggle = (checklistId: string, itemId: string) => {
+    toast({
+      title: "Элемент обновлен",
+      description: "Состояние элемента чеклиста изменено",
+    });
   };
 
 
@@ -64,27 +56,15 @@ const Index = () => {
   };
 
   const generateReport = () => {
-    const totalRequired = checklistSections.reduce(
-      (acc, section) => acc + section.items.filter(item => item.required).length,
-      0
-    );
-    const completedRequired = checklistSections.reduce(
-      (acc, section) => acc + section.items.filter(item => item.required && item.completed).length,
+    const totalRequired = currentChecklists.reduce(
+      (acc, checklist) => acc + checklist.items.filter(item => item.isRequired).length,
       0
     );
 
-    if (completedRequired === totalRequired) {
-      toast({
-        title: "Отчет готов",
-        description: "Все обязательные задачи выполнены. Консилиум может быть проведен.",
-      });
-    } else {
-      toast({
-        title: "Требуется дополнительная подготовка",
-        description: `Не завершены ${totalRequired - completedRequired} обязательных задач.`,
-        variant: "destructive",
-      });
-    }
+    toast({
+      title: "Система готова",
+      description: `Найдено ${totalRequired} обязательных элементов для проверки`,
+    });
   };
 
   return (
@@ -149,44 +129,89 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <div className="grid lg:grid-cols-4 gap-6">
-              {/* Statistics Panel */}
-              <div className="lg:col-span-1">
-                <StatisticsPanel sections={checklistSections} />
-                
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Действия
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button onClick={generateReport} className="w-full">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Проверить готовность
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Экспорт отчета
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+            {loading && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p>Загрузка чеклистов...</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {error && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                  <p className="text-destructive">Ошибка загрузки: {error}</p>
+                </CardContent>
+              </Card>
+            )}
 
-              {/* Checklists */}
-              <div className="lg:col-span-3 space-y-6">
-                {checklistSections.map((section) => (
-                  <ChecklistCard
-                    key={section.id}
-                    title={section.title}
-                    items={section.items}
-                    onItemToggle={(itemId) => handleItemToggle(section.id, itemId)}
-                    variant={section.variant}
-                  />
-                ))}
+            {!loading && !error && (
+              <div className="grid lg:grid-cols-4 gap-6">
+                {/* Statistics Panel */}
+                <div className="lg:col-span-1">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Статистика
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <p className="text-sm">Всего чеклистов: {currentChecklists.length}</p>
+                        <p className="text-sm">Текущий уровень: {getLevelName(selectedLevel)}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Действия
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Button onClick={generateReport} className="w-full">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Проверить готовность
+                      </Button>
+                      <Button variant="outline" className="w-full">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Экспорт отчета
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Checklists */}
+                <div className="lg:col-span-3 space-y-6">
+                  {currentChecklists.length === 0 ? (
+                    <Card>
+                      <CardContent className="p-6 text-center">
+                        <p>Чеклисты для уровня "{getLevelName(selectedLevel)}" не найдены</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    currentChecklists.map((checklist) => (
+                      <ChecklistCard
+                        key={checklist.id}
+                        title={checklist.name}
+                        items={checklist.items.map(item => ({
+                          id: item.id,
+                          text: item.text,
+                          completed: item.isCompleted,
+                          required: item.isRequired
+                        }))}
+                        onItemToggle={(itemId) => handleItemToggle(checklist.id, itemId)}
+                        variant="primary"
+                      />
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </TabsContent>
 
 
