@@ -1,74 +1,164 @@
-import { useState, useEffect } from "react";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { apiService } from "@/services/apiService";
-import { useToast } from "@/hooks/use-toast";
-
-interface Organization {
-  id: string;
-  name: string;
-  district: string;
-  type: string;
-}
+import React, { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Search } from 'lucide-react';
+import { useOrganizations, Organization } from '@/hooks/useOrganizations';
 
 interface OrganizationSelectorProps {
-  value: string;
+  value?: string;
   onChange: (value: string) => void;
   label?: string;
   placeholder?: string;
 }
 
-export const OrganizationSelector = ({ 
-  value, 
-  onChange, 
+export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
+  value,
+  onChange,
   label = "Образовательная организация",
-  placeholder = "Выберите организацию" 
-}: OrganizationSelectorProps) => {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  placeholder = "Выберите организацию"
+}) => {
+  const { organizations, loading, addOrganization, searchOrganizations } = useOrganizations();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newOrgName, setNewOrgName] = useState('');
+  const [newOrgDistrict, setNewOrgDistrict] = useState('');
+  const [newOrgType, setNewOrgType] = useState('');
 
-  useEffect(() => {
-    loadOrganizations();
-  }, []);
+  const filteredOrganizations = searchOrganizations(searchQuery);
+  const selectedOrg = organizations.find(org => org.id === value);
 
-  const loadOrganizations = async () => {
-    setLoading(true);
+  const handleAddOrganization = async () => {
+    if (!newOrgName.trim()) return;
+
     try {
-      const response = await apiService.getActualEduorgs();
-      setOrganizations(response.data.eduorgs);
-    } catch (error) {
-      console.error('Ошибка загрузки организаций:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить список организаций",
-        variant: "destructive"
+      const newOrg = await addOrganization({
+        name: newOrgName,
+        district: newOrgDistrict,
+        type: newOrgType
       });
-    } finally {
-      setLoading(false);
+      
+      onChange(newOrg.id);
+      setShowAddDialog(false);
+      setNewOrgName('');
+      setNewOrgDistrict('');
+      setNewOrgType('');
+    } catch (error) {
+      console.error('Error adding organization:', error);
     }
   };
 
   return (
-    <div>
+    <div className="space-y-2">
       <Label htmlFor="organization">{label}</Label>
-      <Select value={value} onValueChange={onChange} disabled={loading}>
-        <SelectTrigger>
-          <SelectValue placeholder={loading ? "Загрузка..." : placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {organizations.map((org) => (
-            <SelectItem key={org.id} value={org.name}>
-              <div className="flex flex-col">
-                <span>{org.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {org.district} • {org.type}
-                </span>
+      
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Select value={value} onValueChange={onChange} disabled={loading}>
+            <SelectTrigger>
+              <SelectValue 
+                placeholder={loading ? "Загрузка..." : placeholder}
+              >
+                {selectedOrg ? (
+                  <div className="flex flex-col text-left">
+                    <span className="font-medium">{selectedOrg.name}</span>
+                    {selectedOrg.district && (
+                      <span className="text-sm text-muted-foreground">
+                        {selectedOrg.district} • {selectedOrg.type}
+                        {selectedOrg.is_manual && " (добавлено вручную)"}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-background border border-border">
+              <div className="p-2">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Поиск по названию, округу или номеру..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
               </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+              
+              {filteredOrganizations.map((org) => (
+                <SelectItem key={org.id} value={org.id}>
+                  <div className="flex flex-col w-full">
+                    <span className="font-medium">{org.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {org.external_id && `№${org.external_id} • `}
+                      {org.district} • {org.type}
+                      {org.is_manual && " (добавлено вручную)"}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+              
+              {filteredOrganizations.length === 0 && searchQuery && (
+                <div className="p-2 text-center text-muted-foreground">
+                  Организации не найдены
+                </div>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Добавить новую организацию</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="new-org-name">Название организации</Label>
+                <Input
+                  id="new-org-name"
+                  value={newOrgName}
+                  onChange={(e) => setNewOrgName(e.target.value)}
+                  placeholder="Введите название организации"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-org-district">Округ</Label>
+                <Input
+                  id="new-org-district"
+                  value={newOrgDistrict}
+                  onChange={(e) => setNewOrgDistrict(e.target.value)}
+                  placeholder="Введите округ"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-org-type">Тип организации</Label>
+                <Input
+                  id="new-org-type"
+                  value={newOrgType}
+                  onChange={(e) => setNewOrgType(e.target.value)}
+                  placeholder="Введите тип организации"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                  Отмена
+                </Button>
+                <Button onClick={handleAddOrganization} disabled={!newOrgName.trim()}>
+                  Добавить
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

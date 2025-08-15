@@ -1,262 +1,233 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, Search, Plus, Eye, FileText, Trash2, Edit, AlertTriangle } from "lucide-react";
-import { useProtocolStorage, SavedProtocol } from "@/hooks/useProtocolStorage";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Eye, Trash2, Plus, Search } from 'lucide-react';
+import { useProtocols } from '@/hooks/useProtocols';
+import { useToast } from '@/hooks/use-toast';
 
-export const PPKList = ({ onNewProtocol }: { onNewProtocol?: () => void }) => {
-  const { protocols, deleteProtocol } = useProtocolStorage();
+interface PPKListProps {
+  onNewProtocol: () => void;
+}
+
+export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol }) => {
+  const { protocols, deleteProtocol, loading } = useProtocols();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterType, setFilterType] = useState<string>("all");
-  const [filterReason, setFilterReason] = useState<string>("all");
-  const [selectedRecord, setSelectedRecord] = useState<SavedProtocol | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [reasonFilter, setReasonFilter] = useState('all');
 
+  // Filter protocols based on search and filters
   const filteredRecords = protocols.filter(protocol => {
-    const matchesSearch = protocol.childName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || protocol.status === filterStatus;
-    const matchesType = filterType === "all" || protocol.consultationType === filterType;
-    const matchesReason = filterReason === "all" || protocol.reason.toLowerCase().includes(filterReason.toLowerCase());
+    const matchesSearch = protocol.child_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      protocol.organizations?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || protocol.status === statusFilter;
+    const matchesType = typeFilter === 'all' || protocol.consultation_type === typeFilter;
+    const matchesReason = reasonFilter === 'all' || protocol.consultation_reason === reasonFilter;
+
     return matchesSearch && matchesStatus && matchesType && matchesReason;
   });
 
-  const getStatusBadge = (status: SavedProtocol["status"], completionPercentage: number) => {
-    if (status === "completed") {
-      return <Badge className="bg-success text-success-foreground">Завершен</Badge>;
-    } else {
-      return (
-        <div className="flex items-center gap-2">
-          <Badge variant="destructive" className="bg-red-500 text-white">
-            Не завершен ({completionPercentage}%)
-          </Badge>
-        </div>
-      );
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-green-500">Завершен</Badge>;
+      case 'in_progress':
+        return <Badge variant="secondary">В процессе</Badge>;
+      case 'draft':
+        return <Badge variant="outline">Черновик</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const getTypeBadge = (type: SavedProtocol["consultationType"]) => {
-    return type === "primary" ? 
-      <Badge variant="outline">Первичный</Badge> : 
-      <Badge variant="secondary">Вторичный</Badge>;
+  const getTypeBadge = (type: string) => {
+    switch (type) {
+      case 'primary':
+        return <Badge variant="default">Первичная</Badge>;
+      case 'secondary':
+        return <Badge variant="secondary">Повторная</Badge>;
+      default:
+        return <Badge variant="outline">{type}</Badge>;
+    }
   };
 
-  const handleDelete = (id: string) => {
-    deleteProtocol(id);
-    toast({
-      title: "Протокол удален",
-      description: "Протокол успешно удален из системы"
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProtocol(id);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Список проведенных ППк
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Фильтры */}
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-64">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Поиск по ФИО ребенка..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Список протоколов ППК</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Фильтры */}
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-64">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Поиск по имени ребенка или организации..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Статус" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все статусы</SelectItem>
-                <SelectItem value="completed">Завершенные</SelectItem>
-                <SelectItem value="draft">Черновики</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Тип" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все типы</SelectItem>
-                <SelectItem value="primary">Первичные</SelectItem>
-                <SelectItem value="secondary">Вторичные</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterReason} onValueChange={setFilterReason}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Причина" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все причины</SelectItem>
-                <SelectItem value="трудности в освоении">Трудности в освоении программы</SelectItem>
-                <SelectItem value="повторное обследование">Повторное обследование</SelectItem>
-                <SelectItem value="социальная дезадаптация">Социальная дезадаптация</SelectItem>
-                <SelectItem value="нарушения речи">Нарушения речи</SelectItem>
-                <SelectItem value="поведенческие нарушения">Поведенческие нарушения</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={onNewProtocol}>
-              <Plus className="h-4 w-4 mr-2" />
-              Новый ППк
-            </Button>
           </div>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Статус" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="completed">Завершенные</SelectItem>
+              <SelectItem value="in_progress">В процессе</SelectItem>
+              <SelectItem value="draft">Черновики</SelectItem>
+            </SelectContent>
+          </Select>
 
-          {/* Таблица */}
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Тип" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все типы</SelectItem>
+              <SelectItem value="primary">Первичные</SelectItem>
+              <SelectItem value="secondary">Повторные</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={reasonFilter} onValueChange={setReasonFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Причина" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все причины</SelectItem>
+              <SelectItem value="трудности в обучении">Трудности в обучении</SelectItem>
+              <SelectItem value="повторное обследование">Повторное обследование</SelectItem>
+              <SelectItem value="социальная дезадаптация">Социальная дезадаптация</SelectItem>
+              <SelectItem value="нарушения речи">Нарушения речи</SelectItem>
+              <SelectItem value="поведенческие нарушения">Поведенческие нарушения</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button onClick={onNewProtocol}>
+            <Plus className="h-4 w-4 mr-2" />
+            Новый ППК
+          </Button>
+        </div>
+
+        {/* Таблица */}
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ФИО ребенка</TableHead>
+                <TableHead>Организация</TableHead>
+                <TableHead>Тип</TableHead>
+                <TableHead>Дата создания</TableHead>
+                <TableHead>Статус</TableHead>
+                <TableHead>Готовность</TableHead>
+                <TableHead>Действия</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
                 <TableRow>
-                  <TableHead>ФИО ребенка</TableHead>
-                  <TableHead>Организация</TableHead>
-                  <TableHead>Тип</TableHead>
-                  <TableHead>Дата создания</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Готовность</TableHead>
-                  <TableHead>Действия</TableHead>
+                  <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                    Загрузка протоколов...
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRecords.map((record) => (
-                  <TableRow 
-                    key={record.id} 
-                    className={record.status === 'draft' ? 'bg-red-50 dark:bg-red-950/20' : ''}
-                  >
-                    <TableCell className="font-medium">{record.childName}</TableCell>
-                    <TableCell className="max-w-xs truncate">{record.educationalOrganization}</TableCell>
-                    <TableCell>{getTypeBadge(record.consultationType)}</TableCell>
-                    <TableCell>{new Date(record.createdDate).toLocaleDateString()}</TableCell>
-                    <TableCell>{getStatusBadge(record.status, record.completionPercentage)}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <Progress value={record.completionPercentage} className="w-16" />
-                        <span className="text-xs text-muted-foreground">{record.completionPercentage}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setSelectedRecord(record)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Просмотр
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Детали ППк - {selectedRecord?.childName}</DialogTitle>
-                            </DialogHeader>
-                            {selectedRecord && (
+              ) : (
+                <>
+                  {filteredRecords.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell className="font-medium">{record.child_name}</TableCell>
+                      <TableCell>{record.organizations?.name || 'Не указана'}</TableCell>
+                      <TableCell>{getTypeBadge(record.consultation_type || '')}</TableCell>
+                      <TableCell>{new Date(record.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{getStatusBadge(record.status)}</TableCell>
+                      <TableCell>
+                        <Badge variant={record.completion_percentage === 100 ? "default" : "secondary"}>
+                          {record.completion_percentage}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Протокол ППК - {record.child_name}</DialogTitle>
+                              </DialogHeader>
                               <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <h4 className="font-semibold">Тип консультации:</h4>
-                                    <p>{selectedRecord.consultationType === "primary" ? "Первичная" : "Вторичная"}</p>
+                                    <p className="font-semibold">Имя ребенка:</p>
+                                    <p>{record.child_name}</p>
                                   </div>
                                   <div>
-                                    <h4 className="font-semibold">Дата создания:</h4>
-                                    <p>{new Date(selectedRecord.createdDate).toLocaleDateString()}</p>
+                                    <p className="font-semibold">Организация:</p>
+                                    <p>{record.organizations?.name || 'Не указана'}</p>
                                   </div>
                                   <div>
-                                    <h4 className="font-semibold">Статус:</h4>
-                                    <p>{getStatusBadge(selectedRecord.status, selectedRecord.completionPercentage)}</p>
+                                    <p className="font-semibold">Уровень образования:</p>
+                                    <p>{record.education_level || 'Не указан'}</p>
                                   </div>
                                   <div>
-                                    <h4 className="font-semibold">Готовность:</h4>
-                                    <div className="flex items-center gap-2">
-                                      <Progress value={selectedRecord.completionPercentage} className="w-20" />
-                                      <span>{selectedRecord.completionPercentage}%</span>
+                                    <p className="font-semibold">Тип консультации:</p>
+                                    <p>{record.consultation_type || 'Не указан'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Причина консультации:</p>
+                                    <p>{record.consultation_reason || 'Не указана'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Статус:</p>
+                                    <p>{getStatusBadge(record.status)}</p>
+                                  </div>
+                                </div>
+                                
+                                {record.checklist_data && Object.keys(record.checklist_data).length > 0 && (
+                                  <div>
+                                    <p className="font-semibold mb-2">Данные чек-листов:</p>
+                                    <div className="bg-gray-50 p-3 rounded max-h-40 overflow-y-auto">
+                                      <pre className="text-sm">{JSON.stringify(record.checklist_data, null, 2)}</pre>
                                     </div>
                                   </div>
-                                  <div>
-                                    <h4 className="font-semibold">Образовательная организация:</h4>
-                                    <p>{selectedRecord.educationalOrganization}</p>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold">Уровень образования:</h4>
-                                    <p>
-                                      {selectedRecord.level === 'preschool' && 'Дошкольное'}
-                                      {selectedRecord.level === 'elementary' && 'Начальное'}
-                                      {selectedRecord.level === 'middle' && 'Основное'}
-                                      {selectedRecord.level === 'high' && 'Среднее'}
-                                    </p>
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <h4 className="font-semibold">Причина направления:</h4>
-                                  <p className="mt-1">{selectedRecord.reason}</p>
-                                </div>
-
-                                {selectedRecord.decision && (
-                                  <div>
-                                    <h4 className="font-semibold">Решение консилиума:</h4>
-                                    <p className="mt-1">{selectedRecord.decision}</p>
-                                  </div>
                                 )}
-
-                                {selectedRecord.recommendations && selectedRecord.recommendations.length > 0 && (
-                                  <div>
-                                    <h4 className="font-semibold">Рекомендации:</h4>
-                                    <ul className="list-disc list-inside mt-1 space-y-1">
-                                      {selectedRecord.recommendations.map((rec, index) => (
-                                        <li key={index}>{rec}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                                
-                                <div className="flex gap-2 pt-4">
-                                  <Button variant="outline">
-                                    <FileText className="h-4 w-4 mr-2" />
-                                    Экспорт протокола
-                                  </Button>
-                                  {selectedRecord.status === 'draft' && (
-                                    <Button variant="outline">
-                                      <Edit className="h-4 w-4 mr-2" />
-                                      Дозаполнить
-                                    </Button>
-                                  )}
-                                </div>
                               </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-
-                        {record.status === 'draft' && (
+                            </DialogContent>
+                          </Dialog>
+                          
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Удалить
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Удалить протокол?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Это действие нельзя отменить. Протокол будет удален навсегда.
+                                  Это действие нельзя отменить. Протокол будет удален безвозвратно.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -267,23 +238,24 @@ export const PPKList = ({ onNewProtocol }: { onNewProtocol?: () => void }) => {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
 
-          {filteredRecords.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Записи не найдены</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                  {filteredRecords.length === 0 && !loading && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                        Записи не найдены
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

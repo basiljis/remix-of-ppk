@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save, Download } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData, ChecklistBlock, ChecklistItem, updateItemScore, calculateBlockScore } from "@/data/protocolChecklistData";
-import { useProtocolStorage } from "@/hooks/useProtocolStorage";
+import { useProtocols } from "@/hooks/useProtocols";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { generateConsentPDF } from "@/components/ConsentPDF";
 import { useChecklistData } from "@/hooks/useChecklistData";
@@ -67,7 +67,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLevel, setSelectedLevel] = useState<"preschool" | "elementary" | "middle" | "high">("elementary");
   const [checklistBlocks, setChecklistBlocks] = useState<ChecklistBlock[]>([]);
-  const { saveProtocol, updateProtocol } = useProtocolStorage();
+  const { saveProtocol, updateProtocol } = useProtocols();
   const { toast } = useToast();
   const { getChecklistByLevelAndType, loading: checklistLoading } = useChecklistData();
   
@@ -188,7 +188,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     }
   };
 
-  const saveProtocolData = (isDraft: boolean = false) => {
+  const saveProtocolData = async (isDraft: boolean = false) => {
     if (!canSaveProtocol() && !isDraft) {
       toast({
         title: "Ошибка",
@@ -214,20 +214,39 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       blocks: checklistBlocks
     };
 
-    if (editingProtocol) {
-      updateProtocol(editingProtocol.id, formData, checklistData, completionPercentage);
-      toast({
-        title: "Протокол обновлен",
-        description: `Данные успешно обновлены (${completionPercentage}% готовности)`
-      });
-    } else {
-      const protocolId = saveProtocol(formData, checklistData, completionPercentage);
-      toast({
-        title: isDraft ? "Черновик сохранен" : "Протокол завершен",
-        description: isDraft 
-          ? `Данные сохранены как черновик (${completionPercentage}% готовности)`
-          : "Протокол успешно завершен и сохранен"
-      });
+    const protocolData = {
+      child_name: formData.childData.fullName,
+      child_birth_date: formData.childData.birthDate || undefined,
+      organization_id: formData.childData.educationalOrganization,
+      education_level: selectedLevel,
+      consultation_type: formData.consultationType,
+      consultation_reason: formData.reason,
+      protocol_data: formData,
+      checklist_data: checklistData,
+      completion_percentage: completionPercentage,
+      status: isDraft ? 'draft' : 'completed',
+      is_ready: !isDraft
+    };
+
+    try {
+      if (editingProtocol) {
+        await updateProtocol(editingProtocol.id, protocolData);
+        toast({
+          title: "Протокол обновлен",
+          description: `Данные успешно обновлены (${completionPercentage}% готовности)`
+        });
+      } else {
+        await saveProtocol(protocolData);
+        toast({
+          title: isDraft ? "Черновик сохранен" : "Протокол завершен",
+          description: isDraft 
+            ? `Данные сохранены как черновик (${completionPercentage}% готовности)`
+            : "Протокол успешно завершен и сохранен"
+        });
+      }
+    } catch (error) {
+      console.error('Error saving protocol:', error);
+      return;
     }
 
     onProtocolSave(formData);

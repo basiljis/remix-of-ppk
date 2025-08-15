@@ -79,6 +79,98 @@ export type Database = {
           },
         ]
       }
+      organizations: {
+        Row: {
+          created_at: string
+          district: string | null
+          external_id: string | null
+          id: string
+          is_manual: boolean
+          name: string
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          district?: string | null
+          external_id?: string | null
+          id?: string
+          is_manual?: boolean
+          name: string
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          district?: string | null
+          external_id?: string | null
+          id?: string
+          is_manual?: boolean
+          name?: string
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      protocols: {
+        Row: {
+          checklist_data: Json | null
+          child_birth_date: string | null
+          child_name: string
+          completion_percentage: number | null
+          consultation_reason: string | null
+          consultation_type: string
+          created_at: string
+          education_level: string
+          id: string
+          is_ready: boolean | null
+          organization_id: string | null
+          protocol_data: Json | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          checklist_data?: Json | null
+          child_birth_date?: string | null
+          child_name: string
+          completion_percentage?: number | null
+          consultation_reason?: string | null
+          consultation_type: string
+          created_at?: string
+          education_level: string
+          id?: string
+          is_ready?: boolean | null
+          organization_id?: string | null
+          protocol_data?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checklist_data?: Json | null
+          child_birth_date?: string | null
+          child_name?: string
+          completion_percentage?: number | null
+          consultation_reason?: string | null
+          consultation_type?: string
+          created_at?: string
+          education_level?: string
+          id?: string
+          is_ready?: boolean | null
+          organization_id?: string | null
+          protocol_data?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocols_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
