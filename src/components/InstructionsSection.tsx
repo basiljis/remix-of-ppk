@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Scale, Users, FileText, AlertTriangle, CheckCircle } from "lucide-react";
+import { BookOpen, Scale, Users, FileText, AlertTriangle, CheckCircle, Settings } from "lucide-react";
+import { AdminPanel } from "@/components/AdminPanel";
 
 export const InstructionsSection = () => {
   return (
@@ -17,7 +18,7 @@ export const InstructionsSection = () => {
       </div>
 
       <Tabs defaultValue="instructions" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="instructions" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             Инструкции по работе
@@ -25,6 +26,10 @@ export const InstructionsSection = () => {
           <TabsTrigger value="legal" className="flex items-center gap-2">
             <Scale className="h-4 w-4" />
             Нормативно-правовая база
+          </TabsTrigger>
+          <TabsTrigger value="admin" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Администрирование
           </TabsTrigger>
         </TabsList>
 
@@ -321,6 +326,10 @@ export const InstructionsSection = () => {
               </Accordion>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="admin" className="space-y-6">
+          <AdminPanel />
         </TabsContent>
       </Tabs>
     </div>
