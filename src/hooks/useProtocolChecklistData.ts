@@ -102,9 +102,15 @@ export const useProtocolChecklistData = () => {
     };
 
     const levelKey = levelMap[level];
-    if (!levelKey) return [];
+    if (!levelKey) {
+      console.log('No level key found for:', level);
+      return [];
+    }
 
-    return items.filter(item => item[levelKey]);
+    const filteredItems = items.filter(item => item[levelKey] === true);
+    console.log(`Filtering for level: ${level} (${levelKey}), found ${filteredItems.length} items out of ${items.length} total`);
+    
+    return filteredItems;
   };
 
   const getBlocksForEducationLevel = (level: string): ProtocolChecklistBlock[] => {

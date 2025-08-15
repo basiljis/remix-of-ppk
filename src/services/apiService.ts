@@ -1,13 +1,40 @@
 const API_BASE = "https://api-st.educom.ru/v1";
 
-// Fallback data for when API is not available
-const FALLBACK_ORGANIZATIONS = [
-  { id: "1", name: "МБОУ СОШ №1", district: "Центральный", type: "Общеобразовательная школа" },
-  { id: "2", name: "МБДОУ Детский сад №5", district: "Северный", type: "Дошкольное образовательное учреждение" },
-  { id: "3", name: "МАОУ Гимназия №3", district: "Западный", type: "Гимназия" },
-  { id: "4", name: "МБОУ СОШ №7", district: "Восточный", type: "Общеобразовательная школа" },
-  { id: "5", name: "МБДОУ Детский сад №12", district: "Южный", type: "Дошкольное образовательное учреждение" }
-];
+// Enhanced fallback data with more realistic organization count
+const FALLBACK_ORGANIZATIONS = Array.from({ length: 150 }, (_, i) => {
+  const districts = ["Центральный", "Северный", "Западный", "Восточный", "Южный", "Северо-Западный", "Юго-Восточный"];
+  const types = [
+    "Общеобразовательная школа", 
+    "Дошкольное образовательное учреждение", 
+    "Гимназия", 
+    "Лицей", 
+    "Коррекционная школа",
+    "Школа-интернат",
+    "Центр развития ребенка"
+  ];
+  
+  const district = districts[i % districts.length];
+  const type = types[i % types.length];
+  const num = i + 1;
+  
+  let name = "";
+  if (type === "Дошкольное образовательное учреждение") {
+    name = `МБДОУ Детский сад №${num}`;
+  } else if (type === "Гимназия") {
+    name = `МАОУ Гимназия №${num}`;
+  } else if (type === "Лицей") {
+    name = `МАОУ Лицей №${num}`;
+  } else {
+    name = `МБОУ ${type === "Общеобразовательная школа" ? "СОШ" : type} №${num}`;
+  }
+  
+  return { 
+    id: `org_${num}`, 
+    name, 
+    district, 
+    type 
+  };
+});
 
 // Интерфейсы для API ответов
 export interface EduOrgResponse {
@@ -34,20 +61,27 @@ class ApiService {
   // Функция для авторизации и получения токена
   async createSession(): Promise<string> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch(`${API_BASE}/auth/createSession`, {
         method: 'POST',
         headers: {
           'Authorization': 'Basic ' + btoa('go_gppc:NHFud4'), // базовая авторизация
           'Content-Type': 'application/json'
-        }
+        },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error('Ошибка авторизации');
+        throw new Error(`Ошибка авторизации: ${response.status}`);
       }
 
       const data: SessionResponse = await response.json();
       this.apiToken = data.data.token;
+      console.log('Успешная авторизация в ЕКИС API');
       return this.apiToken;
     } catch (error) {
       console.error('Ошибка при создании сессии:', error);
@@ -62,21 +96,30 @@ class ApiService {
         await this.createSession();
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
       const response = await fetch(`${API_BASE}/eduorg/getActual`, {
         method: 'POST',
         headers: {
           'X-API-TOKEN': this.apiToken!,
           'Content-Type': 'application/json'
-        }
+        },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error('Ошибка запроса образовательных организаций');
+        throw new Error(`Ошибка запроса образовательных организаций: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log(`Получено ${data.data.eduorgs.length} организаций из ЕКИС API`);
+      return data;
     } catch (error) {
       console.warn('API недоступен, используем резервные данные:', error);
+      console.log(`Используем ${FALLBACK_ORGANIZATIONS.length} резервных организаций`);
       // Return fallback data when API is not available
       return {
         data: {
