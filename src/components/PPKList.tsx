@@ -7,9 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Eye, Trash2, Plus, Search, Edit, Download } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { useProtocols } from '@/hooks/useProtocols';
 import { useToast } from '@/hooks/use-toast';
+import { formatProtocolToText, exportProtocolToText, exportProtocolToXLS } from '@/utils/protocolExportUtils';
 
 interface PPKListProps {
   onNewProtocol: () => void;
@@ -80,35 +82,62 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     onEditProtocol(protocol.id);
   };
 
-  const handleExport = (protocol: any) => {
-    // Create JSON export
-    const exportData = {
-      child_name: protocol.child_name,
-      education_level: protocol.education_level,
-      organization: protocol.organizations?.name || '',
-      status: protocol.status,
-      consultation_type: protocol.consultation_type,
-      consultation_reason: protocol.consultation_reason,
-      completion_percentage: protocol.completion_percentage,
-      created_at: protocol.created_at,
-      protocol_data: protocol.protocol_data,
-      checklist_data: protocol.checklist_data
-    };
+  const handleExportText = (protocol: any) => {
+    try {
+      const protocolData = {
+        child_name: protocol.child_name,
+        education_level: protocol.education_level,
+        organization: protocol.organizations,
+        status: protocol.status,
+        consultation_type: protocol.consultation_type,
+        consultation_reason: protocol.consultation_reason,
+        completion_percentage: protocol.completion_percentage,
+        created_at: protocol.created_at,
+        protocol_data: protocol.protocol_data,
+        checklist_data: protocol.checklist_data
+      };
 
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `protocol_${protocol.child_name}_${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+      exportProtocolToText(protocolData);
+      toast({
+        title: "Экспорт завершен",
+        description: "Протокол экспортирован в текстовом формате",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось экспортировать протокол",
+        variant: "destructive",
+      });
+    }
+  };
 
-    toast({
-      title: "Экспорт завершен",
-      description: "Протокол экспортирован в JSON формате",
-    });
+  const handleExportXLS = (protocol: any) => {
+    try {
+      const protocolData = {
+        child_name: protocol.child_name,
+        education_level: protocol.education_level,
+        organization: protocol.organizations,
+        status: protocol.status,
+        consultation_type: protocol.consultation_type,
+        consultation_reason: protocol.consultation_reason,
+        completion_percentage: protocol.completion_percentage,
+        created_at: protocol.created_at,
+        protocol_data: protocol.protocol_data,
+        checklist_data: protocol.checklist_data
+      };
+
+      exportProtocolToXLS(protocolData);
+      toast({
+        title: "Экспорт завершен",
+        description: "Протокол экспортирован в Excel формате",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось экспортировать протокол",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -252,8 +281,21 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                 {record.checklist_data && Object.keys(record.checklist_data).length > 0 && (
                                   <div>
                                     <p className="font-semibold mb-2">Данные чек-листов:</p>
-                                    <div className="bg-gray-50 p-3 rounded max-h-40 overflow-y-auto">
-                                      <pre className="text-sm">{JSON.stringify(record.checklist_data, null, 2)}</pre>
+                                    <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
+                                      <div className="text-sm whitespace-pre-wrap">
+                                        {formatProtocolToText({
+                                          child_name: record.child_name,
+                                          education_level: record.education_level,
+                                          organization: record.organizations,
+                                          status: record.status,
+                                          consultation_type: record.consultation_type,
+                                          consultation_reason: record.consultation_reason,
+                                          completion_percentage: record.completion_percentage,
+                                          created_at: record.created_at,
+                                          protocol_data: record.protocol_data,
+                                          checklist_data: record.checklist_data
+                                        }).split('\n\nДАННЫЕ ЧЕКЛ-ЛИСТОВ:\n------------------')[1]?.split('\n\nДАННЫЕ ПРОТОКОЛА:')[0] || 'Данные отсутствуют'}
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -272,14 +314,27 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                             </Button>
                           )}
                           
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleExport(record)}
-                            className="text-green-600 hover:text-green-800"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-green-600 hover:text-green-800"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => handleExportText(record)}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Экспорт в TXT
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleExportXLS(record)}>
+                                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                Экспорт в XLS
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
