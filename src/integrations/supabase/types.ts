@@ -118,6 +118,69 @@ export type Database = {
         }
         Relationships: []
       }
+      protocol_checklist_items: {
+        Row: {
+          block: string
+          block_order: number
+          checklist_item_id: string
+          created_at: string
+          description: string
+          education_level_do: boolean
+          education_level_noo: boolean
+          education_level_oo: boolean
+          education_level_soo: boolean
+          id: string
+          score_0_label: string | null
+          score_1_label: string | null
+          subtopic: string
+          subtopic_order: number
+          topic: string
+          topic_order: number
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          block: string
+          block_order: number
+          checklist_item_id: string
+          created_at?: string
+          description: string
+          education_level_do?: boolean
+          education_level_noo?: boolean
+          education_level_oo?: boolean
+          education_level_soo?: boolean
+          id?: string
+          score_0_label?: string | null
+          score_1_label?: string | null
+          subtopic: string
+          subtopic_order: number
+          topic: string
+          topic_order: number
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          block?: string
+          block_order?: number
+          checklist_item_id?: string
+          created_at?: string
+          description?: string
+          education_level_do?: boolean
+          education_level_noo?: boolean
+          education_level_oo?: boolean
+          education_level_soo?: boolean
+          id?: string
+          score_0_label?: string | null
+          score_1_label?: string | null
+          subtopic?: string
+          subtopic_order?: number
+          topic?: string
+          topic_order?: number
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       protocols: {
         Row: {
           checklist_data: Json | null

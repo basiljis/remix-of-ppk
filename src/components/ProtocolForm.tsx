@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save, Download } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { getProtocolChecklistData, ChecklistBlock, ChecklistItem, updateItemScore, calculateBlockScore } from "@/data/protocolChecklistData";
+import { getProtocolChecklistData } from "@/data/protocolChecklistData";
 import { useProtocols } from "@/hooks/useProtocols";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { generateConsentPDF } from "@/components/ConsentPDF";
 import { useChecklistData } from "@/hooks/useChecklistData";
+import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
 
 interface ChildData {
   fullName: string;
@@ -66,10 +67,16 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLevel, setSelectedLevel] = useState<"preschool" | "elementary" | "middle" | "high">("elementary");
-  const [checklistBlocks, setChecklistBlocks] = useState<ChecklistBlock[]>([]);
+  // Remove state for checklistBlocks as it's now computed via useMemo
   const { saveProtocol, updateProtocol } = useProtocols();
   const { toast } = useToast();
   const { getChecklistByLevelAndType, loading: checklistLoading } = useChecklistData();
+  const { 
+    getBlocksForEducationLevel, 
+    updateItemScore, 
+    calculateBlockScore,
+    loading: protocolChecklistLoading 
+  } = useProtocolChecklistData();
 
   // Инициализация данных при редактировании
   useEffect(() => {
@@ -84,18 +91,18 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       // Устанавливаем уровень образования
       if (editingProtocol.education_level) {
         setSelectedLevel(editingProtocol.education_level);
-        setChecklistBlocks(getProtocolChecklistData(editingProtocol.education_level));
       }
       
-      // Загружаем данные чек-листа из базы
-      if (editingProtocol.checklist_data && editingProtocol.checklist_data.blocks) {
-        setChecklistBlocks(editingProtocol.checklist_data.blocks);
-      }
-    } else {
-      // Инициализируем данные для нового протокола
-      setChecklistBlocks(getProtocolChecklistData(selectedLevel));
+      // Данные чек-листа будут загружены автоматически через hook
     }
   }, [editingProtocol, selectedLevel]);
+
+  // Compute checklist blocks from the new hook
+  const checklistBlocks = useMemo(() => {
+    if (!selectedLevel) return [];
+    console.log('Getting blocks for level:', selectedLevel);
+    return getBlocksForEducationLevel(selectedLevel);
+  }, [selectedLevel, getBlocksForEducationLevel]);
   
   const [formData, setFormData] = useState<ProtocolData>({
     childData: {
@@ -163,11 +170,16 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
     if (supabaseChecklist) {
       const requiredChecklistItems = supabaseChecklist.items.filter(item => item.isRequired);
-      const completedRequiredItems = checklistBlocks.reduce((sum, block) => 
-        sum + block.items.filter(item => 
-          requiredChecklistItems.some(req => req.id === item.checklist_item_id) && 
-          item.score !== undefined
-        ).length, 0);
+      const completedRequiredItems = checklistBlocks.reduce((sum, block) => {
+        return sum + block.topics.reduce((topicSum: number, topic: any) => {
+          return topicSum + topic.subtopics.reduce((subtopicSum: number, subtopic: any) => {
+            return subtopicSum + subtopic.items.filter((item: any) => 
+              requiredChecklistItems.some(req => req.id === item.checklist_item_id) && 
+              item.score !== undefined
+            ).length;
+          }, 0);
+        }, 0);
+      }, 0);
       
       return allRequiredDocsPresent && protocolFieldsFilled && 
              (requiredChecklistItems.length === 0 || completedRequiredItems === requiredChecklistItems.length);
@@ -280,11 +292,12 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
 
   const handleLevelChange = (level: "preschool" | "elementary" | "middle" | "high") => {
     setSelectedLevel(level);
-    setChecklistBlocks(getProtocolChecklistData(level));
+    // Данные будут загружены автоматически через useMemo
   };
 
   const handleChecklistItemChange = (itemId: string, value: 0 | 1) => {
-    setChecklistBlocks(blocks => updateItemScore(blocks, itemId, value));
+    console.log('Updating item score:', itemId, value);
+    updateItemScore(itemId, value);
   };
 
   const getStepTitle = () => {
@@ -324,9 +337,20 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     progress += (filledProtocolFields / protocolFields.length) * 25;
     
     // Шаг 4: чек-лист
-    const totalChecklistItems = checklistBlocks.reduce((sum, block) => sum + block.items.length, 0);
-    const filledChecklistItems = checklistBlocks.reduce((sum, block) => 
-      sum + block.items.filter(item => item.score !== undefined).length, 0);
+    const totalChecklistItems = checklistBlocks.reduce((sum, block) => {
+      return sum + block.topics.reduce((topicSum: number, topic: any) => {
+        return topicSum + topic.subtopics.reduce((subtopicSum: number, subtopic: any) => {
+          return subtopicSum + subtopic.items.length;
+        }, 0);
+      }, 0);
+    }, 0);
+    const filledChecklistItems = checklistBlocks.reduce((sum, block) => {
+      return sum + block.topics.reduce((topicSum: number, topic: any) => {
+        return topicSum + topic.subtopics.reduce((subtopicSum: number, subtopic: any) => {
+          return subtopicSum + subtopic.items.filter((item: any) => item.score !== undefined).length;
+        }, 0);
+      }, 0);
+    }, 0);
     if (totalChecklistItems > 0) {
       progress += (filledChecklistItems / totalChecklistItems) * 25;
     }
@@ -395,16 +419,12 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                     const ageNum = parseInt(value);
                     if (ageNum >= 3 && ageNum <= 6) {
                       setSelectedLevel("preschool");
-                      setChecklistBlocks(getProtocolChecklistData("preschool"));
                     } else if (ageNum >= 7 && ageNum <= 10) {
                       setSelectedLevel("elementary");
-                      setChecklistBlocks(getProtocolChecklistData("elementary"));
                     } else if (ageNum >= 11 && ageNum <= 15) {
                       setSelectedLevel("middle");
-                      setChecklistBlocks(getProtocolChecklistData("middle"));
                     } else if (ageNum >= 16 && ageNum <= 18) {
                       setSelectedLevel("high");
-                      setChecklistBlocks(getProtocolChecklistData("high"));
                     }
                   }}>
                     <SelectTrigger className={getRequiredFieldClass(formData.childData.age)}>
@@ -723,7 +743,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                )}
              </div>
 
-             {!checklistBlocks.length && !checklistLoading && (
+             {!checklistBlocks.length && !protocolChecklistLoading && (
                <div className="text-center p-6 bg-muted/50 rounded-lg">
                  <p className="text-muted-foreground">
                    Выберите возраст ребенка на первом шаге для загрузки соответствующего чек-листа
@@ -731,7 +751,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                </div>
              )}
 
-             {checklistLoading && (
+             {protocolChecklistLoading && (
                <div className="text-center p-6 bg-muted/50 rounded-lg">
                  <p className="text-muted-foreground">
                    Загрузка данных чек-листа из базы данных...
@@ -747,26 +767,27 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-xl font-bold">{block.title}</CardTitle>
                       <Badge variant="outline" className="text-base px-3 py-1">
-                        Баллов: {calculateBlockScore(block)} / {block.items.length}
+                        Баллов: {(() => {
+                          const { score, maxScore } = calculateBlockScore(block);
+                          return `${score} / ${maxScore}`;
+                        })()}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
-                      {block.themes.map((theme) => (
-                        <div key={theme.id} className="space-y-4">
+                      {block.topics.map((topic) => (
+                        <div key={topic.id} className="space-y-4">
                           <div className="border-l-4 border-primary pl-4">
-                            <h4 className="text-lg font-semibold text-primary">{theme.title}</h4>
+                            <h4 className="text-lg font-semibold text-primary">{topic.title}</h4>
                           </div>
-                          {theme.subtopics.map((subtopic) => (
+                          {topic.subtopics.map((subtopic) => (
                             <div key={subtopic.id} className="pl-6 space-y-3">
                               <h5 className="text-base font-medium text-foreground bg-muted/50 p-2 rounded">
                                 {subtopic.title}
                               </h5>
                               <div className="pl-4 space-y-3">
-                                {block.items
-                                  .filter(item => item.topic === theme.title && item.subtopic === subtopic.title)
-                                  .map((item) => (
+                                {subtopic.items.map((item) => (
                                    <div key={item.checklist_item_id} className={`flex items-start justify-between p-4 border rounded-lg bg-background ${
                                      // Check if this item is required in Supabase data
                                      (() => {
