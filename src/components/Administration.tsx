@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
+import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
@@ -137,12 +138,12 @@ export const Administration = () => {
           Администрирование системы
         </h2>
         <p className="text-muted-foreground">
-          Управление организациями и настройка чеклистов протокола ППк
+          Управление организациями, настройка чеклистов протокола ППк и редактирование инструкций
         </p>
       </div>
 
       <Tabs defaultValue="organizations" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="organizations" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
             Управление организациями
@@ -150,6 +151,10 @@ export const Administration = () => {
           <TabsTrigger value="checklist" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Управление чеклистом
+          </TabsTrigger>
+          <TabsTrigger value="instructions" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Управление инструкциями
           </TabsTrigger>
         </TabsList>
 
@@ -277,6 +282,23 @@ export const Administration = () => {
             </CardContent>
           </Card>
           <AdminPanel />
+        </TabsContent>
+
+        <TabsContent value="instructions" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Управление инструкциями
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Создание, редактирование и управление пользовательскими инструкциями для отображения в разделе "Инструкции"
+              </p>
+            </CardContent>
+          </Card>
+          <InstructionsEditor />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InstructionsEditor } from "./InstructionsEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -209,29 +208,22 @@ export const AdminPanel = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="checklist" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="checklist">Управление чеклистом</TabsTrigger>
-          <TabsTrigger value="instructions">Управление инструкциями</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="checklist" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Управление чеклистом протокола</CardTitle>
-                <Button onClick={handleCreate} className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Добавить элемент
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-muted-foreground mb-4">
-                Всего элементов в базе: {items.length}
-              </div>
-            </CardContent>
-          </Card>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Управление чеклистом протокола</CardTitle>
+            <Button onClick={handleCreate} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Добавить элемент
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground mb-4">
+            Всего элементов в базе: {items.length}
+          </div>
+        </CardContent>
+      </Card>
 
       {(isCreating || editingItem) && (
         <Card>
@@ -455,12 +447,6 @@ export const AdminPanel = () => {
           </div>
         </CardContent>
       </Card>
-        </TabsContent>
-        
-        <TabsContent value="instructions">
-          <InstructionsEditor />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
