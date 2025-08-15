@@ -56,12 +56,12 @@ export const OrganizationsManagement = () => {
       await syncEkisOrganizations();
       toast({
         title: "Синхронизация завершена",
-        description: "Данные из ЕКИС успешно загружены"
+        description: "Данные из ЕКИС успешно загружены и сохранены в базу данных"
       });
     } catch (error) {
       toast({
-        title: "Ошибка синхронизации",
-        description: "Не удалось загрузить данные из ЕКИС",
+        title: "Ошибка синхронизации", 
+        description: "Не удалось загрузить данные из ЕКИС. Проверьте подключение к интернету.",
         variant: "destructive"
       });
     } finally {
@@ -182,6 +182,15 @@ export const OrganizationsManagement = () => {
               <RotateCcw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
               {isSyncing ? 'Синхронизация...' : 'Синхронизировать с ЕКИС'}
             </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Обновить список
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -195,7 +204,7 @@ export const OrganizationsManagement = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <div className="text-2xl font-bold">{organizations.length}</div>
               <div className="text-sm text-muted-foreground">Всего организаций</div>
@@ -207,6 +216,10 @@ export const OrganizationsManagement = () => {
             <div className="space-y-2">
               <div className="text-2xl font-bold text-blue-600">{manualOrganizations.length}</div>
               <div className="text-sm text-muted-foreground">Добавлено вручную</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-purple-600">{uniqueDistricts.length}</div>
+              <div className="text-sm text-muted-foreground">Округов Москвы</div>
             </div>
           </div>
         </CardContent>

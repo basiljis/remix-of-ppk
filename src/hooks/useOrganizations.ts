@@ -27,7 +27,7 @@ export const useOrganizations = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch organizations from Supabase
+      // Fetch organizations from Supabase only
       const { data: supabaseOrgs, error: supabaseError } = await supabase
         .from('organizations')
         .select('*')
@@ -36,9 +36,8 @@ export const useOrganizations = () => {
       if (supabaseError) throw supabaseError;
 
       setOrganizations(supabaseOrgs || []);
-
-      // Load and sync EKIS organizations in background
-      syncEkisOrganizations();
+      
+      console.log(`Loaded ${supabaseOrgs?.length || 0} organizations from Supabase`);
     } catch (err) {
       console.error('Error loading organizations:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
