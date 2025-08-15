@@ -164,7 +164,7 @@ export const AdminPanel = () => {
     try {
       const { error } = await supabase
         .from('protocol_checklist_items')
-        .delete()
+        .update({ is_disabled: true })
         .eq('id', itemId);
 
       if (error) throw error;

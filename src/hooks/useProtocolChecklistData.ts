@@ -58,6 +58,7 @@ export const useProtocolChecklistData = () => {
       const { data, error } = await supabase
         .from('protocol_checklist_items')
         .select('*')
+        .eq('is_disabled', false)
         .order('block_order')
         .order('topic_order')
         .order('subtopic_order');

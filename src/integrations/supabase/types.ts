@@ -130,6 +130,7 @@ export type Database = {
           education_level_oo: boolean
           education_level_soo: boolean
           id: string
+          is_disabled: boolean
           score_0_label: string | null
           score_1_label: string | null
           subtopic: string
@@ -150,6 +151,7 @@ export type Database = {
           education_level_oo?: boolean
           education_level_soo?: boolean
           id?: string
+          is_disabled?: boolean
           score_0_label?: string | null
           score_1_label?: string | null
           subtopic: string
@@ -170,6 +172,7 @@ export type Database = {
           education_level_oo?: boolean
           education_level_soo?: boolean
           id?: string
+          is_disabled?: boolean
           score_0_label?: string | null
           score_1_label?: string | null
           subtopic?: string
