@@ -28,6 +28,7 @@ export const OrganizationsManagement = () => {
   const [newOrgName, setNewOrgName] = useState('');
   const [newOrgDistrict, setNewOrgDistrict] = useState('');
   const [newOrgType, setNewOrgType] = useState('');
+  const [newOrgMrsd, setNewOrgMrsd] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDistrict, setFilterDistrict] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -39,6 +40,7 @@ export const OrganizationsManagement = () => {
   const [editOrgName, setEditOrgName] = useState('');
   const [editOrgDistrict, setEditOrgDistrict] = useState('');
   const [editOrgType, setEditOrgType] = useState('');
+  const [editOrgMrsd, setEditOrgMrsd] = useState('');
 
   const handleAddOrganization = async () => {
     if (!newOrgName.trim()) return;
@@ -47,13 +49,15 @@ export const OrganizationsManagement = () => {
       await addOrganization({
         name: newOrgName,
         district: newOrgDistrict,
-        type: newOrgType
+        type: newOrgType,
+        mrsd: newOrgMrsd
       });
       
       setShowAddDialog(false);
       setNewOrgName('');
       setNewOrgDistrict('');
       setNewOrgType('');
+      setNewOrgMrsd('');
     } catch (error) {
       console.error('Error adding organization:', error);
     }
@@ -83,6 +87,7 @@ export const OrganizationsManagement = () => {
     setEditOrgName(org.name);
     setEditOrgDistrict(org.district || '');
     setEditOrgType(org.type || '');
+    setEditOrgMrsd(org.mrsd || '');
     setShowEditDialog(true);
   };
 
@@ -93,7 +98,8 @@ export const OrganizationsManagement = () => {
       await updateOrganization(editingOrg.id, {
         name: editOrgName,
         district: editOrgDistrict,
-        type: editOrgType
+        type: editOrgType,
+        mrsd: editOrgMrsd
       });
       
       setShowEditDialog(false);
@@ -101,6 +107,7 @@ export const OrganizationsManagement = () => {
       setEditOrgName('');
       setEditOrgDistrict('');
       setEditOrgType('');
+      setEditOrgMrsd('');
     } catch (error) {
       console.error('Error updating organization:', error);
     }
@@ -208,6 +215,15 @@ export const OrganizationsManagement = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Label htmlFor="new-org-mrsd">№МРСД</Label>
+                    <Input
+                      id="new-org-mrsd"
+                      value={newOrgMrsd}
+                      onChange={(e) => setNewOrgMrsd(e.target.value)}
+                      placeholder="Введите номер МРСД"
+                    />
+                  </div>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                       Отмена
@@ -285,7 +301,7 @@ export const OrganizationsManagement = () => {
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск по названию..."
+                placeholder="Поиск по названию, ID, МРСД..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -375,6 +391,9 @@ export const OrganizationsManagement = () => {
                         {org.external_id && (
                           <div>ID: {org.external_id}</div>
                         )}
+                        {org.mrsd && (
+                          <div>№МРСД: {org.mrsd}</div>
+                        )}
                         {org.district && (
                           <div className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
@@ -462,6 +481,15 @@ export const OrganizationsManagement = () => {
                   <SelectItem value="Техникум">Техникум</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-org-mrsd">№МРСД</Label>
+              <Input
+                id="edit-org-mrsd"
+                value={editOrgMrsd}
+                onChange={(e) => setEditOrgMrsd(e.target.value)}
+                placeholder="Введите номер МРСД"
+              />
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowEditDialog(false)}>

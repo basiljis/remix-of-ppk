@@ -9,6 +9,7 @@ export interface Organization {
   name: string;
   district?: string;
   type?: string;
+  mrsd?: string;
   is_manual: boolean;
 }
 
@@ -209,7 +210,8 @@ export const useOrganizations = () => {
         org.name.toLowerCase().includes(lowercaseQuery) ||
         org.external_id?.toLowerCase().includes(lowercaseQuery) ||
         org.district?.toLowerCase().includes(lowercaseQuery) ||
-        org.type?.toLowerCase().includes(lowercaseQuery)
+        org.type?.toLowerCase().includes(lowercaseQuery) ||
+        org.mrsd?.toLowerCase().includes(lowercaseQuery)
       );
     });
   };

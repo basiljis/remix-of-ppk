@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter } from "lucide-react";
 import { useProtocolStorage, SavedProtocol } from "@/hooks/useProtocolStorage";
-import { apiService } from "@/services/apiService";
+import { useOrganizations, Organization } from "@/hooks/useOrganizations";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -17,6 +17,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'
 
 export const Dashboard = () => {
   const { protocols } = useProtocolStorage();
+  const { organizations } = useOrganizations();
   const [filteredProtocols, setFilteredProtocols] = useState<SavedProtocol[]>(protocols);
   
   // Фильтры
@@ -29,33 +30,12 @@ export const Dashboard = () => {
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
 
-  // Данные из API
-  const [eduOrgs, setEduOrgs] = useState<Array<{id: string; name: string; district: string; type: string}>>([]);
-  const [districts, setDistricts] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    loadApiData();
-  }, []);
+  // Данные из организаций
+  const districts = [...new Set(organizations.map(org => org.district).filter(Boolean))] as string[];
 
   useEffect(() => {
     applyFilters();
-  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, dateFrom, dateTo]);
-
-  const loadApiData = async () => {
-    setLoading(true);
-    try {
-      const [orgsData, districtsData] = await Promise.all([
-        apiService.getActualEduorgs(),
-        apiService.getDistricts()
-      ]);
-      setEduOrgs(orgsData.data.eduorgs);
-      setDistricts(districtsData);
-    } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
-    }
-    setLoading(false);
-  };
+  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, dateFrom, dateTo, organizations]);
 
   const applyFilters = () => {
     let filtered = [...protocols];
@@ -65,7 +45,7 @@ export const Dashboard = () => {
     }
 
     if (districtFilter && districtFilter !== "all") {
-      const orgsByDistrict = eduOrgs.filter(org => org.district === districtFilter);
+      const orgsByDistrict = organizations.filter(org => org.district === districtFilter);
       filtered = filtered.filter(p => 
         orgsByDistrict.some(org => p.educationalOrganization.includes(org.name))
       );
@@ -183,7 +163,7 @@ export const Dashboard = () => {
 
   // Данные по округам
   const districtCounts = filteredProtocols.reduce((acc, protocol) => {
-    const matchingOrg = eduOrgs.find(org => 
+    const matchingOrg = organizations.find(org => 
       protocol.educationalOrganization.includes(org.name)
     );
     const district = matchingOrg?.district || 'Неизвестно';
