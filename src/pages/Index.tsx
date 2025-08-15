@@ -206,6 +206,7 @@ const Index = () => {
                         }))}
                         onItemToggle={(itemId) => handleItemToggle(checklist.id, itemId)}
                         variant="primary"
+                        level={selectedLevel}
                       />
                     ))
                   )}
@@ -216,7 +217,13 @@ const Index = () => {
 
 
           <TabsContent value="list" className="space-y-6">
-            <PPKList onNewProtocol={() => setActiveTab("protocol")} />
+                <PPKList 
+                  onNewProtocol={() => setActiveTab("protocol")} 
+                  onEditProtocol={(protocolId) => {
+                    // TODO: Load protocol by ID for editing
+                    setActiveTab("protocol");
+                  }}
+                />
           </TabsContent>
 
           <TabsContent value="organizations" className="space-y-6">

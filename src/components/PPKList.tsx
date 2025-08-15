@@ -7,15 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Eye, Trash2, Plus, Search } from 'lucide-react';
+import { Eye, Trash2, Plus, Search, Edit, Download } from 'lucide-react';
 import { useProtocols } from '@/hooks/useProtocols';
 import { useToast } from '@/hooks/use-toast';
 
 interface PPKListProps {
   onNewProtocol: () => void;
+  onEditProtocol: (protocolId: string) => void;
 }
 
-export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol }) => {
+export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol }) => {
   const { protocols, deleteProtocol, loading } = useProtocols();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,9 +63,52 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol }) => {
   const handleDelete = async (id: string) => {
     try {
       await deleteProtocol(id);
+      toast({
+        title: "Протокол удален",
+        description: "Протокол был успешно удален из системы",
+      });
     } catch (error) {
-      // Error handling is done in the hook
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить протокол",
+        variant: "destructive",
+      });
     }
+  };
+
+  const handleContinue = (protocol: any) => {
+    onEditProtocol(protocol.id);
+  };
+
+  const handleExport = (protocol: any) => {
+    // Create JSON export
+    const exportData = {
+      child_name: protocol.child_name,
+      education_level: protocol.education_level,
+      organization: protocol.organizations?.name || '',
+      status: protocol.status,
+      consultation_type: protocol.consultation_type,
+      consultation_reason: protocol.consultation_reason,
+      completion_percentage: protocol.completion_percentage,
+      created_at: protocol.created_at,
+      protocol_data: protocol.protocol_data,
+      checklist_data: protocol.checklist_data
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `protocol_${protocol.child_name}_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+
+    toast({
+      title: "Экспорт завершен",
+      description: "Протокол экспортирован в JSON формате",
+    });
   };
 
   return (
@@ -216,6 +260,26 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol }) => {
                               </div>
                             </DialogContent>
                           </Dialog>
+                          
+                          {record.status !== 'completed' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleContinue(record)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleExport(record)}
+                            className="text-green-600 hover:text-green-800"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>

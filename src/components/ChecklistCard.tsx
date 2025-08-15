@@ -2,6 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { exportChecklistToXLS } from "@/utils/exportUtils";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ChecklistItem {
   id: string;
@@ -15,9 +19,11 @@ interface ChecklistCardProps {
   items: ChecklistItem[];
   onItemToggle: (id: string) => void;
   variant: "primary" | "secondary" | "warning";
+  level?: string;
 }
 
-export const ChecklistCard = ({ title, items, onItemToggle, variant }: ChecklistCardProps) => {
+export const ChecklistCard = ({ title, items, onItemToggle, variant, level }: ChecklistCardProps) => {
+  const { toast } = useToast();
   const completedItems = items.filter(item => item.completed).length;
   const totalItems = items.length;
   const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
@@ -49,12 +55,45 @@ export const ChecklistCard = ({ title, items, onItemToggle, variant }: Checklist
     return <Badge variant="outline">В процессе</Badge>;
   };
 
+  const handleExportToXLS = () => {
+    try {
+      const mappedItems = items.map(item => ({
+        text: item.text,
+        isRequired: item.required,
+        isCompleted: item.completed
+      }));
+      
+      const fileName = exportChecklistToXLS(mappedItems, level || 'unknown');
+      toast({
+        title: "Экспорт завершен",
+        description: `Чек-лист экспортирован в файл ${fileName}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка экспорта",
+        description: "Не удалось экспортировать чек-лист",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className={`transition-all duration-200 hover:shadow-md ${getVariantStyles()}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          {getStatusBadge()}
+          <div className="flex items-center gap-2">
+            {getStatusBadge()}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportToXLS}
+              className="text-green-600 hover:text-green-800"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              XLS
+            </Button>
+          </div>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
