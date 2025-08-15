@@ -9,13 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProtocols } from '@/hooks/useProtocols';
 import { useToast } from '@/hooks/use-toast';
 import { formatProtocolToText, exportProtocolToText, exportProtocolToXLS, formatChecklistResults } from '@/utils/protocolExportUtils';
 
 interface PPKListProps {
   onNewProtocol: () => void;
-  onEditProtocol: (protocolId: string) => void;
+  onEditProtocol: (protocol: any) => void;
 }
 
 export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol }) => {
@@ -79,7 +80,7 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   };
 
   const handleContinue = (protocol: any) => {
-    onEditProtocol(protocol.id);
+    onEditProtocol(protocol);
   };
 
   const handleExportText = (protocol: any) => {
@@ -141,11 +142,12 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Список протоколов ППК</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <CardTitle>Список протоколов ППК</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         {/* Фильтры */}
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-64">
@@ -242,9 +244,16 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                         <div className="flex space-x-2">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4" />
-                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Просмотр протокола</p>
+                                </TooltipContent>
+                              </Tooltip>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl">
                               <DialogHeader>
@@ -299,25 +308,39 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                           </Dialog>
                           
                           {record.status !== 'completed' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleContinue(record)}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleContinue(record)}
+                                  className="text-blue-600 hover:text-blue-800"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Редактировать протокол</p>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                           
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-green-600 hover:text-green-800"
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="text-green-600 hover:text-green-800"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Экспорт протокола</p>
+                                </TooltipContent>
+                              </Tooltip>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem onClick={() => handleExportText(record)}>
@@ -333,9 +356,16 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Удалить протокол</p>
+                                </TooltipContent>
+                              </Tooltip>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
@@ -371,5 +401,6 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
         </div>
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 };

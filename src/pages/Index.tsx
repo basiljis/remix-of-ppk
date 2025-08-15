@@ -20,6 +20,7 @@ const Index = () => {
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel>("elementary");
   const [activeTab, setActiveTab] = useState("protocol");
   const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
+  const [editingProtocol, setEditingProtocol] = useState<any>(null);
   const { toast } = useToast();
   const { checklists, loading, error } = useChecklistData();
 
@@ -117,7 +118,10 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="protocol" className="space-y-6">
-            <ProtocolForm onProtocolSave={handleProtocolSave} />
+            <ProtocolForm 
+              onProtocolSave={handleProtocolSave} 
+              editingProtocol={editingProtocol}
+            />
           </TabsContent>
 
           <TabsContent value="checklists" className="space-y-6">
@@ -229,9 +233,12 @@ const Index = () => {
 
           <TabsContent value="list" className="space-y-6">
                 <PPKList 
-                  onNewProtocol={() => setActiveTab("protocol")} 
-                  onEditProtocol={(protocolId) => {
-                    // TODO: Load protocol by ID for editing
+                  onNewProtocol={() => {
+                    setEditingProtocol(null);
+                    setActiveTab("protocol");
+                  }} 
+                  onEditProtocol={(protocol) => {
+                    setEditingProtocol(protocol);
                     setActiveTab("protocol");
                   }}
                 />
