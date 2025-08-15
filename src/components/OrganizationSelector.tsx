@@ -28,61 +28,71 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
     <div className="space-y-2">
       <Label htmlFor="organization">{label}</Label>
       
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <Select value={value} onValueChange={onChange} disabled={loading}>
-            <SelectTrigger>
-              <SelectValue 
-                placeholder={loading ? "Загрузка..." : placeholder}
-              >
-                {selectedOrg ? (
-                  <div className="flex flex-col text-left">
-                    <span className="font-medium">{selectedOrg.name}</span>
-                    {selectedOrg.district && (
-                      <span className="text-sm text-muted-foreground">
-                        {selectedOrg.district} • {selectedOrg.type}
-                        {selectedOrg.is_manual && " (добавлено вручную)"}
-                      </span>
-                    )}
-                  </div>
-                ) : null}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-background border border-border">
-              <div className="p-2">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Поиск по названию, округу или номеру..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-              
-              {filteredOrganizations.map((org) => (
-                <SelectItem key={org.id} value={org.id}>
-                  <div className="flex flex-col w-full">
-                    <span className="font-medium">{org.name}</span>
+      <div className="w-full">
+        <Select value={value} onValueChange={onChange} disabled={loading}>
+          <SelectTrigger>
+            <SelectValue 
+              placeholder={loading ? "Загрузка..." : placeholder}
+            >
+              {selectedOrg ? (
+                <div className="flex flex-col text-left">
+                  <span className="font-medium">{selectedOrg.name}</span>
+                  {selectedOrg.district && (
                     <span className="text-sm text-muted-foreground">
-                      {org.external_id && `№${org.external_id} • `}
-                      {org.district} • {org.type}
-                      {org.is_manual && " (добавлено вручную)"}
+                      {selectedOrg.district} • {selectedOrg.type}
+                      {selectedOrg.is_manual && " (добавлено вручную)"}
                     </span>
-                  </div>
-                </SelectItem>
-              ))}
-              
-              {filteredOrganizations.length === 0 && searchQuery && (
-                <div className="p-2 text-center text-muted-foreground">
-                  Организации не найдены
+                  )}
                 </div>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+              ) : null}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="bg-background border border-border">
+            <div className="p-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Поиск по названию, округу или номеру..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            
+            {filteredOrganizations.map((org) => (
+              <SelectItem key={org.id} value={org.id}>
+                <div className="flex flex-col w-full">
+                  <span className="font-medium">{org.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {org.external_id && `№${org.external_id} • `}
+                    {org.district} • {org.type}
+                    {org.is_manual && " (добавлено вручную)"}
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+            
+            {filteredOrganizations.length === 0 && searchQuery && (
+              <div className="p-2 text-center text-muted-foreground">
+                Организации не найдены. Добавьте новую организацию в разделе "Организации"
+              </div>
+            )}
+            
+            {organizations.length === 0 && !loading && (
+              <div className="p-2 text-center text-muted-foreground">
+                Нет доступных организаций. Перейдите в раздел "Организации" для добавления
+              </div>
+            )}
+          </SelectContent>
+        </Select>
       </div>
+      
+      {!selectedOrg && organizations.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Не нашли нужную организацию? Добавьте её в разделе "Организации"
+        </p>
+      )}
     </div>
   );
 };
