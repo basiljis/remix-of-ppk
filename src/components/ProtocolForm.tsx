@@ -774,107 +774,129 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                </div>
              )}
 
-            {checklistBlocks.map((block, blockIndex) => (
-              <div key={block.id}>
-                {blockIndex > 0 && <div className="border-t my-6"></div>}
-                <Card>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-xl font-bold">{block.title}</CardTitle>
-                      <Badge variant="outline" className="text-base px-3 py-1">
-                        Баллов: {(() => {
-                          const { score, maxScore } = calculateBlockScore(block);
-                          return `${score} / ${maxScore}`;
-                        })()}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {block.topics.map((topic) => (
-                        <div key={topic.id} className="space-y-4">
-                          <div className="border-l-4 border-primary pl-4">
-                            <h4 className="text-lg font-semibold text-primary">{topic.title}</h4>
-                          </div>
-                           {(() => {
-                            // Group subtopics by name to avoid repetition
-                            const groupedSubtopics = topic.subtopics.reduce((acc: any, subtopic: any) => {
-                              if (!acc[subtopic.title]) {
-                                acc[subtopic.title] = {
-                                  ...subtopic,
-                                  items: []
-                                };
-                              }
-                              acc[subtopic.title].items.push(...subtopic.items);
-                              return acc;
-                            }, {});
+             {formData.childData.age && checklistBlocks.length > 0 && (() => {
+               const displayedBlocks = new Set();
+               return checklistBlocks.map((block, blockIndex) => {
+                 // Проверяем, отображался ли уже этот блок
+                 if (displayedBlocks.has(block.title)) {
+                   return null;
+                 }
+                 displayedBlocks.add(block.title);
 
-                             return Object.values(groupedSubtopics).map((subtopic: any, subtopicIndex: number) => (
-                              <div key={`${subtopic.title}-${subtopicIndex}`} className="pl-6 space-y-3">
-                                <h5 className="text-base font-medium text-foreground bg-muted/50 p-2 rounded">
-                                  {subtopic.title}
-                                </h5>
-                                <div className="pl-4 space-y-3">
-                                  {subtopic.items.map((item: any) => (
-                                     <div key={item.checklist_item_id} className={`flex items-start justify-between p-4 border rounded-lg bg-background ${
-                                       // Check if this item is required in Supabase data
-                                       (() => {
-                                         const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
-                                         console.log('Checking item:', item.checklist_item_id, 'in Supabase checklist:', supabaseChecklist);
-                                         const isRequired = supabaseChecklist?.items.some(sItem => 
-                                           sItem.id === item.checklist_item_id && sItem.isRequired
-                                         );
-                                         return isRequired && item.score === undefined ? "border-destructive bg-destructive/5" : "";
-                                       })()
-                                     }`}>
-                                       <div className="flex-1 pr-4">
-                                         <p className={`text-sm leading-relaxed ${
-                                           (() => {
-                                             const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
-                                             const isRequired = supabaseChecklist?.items.some(sItem => 
-                                               sItem.id === item.checklist_item_id && sItem.isRequired
-                                             );
-                                             return isRequired ? "font-medium" : "";
-                                           })()
-                                         }`}>
-                                           {item.description}
-                                           {(() => {
-                                             const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
-                                             const isRequired = supabaseChecklist?.items.some(sItem => 
-                                               sItem.id === item.checklist_item_id && sItem.isRequired
-                                             );
-                                             return isRequired ? <span className="text-destructive ml-1">*</span> : null;
-                                           })()}
-                                         </p>
-                                       </div>
-                                      <RadioGroup
-                                        value={item.score?.toString() || "0"}
-                                        onValueChange={(value) => handleChecklistItemChange(item.checklist_item_id, parseInt(value) as 0 | 1)}
-                                        className="flex flex-row space-x-6"
-                                      >
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="0" id={`${item.checklist_item_id}-0`} />
-                                          <Label htmlFor={`${item.checklist_item_id}-0`} className="text-sm font-medium cursor-pointer">Нет</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="1" id={`${item.checklist_item_id}-1`} />
-                                          <Label htmlFor={`${item.checklist_item_id}-1`} className="text-sm font-medium cursor-pointer">Да</Label>
-                                        </div>
-                                      </RadioGroup>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ));
-                           })()}
+                 return (
+                   <div key={block.id}>
+                     {blockIndex > 0 && <div className="border-t my-6"></div>}
+                     <Card>
+                       <CardHeader>
+                         <div className="flex justify-between items-center">
+                           <CardTitle className="text-xl font-bold">{block.title}</CardTitle>
+                           <Badge variant="outline" className="text-base px-3 py-1">
+                             Баллов: {(() => {
+                               const { score, maxScore } = calculateBlockScore(block);
+                               return `${score} / ${maxScore}`;
+                             })()}
+                           </Badge>
                          </div>
-                      ))}
+                       </CardHeader>
+                       <CardContent>
+                         <div className="space-y-6">
+                           {(() => {
+                             const displayedTopics = new Set();
+                             return block.topics.map((topic) => {
+                                // Проверяем, отображался ли уже этот топик
+                                if (displayedTopics.has(topic.title)) {
+                                  return null;
+                                }
+                                displayedTopics.add(topic.title);
+
+                                return (
+                                  <div key={topic.id} className="space-y-4">
+                                    <div className="border-l-4 border-primary pl-4">
+                                      <h4 className="text-lg font-semibold text-primary">{topic.title}</h4>
+                                    </div>
+                                   {(() => {
+                                     // Group subtopics by name to avoid repetition
+                                     const groupedSubtopics = topic.subtopics.reduce((acc: any, subtopic: any) => {
+                                       if (!acc[subtopic.name]) {
+                                         acc[subtopic.name] = {
+                                           ...subtopic,
+                                           items: []
+                                         };
+                                       }
+                                       acc[subtopic.name].items.push(...subtopic.items);
+                                       return acc;
+                                     }, {});
+
+                                      return Object.values(groupedSubtopics).map((subtopic: any, subtopicIndex: number) => (
+                                        <div key={`${subtopic.name}-${subtopicIndex}`} className="pl-6 space-y-3">
+                                          <h5 className="text-base font-medium text-foreground bg-muted/50 p-2 rounded">
+                                            {subtopic.name}
+                                          </h5>
+                                          <div className="pl-4 space-y-3">
+                                            {subtopic.items.map((item: any) => (
+                                              <div key={item.checklist_item_id} className={`flex items-start justify-between p-4 border rounded-lg bg-background ${
+                                                // Check if this item is required in Supabase data
+                                                (() => {
+                                                  const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+                                                  console.log('Checking item:', item.checklist_item_id, 'in Supabase checklist:', supabaseChecklist);
+                                                  const isRequired = supabaseChecklist?.items.some(sItem => 
+                                                    sItem.id === item.checklist_item_id && sItem.isRequired
+                                                  );
+                                                  return isRequired && item.score === undefined ? "border-destructive bg-destructive/5" : "";
+                                                })()
+                                              }`}>
+                                                <div className="flex-1 pr-4">
+                                                  <p className={`text-sm leading-relaxed ${
+                                                    (() => {
+                                                      const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+                                                      const isRequired = supabaseChecklist?.items.some(sItem => 
+                                                        sItem.id === item.checklist_item_id && sItem.isRequired
+                                                      );
+                                                      return isRequired ? "font-medium" : "";
+                                                    })()
+                                                  }`}>
+                                                    {item.description}
+                                                    {(() => {
+                                                      const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+                                                      const isRequired = supabaseChecklist?.items.some(sItem => 
+                                                        sItem.id === item.checklist_item_id && sItem.isRequired
+                                                      );
+                                                      return isRequired ? <span className="text-destructive ml-1">*</span> : null;
+                                                    })()}
+                                                  </p>
+                                                </div>
+                                                <RadioGroup
+                                                  value={item.score?.toString() || "0"}
+                                                  onValueChange={(value) => handleChecklistItemChange(item.checklist_item_id, parseInt(value) as 0 | 1)}
+                                                  className="flex flex-row space-x-6"
+                                                >
+                                                  <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="0" id={`${item.checklist_item_id}-0`} />
+                                                    <Label htmlFor={`${item.checklist_item_id}-0`} className="text-sm font-medium cursor-pointer">Нет</Label>
+                                                  </div>
+                                                  <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="1" id={`${item.checklist_item_id}-1`} />
+                                                    <Label htmlFor={`${item.checklist_item_id}-1`} className="text-sm font-medium cursor-pointer">Да</Label>
+                                                  </div>
+                                                </RadioGroup>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ));
+                                    })()}
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
+                  );
+                });
+                })()}
+           </div>
         )}
 
         {/* Навигация */}
