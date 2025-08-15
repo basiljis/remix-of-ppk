@@ -144,6 +144,60 @@ export const useOrganizations = () => {
     }
   };
 
+  const updateOrganization = async (id: string, orgData: Partial<Organization>) => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .update(orgData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setOrganizations(prev => prev.map(org => org.id === id ? data : org));
+      toast({
+        title: "Организация обновлена",
+        description: "Данные организации успешно обновлены"
+      });
+
+      return data;
+    } catch (err) {
+      console.error('Error updating organization:', err);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить организацию",
+        variant: "destructive"
+      });
+      throw err;
+    }
+  };
+
+  const deleteOrganization = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setOrganizations(prev => prev.filter(org => org.id !== id));
+      toast({
+        title: "Организация удалена",
+        description: "Организация успешно удалена из базы данных"
+      });
+    } catch (err) {
+      console.error('Error deleting organization:', err);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить организацию",
+        variant: "destructive"
+      });
+      throw err;
+    }
+  };
+
   const searchOrganizations = (query: string): Organization[] => {
     if (!query || query.trim() === '') return organizations;
     
@@ -166,6 +220,8 @@ export const useOrganizations = () => {
     error,
     loadOrganizations,
     addOrganization,
+    updateOrganization,
+    deleteOrganization,
     searchOrganizations,
     syncEkisOrganizations
   };

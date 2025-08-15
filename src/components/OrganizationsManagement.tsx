@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Search, RotateCcw, Building2, MapPin, Filter, Download } from 'lucide-react';
+import { Plus, Search, RotateCcw, Building2, MapPin, Filter, Download, Edit, Trash2 } from 'lucide-react';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { MOSCOW_DISTRICTS } from '@/constants/moscowDistricts';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,8 @@ export const OrganizationsManagement = () => {
     organizations, 
     loading, 
     addOrganization, 
+    updateOrganization,
+    deleteOrganization,
     searchOrganizations, 
     syncEkisOrganizations 
   } = useOrganizations();
@@ -30,6 +32,13 @@ export const OrganizationsManagement = () => {
   const [filterDistrict, setFilterDistrict] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Edit dialog state
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingOrg, setEditingOrg] = useState<any>(null);
+  const [editOrgName, setEditOrgName] = useState('');
+  const [editOrgDistrict, setEditOrgDistrict] = useState('');
+  const [editOrgType, setEditOrgType] = useState('');
 
   const handleAddOrganization = async () => {
     if (!newOrgName.trim()) return;
@@ -66,6 +75,44 @@ export const OrganizationsManagement = () => {
       });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleEditOrganization = (org: any) => {
+    setEditingOrg(org);
+    setEditOrgName(org.name);
+    setEditOrgDistrict(org.district || '');
+    setEditOrgType(org.type || '');
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateOrganization = async () => {
+    if (!editOrgName.trim() || !editingOrg) return;
+
+    try {
+      await updateOrganization(editingOrg.id, {
+        name: editOrgName,
+        district: editOrgDistrict,
+        type: editOrgType
+      });
+      
+      setShowEditDialog(false);
+      setEditingOrg(null);
+      setEditOrgName('');
+      setEditOrgDistrict('');
+      setEditOrgType('');
+    } catch (error) {
+      console.error('Error updating organization:', error);
+    }
+  };
+
+  const handleDeleteOrganization = async (orgId: string, orgName: string) => {
+    if (window.confirm(`Вы уверены, что хотите удалить организацию "${orgName}"?`)) {
+      try {
+        await deleteOrganization(orgId);
+      } catch (error) {
+        console.error('Error deleting organization:', error);
+      }
     }
   };
 
@@ -339,6 +386,27 @@ export const OrganizationsManagement = () => {
                         )}
                       </div>
                     </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditOrganization(org)}
+                        className="flex items-center gap-1"
+                      >
+                        <Edit className="h-3 w-3" />
+                        Редактировать
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteOrganization(org.id, org.name)}
+                        className="flex items-center gap-1 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        Удалить
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -346,6 +414,68 @@ export const OrganizationsManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Organization Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать организацию</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-org-name">Название организации *</Label>
+              <Input
+                id="edit-org-name"
+                value={editOrgName}
+                onChange={(e) => setEditOrgName(e.target.value)}
+                placeholder="Введите название организации"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-org-district">Округ</Label>
+              <Select value={editOrgDistrict} onValueChange={setEditOrgDistrict}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите округ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Не указан</SelectItem>
+                  {MOSCOW_DISTRICTS.map((district) => (
+                    <SelectItem key={district} value={district}>
+                      {district}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-org-type">Тип организации</Label>
+              <Select value={editOrgType} onValueChange={setEditOrgType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите тип" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Не указан</SelectItem>
+                  <SelectItem value="Школа">Школа</SelectItem>
+                  <SelectItem value="Гимназия">Гимназия</SelectItem>
+                  <SelectItem value="Лицей">Лицей</SelectItem>
+                  <SelectItem value="Детский сад">Детский сад</SelectItem>
+                  <SelectItem value="Образовательный комплекс">Образовательный комплекс</SelectItem>
+                  <SelectItem value="Колледж">Колледж</SelectItem>
+                  <SelectItem value="Техникум">Техникум</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                Отмена
+              </Button>
+              <Button onClick={handleUpdateOrganization} disabled={!editOrgName.trim()}>
+                Сохранить
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
