@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 const Index = () => {
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel>("elementary");
   const [activeTab, setActiveTab] = useState("protocol");
+  const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const { checklists, loading, error } = useChecklistData();
 
@@ -43,6 +44,12 @@ const Index = () => {
   const currentChecklists = checklists.filter(checklist => checklist.level === selectedLevel);
 
   const handleItemToggle = (checklistId: string, itemId: string) => {
+    const stateKey = `${checklistId}-${itemId}`;
+    setChecklistStates(prev => ({
+      ...prev,
+      [stateKey]: !prev[stateKey]
+    }));
+    
     toast({
       title: "Элемент обновлен",
       description: "Состояние элемента чеклиста изменено",
@@ -198,12 +205,15 @@ const Index = () => {
                       <ChecklistCard
                         key={checklist.id}
                         title={checklist.name}
-                        items={checklist.items.map(item => ({
-                          id: item.id,
-                          text: item.text,
-                          completed: item.isCompleted,
-                          required: item.isRequired
-                        }))}
+                        items={checklist.items.map(item => {
+                          const stateKey = `${checklist.id}-${item.id}`;
+                          return {
+                            id: item.id,
+                            text: item.text,
+                            completed: checklistStates[stateKey] || item.isCompleted,
+                            required: item.isRequired
+                          };
+                        })}
                         onItemToggle={(itemId) => handleItemToggle(checklist.id, itemId)}
                         variant="primary"
                         level={selectedLevel}
