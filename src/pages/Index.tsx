@@ -88,7 +88,7 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="protocol" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
               Протокол ППк
@@ -101,14 +101,10 @@ const Index = () => {
               <Database className="h-4 w-4" />
               Список ППк
             </TabsTrigger>
-            <TabsTrigger value="organizations" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Организации
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Дашборд
-            </TabsTrigger>
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Дашборд
+          </TabsTrigger>
             <TabsTrigger value="instructions" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               Инструкции
@@ -234,10 +230,6 @@ const Index = () => {
                     setActiveTab("protocol");
                   }}
                 />
-          </TabsContent>
-
-          <TabsContent value="organizations" className="space-y-6">
-            <OrganizationsManagement />
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-6">
