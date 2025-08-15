@@ -48,8 +48,15 @@ export const useOrganizations = () => {
 
   const syncEkisOrganizations = async () => {
     try {
+      console.log('Starting EKIS synchronization...');
       const ekisData = await apiService.getActualEduorgs();
       const ekisOrgs = ekisData.data.eduorgs;
+
+      console.log(`Received ${ekisOrgs.length} organizations from EKIS`);
+
+      if (ekisOrgs.length === 0) {
+        throw new Error('No organizations received from EKIS');
+      }
 
       // Batch upsert organizations in chunks for better performance
       const BATCH_SIZE = 50;
@@ -59,6 +66,7 @@ export const useOrganizations = () => {
         batches.push(ekisOrgs.slice(i, i + BATCH_SIZE));
       }
 
+      let totalUpserted = 0;
       for (const batch of batches) {
         const orgsToUpsert = batch.map(org => ({
           external_id: org.id,
@@ -68,20 +76,40 @@ export const useOrganizations = () => {
           is_manual: false
         }));
 
-        await supabase
+        console.log(`Upserting batch of ${orgsToUpsert.length} organizations...`);
+        
+        const { error } = await supabase
           .from('organizations')
           .upsert(orgsToUpsert, {
             onConflict: 'external_id'
           });
+
+        if (error) {
+          console.error('Upsert error:', error);
+          throw error;
+        }
+
+        totalUpserted += orgsToUpsert.length;
       }
 
       // Reload organizations after sync
       await loadOrganizations();
       
-      console.log(`Successfully synced ${ekisOrgs.length} organizations from EKIS`);
+      console.log(`Successfully synced ${totalUpserted} organizations from EKIS`);
+      
+      toast({
+        title: "Синхронизация завершена",
+        description: `Загружено ${totalUpserted} организаций из ЕКИС`
+      });
+
     } catch (err) {
-      console.warn('Could not sync EKIS organizations:', err);
-      throw err; // Re-throw to allow error handling in UI
+      console.error('EKIS synchronization failed:', err);
+      toast({
+        title: "Ошибка синхронизации",
+        description: "Не удалось загрузить данные из ЕКИС. Проверьте подключение к интернету.",
+        variant: "destructive"
+      });
+      throw err;
     }
   };
 
