@@ -128,7 +128,7 @@ export const OrganizationsList = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Все округа</SelectItem>
-                  {districts.map(district => (
+                  {districts.filter(district => district && district.trim() !== '').map(district => (
                     <SelectItem key={district} value={district}>{district}</SelectItem>
                   ))}
                 </SelectContent>
@@ -146,7 +146,7 @@ export const OrganizationsList = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Все типы</SelectItem>
-                  {types.map(type => (
+                  {types.filter(type => type && type.trim() !== '').map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
                 </SelectContent>

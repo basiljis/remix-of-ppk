@@ -60,7 +60,7 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
               </div>
             </div>
             
-            {filteredOrganizations.map((org) => (
+            {filteredOrganizations.filter(org => org.id && org.id.trim() !== '').map((org) => (
               <SelectItem key={org.id} value={org.id}>
                 <div className="flex flex-col w-full">
                   <span className="font-medium">{org.name}</span>
