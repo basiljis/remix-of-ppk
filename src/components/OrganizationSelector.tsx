@@ -60,18 +60,20 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
               </div>
             </div>
             
-            {filteredOrganizations.filter(org => org.id && org.id.trim() !== '').map((org) => (
-              <SelectItem key={org.id} value={org.id}>
-                <div className="flex flex-col w-full">
-                  <span className="font-medium">{org.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {org.external_id && `№${org.external_id} • `}
-                    {org.district} • {org.type}
-                    {org.is_manual && " (добавлено вручную)"}
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
+            {filteredOrganizations
+              .filter(org => org.id && org.id.trim() !== '' && org.name && org.name.trim() !== '')
+              .map((org) => (
+                <SelectItem key={org.id} value={org.id}>
+                  <div className="flex flex-col w-full">
+                    <span className="font-medium">{org.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {org.external_id && `№${org.external_id} • `}
+                      {org.district} • {org.type}
+                      {org.is_manual && " (добавлено вручную)"}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
             
             {filteredOrganizations.length === 0 && searchQuery && (
               <div className="p-2 text-center text-muted-foreground">

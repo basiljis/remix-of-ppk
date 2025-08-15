@@ -70,6 +70,32 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   const { saveProtocol, updateProtocol } = useProtocols();
   const { toast } = useToast();
   const { getChecklistByLevelAndType, loading: checklistLoading } = useChecklistData();
+
+  // Инициализация данных при редактировании
+  useEffect(() => {
+    if (editingProtocol) {
+      console.log('Loading editing protocol:', editingProtocol);
+      
+      // Загружаем данные из редактируемого протокола
+      if (editingProtocol.protocol_data) {
+        setFormData(editingProtocol.protocol_data);
+      }
+      
+      // Устанавливаем уровень образования
+      if (editingProtocol.education_level) {
+        setSelectedLevel(editingProtocol.education_level);
+        setChecklistBlocks(getProtocolChecklistData(editingProtocol.education_level));
+      }
+      
+      // Загружаем данные чек-листа из базы
+      if (editingProtocol.checklist_data && editingProtocol.checklist_data.blocks) {
+        setChecklistBlocks(editingProtocol.checklist_data.blocks);
+      }
+    } else {
+      // Инициализируем данные для нового протокола
+      setChecklistBlocks(getProtocolChecklistData(selectedLevel));
+    }
+  }, [editingProtocol, selectedLevel]);
   
   const [formData, setFormData] = useState<ProtocolData>({
     childData: {

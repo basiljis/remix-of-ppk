@@ -117,14 +117,19 @@ export const useOrganizations = () => {
   };
 
   const searchOrganizations = (query: string): Organization[] => {
-    if (!query) return organizations;
+    if (!query || query.trim() === '') return organizations;
     
-    const lowercaseQuery = query.toLowerCase();
-    return organizations.filter(org =>
-      org.name.toLowerCase().includes(lowercaseQuery) ||
-      org.external_id?.includes(query) ||
-      org.district?.toLowerCase().includes(lowercaseQuery)
-    );
+    const lowercaseQuery = query.toLowerCase().trim();
+    return organizations.filter(org => {
+      if (!org.name) return false;
+      
+      return (
+        org.name.toLowerCase().includes(lowercaseQuery) ||
+        org.external_id?.toLowerCase().includes(lowercaseQuery) ||
+        org.district?.toLowerCase().includes(lowercaseQuery) ||
+        org.type?.toLowerCase().includes(lowercaseQuery)
+      );
+    });
   };
 
   return {
