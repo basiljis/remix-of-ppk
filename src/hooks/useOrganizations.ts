@@ -59,6 +59,57 @@ export const useOrganizations = () => {
   const syncEkisOrganizations = async () => {
     try {
       console.log('Starting EKIS synchronization...');
+      
+      // Используем новую edge function вместо старого API сервиса
+      const { data, error } = await supabase.functions.invoke('educom-api', {
+        body: { action: 'syncOrganizations' }
+      });
+
+      if (error) {
+        console.error('Sync error:', error);
+        throw new Error(error.message || 'Edge Function error');
+      }
+
+      if (!data.success) {
+        console.error('Sync failed:', data);
+        throw new Error(data.error || data.details || 'Synchronization failed');
+      }
+
+      console.log(`Successfully synced ${data.synced} organizations (${data.errors} errors)`);
+      
+      // Reload organizations after sync
+      await loadOrganizations();
+      
+      toast({
+        title: "Синхронизация завершена",
+        description: `Загружено ${data.synced} организаций из ЕКИС`
+      });
+
+    } catch (err) {
+      console.error('EKIS synchronization failed:', err);
+      
+      let errorMessage = "Не удалось загрузить данные из ЕКИС.";
+      
+      // Проверяем тип ошибки для более точного сообщения
+      if (err.message?.includes('ЕКИС API недоступен') || err.message?.includes('Edge Function returned a non-2xx status code')) {
+        errorMessage = "API ЕКИС временно недоступен. Попробуйте позже.";
+      } else if (err.message?.includes('Service Unavailable')) {
+        errorMessage = "Сервис синхронизации временно недоступен. Попробуйте позже.";
+      }
+      
+      toast({
+        title: "Ошибка синхронизации",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      throw err;
+    }
+  };
+
+  // Старый код синхронизации через apiService (оставляем как резерв)
+  const syncEkisOrganizationsLegacy = async () => {
+    try {
+      console.log('Starting EKIS synchronization...');
       const ekisData = await apiService.getActualEduorgs();
       const ekisOrgs = ekisData.data.eduorgs;
 
