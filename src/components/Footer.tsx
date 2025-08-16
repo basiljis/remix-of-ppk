@@ -39,21 +39,17 @@ export const Footer = ({ activeTab, onTabChange }: FooterProps) => {
 
           {/* Navigation Menu */}
           <nav className="flex flex-wrap justify-center gap-6">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onTabChange(item.id)}
-                  className={`flex items-center gap-2 text-sm transition-colors hover:text-primary ${
-                    activeTab === item.id ? "text-primary font-medium" : "text-muted-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </button>
-              );
-            })}
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onTabChange(item.id)}
+                className={`text-sm transition-colors hover:text-primary ${
+                  activeTab === item.id ? "text-primary font-medium" : "text-muted-foreground"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
         </div>
       </div>
