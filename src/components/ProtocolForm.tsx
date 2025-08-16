@@ -255,7 +255,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     const protocolData = {
       child_name: formData.childData.fullName,
       child_birth_date: formData.childData.birthDate || undefined,
-      organization_id: formData.childData.educationalOrganization,
+      organization_id: formData.childData.educationalOrganization === "none" ? undefined : formData.childData.educationalOrganization,
       education_level: selectedLevel,
       consultation_type: formData.consultationType,
       consultation_reason: formData.reason,
@@ -488,7 +488,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                       <SelectValue placeholder="Выберите организацию" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Не выбрано</SelectItem>
+                      <SelectItem value="none">Не выбрано</SelectItem>
                       <SelectItem value="org1">Организация 1</SelectItem>
                       <SelectItem value="org2">Организация 2</SelectItem>
                     </SelectContent>

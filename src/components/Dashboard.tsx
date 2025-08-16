@@ -21,7 +21,7 @@ export const Dashboard = () => {
   const [filteredProtocols, setFilteredProtocols] = useState<Protocol[]>(protocols);
   
   // Фильтры
-  const [eduOrgFilter, setEduOrgFilter] = useState("");
+  const [eduOrgFilter, setEduOrgFilter] = useState("all");
   const [districtFilter, setDistrictFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -40,7 +40,7 @@ export const Dashboard = () => {
   const applyFilters = () => {
     let filtered = [...protocols];
 
-    if (eduOrgFilter) {
+    if (eduOrgFilter && eduOrgFilter !== "all") {
       // Find organization by ID and filter protocols
       const selectedOrg = organizations.find(org => org.id === eduOrgFilter);
       if (selectedOrg) {
@@ -97,7 +97,7 @@ export const Dashboard = () => {
   };
 
   const resetFilters = () => {
-    setEduOrgFilter("");
+    setEduOrgFilter("all");
     setDistrictFilter("all");
     setLevelFilter("all");
     setTypeFilter("all");
@@ -200,7 +200,7 @@ export const Dashboard = () => {
                   <SelectValue placeholder="Выберите организацию" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Все организации</SelectItem>
+                  <SelectItem value="all">Все организации</SelectItem>
                   {organizations.map(org => (
                     <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                   ))}
