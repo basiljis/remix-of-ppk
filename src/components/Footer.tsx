@@ -21,17 +21,7 @@ export const Footer = ({ activeTab, onTabChange }: FooterProps) => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* Logo and Copyright */}
           <div className="flex flex-col items-center lg:items-start gap-4">
-            <div className="flex items-center gap-3">
-              <img 
-                src="/lovable-uploads/f971f75e-c922-48b7-a527-0263972e4807.png" 
-                alt="headquarters logo" 
-                className="h-8 w-auto"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-              <span className="text-lg font-bold text-foreground">headquarters</span>
-            </div>
+            <span className="text-lg font-bold text-foreground">headquarters</span>
             <p className="text-sm text-muted-foreground">
               © 2023-2025 Все права защищены
             </p>
