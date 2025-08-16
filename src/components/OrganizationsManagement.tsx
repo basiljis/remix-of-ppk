@@ -7,10 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Search, RotateCcw, Building2, MapPin, Filter, Download, Edit, Trash2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Search, RotateCcw, Building2, MapPin, Filter, Download, Edit, Trash2, Database } from 'lucide-react';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { MOSCOW_DISTRICTS } from '@/constants/moscowDistricts';
 import { useToast } from '@/hooks/use-toast';
+import { EducomOrganizationsList } from './EducomOrganizationsList';
 
 export const OrganizationsManagement = () => {
   const { 
@@ -152,8 +154,34 @@ export const OrganizationsManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Card */}
       <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            Управление организациями
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="ekis" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="ekis" className="flex items-center gap-2">
+                <Database className="h-4 w-4" />
+                ЕКИС API
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Ручное управление
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="ekis" className="mt-6">
+              <EducomOrganizationsList />
+            </TabsContent>
+            
+            <TabsContent value="manual" className="mt-6">
+              <div className="space-y-6">
+                {/* Header Card */}
+                <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
@@ -502,6 +530,11 @@ export const OrganizationsManagement = () => {
           </div>
         </DialogContent>
       </Dialog>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };

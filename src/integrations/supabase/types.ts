@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          endpoint: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          request_data: Json | null
+          response_data: Json | null
+          status_code: number | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          request_data?: Json | null
+          response_data?: Json | null
+          status_code?: number | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          request_data?: Json | null
+          response_data?: Json | null
+          status_code?: number | null
+        }
+        Relationships: []
+      }
+      api_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          service_name: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          service_name?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          service_name?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       checklist: {
         Row: {
           created_at: string
@@ -109,42 +172,202 @@ export type Database = {
         }
         Relationships: []
       }
-      organizations: {
+      organization_addresses: {
         Row: {
-          address: string | null
+          address_type: string
+          building: string | null
+          city: string | null
+          coordinates_lat: number | null
+          coordinates_lng: number | null
           created_at: string
           district: string | null
-          external_id: string | null
+          full_address: string
           id: string
-          is_manual: boolean
-          mrsd: string | null
-          name: string
-          type: string | null
+          is_main_building: boolean | null
+          metro_station: string | null
+          organization_id: string
+          postal_code: string | null
+          region: string | null
+          street: string | null
           updated_at: string
         }
         Insert: {
-          address?: string | null
+          address_type?: string
+          building?: string | null
+          city?: string | null
+          coordinates_lat?: number | null
+          coordinates_lng?: number | null
           created_at?: string
           district?: string | null
-          external_id?: string | null
+          full_address: string
           id?: string
-          is_manual?: boolean
-          mrsd?: string | null
-          name: string
-          type?: string | null
+          is_main_building?: boolean | null
+          metro_station?: string | null
+          organization_id: string
+          postal_code?: string | null
+          region?: string | null
+          street?: string | null
           updated_at?: string
         }
         Update: {
-          address?: string | null
+          address_type?: string
+          building?: string | null
+          city?: string | null
+          coordinates_lat?: number | null
+          coordinates_lng?: number | null
           created_at?: string
           district?: string | null
-          external_id?: string | null
+          full_address?: string
           id?: string
+          is_main_building?: boolean | null
+          metro_station?: string | null
+          organization_id?: string
+          postal_code?: string | null
+          region?: string | null
+          street?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_addresses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_reorganizations: {
+        Row: {
+          created_at: string
+          ekis_in: string | null
+          ekis_out: string | null
+          event_comments: string | null
+          event_date: string | null
+          event_type_name: string
+          id: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ekis_in?: string | null
+          ekis_out?: string | null
+          event_comments?: string | null
+          event_date?: string | null
+          event_type_name: string
+          id?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ekis_in?: string | null
+          ekis_out?: string | null
+          event_comments?: string | null
+          event_date?: string | null
+          event_type_name?: string
+          id?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_reorganizations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          address: string | null
+          api_token: string | null
+          coordinates_lat: number | null
+          coordinates_lng: number | null
+          created_at: string
+          district: string | null
+          ekis_id: string | null
+          email: string | null
+          external_id: string | null
+          full_name: string | null
+          has_education_activity: boolean | null
+          id: string
+          is_archived: boolean | null
+          is_manual: boolean
+          last_sync_at: string | null
+          metro_station: string | null
+          mrsd: string | null
+          name: string
+          parent_organization: string | null
+          phone: string | null
+          short_name: string | null
+          status_id: number | null
+          status_name: string | null
+          token_expires_at: string | null
+          type: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          api_token?: string | null
+          coordinates_lat?: number | null
+          coordinates_lng?: number | null
+          created_at?: string
+          district?: string | null
+          ekis_id?: string | null
+          email?: string | null
+          external_id?: string | null
+          full_name?: string | null
+          has_education_activity?: boolean | null
+          id?: string
+          is_archived?: boolean | null
           is_manual?: boolean
+          last_sync_at?: string | null
+          metro_station?: string | null
           mrsd?: string | null
-          name?: string
+          name: string
+          parent_organization?: string | null
+          phone?: string | null
+          short_name?: string | null
+          status_id?: number | null
+          status_name?: string | null
+          token_expires_at?: string | null
           type?: string | null
           updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          api_token?: string | null
+          coordinates_lat?: number | null
+          coordinates_lng?: number | null
+          created_at?: string
+          district?: string | null
+          ekis_id?: string | null
+          email?: string | null
+          external_id?: string | null
+          full_name?: string | null
+          has_education_activity?: boolean | null
+          id?: string
+          is_archived?: boolean | null
+          is_manual?: boolean
+          last_sync_at?: string | null
+          metro_station?: string | null
+          mrsd?: string | null
+          name?: string
+          parent_organization?: string | null
+          phone?: string | null
+          short_name?: string | null
+          status_id?: number | null
+          status_name?: string | null
+          token_expires_at?: string | null
+          type?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
