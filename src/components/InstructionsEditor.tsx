@@ -334,10 +334,28 @@ export function InstructionsEditor() {
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="legal">Нормативно-правовая база</TabsTrigger>
-          <TabsTrigger value="custom">Пользовательские инструкции</TabsTrigger>
-          <TabsTrigger value="work">Инструкции для редактирования</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 h-auto p-1">
+          <TabsTrigger 
+            value="legal" 
+            className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap overflow-hidden text-ellipsis"
+          >
+            <span className="hidden sm:inline">Нормативно-правовая база</span>
+            <span className="sm:hidden">НПБ</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="custom" 
+            className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap overflow-hidden text-ellipsis"
+          >
+            <span className="hidden sm:inline">Пользовательские инструкции</span>
+            <span className="sm:hidden">Польз.</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="work" 
+            className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap overflow-hidden text-ellipsis"
+          >
+            <span className="hidden sm:inline">Инструкции для редактирования</span>
+            <span className="sm:hidden">Редакт.</span>
+          </TabsTrigger>
         </TabsList>
 
         {['legal', 'custom', 'work'].map((type) => (
