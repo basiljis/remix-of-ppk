@@ -84,41 +84,41 @@ export const EducomOrganizationsList: React.FC = () => {
               />
             </div>
             
-            <Select value={filters.status_id?.toString() || ''} onValueChange={(value) => 
-              handleFilterChange('status_id', value ? parseInt(value) : undefined)
+            <Select value={filters.status_id?.toString() || 'all'} onValueChange={(value) => 
+              handleFilterChange('status_id', value === 'all' ? undefined : parseInt(value))
             }>
               <SelectTrigger>
                 <SelectValue placeholder="Статус" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все статусы</SelectItem>
+                <SelectItem value="all">Все статусы</SelectItem>
                 <SelectItem value="1">Действует</SelectItem>
                 <SelectItem value="2">В стадии открытия</SelectItem>
                 <SelectItem value="3">В стадии закрытия</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={filters.is_archived?.toString() || ''} onValueChange={(value) => 
-              handleFilterChange('is_archived', value === 'true' ? true : value === 'false' ? false : undefined)
+            <Select value={filters.is_archived?.toString() || 'all'} onValueChange={(value) => 
+              handleFilterChange('is_archived', value === 'all' ? undefined : value === 'true')
             }>
               <SelectTrigger>
                 <SelectValue placeholder="Архивность" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все</SelectItem>
+                <SelectItem value="all">Все</SelectItem>
                 <SelectItem value="false">Активные</SelectItem>
                 <SelectItem value="true">Архивные</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={filters.has_education_activity?.toString() || ''} onValueChange={(value) => 
-              handleFilterChange('has_education_activity', value === 'true' ? true : value === 'false' ? false : undefined)
+            <Select value={filters.has_education_activity?.toString() || 'all'} onValueChange={(value) => 
+              handleFilterChange('has_education_activity', value === 'all' ? undefined : value === 'true')
             }>
               <SelectTrigger>
                 <SelectValue placeholder="Образовательная деятельность" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все</SelectItem>
+                <SelectItem value="all">Все</SelectItem>
                 <SelectItem value="true">Есть</SelectItem>
                 <SelectItem value="false">Нет</SelectItem>
               </SelectContent>
