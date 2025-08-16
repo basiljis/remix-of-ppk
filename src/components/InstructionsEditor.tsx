@@ -47,7 +47,7 @@ export function InstructionsEditor() {
   const [editingInstruction, setEditingInstruction] = useState<Instruction | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('work');
+  const [activeTab, setActiveTab] = useState<string>('legal');
 
   useEffect(() => {
     fetchInstructions();
@@ -321,23 +321,26 @@ export function InstructionsEditor() {
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'work':
-        return 'Инструкции по работе';
+        return 'Инструкции для редактирования';
       case 'legal':
-        return 'Нормативно-правовая информация';
-      default:
+        return 'Нормативно-правовая база';
+      case 'custom':
         return 'Пользовательские инструкции';
+      default:
+        return 'Инструкции';
     }
   };
 
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="work">Инструкции по работе</TabsTrigger>
-          <TabsTrigger value="legal">Нормативно-правовая информация</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="legal">Нормативно-правовая база</TabsTrigger>
+          <TabsTrigger value="custom">Пользовательские инструкции</TabsTrigger>
+          <TabsTrigger value="work">Инструкции для редактирования</TabsTrigger>
         </TabsList>
 
-        {['work', 'legal'].map((type) => (
+        {['legal', 'custom', 'work'].map((type) => (
           <TabsContent key={type} value={type} className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">{getTypeLabel(type)}</h3>
