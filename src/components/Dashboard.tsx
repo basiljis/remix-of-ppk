@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter } from "lucide-react";
-import { useProtocolStorage, SavedProtocol } from "@/hooks/useProtocolStorage";
+import { useProtocols, Protocol } from "@/hooks/useProtocols";
 import { useOrganizations, Organization } from "@/hooks/useOrganizations";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -16,9 +16,9 @@ import { ru } from "date-fns/locale";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 export const Dashboard = () => {
-  const { protocols } = useProtocolStorage();
+  const { protocols, loading } = useProtocols();
   const { organizations } = useOrganizations();
-  const [filteredProtocols, setFilteredProtocols] = useState<SavedProtocol[]>(protocols);
+  const [filteredProtocols, setFilteredProtocols] = useState<Protocol[]>(protocols);
   
   // Фильтры
   const [eduOrgFilter, setEduOrgFilter] = useState("");
@@ -41,29 +41,30 @@ export const Dashboard = () => {
     let filtered = [...protocols];
 
     if (eduOrgFilter) {
-      filtered = filtered.filter(p => p.educationalOrganization.includes(eduOrgFilter));
+      filtered = filtered.filter(p => 
+        p.organizations?.name?.toLowerCase().includes(eduOrgFilter.toLowerCase())
+      );
     }
 
     if (districtFilter && districtFilter !== "all") {
-      const orgsByDistrict = organizations.filter(org => org.district === districtFilter);
       filtered = filtered.filter(p => 
-        orgsByDistrict.some(org => p.educationalOrganization.includes(org.name))
+        p.organizations?.district === districtFilter
       );
     }
 
     if (levelFilter && levelFilter !== "all") {
-      filtered = filtered.filter(p => p.level === levelFilter);
+      filtered = filtered.filter(p => p.education_level === levelFilter);
     }
 
     if (typeFilter && typeFilter !== "all") {
-      filtered = filtered.filter(p => p.consultationType === typeFilter);
+      filtered = filtered.filter(p => p.consultation_type === typeFilter);
     }
 
     if (parallelFilter && parallelFilter !== "all") {
       // Фильтр по параллели - извлекаем номер класса или тип группы из protocolData
       filtered = filtered.filter(p => {
-        const classNumber = p.protocolData?.childData?.classNumber || "";
-        const isPreschool = p.level === "preschool";
+        const classNumber = p.protocol_data?.childData?.classNumber || "";
+        const isPreschool = p.education_level === "preschool";
         
         if (isPreschool) {
           return classNumber.toLowerCase().includes(parallelFilter.toLowerCase());
@@ -74,15 +75,17 @@ export const Dashboard = () => {
     }
 
     if (reasonFilter) {
-      filtered = filtered.filter(p => p.reason.toLowerCase().includes(reasonFilter.toLowerCase()));
+      filtered = filtered.filter(p => 
+        p.consultation_reason?.toLowerCase().includes(reasonFilter.toLowerCase())
+      );
     }
 
     if (dateFrom) {
-      filtered = filtered.filter(p => new Date(p.createdDate) >= dateFrom);
+      filtered = filtered.filter(p => new Date(p.created_at) >= dateFrom);
     }
 
     if (dateTo) {
-      filtered = filtered.filter(p => new Date(p.createdDate) <= dateTo);
+      filtered = filtered.filter(p => new Date(p.created_at) <= dateTo);
     }
 
     setFilteredProtocols(filtered);
@@ -116,22 +119,22 @@ export const Dashboard = () => {
   const levelData = [
     {
       name: 'Дошкольное',
-      value: filteredProtocols.filter(p => p.level === 'preschool').length,
+      value: filteredProtocols.filter(p => p.education_level === 'preschool').length,
       color: '#0088FE'
     },
     {
       name: 'Начальное',
-      value: filteredProtocols.filter(p => p.level === 'elementary').length,
+      value: filteredProtocols.filter(p => p.education_level === 'elementary').length,
       color: '#00C49F'
     },
     {
       name: 'Основное',
-      value: filteredProtocols.filter(p => p.level === 'middle').length,
+      value: filteredProtocols.filter(p => p.education_level === 'middle').length,
       color: '#FFBB28'
     },
     {
       name: 'Среднее',
-      value: filteredProtocols.filter(p => p.level === 'high').length,
+      value: filteredProtocols.filter(p => p.education_level === 'high').length,
       color: '#FF8042'
     }
   ].filter(item => item.value > 0);
@@ -139,19 +142,19 @@ export const Dashboard = () => {
   const typeData = [
     {
       name: 'Первичные',
-      value: filteredProtocols.filter(p => p.consultationType === 'primary').length,
+      value: filteredProtocols.filter(p => p.consultation_type === 'primary').length,
       color: '#8884D8'
     },
     {
       name: 'Вторичные',
-      value: filteredProtocols.filter(p => p.consultationType === 'secondary').length,
+      value: filteredProtocols.filter(p => p.consultation_type === 'secondary').length,
       color: '#82CA9D'
     }
   ].filter(item => item.value > 0);
 
   // Группировка по причинам
   const reasonsCount = filteredProtocols.reduce((acc, protocol) => {
-    const reason = protocol.reason || 'Не указано';
+    const reason = protocol.consultation_reason || 'Не указано';
     acc[reason] = (acc[reason] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -163,10 +166,7 @@ export const Dashboard = () => {
 
   // Данные по округам
   const districtCounts = filteredProtocols.reduce((acc, protocol) => {
-    const matchingOrg = organizations.find(org => 
-      protocol.educationalOrganization.includes(org.name)
-    );
-    const district = matchingOrg?.district || 'Неизвестно';
+    const district = protocol.organizations?.district || 'Неизвестно';
     acc[district] = (acc[district] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -352,7 +352,7 @@ export const Dashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {Math.round(filteredProtocols.reduce((sum, p) => sum + p.completionPercentage, 0) / filteredProtocols.length || 0)}%
+              {Math.round(filteredProtocols.reduce((sum, p) => sum + (p.completion_percentage || 0), 0) / filteredProtocols.length || 0)}%
             </div>
             <p className="text-muted-foreground">Средняя готовность</p>
           </CardContent>
