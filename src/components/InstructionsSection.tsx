@@ -22,18 +22,30 @@ export const InstructionsSection = () => {
       </div>
 
       <Tabs defaultValue="instructions" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="instructions" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 h-auto p-1">
+          <TabsTrigger 
+            value="instructions" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
             <BookOpen className="h-4 w-4" />
-            Инструкции по работе
+            <span className="hidden sm:inline">Инструкции по работе</span>
+            <span className="sm:hidden">Инструкции</span>
           </TabsTrigger>
-          <TabsTrigger value="custom" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="custom" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
             <FileText className="h-4 w-4" />
-            Пользовательские инструкции
+            <span className="hidden sm:inline">Пользовательские инструкции</span>
+            <span className="sm:hidden">Польз.</span>
           </TabsTrigger>
-          <TabsTrigger value="legal" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="legal" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
             <Scale className="h-4 w-4" />
-            Нормативно-правовая база
+            <span className="hidden sm:inline">Нормативно-правовая база</span>
+            <span className="sm:hidden">НПБ</span>
           </TabsTrigger>
         </TabsList>
 

@@ -10,6 +10,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter } from "lucide-react";
 import { useProtocols, Protocol } from "@/hooks/useProtocols";
 import { useOrganizations, Organization } from "@/hooks/useOrganizations";
+import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -41,9 +42,14 @@ export const Dashboard = () => {
     let filtered = [...protocols];
 
     if (eduOrgFilter) {
-      filtered = filtered.filter(p => 
-        p.organizations?.name?.toLowerCase().includes(eduOrgFilter.toLowerCase())
-      );
+      // Find organization by ID and filter protocols
+      const selectedOrg = organizations.find(org => org.id === eduOrgFilter);
+      if (selectedOrg) {
+        filtered = filtered.filter(p => 
+          p.organizations?.id === selectedOrg.id ||
+          p.organizations?.name === selectedOrg.name
+        );
+      }
     }
 
     if (districtFilter && districtFilter !== "all") {
@@ -190,10 +196,10 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
               <Label>Образовательная организация</Label>
-              <Input
-                placeholder="Поиск по названию..."
+              <OrganizationSelector
                 value={eduOrgFilter}
-                onChange={(e) => setEduOrgFilter(e.target.value)}
+                onChange={setEduOrgFilter}
+                placeholder="Поиск и выбор организации..."
               />
             </div>
             

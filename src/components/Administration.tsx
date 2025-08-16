@@ -143,18 +143,30 @@ export const Administration = () => {
       </div>
 
       <Tabs defaultValue="organizations" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="organizations" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 h-auto p-1">
+          <TabsTrigger 
+            value="organizations" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
             <Building className="h-4 w-4" />
-            Управление организациями
+            <span className="hidden sm:inline">Управление организациями</span>
+            <span className="sm:hidden">Организации</span>
           </TabsTrigger>
-          <TabsTrigger value="checklist" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="checklist" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
             <Settings className="h-4 w-4" />
-            Управление чеклистом
+            <span className="hidden sm:inline">Управление чеклистом</span>
+            <span className="sm:hidden">Чеклист</span>
           </TabsTrigger>
-          <TabsTrigger value="instructions" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="instructions" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
             <FileText className="h-4 w-4" />
-            Управление инструкциями
+            <span className="hidden sm:inline">Управление инструкциями</span>
+            <span className="sm:hidden">Инструкции</span>
           </TabsTrigger>
         </TabsList>
 
