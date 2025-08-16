@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProtocols } from '@/hooks/useProtocols';
 import { useToast } from '@/hooks/use-toast';
@@ -20,12 +20,13 @@ interface PPKListProps {
 }
 
 export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol }) => {
-  const { protocols, deleteProtocol, loading } = useProtocols();
+  const { protocols, deleteProtocol, loading, loadProtocols } = useProtocols();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [reasonFilter, setReasonFilter] = useState('all');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filter protocols based on search and filters
   const filteredRecords = protocols.filter(protocol => {
@@ -141,6 +142,25 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     }
   };
 
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await loadProtocols();
+      toast({
+        title: "Данные обновлены",
+        description: "Протоколы успешно загружены из базы данных",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить данные",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <TooltipProvider>
       <Card>
@@ -198,6 +218,15 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
               <SelectItem value="поведенческие нарушения">Поведенческие нарушения</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline"
+            disabled={refreshing || loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Обновить данные
+          </Button>
 
           <Button onClick={onNewProtocol}>
             <Plus className="h-4 w-4 mr-2" />
