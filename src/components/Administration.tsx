@@ -172,12 +172,6 @@ export const Administration = () => {
 
         <TabsContent value="organizations" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Управление организациями
-              </CardTitle>
-            </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
                 Просмотр, добавление и редактирование образовательных организаций в системе

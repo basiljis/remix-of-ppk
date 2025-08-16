@@ -28,17 +28,26 @@ export const useOrganizations = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch organizations from Supabase only
-      const { data: supabaseOrgs, error: supabaseError } = await supabase
-        .from('organizations')
-        .select('*')
-        .order('name');
+      // Use EKIS API data through Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('educom-api', {
+        body: { action: 'getOrganizations' }
+      });
 
-      if (supabaseError) throw supabaseError;
+      if (error) throw error;
 
-      setOrganizations(supabaseOrgs || []);
+      // Transform EKIS data to match organization interface
+      const transformedOrgs = (data.data || []).map((org: any) => ({
+        id: org.id,
+        external_id: org.ekis_id,
+        name: org.full_name || org.name,
+        district: org.district,
+        type: org.type,
+        is_manual: org.is_manual || false
+      }));
+
+      setOrganizations(transformedOrgs);
       
-      console.log(`Loaded ${supabaseOrgs?.length || 0} organizations from Supabase`);
+      console.log(`Loaded ${transformedOrgs.length} organizations from EKIS API`);
     } catch (err) {
       console.error('Error loading organizations:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
