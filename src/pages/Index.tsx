@@ -8,6 +8,8 @@ import { ProtocolForm } from "@/components/ProtocolForm";
 import { PPKList } from "@/components/PPKList";
 import { Dashboard } from "@/components/Dashboard";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
+import { MobileMenu } from "@/components/MobileMenu";
+import { Footer } from "@/components/Footer";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,16 +83,22 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-4">
-            Система автоматизации ППк
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1"></div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Система автоматизации ППк
+            </h1>
+            <div className="flex-1 flex justify-end">
+              <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
+          </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Автоматизированная система чеклистов для проведения психолого-педагогического консилиума
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="hidden md:grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="protocol" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
               Протокол ППк
@@ -257,6 +265,8 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <Footer activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
