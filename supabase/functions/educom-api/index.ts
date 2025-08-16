@@ -85,7 +85,7 @@ class EducomApiService {
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (sessionData?.token) {
         this.token = sessionData.token
@@ -252,7 +252,8 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, filters } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const { action, filters } = body
     const apiService = new EducomApiService(supabase)
 
     switch (action) {
@@ -305,13 +306,13 @@ Deno.serve(async (req) => {
               syncedCount++
 
               // Получаем ID организации для связи с адресами
-              const { data: orgData } = await supabase
+              const { data: orgData, error: selectError } = await supabase
                 .from('organizations')
                 .select('id')
                 .eq('ekis_id', org.eo_id)
-                .single()
+                .maybeSingle()
 
-              if (orgData) {
+              if (orgData && !selectError) {
                 // Получаем адреса для организации
                 try {
                   const addresses = await apiService.fetchEduOrgAddresses(org.eo_id)
@@ -323,24 +324,26 @@ Deno.serve(async (req) => {
                     .eq('organization_id', orgData.id)
 
                   // Добавляем новые адреса
-                  for (const address of addresses) {
+                  if (addresses.length > 0) {
+                    const addressInserts = addresses.map(address => ({
+                      organization_id: orgData.id,
+                      address_type: address.address_type || 'main',
+                      full_address: address.full_address,
+                      postal_code: address.postal_code,
+                      region: address.region,
+                      city: address.city,
+                      street: address.street,
+                      building: address.building,
+                      is_main_building: address.is_main_building,
+                      coordinates_lat: address.adr_lat,
+                      coordinates_lng: address.adr_lng,
+                      district: address.district,
+                      metro_station: address.metro_station
+                    }))
+
                     await supabase
                       .from('organization_addresses')
-                      .insert({
-                        organization_id: orgData.id,
-                        address_type: address.address_type || 'main',
-                        full_address: address.full_address,
-                        postal_code: address.postal_code,
-                        region: address.region,
-                        city: address.city,
-                        street: address.street,
-                        building: address.building,
-                        is_main_building: address.is_main_building,
-                        coordinates_lat: address.adr_lat,
-                        coordinates_lng: address.adr_lng,
-                        district: address.district,
-                        metro_station: address.metro_station
-                      })
+                      .insert(addressInserts)
                   }
                 } catch (addressError) {
                   console.error(`Error fetching addresses for ${org.eo_id}:`, addressError)
