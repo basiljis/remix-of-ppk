@@ -109,6 +109,7 @@ class EducomApiService {
     const timeoutId = setTimeout(() => controller.abort(), 10000)
 
     try {
+      console.log('Attempting to create session with EKIS API...')
       const response = await fetch(`${EDUCOM_API_BASE}/v1/auth/createSession`, {
         method: 'POST',
         headers: {
@@ -122,12 +123,21 @@ class EducomApiService {
       const executionTime = Date.now() - startTime
 
       if (!response.ok) {
-        const error = `Authorization failed: ${response.status}`
+        const error = `Authorization failed: ${response.status} ${response.statusText}`
+        console.error('EKIS API auth error:', error)
         await this.logAction('createSession', '/v1/auth/createSession', { login }, null, response.status, error, executionTime)
         throw new Error(error)
       }
 
       const data = await response.json()
+      
+      if (!data.data?.token) {
+        const error = 'No token received from EKIS API'
+        console.error('EKIS API response error:', error, data)
+        await this.logAction('createSession', '/v1/auth/createSession', { login }, data, 200, error, executionTime)
+        throw new Error(error)
+      }
+
       this.token = data.data.token
       
       // Токен действует 3600 секунд
@@ -150,7 +160,15 @@ class EducomApiService {
     } catch (error) {
       clearTimeout(timeoutId)
       const executionTime = Date.now() - startTime
-      await this.logAction('createSession', '/v1/auth/createSession', { login }, null, null, error.message, executionTime)
+      const errorMessage = error.name === 'AbortError' ? 'Request timeout (10s exceeded)' : error.message
+      console.error('Ошибка при создании сессии:', error)
+      await this.logAction('createSession', '/v1/auth/createSession', { login }, null, null, errorMessage, executionTime)
+      
+      // Если это ошибка сети или таймаут, выбрасываем специальную ошибку
+      if (error.name === 'AbortError' || error.message.includes('Load failed') || error.message.includes('NetworkError')) {
+        throw new Error('EKIS API недоступен. Проверьте подключение к интернету или попробуйте позже.')
+      }
+      
       throw error
     }
   }
@@ -260,7 +278,28 @@ Deno.serve(async (req) => {
       case 'syncOrganizations': {
         console.log('Starting organization sync...')
         
-        // Получаем данные организаций
+        try {
+          // Получаем данные организаций
+          const eduOrgs = await apiService.fetchEduOrgs()
+          console.log(`Fetched ${eduOrgs.length} organizations from API`)
+        } catch (apiError) {
+          console.error('Failed to fetch from EKIS API:', apiError.message)
+          
+          // Возвращаем ошибку с понятным сообщением
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Не удалось подключиться к API ЕКИС',
+              details: apiError.message,
+              suggestion: 'Проверьте подключение к интернету и повторите попытку'
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 503 // Service Unavailable
+            }
+          )
+        }
+        
         const eduOrgs = await apiService.fetchEduOrgs()
         console.log(`Fetched ${eduOrgs.length} organizations from API`)
 
