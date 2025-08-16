@@ -194,7 +194,6 @@ export const Dashboard = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
-              <Label>Образовательная организация</Label>
               <Select value={eduOrgFilter} onValueChange={setEduOrgFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите организацию" />
