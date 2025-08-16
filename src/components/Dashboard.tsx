@@ -17,7 +17,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'
 
 export const Dashboard = () => {
   const { protocols, loading } = useProtocols();
-  const { organizations } = useEducomApi();
+  const { organizations, fetchOrganizations } = useEducomApi();
   const [filteredProtocols, setFilteredProtocols] = useState<Protocol[]>(protocols);
   
   // Фильтры
@@ -32,6 +32,11 @@ export const Dashboard = () => {
 
   // Данные из организаций
   const districts = [...new Set(organizations.map(org => org.district).filter(Boolean))] as string[];
+
+  // Загрузка организаций при монтировании компонента
+  useEffect(() => {
+    fetchOrganizations();
+  }, []);
 
   useEffect(() => {
     applyFilters();
