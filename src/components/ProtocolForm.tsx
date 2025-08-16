@@ -13,7 +13,7 @@ import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, 
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData } from "@/data/protocolChecklistData";
 import { useProtocols } from "@/hooks/useProtocols";
-import { OrganizationSelector } from "@/components/OrganizationSelector";
+
 import { generateConsentPDF } from "@/components/ConsentPDF";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
@@ -482,10 +482,17 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </Select>
                 </div>
                 <div>
-                  <OrganizationSelector
-                    value={formData.childData.educationalOrganization}
-                    onChange={(value) => updateChildData("educationalOrganization", value)}
-                  />
+                  <Label htmlFor="educationalOrganization">Образовательная организация</Label>
+                  <Select value={formData.childData.educationalOrganization} onValueChange={(value) => updateChildData("educationalOrganization", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите организацию" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Не выбрано</SelectItem>
+                      <SelectItem value="org1">Организация 1</SelectItem>
+                      <SelectItem value="org2">Организация 2</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="address">Адрес проживания</Label>

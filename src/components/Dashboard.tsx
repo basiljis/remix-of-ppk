@@ -9,8 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter } from "lucide-react";
 import { useProtocols, Protocol } from "@/hooks/useProtocols";
-import { useOrganizations, Organization } from "@/hooks/useOrganizations";
-import { OrganizationSelector } from "@/components/OrganizationSelector";
+import { useEducomApi, type EducomOrganization } from "@/hooks/useEducomApi";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -18,7 +17,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'
 
 export const Dashboard = () => {
   const { protocols, loading } = useProtocols();
-  const { organizations } = useOrganizations();
+  const { organizations } = useEducomApi();
   const [filteredProtocols, setFilteredProtocols] = useState<Protocol[]>(protocols);
   
   // Фильтры
@@ -196,11 +195,17 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
               <Label>Образовательная организация</Label>
-              <OrganizationSelector
-                value={eduOrgFilter}
-                onChange={setEduOrgFilter}
-                placeholder="Поиск и выбор организации..."
-              />
+              <Select value={eduOrgFilter} onValueChange={setEduOrgFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите организацию" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Все организации</SelectItem>
+                  {organizations.map(org => (
+                    <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
