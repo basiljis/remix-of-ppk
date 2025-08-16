@@ -13,7 +13,7 @@ import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, 
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData } from "@/data/protocolChecklistData";
 import { useProtocols } from "@/hooks/useProtocols";
-
+import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { generateConsentPDF } from "@/components/ConsentPDF";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
@@ -255,7 +255,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     const protocolData = {
       child_name: formData.childData.fullName,
       child_birth_date: formData.childData.birthDate || undefined,
-      organization_id: formData.childData.educationalOrganization === "none" ? undefined : formData.childData.educationalOrganization,
+      organization_id: formData.childData.educationalOrganization,
       education_level: selectedLevel,
       consultation_type: formData.consultationType,
       consultation_reason: formData.reason,
@@ -482,17 +482,10 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="educationalOrganization">Образовательная организация</Label>
-                  <Select value={formData.childData.educationalOrganization} onValueChange={(value) => updateChildData("educationalOrganization", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите организацию" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Не выбрано</SelectItem>
-                      <SelectItem value="org1">Организация 1</SelectItem>
-                      <SelectItem value="org2">Организация 2</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <OrganizationSelector
+                    value={formData.childData.educationalOrganization}
+                    onChange={(value) => updateChildData("educationalOrganization", value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="address">Адрес проживания</Label>

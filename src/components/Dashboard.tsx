@@ -9,7 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter } from "lucide-react";
 import { useProtocols, Protocol } from "@/hooks/useProtocols";
-import { useEducomApi, type EducomOrganization } from "@/hooks/useEducomApi";
+import { useOrganizations, Organization } from "@/hooks/useOrganizations";
+import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -17,11 +18,11 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'
 
 export const Dashboard = () => {
   const { protocols, loading } = useProtocols();
-  const { organizations, fetchOrganizations } = useEducomApi();
+  const { organizations } = useOrganizations();
   const [filteredProtocols, setFilteredProtocols] = useState<Protocol[]>(protocols);
   
   // Фильтры
-  const [eduOrgFilter, setEduOrgFilter] = useState("all");
+  const [eduOrgFilter, setEduOrgFilter] = useState("");
   const [districtFilter, setDistrictFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -33,11 +34,6 @@ export const Dashboard = () => {
   // Данные из организаций
   const districts = [...new Set(organizations.map(org => org.district).filter(Boolean))] as string[];
 
-  // Загрузка организаций при монтировании компонента
-  useEffect(() => {
-    fetchOrganizations();
-  }, []);
-
   useEffect(() => {
     applyFilters();
   }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, dateFrom, dateTo, organizations]);
@@ -45,7 +41,7 @@ export const Dashboard = () => {
   const applyFilters = () => {
     let filtered = [...protocols];
 
-    if (eduOrgFilter && eduOrgFilter !== "all") {
+    if (eduOrgFilter) {
       // Find organization by ID and filter protocols
       const selectedOrg = organizations.find(org => org.id === eduOrgFilter);
       if (selectedOrg) {
@@ -102,7 +98,7 @@ export const Dashboard = () => {
   };
 
   const resetFilters = () => {
-    setEduOrgFilter("all");
+    setEduOrgFilter("");
     setDistrictFilter("all");
     setLevelFilter("all");
     setTypeFilter("all");
@@ -199,18 +195,12 @@ export const Dashboard = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
-              <Label>Образовательные организации</Label>
-              <Select value={eduOrgFilter} onValueChange={setEduOrgFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите организацию" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Все организации</SelectItem>
-                  {organizations.map(org => (
-                    <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Образовательная организация</Label>
+              <OrganizationSelector
+                value={eduOrgFilter}
+                onChange={setEduOrgFilter}
+                placeholder="Поиск и выбор организации..."
+              />
             </div>
             
             <div>
