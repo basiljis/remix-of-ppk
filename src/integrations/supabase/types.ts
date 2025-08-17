@@ -450,7 +450,9 @@ export type Database = {
           id: string
           is_ready: boolean | null
           organization_id: string | null
+          ppk_number: string | null
           protocol_data: Json | null
+          session_topic: string | null
           status: string | null
           updated_at: string
         }
@@ -466,7 +468,9 @@ export type Database = {
           id?: string
           is_ready?: boolean | null
           organization_id?: string | null
+          ppk_number?: string | null
           protocol_data?: Json | null
+          session_topic?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -482,7 +486,9 @@ export type Database = {
           id?: string
           is_ready?: boolean | null
           organization_id?: string | null
+          ppk_number?: string | null
           protocol_data?: Json | null
+          session_topic?: string | null
           status?: string | null
           updated_at?: string
         }

@@ -39,8 +39,8 @@ export const ConsentForm = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     
-    // Настройка шрифта
-    doc.setFont("times", "normal");
+    // Настройка шрифта для корректного отображения кириллицы
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
     
     // Заголовок

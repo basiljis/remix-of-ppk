@@ -48,6 +48,8 @@ interface ProtocolData {
   consultationDate: string;
   reason: string;
   previousConsultations: string;
+  ppkNumber?: string;
+  sessionTopic?: string;
 }
 
 const initialDocuments: DocumentCheck[] = [
@@ -124,7 +126,9 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     consultationType: "primary",
     consultationDate: new Date().toISOString().split('T')[0], // Автоматически заполняем текущей датой
     reason: "",
-    previousConsultations: ""
+    previousConsultations: "",
+    ppkNumber: "",
+    sessionTopic: ""
   });
 
   const updateChildData = (field: keyof ChildData, value: string) => {
@@ -164,7 +168,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     
     // Check required protocol fields
     const protocolFieldsFilled = !isRequiredFieldEmpty(formData.reason) && 
-                                 !isRequiredFieldEmpty(formData.consultationDate);
+                                 !isRequiredFieldEmpty(formData.consultationDate) &&
+                                 !isRequiredFieldEmpty(formData.sessionTopic || '');
     
     // Check checklist items from Supabase if available
     const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
@@ -259,6 +264,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       education_level: selectedLevel,
       consultation_type: formData.consultationType,
       consultation_reason: formData.reason,
+      ppk_number: formData.ppkNumber || undefined,
+      session_topic: formData.sessionTopic || undefined,
       protocol_data: formData,
       checklist_data: checklistData,
       completion_percentage: completionPercentage,
@@ -332,7 +339,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     progress += (presentRequiredDocs.length / requiredDocs.length) * 25;
     
     // Шаг 3: завершение протокола
-    const protocolFields = [formData.consultationDate, formData.reason];
+    const protocolFields = [formData.consultationDate, formData.reason, formData.sessionTopic || ''];
     const filledProtocolFields = protocolFields.filter(field => field.trim() !== "").length;
     progress += (filledProtocolFields / protocolFields.length) * 25;
     
@@ -653,6 +660,15 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
               <h3 className="text-lg font-semibold mb-4">Данные протокола</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
+                <Label htmlFor="ppkNumber">Номер ППК</Label>
+                <Input
+                  id="ppkNumber"
+                  value={formData.ppkNumber || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ppkNumber: e.target.value }))}
+                  placeholder="Введите номер ППК"
+                />
+              </div>
+              <div>
                 <Label htmlFor="consultationType" className={isRequiredFieldEmpty(formData.consultationType) ? "text-red-500" : ""}>Тип консультации *</Label>
                 <Select value={formData.consultationType} onValueChange={(value: "primary" | "secondary") => setFormData(prev => ({ ...prev, consultationType: value }))}>
                   <SelectTrigger className={getRequiredFieldClass(formData.consultationType)}>
@@ -661,6 +677,25 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   <SelectContent>
                     <SelectItem value="primary">Первичная консультация</SelectItem>
                     <SelectItem value="secondary">Вторичная консультация</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="sessionTopic" className={isRequiredFieldEmpty(formData.sessionTopic) ? "text-red-500" : ""}>Тематика заседания *</Label>
+                <Select value={formData.sessionTopic || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, sessionTopic: value }))}>
+                  <SelectTrigger className={getRequiredFieldClass(formData.sessionTopic || '')}>
+                    <SelectValue placeholder="Выберите тематику заседания" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="утверждение плана работы ППк">утверждение плана работы ППк</SelectItem>
+                    <SelectItem value="утверждение плана мероприятий по выявлению обучающихся с особыми образовательными потребностями">утверждение плана мероприятий по выявлению обучающихся с особыми образовательными потребностями</SelectItem>
+                    <SelectItem value="проведение комплексного обследования обучающегося">проведение комплексного обследования обучающегося</SelectItem>
+                    <SelectItem value="обсуждение результатов комплексного обследования">обсуждение результатов комплексного обследования</SelectItem>
+                    <SelectItem value="обсуждение результатов образовательной, воспитательной и коррекционной работы с обучающимся">обсуждение результатов образовательной, воспитательной и коррекционной работы с обучающимся</SelectItem>
+                    <SelectItem value="зачисление обучающихся на коррекционные занятия">зачисление обучающихся на коррекционные занятия</SelectItem>
+                    <SelectItem value="направление обучающихся в ПМПК">направление обучающихся в ПМПК</SelectItem>
+                    <SelectItem value="составление и утверждение индивидуальных образовательных маршрутов (по форме определяемой образовательной организацией)">составление и утверждение индивидуальных образовательных маршрутов (по форме определяемой образовательной организацией)</SelectItem>
+                    <SelectItem value="экспертиза">экспертиза</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

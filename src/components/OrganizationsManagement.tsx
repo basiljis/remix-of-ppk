@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, RotateCcw, Building2, MapPin, Filter, Download, Edit, Trash2, Database } from 'lucide-react';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { MOSCOW_DISTRICTS } from '@/constants/moscowDistricts';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +36,8 @@ export const OrganizationsManagement = () => {
   const [filterDistrict, setFilterDistrict] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Edit dialog state
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -150,6 +153,17 @@ export const OrganizationsManagement = () => {
     setSearchQuery('');
     setFilterDistrict('all');
     setFilterType('all');
+    setCurrentPage(1);
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrganizations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrganizations = filteredOrganizations.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -370,7 +384,7 @@ export const OrganizationsManagement = () => {
           </div>
           
           <div className="mt-4 text-sm text-muted-foreground">
-            Показано: {filteredOrganizations.length} из {organizations.length} организаций
+            Показано: {paginatedOrganizations.length} из {filteredOrganizations.length} организаций (страница {currentPage} из {totalPages})
           </div>
         </CardContent>
       </Card>
@@ -400,20 +414,21 @@ export const OrganizationsManagement = () => {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredOrganizations.map((org) => (
+            <>
+              <div className="space-y-3">
+                {paginatedOrganizations.map((org, index) => (
                 <div 
                   key={org.id} 
                   className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium">{org.name}</h3>
-                        <Badge variant={org.is_manual ? "default" : "secondary"}>
-                          {org.is_manual ? "Ручное" : "ЕКИС"}
-                        </Badge>
-                      </div>
+                       <div className="flex items-center gap-2 mb-2">
+                         <h3 className="font-medium">#{startIndex + index + 1}. {org.name}</h3>
+                         <Badge variant={org.is_manual ? "default" : "secondary"}>
+                           {org.is_manual ? "Ручное" : "ЕКИС"}
+                         </Badge>
+                       </div>
                       
                       <div className="text-sm text-muted-foreground space-y-1">
                         {org.external_id && (
@@ -456,8 +471,63 @@ export const OrganizationsManagement = () => {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-6 flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              onClick={() => handlePageChange(pageNumber)}
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

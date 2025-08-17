@@ -20,8 +20,8 @@ export const generateConsentPDF = (childData: ChildData) => {
     format: 'a4'
   });
 
-  // Настройка шрифта
-  doc.setFont('times', 'normal');
+  // Настройка шрифта для корректного отображения кириллицы
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
 
   let yPosition = 20;
@@ -31,7 +31,7 @@ export const generateConsentPDF = (childData: ChildData) => {
 
   // Заголовок
   doc.setFontSize(14);
-  doc.setFont('times', 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text('СОГЛАСИЕ РОДИТЕЛЯ (ЗАКОННОГО ПРЕДСТАВИТЕЛЯ)', pageWidth / 2, yPosition, { align: 'center' });
   yPosition += lineHeight;
   doc.text('НА ПРОВЕДЕНИЕ ПСИХОЛОГО-ПЕДАГОГИЧЕСКОГО ОБСЛЕДОВАНИЯ', pageWidth / 2, yPosition, { align: 'center' });
@@ -39,7 +39,7 @@ export const generateConsentPDF = (childData: ChildData) => {
 
   // Основной текст
   doc.setFontSize(12);
-  doc.setFont('times', 'normal');
+  doc.setFont('helvetica', 'normal');
 
   const classInfo = `${childData.classNumber || '_'.repeat(5)}${childData.classLetter || ''}`;
   const text = `Я, ${childData.parentName || '_'.repeat(40)}, являющийся родителем (законным представителем) ребенка ${childData.fullName || '_'.repeat(40)}, ${childData.birthDate || '_'.repeat(15)} года рождения, обучающегося в ${childData.educationalOrganization || '_'.repeat(40)}, класс/группа ${classInfo},

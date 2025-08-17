@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet, RefreshCw } from 'lucide-react';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProtocols } from '@/hooks/useProtocols';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,8 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   const [typeFilter, setTypeFilter] = useState('all');
   const [reasonFilter, setReasonFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Filter protocols based on search and filters
   const filteredRecords = protocols.filter(protocol => {
@@ -39,6 +42,16 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
 
     return matchesSearch && matchesStatus && matchesType && matchesReason;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -222,10 +235,10 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
           <Button 
             onClick={handleRefresh} 
             variant="outline"
+            size="icon"
             disabled={refreshing || loading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Обновить данные
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           </Button>
 
           <Button onClick={onNewProtocol}>
@@ -257,9 +270,14 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                 </TableRow>
               ) : (
                 <>
-                  {filteredRecords.map((record) => (
+                  {paginatedRecords.map((record, index) => (
                     <TableRow key={record.id}>
-                      <TableCell className="font-medium">{record.child_name}</TableCell>
+                      <TableCell className="font-medium">
+                        #{startIndex + index + 1}. {record.child_name}
+                        {record.ppk_number && (
+                          <div className="text-sm text-muted-foreground">ППК №{record.ppk_number}</div>
+                        )}
+                      </TableCell>
                       <TableCell>{record.organizations?.name || 'Не указана'}</TableCell>
                       <TableCell>{getTypeBadge(record.consultation_type || '')}</TableCell>
                       <TableCell>{new Date(record.created_at).toLocaleDateString()}</TableCell>
@@ -416,7 +434,7 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                     </TableRow>
                   ))}
 
-                  {filteredRecords.length === 0 && !loading && (
+                  {paginatedRecords.length === 0 && !loading && (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
                         Записи не найдены
@@ -427,6 +445,64 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNumber;
+                  if (totalPages <= 5) {
+                    pageNumber = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + i;
+                  } else {
+                    pageNumber = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(pageNumber)}
+                        isActive={currentPage === pageNumber}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+
+        <div className="text-sm text-muted-foreground text-center">
+          Показано: {paginatedRecords.length} из {filteredRecords.length} протоколов (страница {currentPage} из {totalPages})
         </div>
       </CardContent>
     </Card>

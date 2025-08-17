@@ -10,6 +10,8 @@ export interface Protocol {
   education_level: string;
   consultation_type: string;
   consultation_reason?: string;
+  ppk_number?: string;
+  session_topic?: string;
   protocol_data?: any;
   checklist_data?: any;
   completion_percentage: number;
