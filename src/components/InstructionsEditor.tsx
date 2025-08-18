@@ -57,23 +57,69 @@ export function InstructionsEditor() {
     try {
       const { data, error } = await supabase
         .from('instructions')
-        .select('*')
+        .select(`
+          *,
+          instruction_files (
+            id,
+            section_id,
+            subsection_id,
+            filename,
+            original_name,
+            file_type,
+            file_size,
+            created_at
+          )
+        `)
         .eq('is_active', true)
         .order('type')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setInstructions((data || []).map(item => ({
-        ...item,
-        content: (() => {
+      
+      setInstructions((data || []).map(item => {
+        const content = (() => {
           try {
             const parsed = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
-            return Array.isArray(parsed) ? parsed : [];
+            const sectionsArray = Array.isArray(parsed) ? parsed : [];
+            
+            // Добавляем файлы к соответствующим разделам/подразделам
+            if (item.instruction_files) {
+              sectionsArray.forEach(section => {
+                // Файлы для раздела
+                section.documents = item.instruction_files
+                  .filter(file => file.section_id === section.id && !file.subsection_id)
+                  .map(file => ({
+                    id: file.id,
+                    name: file.original_name,
+                    url: `/api/files/${file.id}`, // URL для скачивания
+                    type: file.file_type
+                  }));
+
+                // Файлы для подразделов
+                section.subsections?.forEach(subsection => {
+                  subsection.documents = item.instruction_files
+                    .filter(file => file.section_id === section.id && file.subsection_id === subsection.id)
+                    .map(file => ({
+                      id: file.id,
+                      name: file.original_name,
+                      url: `/api/files/${file.id}`,
+                      type: file.file_type
+                    }));
+                });
+              });
+            }
+            
+            return sectionsArray;
           } catch {
             return [];
           }
-        })()
-      })));
+        })();
+        
+        return {
+          ...item,
+          content
+        };
+      }));
     } catch (error) {
       console.error('Error fetching instructions:', error);
       toast.error('Ошибка при загрузке инструкций');
@@ -113,17 +159,53 @@ export function InstructionsEditor() {
         is_active: true
       };
 
+      let instructionId: string;
+
       if (editingInstruction.id) {
         const { error } = await supabase
           .from('instructions')
           .update(instructionData)
           .eq('id', editingInstruction.id);
         if (error) throw error;
+        instructionId = editingInstruction.id;
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('instructions')
-          .insert(instructionData);
+          .insert(instructionData)
+          .select('id')
+          .single();
         if (error) throw error;
+        instructionId = data.id;
+      }
+
+      // Сохраняем файлы в БД
+      const pendingFiles = JSON.parse(localStorage.getItem('pendingFiles') || '[]');
+      if (pendingFiles.length > 0) {
+        for (const fileData of pendingFiles) {
+          // Конвертируем массив обратно в Uint8Array
+          const uint8Array = new Uint8Array(fileData.fileData);
+          
+          const { error: fileError } = await supabase
+            .from('instruction_files')
+            .insert({
+              instruction_id: instructionId,
+              section_id: fileData.sectionId,
+              subsection_id: fileData.subsectionId || null,
+              filename: fileData.filename,
+              original_name: fileData.originalName,
+              file_data: Array.from(uint8Array), // Сохраняем как массив чисел
+              file_type: fileData.fileType,
+              file_size: fileData.fileSize
+            });
+
+          if (fileError) {
+            console.error('Error saving file to DB:', fileError);
+            toast.error(`Ошибка при сохранении файла ${fileData.originalName}`);
+          }
+        }
+        
+        // Очищаем временные файлы
+        localStorage.removeItem('pendingFiles');
       }
 
       toast.success('Инструкция сохранена');
@@ -256,25 +338,25 @@ export function InstructionsEditor() {
       return;
     }
 
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast.error('Размер файла не должен превышать 10MB');
+      return;
+    }
+
     try {
-      const fileName = `${Date.now()}_${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('instruction-documents')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('instruction-documents')
-        .getPublicUrl(fileName);
-
+      // Читаем файл как ArrayBuffer для сохранения в БД
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      
       const newDocument: Document = {
         id: generateId(),
         name: file.name,
-        url: publicUrl,
+        url: '', // URL пока пустой, будет заполнен после сохранения в БД
         type: file.type
       };
 
+      // Временно добавляем документ в UI
       if (subsectionId) {
         updateSubsection(sectionId!, subsectionId, 'documents', [
           ...editingInstruction.content.find(s => s.id === sectionId)?.subsections.find(ss => ss.id === subsectionId)?.documents || [],
@@ -287,10 +369,27 @@ export function InstructionsEditor() {
         ]);
       }
 
-      toast.success('Документ загружен');
+      // Сохраняем файл в БД (временно сохраняем данные в localStorage для последующего сохранения)
+      const fileData = {
+        id: newDocument.id,
+        sectionId,
+        subsectionId,
+        filename: `${Date.now()}_${file.name}`,
+        originalName: file.name,
+        fileData: Array.from(uint8Array), // Конвертируем в массив для localStorage
+        fileType: file.type,
+        fileSize: file.size
+      };
+
+      // Сохраняем файлы временно в состоянии компонента
+      const currentFiles = JSON.parse(localStorage.getItem('pendingFiles') || '[]');
+      currentFiles.push(fileData);
+      localStorage.setItem('pendingFiles', JSON.stringify(currentFiles));
+
+      toast.success('Файл подготовлен к загрузке');
     } catch (error) {
-      console.error('Error uploading file:', error);
-      toast.error('Ошибка при загрузке файла');
+      console.error('Error preparing file:', error);
+      toast.error('Ошибка при подготовке файла');
     }
   };
 
@@ -312,6 +411,56 @@ export function InstructionsEditor() {
           section.documents.filter(doc => doc.id !== documentId)
         );
       }
+    }
+
+    // Удаляем файл из БД если инструкция уже сохранена
+    if (editingInstruction.id) {
+      supabase
+        .from('instruction_files')
+        .delete()
+        .eq('id', documentId)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error deleting file from DB:', error);
+            toast.error('Ошибка при удалении файла из БД');
+          }
+        });
+    }
+  };
+
+  // Функция для скачивания файла
+  const downloadFile = async (fileId: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('instruction_files')
+        .select('file_data, file_type, original_name')
+        .eq('id', fileId)
+        .single();
+
+      if (error) throw error;
+
+      // Создаем Blob из данных файла
+      const fileDataArray = Array.isArray(data.file_data) ? data.file_data : Object.values(data.file_data);
+      const blob = new Blob([new Uint8Array(fileDataArray)], { type: data.file_type });
+      
+      // Создаем URL для скачивания
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = data.original_name;
+      
+      // Автоматически скачиваем файл
+      document.body.appendChild(link);
+      link.click();
+      
+      // Очищаем ресурсы
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Файл скачан');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error('Ошибка при скачивании файла');
     }
   };
 
@@ -466,7 +615,7 @@ export function InstructionsEditor() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => window.open(doc.url, '_blank')}
+                                    onClick={() => downloadFile(doc.id, doc.name)}
                                   >
                                     <Download className="w-4 h-4" />
                                   </Button>
@@ -541,13 +690,13 @@ export function InstructionsEditor() {
                                         <span className="text-sm">{doc.name}</span>
                                       </div>
                                       <div className="flex gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => window.open(doc.url, '_blank')}
-                                        >
-                                          <Download className="w-4 h-4" />
-                                        </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => downloadFile(doc.id, doc.name)}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
                                         <Button
                                           variant="ghost"
                                           size="sm"

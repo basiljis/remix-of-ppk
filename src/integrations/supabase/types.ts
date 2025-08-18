@@ -142,6 +142,56 @@ export type Database = {
           },
         ]
       }
+      instruction_files: {
+        Row: {
+          created_at: string
+          file_data: string
+          file_size: number
+          file_type: string
+          filename: string
+          id: string
+          instruction_id: string | null
+          original_name: string
+          section_id: string
+          subsection_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_data: string
+          file_size: number
+          file_type: string
+          filename: string
+          id?: string
+          instruction_id?: string | null
+          original_name: string
+          section_id: string
+          subsection_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_data?: string
+          file_size?: number
+          file_type?: string
+          filename?: string
+          id?: string
+          instruction_id?: string | null
+          original_name?: string
+          section_id?: string
+          subsection_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instruction_files_instruction_id_fkey"
+            columns: ["instruction_id"]
+            isOneToOne: false
+            referencedRelation: "instructions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructions: {
         Row: {
           content: Json | null
