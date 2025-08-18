@@ -2,13 +2,19 @@ import * as XLSX from 'xlsx';
 
 export interface ProtocolData {
   child_name: string;
+  child_birth_date?: string;
   education_level: string;
   organization?: { name: string };
   status: string;
   consultation_type: string;
   consultation_reason: string;
+  meeting_type?: string;
+  ppk_number?: string;
+  session_topic?: string;
   completion_percentage: number;
+  is_ready?: boolean;
   created_at: string;
+  updated_at?: string;
   protocol_data?: any;
   checklist_data?: any;
 }
@@ -80,13 +86,32 @@ export const formatProtocolToText = (protocol: ProtocolData): string => {
   
   text += `ОБЩАЯ ИНФОРМАЦИЯ:\n`;
   text += `- ФИО ребенка: ${protocol.child_name}\n`;
+  if (protocol.child_birth_date) {
+    text += `- Дата рождения: ${new Date(protocol.child_birth_date).toLocaleDateString()}\n`;
+  }
   text += `- Организация: ${protocol.organization?.name || 'Не указана'}\n`;
   text += `- Уровень образования: ${translateEducationLevel(protocol.education_level)}\n`;
   text += `- Тип консультации: ${protocol.consultation_type}\n`;
   text += `- Причина консультации: ${protocol.consultation_reason}\n`;
+  if (protocol.meeting_type) {
+    text += `- Тип заседания: ${protocol.meeting_type === 'scheduled' ? 'Плановое' : protocol.meeting_type === 'unscheduled' ? 'Внеплановое' : protocol.meeting_type}\n`;
+  }
+  if (protocol.ppk_number) {
+    text += `- Номер ППК: ${protocol.ppk_number}\n`;
+  }
+  if (protocol.session_topic) {
+    text += `- Тема заседания: ${protocol.session_topic}\n`;
+  }
   text += `- Статус: ${protocol.status}\n`;
   text += `- Готовность: ${protocol.completion_percentage}%\n`;
-  text += `- Дата создания: ${new Date(protocol.created_at).toLocaleDateString()}\n\n`;
+  if (protocol.is_ready !== undefined) {
+    text += `- Готов к завершению: ${protocol.is_ready ? 'Да' : 'Нет'}\n`;
+  }
+  text += `- Дата создания: ${new Date(protocol.created_at).toLocaleDateString()}\n`;
+  if (protocol.updated_at) {
+    text += `- Дата обновления: ${new Date(protocol.updated_at).toLocaleDateString()}\n`;
+  }
+  text += `\n`;
 
   if (protocol.checklist_data && Object.keys(protocol.checklist_data).length > 0) {
     text += `РЕЗУЛЬТАТЫ ЧЕКЛ-ЛИСТОВ:\n`;
@@ -127,13 +152,19 @@ export const exportProtocolToXLS = (protocol: ProtocolData) => {
   // Основная информация о протоколе
   const mainData = [
     { 'Поле': 'ФИО ребенка', 'Значение': protocol.child_name },
+    ...(protocol.child_birth_date ? [{ 'Поле': 'Дата рождения', 'Значение': new Date(protocol.child_birth_date).toLocaleDateString() }] : []),
     { 'Поле': 'Организация', 'Значение': protocol.organization?.name || 'Не указана' },
     { 'Поле': 'Уровень образования', 'Значение': translateEducationLevel(protocol.education_level) },
     { 'Поле': 'Тип консультации', 'Значение': protocol.consultation_type },
     { 'Поле': 'Причина консультации', 'Значение': protocol.consultation_reason },
+    ...(protocol.meeting_type ? [{ 'Поле': 'Тип заседания', 'Значение': protocol.meeting_type === 'scheduled' ? 'Плановое' : protocol.meeting_type === 'unscheduled' ? 'Внеплановое' : protocol.meeting_type }] : []),
+    ...(protocol.ppk_number ? [{ 'Поле': 'Номер ППК', 'Значение': protocol.ppk_number }] : []),
+    ...(protocol.session_topic ? [{ 'Поле': 'Тема заседания', 'Значение': protocol.session_topic }] : []),
     { 'Поле': 'Статус', 'Значение': protocol.status },
     { 'Поле': 'Готовность (%)', 'Значение': protocol.completion_percentage },
-    { 'Поле': 'Дата создания', 'Значение': new Date(protocol.created_at).toLocaleDateString() }
+    ...(protocol.is_ready !== undefined ? [{ 'Поле': 'Готов к завершению', 'Значение': protocol.is_ready ? 'Да' : 'Нет' }] : []),
+    { 'Поле': 'Дата создания', 'Значение': new Date(protocol.created_at).toLocaleDateString() },
+    ...(protocol.updated_at ? [{ 'Поле': 'Дата обновления', 'Значение': new Date(protocol.updated_at).toLocaleDateString() }] : [])
   ];
 
   // Создаем книгу

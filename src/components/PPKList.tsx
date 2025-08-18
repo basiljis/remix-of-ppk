@@ -103,13 +103,19 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     try {
       const protocolData = {
         child_name: protocol.child_name,
+        child_birth_date: protocol.child_birth_date,
         education_level: protocol.education_level,
         organization: protocol.organizations,
         status: protocol.status,
         consultation_type: protocol.consultation_type,
         consultation_reason: protocol.consultation_reason,
+        meeting_type: protocol.meeting_type,
+        ppk_number: protocol.ppk_number,
+        session_topic: protocol.session_topic,
         completion_percentage: protocol.completion_percentage,
+        is_ready: protocol.is_ready,
         created_at: protocol.created_at,
+        updated_at: protocol.updated_at,
         protocol_data: protocol.protocol_data,
         checklist_data: protocol.checklist_data
       };
@@ -132,13 +138,19 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     try {
       const protocolData = {
         child_name: protocol.child_name,
+        child_birth_date: protocol.child_birth_date,
         education_level: protocol.education_level,
         organization: protocol.organizations,
         status: protocol.status,
         consultation_type: protocol.consultation_type,
         consultation_reason: protocol.consultation_reason,
+        meeting_type: protocol.meeting_type,
+        ppk_number: protocol.ppk_number,
+        session_topic: protocol.session_topic,
         completion_percentage: protocol.completion_percentage,
+        is_ready: protocol.is_ready,
         created_at: protocol.created_at,
+        updated_at: protocol.updated_at,
         protocol_data: protocol.protocol_data,
         checklist_data: protocol.checklist_data
       };
@@ -325,6 +337,12 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                     <p className="font-semibold">Имя ребенка:</p>
                                     <p>{record.child_name}</p>
                                   </div>
+                                  {record.child_birth_date && (
+                                    <div>
+                                      <p className="font-semibold">Дата рождения:</p>
+                                      <p>{new Date(record.child_birth_date).toLocaleDateString()}</p>
+                                    </div>
+                                  )}
                                   <div>
                                     <p className="font-semibold">Организация:</p>
                                     <p>{record.organizations?.name || 'Не указана'}</p>
@@ -347,9 +365,41 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                     <p className="font-semibold">Причина консультации:</p>
                                     <p>{record.consultation_reason || 'Не указана'}</p>
                                   </div>
+                                  {record.meeting_type && (
+                                    <div>
+                                      <p className="font-semibold">Тип заседания:</p>
+                                      <p>{record.meeting_type === 'scheduled' ? 'Плановое' : 
+                                          record.meeting_type === 'unscheduled' ? 'Внеплановое' : 
+                                          record.meeting_type}</p>
+                                    </div>
+                                  )}
+                                  {record.ppk_number && (
+                                    <div>
+                                      <p className="font-semibold">Номер ППК:</p>
+                                      <p>{record.ppk_number}</p>
+                                    </div>
+                                  )}
+                                  {record.session_topic && (
+                                    <div>
+                                      <p className="font-semibold">Тема заседания:</p>
+                                      <p>{record.session_topic}</p>
+                                    </div>
+                                  )}
                                   <div>
                                     <p className="font-semibold">Статус:</p>
                                     <p>{getStatusBadge(record.status)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Готовность:</p>
+                                    <p>{record.completion_percentage}%</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Дата создания:</p>
+                                    <p>{new Date(record.created_at).toLocaleDateString()}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Дата обновления:</p>
+                                    <p>{new Date(record.updated_at).toLocaleDateString()}</p>
                                   </div>
                                 </div>
                                 
@@ -359,6 +409,22 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                     <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
                                       <div className="text-sm whitespace-pre-wrap font-mono">
                                         {formatChecklistResults(record.checklist_data)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {record.protocol_data && Object.keys(record.protocol_data).length > 0 && (
+                                  <div>
+                                    <p className="font-semibold mb-2">Данные протокола:</p>
+                                    <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
+                                      <div className="text-sm space-y-2">
+                                        {Object.entries(record.protocol_data).map(([key, value]) => (
+                                          <div key={key} className="border-b pb-1">
+                                            <span className="font-medium">{key}:</span>{' '}
+                                            <span>{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}</span>
+                                          </div>
+                                        ))}
                                       </div>
                                     </div>
                                   </div>
