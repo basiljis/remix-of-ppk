@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useOptimizedOrganizations } from '@/hooks/useOptimizedQuery';
 import { apiService } from '@/services/apiService';
 import { useToast } from '@/hooks/use-toast';
 
