@@ -419,12 +419,24 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                     <p className="font-semibold mb-2">Данные протокола:</p>
                                     <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
                                       <div className="text-sm space-y-2">
-                                        {Object.entries(record.protocol_data).map(([key, value]) => (
-                                          <div key={key} className="border-b pb-1">
-                                            <span className="font-medium">{key}:</span>{' '}
-                                            <span>{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}</span>
-                                          </div>
-                                        ))}
+                                        {Object.entries(record.protocol_data).map(([key, value]) => {
+                                          let displayValue = '';
+                                          if (typeof value === 'object' && value !== null) {
+                                            if (Array.isArray(value)) {
+                                              displayValue = value.join(', ');
+                                            } else {
+                                              displayValue = Object.entries(value).map(([k, v]) => `${k}: ${v}`).join('; ');
+                                            }
+                                          } else {
+                                            displayValue = String(value);
+                                          }
+                                          return (
+                                            <div key={key} className="border-b pb-1">
+                                              <span className="font-medium">{key}:</span>{' '}
+                                              <span>{displayValue}</span>
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     </div>
                                   </div>
