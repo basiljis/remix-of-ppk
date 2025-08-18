@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet, RefreshCw } from 'lucide-react';
@@ -327,146 +328,148 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                 <p>Просмотр протокола</p>
                               </TooltipContent>
                             </Tooltip>
-                            <DialogContent className="max-w-2xl">
-                              <DialogHeader>
-                                <DialogTitle>Протокол ППК - {record.child_name}</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="font-semibold">N п/п:</p>
-                                    <p>{startIndex + index + 1}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">ФИО обучающегося:</p>
-                                    <p>{record.child_name}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Класс/группа:</p>
-                                    <p>{record.protocol_data?.childData?.classNumber || 'Не указан'}{record.protocol_data?.childData?.classLetter || ''}</p>
-                                  </div>
-                                  {record.child_birth_date && (
-                                    <div>
-                                      <p className="font-semibold">Дата рождения:</p>
-                                      <p>{new Date(record.child_birth_date).toLocaleDateString()}</p>
-                                    </div>
-                                  )}
-                                  <div>
-                                    <p className="font-semibold">Инициатор обращения:</p>
-                                    <p>{record.protocol_data?.childData?.whobrought || 'Не указан'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Повод обращения в ППк:</p>
-                                    <p>{record.consultation_reason || 'Не указан'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Коллегиальное заключение:</p>
-                                    <p>{record.protocol_data?.collegialConclusion || 'Не указано'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Результат обращения:</p>
-                                    <p>{record.protocol_data?.appealResult || 'Не указан'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Цель направления:</p>
-                                    <p>{record.protocol_data?.purposeOfReferral || 'Не указана'}</p>
-                                  </div>
-                                  <div className="col-span-2">
-                                    <p className="font-semibold">Перечень документов представленных на ППк:</p>
-                                    <p>{record.protocol_data?.documents?.map((doc: any) => doc.present ? doc.name : null).filter(Boolean).join(', ') || 'Не указаны'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Организация:</p>
-                                    <p>{record.organizations?.name || 'Не указана'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Уровень образования:</p>
-                                    <p>{record.education_level === 'preschool' ? 'Дошкольное образование' :
-                                        record.education_level === 'elementary' ? 'Начальное общее образование' :
-                                        record.education_level === 'middle' ? 'Основное общее образование' :
-                                        record.education_level === 'high' ? 'Среднее общее образование' :
-                                        record.education_level || 'Не указан'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Тип консультации:</p>
-                                    <p>{record.consultation_type === 'primary' ? 'Первичная' : 'Повторная'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Тип заседания:</p>
-                                    <p>{record.meeting_type === 'scheduled' ? 'Плановое' : 
-                                        record.meeting_type === 'unscheduled' ? 'Внеплановое' : 
-                                        'Не указан'}</p>
-                                  </div>
-                                  {record.ppk_number && (
-                                    <div>
-                                      <p className="font-semibold">Номер ППК:</p>
-                                      <p>{record.ppk_number}</p>
-                                    </div>
-                                  )}
-                                  {record.session_topic && (
-                                    <div>
-                                      <p className="font-semibold">Тема заседания:</p>
-                                      <p>{record.session_topic}</p>
-                                    </div>
-                                  )}
-                                  <div>
-                                    <p className="font-semibold">Статус:</p>
-                                    <p>{getStatusBadge(record.status)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Готовность:</p>
-                                    <p>{record.completion_percentage}%</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Дата создания:</p>
-                                    <p>{new Date(record.created_at).toLocaleDateString()}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">Дата обновления:</p>
-                                    <p>{new Date(record.updated_at).toLocaleDateString()}</p>
-                                  </div>
-                                </div>
-                                
-                                {record.checklist_data && Object.keys(record.checklist_data).length > 0 && (
-                                  <div>
-                                    <p className="font-semibold mb-2">Результаты чек-листов:</p>
-                                    <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
-                                      <div className="text-sm whitespace-pre-wrap font-mono">
-                                        {formatChecklistResults(record.checklist_data)}
+                             <DialogContent className="max-w-4xl max-h-[90vh]">
+                               <DialogHeader>
+                                 <DialogTitle>Протокол ППК - {record.child_name}</DialogTitle>
+                               </DialogHeader>
+                               <ScrollArea className="max-h-[calc(90vh-8rem)] pr-4">
+                                 <div className="space-y-4">
+                                   <div className="grid grid-cols-2 gap-4">
+                                     <div>
+                                       <p className="font-semibold">N п/п:</p>
+                                       <p>{startIndex + index + 1}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">ФИО обучающегося:</p>
+                                       <p>{record.child_name}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Класс/группа:</p>
+                                       <p>{record.protocol_data?.childData?.classNumber || 'Не указан'}{record.protocol_data?.childData?.classLetter || ''}</p>
+                                     </div>
+                                     {record.child_birth_date && (
+                                       <div>
+                                         <p className="font-semibold">Дата рождения:</p>
+                                         <p>{new Date(record.child_birth_date).toLocaleDateString()}</p>
+                                       </div>
+                                     )}
+                                     <div>
+                                       <p className="font-semibold">Инициатор обращения:</p>
+                                       <p>{record.protocol_data?.childData?.whobrought || 'Не указан'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Повод обращения в ППк:</p>
+                                       <p>{record.consultation_reason || 'Не указан'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Коллегиальное заключение:</p>
+                                       <p>{record.protocol_data?.collegialConclusion || 'Не указано'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Результат обращения:</p>
+                                       <p>{record.protocol_data?.appealResult || 'Не указан'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Цель направления:</p>
+                                       <p>{record.protocol_data?.purposeOfReferral || 'Не указана'}</p>
+                                     </div>
+                                     <div className="col-span-2">
+                                       <p className="font-semibold">Перечень документов представленных на ППк:</p>
+                                       <p>{record.protocol_data?.documents?.map((doc: any) => doc.present ? doc.name : null).filter(Boolean).join(', ') || 'Не указаны'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Организация:</p>
+                                       <p>{record.organizations?.name || 'Не указана'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Уровень образования:</p>
+                                       <p>{record.education_level === 'preschool' ? 'Дошкольное образование' :
+                                           record.education_level === 'elementary' ? 'Начальное общее образование' :
+                                           record.education_level === 'middle' ? 'Основное общее образование' :
+                                           record.education_level === 'high' ? 'Среднее общее образование' :
+                                           record.education_level || 'Не указан'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Тип консультации:</p>
+                                       <p>{record.consultation_type === 'primary' ? 'Первичная' : 'Повторная'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Тип заседания:</p>
+                                       <p>{record.meeting_type === 'scheduled' ? 'Плановое' : 
+                                           record.meeting_type === 'unscheduled' ? 'Внеплановое' : 
+                                           'Не указан'}</p>
+                                     </div>
+                                     {record.ppk_number && (
+                                       <div>
+                                         <p className="font-semibold">Номер ППК:</p>
+                                         <p>{record.ppk_number}</p>
+                                       </div>
+                                     )}
+                                     {record.session_topic && (
+                                       <div>
+                                         <p className="font-semibold">Тема заседания:</p>
+                                         <p>{record.session_topic}</p>
+                                       </div>
+                                     )}
+                                     <div>
+                                       <p className="font-semibold">Статус:</p>
+                                       <p>{getStatusBadge(record.status)}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Готовность:</p>
+                                       <p>{record.completion_percentage}%</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Дата создания:</p>
+                                       <p>{new Date(record.created_at).toLocaleDateString()}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Дата обновления:</p>
+                                       <p>{new Date(record.updated_at).toLocaleDateString()}</p>
+                                     </div>
+                                   </div>
+                                   
+                                   {record.checklist_data && Object.keys(record.checklist_data).length > 0 && (
+                                     <div>
+                                       <p className="font-semibold mb-2">Результаты чек-листов:</p>
+                                       <div className="bg-muted p-3 rounded max-h-60 overflow-y-auto">
+                                         <div className="text-sm whitespace-pre-wrap font-mono">
+                                           {formatChecklistResults(record.checklist_data)}
+                                         </div>
+                                       </div>
+                                     </div>
+                                   )}
+                                   
+                                   {record.protocol_data && Object.keys(record.protocol_data).length > 0 && (
+                                     <div>
+                                       <p className="font-semibold mb-2">Данные протокола:</p>
+                                       <div className="bg-muted p-3 rounded max-h-60 overflow-y-auto">
+                                         <div className="text-sm space-y-2">
+                                           {Object.entries(record.protocol_data).map(([key, value]) => {
+                                             let displayValue = '';
+                                             if (typeof value === 'object' && value !== null) {
+                                               if (Array.isArray(value)) {
+                                                 displayValue = value.join(', ');
+                                               } else {
+                                                 displayValue = Object.entries(value).map(([k, v]) => `${k}: ${v}`).join('; ');
+                                               }
+                                             } else {
+                                               displayValue = String(value);
+                                             }
+                                             return (
+                                               <div key={key} className="border-b pb-1">
+                                                 <span className="font-medium">{key}:</span>{' '}
+                                                 <span>{displayValue}</span>
+                                               </div>
+                                             );
+                                           })}
+                                         </div>
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
                                   </div>
-                                )}
-                                
-                                {record.protocol_data && Object.keys(record.protocol_data).length > 0 && (
-                                  <div>
-                                    <p className="font-semibold mb-2">Данные протокола:</p>
-                                    <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
-                                      <div className="text-sm space-y-2">
-                                        {Object.entries(record.protocol_data).map(([key, value]) => {
-                                          let displayValue = '';
-                                          if (typeof value === 'object' && value !== null) {
-                                            if (Array.isArray(value)) {
-                                              displayValue = value.join(', ');
-                                            } else {
-                                              displayValue = Object.entries(value).map(([k, v]) => `${k}: ${v}`).join('; ');
-                                            }
-                                          } else {
-                                            displayValue = String(value);
-                                          }
-                                          return (
-                                            <div key={key} className="border-b pb-1">
-                                              <span className="font-medium">{key}:</span>{' '}
-                                              <span>{displayValue}</span>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </DialogContent>
+                                </ScrollArea>
+                              </DialogContent>
                           </Dialog>
                           
                           {record.status !== 'completed' && (
