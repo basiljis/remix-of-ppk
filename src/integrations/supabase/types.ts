@@ -453,6 +453,7 @@ export type Database = {
           organization_id: string | null
           ppk_number: string | null
           protocol_data: Json | null
+          sequence_number: number
           session_topic: string | null
           status: string | null
           updated_at: string
@@ -472,6 +473,7 @@ export type Database = {
           organization_id?: string | null
           ppk_number?: string | null
           protocol_data?: Json | null
+          sequence_number?: number
           session_topic?: string | null
           status?: string | null
           updated_at?: string
@@ -491,6 +493,7 @@ export type Database = {
           organization_id?: string | null
           ppk_number?: string | null
           protocol_data?: Json | null
+          sequence_number?: number
           session_topic?: string | null
           status?: string | null
           updated_at?: string
@@ -510,7 +513,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_protocol_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
