@@ -449,6 +449,7 @@ export type Database = {
           education_level: string
           id: string
           is_ready: boolean | null
+          meeting_type: string | null
           organization_id: string | null
           ppk_number: string | null
           protocol_data: Json | null
@@ -467,6 +468,7 @@ export type Database = {
           education_level: string
           id?: string
           is_ready?: boolean | null
+          meeting_type?: string | null
           organization_id?: string | null
           ppk_number?: string | null
           protocol_data?: Json | null
@@ -485,6 +487,7 @@ export type Database = {
           education_level?: string
           id?: string
           is_ready?: boolean | null
+          meeting_type?: string | null
           organization_id?: string | null
           ppk_number?: string | null
           protocol_data?: Json | null

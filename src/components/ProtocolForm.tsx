@@ -50,6 +50,7 @@ interface ProtocolData {
   previousConsultations: string;
   ppkNumber?: string;
   sessionTopic?: string;
+  meetingType?: "scheduled" | "unscheduled";
 }
 
 const initialDocuments: DocumentCheck[] = [
@@ -128,7 +129,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     reason: "",
     previousConsultations: "",
     ppkNumber: "",
-    sessionTopic: ""
+    sessionTopic: "",
+    meetingType: "scheduled"
   });
 
   const updateChildData = (field: keyof ChildData, value: string) => {
@@ -266,6 +268,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       consultation_reason: formData.reason,
       ppk_number: formData.ppkNumber || undefined,
       session_topic: formData.sessionTopic || undefined,
+      meeting_type: formData.meetingType || 'scheduled',
       protocol_data: formData,
       checklist_data: checklistData,
       completion_percentage: completionPercentage,
@@ -668,18 +671,30 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   placeholder="Введите номер ППК"
                 />
               </div>
-              <div>
-                <Label htmlFor="consultationType" className={isRequiredFieldEmpty(formData.consultationType) ? "text-red-500" : ""}>Тип консультации *</Label>
-                <Select value={formData.consultationType} onValueChange={(value: "primary" | "secondary") => setFormData(prev => ({ ...prev, consultationType: value }))}>
-                  <SelectTrigger className={getRequiredFieldClass(formData.consultationType)}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="primary">Первичная консультация</SelectItem>
-                    <SelectItem value="secondary">Вторичная консультация</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+               <div>
+                 <Label htmlFor="consultationType" className={isRequiredFieldEmpty(formData.consultationType) ? "text-red-500" : ""}>Тип консультации *</Label>
+                 <Select value={formData.consultationType} onValueChange={(value: "primary" | "secondary") => setFormData(prev => ({ ...prev, consultationType: value }))}>
+                   <SelectTrigger className={getRequiredFieldClass(formData.consultationType)}>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="primary">Первичная консультация</SelectItem>
+                     <SelectItem value="secondary">Вторичная консультация</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div>
+                 <Label htmlFor="meetingType">Тип заседания</Label>
+                 <Select value={formData.meetingType || 'scheduled'} onValueChange={(value: "scheduled" | "unscheduled") => setFormData(prev => ({ ...prev, meetingType: value }))}>
+                   <SelectTrigger>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="scheduled">Плановое</SelectItem>
+                     <SelectItem value="unscheduled">Внеплановое</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
               <div>
                 <Label htmlFor="sessionTopic" className={isRequiredFieldEmpty(formData.sessionTopic) ? "text-red-500" : ""}>Тематика заседания *</Label>
                 <Select value={formData.sessionTopic || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, sessionTopic: value }))}>

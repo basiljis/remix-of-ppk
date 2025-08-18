@@ -27,6 +27,7 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [reasonFilter, setReasonFilter] = useState('all');
+  const [meetingTypeFilter, setMeetingTypeFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -39,8 +40,9 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     const matchesStatus = statusFilter === 'all' || protocol.status === statusFilter;
     const matchesType = typeFilter === 'all' || protocol.consultation_type === typeFilter;
     const matchesReason = reasonFilter === 'all' || protocol.consultation_reason === reasonFilter;
+    const matchesMeetingType = meetingTypeFilter === 'all' || protocol.meeting_type === meetingTypeFilter;
 
-    return matchesSearch && matchesStatus && matchesType && matchesReason;
+    return matchesSearch && matchesStatus && matchesType && matchesReason && matchesMeetingType;
   });
 
   // Pagination logic
@@ -229,6 +231,17 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
               <SelectItem value="социальная дезадаптация">Социальная дезадаптация</SelectItem>
               <SelectItem value="нарушения речи">Нарушения речи</SelectItem>
               <SelectItem value="поведенческие нарушения">Поведенческие нарушения</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={meetingTypeFilter} onValueChange={setMeetingTypeFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Тип заседания" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все типы заседаний</SelectItem>
+              <SelectItem value="scheduled">Плановые</SelectItem>
+              <SelectItem value="unscheduled">Внеплановые</SelectItem>
             </SelectContent>
           </Select>
 

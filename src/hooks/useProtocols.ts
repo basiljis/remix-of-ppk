@@ -12,6 +12,7 @@ export interface Protocol {
   consultation_reason?: string;
   ppk_number?: string;
   session_topic?: string;
+  meeting_type?: string;
   protocol_data?: any;
   checklist_data?: any;
   completion_percentage: number;
