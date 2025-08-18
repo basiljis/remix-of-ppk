@@ -302,19 +302,19 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
+                           <Dialog>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <DialogTrigger asChild>
                                   <Button variant="outline" size="sm">
                                     <Eye className="h-4 w-4" />
                                   </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Просмотр протокола</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </DialogTrigger>
+                                </DialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Просмотр протокола</p>
+                              </TooltipContent>
+                            </Tooltip>
                             <DialogContent className="max-w-2xl">
                               <DialogHeader>
                                 <DialogTitle>Протокол ППК - {record.child_name}</DialogTitle>
@@ -386,9 +386,9 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                           )}
                           
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <DropdownMenuTrigger asChild>
                                   <Button 
                                     variant="outline" 
                                     size="sm"
@@ -396,12 +396,12 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                   >
                                     <Download className="h-4 w-4" />
                                   </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Экспорт протокола</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </DropdownMenuTrigger>
+                                </DropdownMenuTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Экспорт протокола</p>
+                              </TooltipContent>
+                            </Tooltip>
                             <DropdownMenuContent>
                               <DropdownMenuItem onClick={() => handleExportText(record)}>
                                 <FileText className="h-4 w-4 mr-2" />
@@ -415,18 +415,18 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                           </DropdownMenu>
                           
                           <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
                                   <Button variant="outline" size="sm">
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Удалить протокол</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </AlertDialogTrigger>
+                                </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Удалить протокол</p>
+                              </TooltipContent>
+                            </Tooltip>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Удалить протокол?</AlertDialogTitle>
