@@ -334,8 +334,16 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                               <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="font-semibold">Имя ребенка:</p>
+                                    <p className="font-semibold">N п/п:</p>
+                                    <p>{startIndex + index + 1}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">ФИО обучающегося:</p>
                                     <p>{record.child_name}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Класс/группа:</p>
+                                    <p>{record.protocol_data?.childData?.classNumber || 'Не указан'}{record.protocol_data?.childData?.classLetter || ''}</p>
                                   </div>
                                   {record.child_birth_date && (
                                     <div>
@@ -344,35 +352,51 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                     </div>
                                   )}
                                   <div>
+                                    <p className="font-semibold">Инициатор обращения:</p>
+                                    <p>{record.protocol_data?.childData?.whobrought || 'Не указан'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Повод обращения в ППк:</p>
+                                    <p>{record.consultation_reason || 'Не указан'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Коллегиальное заключение:</p>
+                                    <p>{record.protocol_data?.collegialConclusion || 'Не указано'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Результат обращения:</p>
+                                    <p>{record.protocol_data?.appealResult || 'Не указан'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Цель направления:</p>
+                                    <p>{record.protocol_data?.purposeOfReferral || 'Не указана'}</p>
+                                  </div>
+                                  <div className="col-span-2">
+                                    <p className="font-semibold">Перечень документов представленных на ППк:</p>
+                                    <p>{record.protocol_data?.documents?.map((doc: any) => doc.present ? doc.name : null).filter(Boolean).join(', ') || 'Не указаны'}</p>
+                                  </div>
+                                  <div>
                                     <p className="font-semibold">Организация:</p>
                                     <p>{record.organizations?.name || 'Не указана'}</p>
                                   </div>
                                   <div>
                                     <p className="font-semibold">Уровень образования:</p>
                                     <p>{record.education_level === 'preschool' ? 'Дошкольное образование' :
-                                        record.education_level === 'primary' ? 'Начальное общее образование' :
-                                        record.education_level === 'secondary' ? 'Основное общее образование' :
+                                        record.education_level === 'elementary' ? 'Начальное общее образование' :
+                                        record.education_level === 'middle' ? 'Основное общее образование' :
                                         record.education_level === 'high' ? 'Среднее общее образование' :
-                                        record.education_level === 'vocational' ? 'Среднее профессиональное образование' :
-                                        record.education_level === 'higher' ? 'Высшее образование' :
                                         record.education_level || 'Не указан'}</p>
                                   </div>
                                   <div>
                                     <p className="font-semibold">Тип консультации:</p>
-                                    <p>{record.consultation_type || 'Не указан'}</p>
+                                    <p>{record.consultation_type === 'primary' ? 'Первичная' : 'Повторная'}</p>
                                   </div>
                                   <div>
-                                    <p className="font-semibold">Причина консультации:</p>
-                                    <p>{record.consultation_reason || 'Не указана'}</p>
+                                    <p className="font-semibold">Тип заседания:</p>
+                                    <p>{record.meeting_type === 'scheduled' ? 'Плановое' : 
+                                        record.meeting_type === 'unscheduled' ? 'Внеплановое' : 
+                                        'Не указан'}</p>
                                   </div>
-                                  {record.meeting_type && (
-                                    <div>
-                                      <p className="font-semibold">Тип заседания:</p>
-                                      <p>{record.meeting_type === 'scheduled' ? 'Плановое' : 
-                                          record.meeting_type === 'unscheduled' ? 'Внеплановое' : 
-                                          record.meeting_type}</p>
-                                    </div>
-                                  )}
                                   {record.ppk_number && (
                                     <div>
                                       <p className="font-semibold">Номер ППК:</p>

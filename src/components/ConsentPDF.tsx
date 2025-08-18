@@ -17,7 +17,15 @@ export const generateConsentPDF = (childData: ChildData) => {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
-    format: 'a4'
+    format: 'a4',
+    compress: true
+  });
+
+  // Добавляем метаданные для корректной кодировки
+  doc.setProperties({
+    title: 'Согласие родителя на психолого-педагогическое обследование',
+    subject: 'Документ согласия',
+    creator: 'Система ППк'
   });
 
   // Настройка шрифта для корректного отображения кириллицы
