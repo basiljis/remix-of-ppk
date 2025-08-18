@@ -174,11 +174,11 @@ export function useOptimizedStatistics() {
     ['statistics'],
     async () => {
       // Батчируем несколько запросов
-      const [protocolsResult, organizationsResult] = await optimizedQuery.batch([
-        () => supabase
+      const [protocolsResult, organizationsResult] = await Promise.all([
+        supabase
           .from('protocols')
           .select('status, consultation_type, education_level, created_at'),
-        () => supabase
+        supabase
           .from('organizations')
           .select('id, name, district')
           .eq('is_archived', false)

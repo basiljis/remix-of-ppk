@@ -34,7 +34,7 @@ export const createOptimizedSupabaseClient = (): SupabaseClient => {
     supabaseConfig
   );
 
-  return client;
+  return client as any;
 };
 
 // Система метрик производительности
