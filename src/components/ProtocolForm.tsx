@@ -266,7 +266,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       education_level: selectedLevel,
       consultation_type: formData.consultationType,
       consultation_reason: formData.reason,
-      ppk_number: formData.ppkNumber || undefined,
+      ppk_number: editingProtocol ? (formData.ppkNumber || editingProtocol.ppk_number) : (formData.ppkNumber || undefined),
       session_topic: formData.sessionTopic || undefined,
       meeting_type: formData.meetingType || 'scheduled',
       protocol_data: formData,
@@ -284,12 +284,12 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
           description: `Данные успешно обновлены (${completionPercentage}% готовности)`
         });
       } else {
-        await saveProtocol(protocolData);
+        const savedProtocol = await saveProtocol(protocolData);
         toast({
           title: isDraft ? "Черновик сохранен" : "Протокол завершен",
           description: isDraft 
             ? `Данные сохранены как черновик (${completionPercentage}% готовности)`
-            : "Протокол успешно завершен и сохранен"
+            : `Протокол успешно завершен и сохранен. Номер: ${savedProtocol?.ppk_number || 'Будет присвоен автоматически'}`
         });
       }
     } catch (error) {
