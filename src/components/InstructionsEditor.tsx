@@ -182,9 +182,6 @@ export function InstructionsEditor() {
       const pendingFiles = JSON.parse(localStorage.getItem('pendingFiles') || '[]');
       if (pendingFiles.length > 0) {
         for (const fileData of pendingFiles) {
-          // Конвертируем массив обратно в Uint8Array
-          const uint8Array = new Uint8Array(fileData.fileData);
-          
           const { error: fileError } = await supabase
             .from('instruction_files')
             .insert({
@@ -193,7 +190,7 @@ export function InstructionsEditor() {
               subsection_id: fileData.subsectionId || null,
               filename: fileData.filename,
               original_name: fileData.originalName,
-              file_data: Array.from(uint8Array), // Сохраняем как массив чисел
+              file_data: fileData.fileData, // Сохраняем как base64 строку
               file_type: fileData.fileType,
               file_size: fileData.fileSize
             });
@@ -348,6 +345,7 @@ export function InstructionsEditor() {
       // Читаем файл как ArrayBuffer для сохранения в БД
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
+      const base64String = btoa(String.fromCharCode(...uint8Array));
       
       const newDocument: Document = {
         id: generateId(),
@@ -376,7 +374,7 @@ export function InstructionsEditor() {
         subsectionId,
         filename: `${Date.now()}_${file.name}`,
         originalName: file.name,
-        fileData: Array.from(uint8Array), // Конвертируем в массив для localStorage
+        fileData: base64String, // Сохраняем как base64 строку
         fileType: file.type,
         fileSize: file.size
       };
@@ -439,9 +437,13 @@ export function InstructionsEditor() {
 
       if (error) throw error;
 
-      // Создаем Blob из данных файла
-      const fileDataArray = Array.isArray(data.file_data) ? data.file_data : Object.values(data.file_data);
-      const blob = new Blob([new Uint8Array(fileDataArray)], { type: data.file_type });
+      // Создаем Blob из данных файла (конвертируем base64 обратно в Uint8Array)
+      const binaryString = atob(data.file_data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: data.file_type });
       
       // Создаем URL для скачивания
       const url = window.URL.createObjectURL(blob);
