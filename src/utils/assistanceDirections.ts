@@ -11,7 +11,7 @@ export interface BlockAssessment {
   blockTitle: string;
   percentage: number;
   hasEssentialCriteria: boolean;
-  group: AssistanceGroup;
+  group: AssistanceGroup | null;
 }
 
 export interface AssistanceRecommendation {
@@ -32,7 +32,12 @@ export const determineBlockGroup = (
   blockTitle: string, 
   percentage: number, 
   hasEssentialCriteria: boolean
-): AssistanceGroup => {
+): AssistanceGroup | null => {
+  // Если процент равен 0, группа не присваивается
+  if (percentage === 0) {
+    return null;
+  }
+  
   const normalizedTitle = blockTitle.toLowerCase();
   
   // Речевой блок
@@ -173,8 +178,21 @@ export const determineBlockGroup = (
 
 // Функция для определения общей группы
 export const determineOverallGroup = (blockAssessments: BlockAssessment[]): AssistanceGroup => {
+  // Фильтруем только блоки с присвоенными группами (не null)
+  const assessmentsWithGroups = blockAssessments.filter(assessment => assessment.group !== null);
+  
+  // Если нет блоков с группами - общая группа 1
+  if (assessmentsWithGroups.length === 0) {
+    return {
+      group: 1,
+      status: 'no_difficulties',
+      description: 'Обучающемуся не присваивается статус "испытывающий трудности"',
+      color: 'success'
+    };
+  }
+  
   // Если есть хотя бы одна группа 3 - общая группа 3
-  const hasGroup3 = blockAssessments.some(assessment => assessment.group.group === 3);
+  const hasGroup3 = assessmentsWithGroups.some(assessment => assessment.group!.group === 3);
   if (hasGroup3) {
     return {
       group: 3,
@@ -185,7 +203,7 @@ export const determineOverallGroup = (blockAssessments: BlockAssessment[]): Assi
   }
   
   // Если есть хотя бы одна группа 2 - общая группа 2
-  const hasGroup2 = blockAssessments.some(assessment => assessment.group.group === 2);
+  const hasGroup2 = assessmentsWithGroups.some(assessment => assessment.group!.group === 2);
   if (hasGroup2) {
     return {
       group: 2,
@@ -221,7 +239,7 @@ export const generateRecommendations = (
     recommendations.push('Требуется организация коррекционно-развивающей работы');
     
     blockAssessments.forEach(assessment => {
-      if (assessment.group.group >= 2) {
+      if (assessment.group && assessment.group.group >= 2) {
         const blockName = assessment.blockTitle.toLowerCase();
         
         if (blockName.includes('речев')) {

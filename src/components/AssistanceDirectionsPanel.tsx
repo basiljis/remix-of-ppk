@@ -116,16 +116,24 @@ export const AssistanceDirectionsPanel = ({ blocks, educationLevel, calculateBlo
                   >
                     {assessment.percentage.toFixed(1)}%
                   </Badge>
-                  <Badge variant={getGroupBadgeVariant(assessment.group.color)}>
-                    Группа {assessment.group.group}
-                  </Badge>
+                  {assessment.group ? (
+                    <Badge variant={getGroupBadgeVariant(assessment.group.color)}>
+                      Группа {assessment.group.group}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline">
+                      Группа не присваивается
+                    </Badge>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Статус:</span>
-                  <div className="font-medium">{assessment.group.description}</div>
+                  <div className="font-medium">
+                    {assessment.group ? assessment.group.description : "Группа не присваивается (0% выполнения)"}
+                  </div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Существенные критерии:</span>
