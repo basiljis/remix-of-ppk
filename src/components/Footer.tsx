@@ -33,7 +33,14 @@ export const Footer = ({
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* Logo and Copyright */}
           <div className="flex flex-col items-center lg:items-start gap-4">
-            <span className="text-lg font-bold text-foreground">headquaters</span>
+            <a 
+              href="https://headquaters.space" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+            >
+              headquaters
+            </a>
             <p className="text-sm text-muted-foreground">
               © 2023-2025 Все права защищены
             </p>
