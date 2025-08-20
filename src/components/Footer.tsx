@@ -8,10 +8,6 @@ const menuItems = [{
   label: "Протокол ППк",
   icon: ClipboardList
 }, {
-  id: "checklists",
-  label: "Чеклисты",
-  icon: Users
-}, {
   id: "list",
   label: "Список ППк",
   icon: Database
