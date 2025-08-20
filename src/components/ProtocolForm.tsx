@@ -811,13 +811,14 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                </div>
              )}
 
-             {formData.childData.age && checklistBlocks.length > 0 && (
-               <ProtocolChecklistPaginated
-                 blocks={checklistBlocks}
-                 onItemChange={handleChecklistItemChange}
-                 calculateBlockScore={calculateBlockScore}
-               />
-             )}
+              {formData.childData.age && checklistBlocks.length > 0 && (
+                <ProtocolChecklistPaginated
+                  blocks={checklistBlocks}
+                  educationLevel={selectedLevel}
+                  onItemChange={handleChecklistItemChange}
+                  calculateBlockScore={calculateBlockScore}
+                />
+              )}
            </div>
          )}
 

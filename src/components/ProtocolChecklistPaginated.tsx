@@ -12,19 +12,22 @@ import { ProtocolResultsPanel } from "@/components/ProtocolResultsPanel";
 
 interface ProtocolChecklistPaginatedProps {
   blocks: ProtocolChecklistBlock[];
+  educationLevel: string;
   onItemChange: (itemId: string, value: 0 | 1) => void;
-  calculateBlockScore: (block: ProtocolChecklistBlock) => {
+  calculateBlockScore: (block: ProtocolChecklistBlock, educationLevel?: string) => {
     score: number;
     maxScore: number;
     percentage: number;
-    yesCountWithWeight1: number;
+    yesCount: number;
     sumWeight1Criteria: number;
     formulaPercentage: number;
+    weightPerCriteria: number;
   };
 }
 
 export const ProtocolChecklistPaginated = ({ 
   blocks, 
+  educationLevel,
   onItemChange, 
   calculateBlockScore 
 }: ProtocolChecklistPaginatedProps) => {
@@ -61,7 +64,7 @@ export const ProtocolChecklistPaginated = ({
     );
   }
 
-  const blockStats = calculateBlockScore(currentBlock);
+  const blockStats = calculateBlockScore(currentBlock, educationLevel);
   const completedItems = currentBlock.topics.reduce((sum, topic) => {
     return sum + topic.subtopics.reduce((subtopicSum, subtopic) => {
       return subtopicSum + subtopic.items.filter(item => item.score !== undefined).length;
@@ -91,7 +94,7 @@ export const ProtocolChecklistPaginated = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {blocks.map((block, index) => {
-              const stats = calculateBlockScore(block);
+              const stats = calculateBlockScore(block, educationLevel);
               const blockCompleted = block.topics.reduce((sum, topic) => {
                 return sum + topic.subtopics.reduce((subtopicSum, subtopic) => {
                   return subtopicSum + subtopic.items.filter(item => item.score !== undefined).length;
@@ -256,6 +259,7 @@ export const ProtocolChecklistPaginated = ({
         <TabsContent value="results" className="space-y-4">
           <ProtocolResultsPanel 
             blocks={blocks} 
+            educationLevel={educationLevel}
             calculateBlockScore={calculateBlockScore}
           />
         </TabsContent>

@@ -184,18 +184,18 @@ export const useProtocolChecklistData = () => {
     );
   };
 
-  const calculateBlockScore = (block: ProtocolChecklistBlock): { 
+  const calculateBlockScore = (block: ProtocolChecklistBlock, educationLevel?: string): { 
     score: number; 
     maxScore: number; 
     percentage: number;
-    yesCountWithWeight1: number;
+    yesCount: number;
     sumWeight1Criteria: number;
     formulaPercentage: number;
+    weightPerCriteria: number;
   } => {
     let totalScore = 0;
     let maxScore = 0;
-    let yesCountWithWeight1 = 0;
-    let sumWeight1Criteria = 0;
+    let yesCount = 0;
 
     block.topics.forEach(topic => {
       topic.subtopics.forEach(subtopic => {
@@ -203,28 +203,39 @@ export const useProtocolChecklistData = () => {
           totalScore += (item.score || 0) * item.weight;
           maxScore += item.weight;
           
-          // Подсчитываем критерии с весом 1
-          if (item.weight === 1) {
-            sumWeight1Criteria += 1;
-            if (item.score === 1) {
-              yesCountWithWeight1 += 1;
-            }
+          // Подсчитываем критерии с ответом "да" (существенные критерии)
+          if (item.score === 1) {
+            yesCount += 1;
           }
         });
       });
     });
 
+    // Определение веса одного критерия в зависимости от уровня образования
+    const getWeightPerCriteria = (level: string) => {
+      switch (level) {
+        case 'preschool': return 100 / 7; // ≈ 14,3%
+        case 'elementary': return 100 / 8; // = 12,5%
+        case 'middle': return 100 / 9; // ≈ 11,1%
+        case 'high': return 100 / 10; // = 10,0%
+        default: return 10; // По умолчанию как СОО
+      }
+    };
+
     const percentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
-    // Новая формула: (количество "да" с весом 1) * (сумма критериев с весом 1) / 100
-    const formulaPercentage = sumWeight1Criteria > 0 ? (yesCountWithWeight1 * sumWeight1Criteria) / 100 : 0;
+    
+    // Новая формула: % = СК × В (существенные критерии × вес критерия)
+    const weightPerCriteria = getWeightPerCriteria(educationLevel || 'high');
+    const formulaPercentage = yesCount * weightPerCriteria;
     
     return { 
       score: totalScore, 
       maxScore, 
       percentage,
-      yesCountWithWeight1,
-      sumWeight1Criteria,
-      formulaPercentage: formulaPercentage * 100 // Конвертируем в проценты
+      yesCount, // количество существенных критериев (ответ "да")
+      sumWeight1Criteria: 0, // убираем, так как не используется в новой формуле
+      formulaPercentage,
+      weightPerCriteria
     };
   };
 

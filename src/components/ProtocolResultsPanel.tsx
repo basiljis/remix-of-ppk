@@ -6,36 +6,36 @@ import { Calculator, TrendingUp, Target } from "lucide-react";
 
 interface ProtocolResultsPanelProps {
   blocks: ProtocolChecklistBlock[];
-  calculateBlockScore: (block: ProtocolChecklistBlock) => {
+  educationLevel: string;
+  calculateBlockScore: (block: ProtocolChecklistBlock, educationLevel?: string) => {
     score: number;
     maxScore: number;
     percentage: number;
-    yesCountWithWeight1: number;
+    yesCount: number;
     sumWeight1Criteria: number;
     formulaPercentage: number;
+    weightPerCriteria: number;
   };
 }
 
-export const ProtocolResultsPanel = ({ blocks, calculateBlockScore }: ProtocolResultsPanelProps) => {
+export const ProtocolResultsPanel = ({ blocks, educationLevel, calculateBlockScore }: ProtocolResultsPanelProps) => {
   // Общая статистика
   const totalStats = blocks.reduce((acc, block) => {
-    const blockStats = calculateBlockScore(block);
+    const blockStats = calculateBlockScore(block, educationLevel);
     return {
       totalScore: acc.totalScore + blockStats.score,
       maxScore: acc.maxScore + blockStats.maxScore,
-      yesCountWithWeight1: acc.yesCountWithWeight1 + blockStats.yesCountWithWeight1,
-      sumWeight1Criteria: acc.sumWeight1Criteria + blockStats.sumWeight1Criteria
+      yesCount: acc.yesCount + blockStats.yesCount,
+      formulaPercentage: acc.formulaPercentage + blockStats.formulaPercentage
     };
   }, {
     totalScore: 0,
     maxScore: 0,
-    yesCountWithWeight1: 0,
-    sumWeight1Criteria: 0
+    yesCount: 0,
+    formulaPercentage: 0
   });
 
   const overallPercentage = totalStats.maxScore > 0 ? (totalStats.totalScore / totalStats.maxScore) * 100 : 0;
-  const formulaPercentage = totalStats.sumWeight1Criteria > 0 ? 
-    (totalStats.yesCountWithWeight1 * totalStats.sumWeight1Criteria) / 100 * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -57,15 +57,15 @@ export const ProtocolResultsPanel = ({ blocks, calculateBlockScore }: ProtocolRe
             </div>
             <div className="text-center p-4 border rounded-lg bg-background">
               <div className="text-2xl font-bold text-accent">
-                {formulaPercentage.toFixed(1)}%
+                {totalStats.formulaPercentage.toFixed(1)}%
               </div>
               <div className="text-sm text-muted-foreground">% по формуле</div>
             </div>
             <div className="text-center p-4 border rounded-lg bg-background">
               <div className="text-2xl font-bold text-secondary">
-                {totalStats.yesCountWithWeight1}/{totalStats.sumWeight1Criteria}
+                {totalStats.yesCount}
               </div>
-              <div className="text-sm text-muted-foreground">Критерии "да" с весом 1</div>
+              <div className="text-sm text-muted-foreground">Существенные критерии</div>
             </div>
           </div>
 
@@ -81,18 +81,18 @@ export const ProtocolResultsPanel = ({ blocks, calculateBlockScore }: ProtocolRe
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span>Прогресс по формуле</span>
-                <span>{formulaPercentage.toFixed(1)}%</span>
+                <span>{totalStats.formulaPercentage.toFixed(1)}%</span>
               </div>
-              <Progress value={formulaPercentage} className="h-2" />
+              <Progress value={Math.min(totalStats.formulaPercentage, 100)} className="h-2" />
             </div>
           </div>
 
           <div className="text-center p-3 bg-accent/10 rounded-lg">
             <div className="text-sm font-medium text-foreground">
-              Формула расчета: (количество "да" с весом 1) × (сумма критериев с весом 1) ÷ 100
+              Формула расчета: СК × В (существенные критерии × вес критерия)
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              ({totalStats.yesCountWithWeight1} × {totalStats.sumWeight1Criteria}) ÷ 100 = {formulaPercentage.toFixed(1)}%
+              Уровень {educationLevel}: вес одного критерия = {blocks.length > 0 ? calculateBlockScore(blocks[0], educationLevel).weightPerCriteria.toFixed(1) : '0'}%
             </div>
           </div>
         </CardContent>
@@ -108,9 +108,7 @@ export const ProtocolResultsPanel = ({ blocks, calculateBlockScore }: ProtocolRe
         </CardHeader>
         <CardContent className="space-y-4">
           {blocks.map((block) => {
-            const blockStats = calculateBlockScore(block);
-            const blockFormula = blockStats.sumWeight1Criteria > 0 ? 
-              (blockStats.yesCountWithWeight1 * blockStats.sumWeight1Criteria) / 100 * 100 : 0;
+            const blockStats = calculateBlockScore(block, educationLevel);
             
             return (
               <div key={block.id} className="p-4 border rounded-lg bg-card">
@@ -128,16 +126,16 @@ export const ProtocolResultsPanel = ({ blocks, calculateBlockScore }: ProtocolRe
                   </div>
                   <div>
                     <div className="text-muted-foreground">% по формуле</div>
-                    <div className="font-medium">{blockFormula.toFixed(1)}%</div>
+                    <div className="font-medium">{blockStats.formulaPercentage.toFixed(1)}%</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">"Да" с весом 1</div>
-                    <div className="font-medium">{blockStats.yesCountWithWeight1}/{blockStats.sumWeight1Criteria}</div>
+                    <div className="text-muted-foreground">Существенные критерии</div>
+                    <div className="font-medium">{blockStats.yesCount}</div>
                   </div>
                 </div>
                 
                 <div className="mt-3">
-                  <Progress value={blockStats.percentage} className="h-1" />
+                  <Progress value={Math.min(blockStats.formulaPercentage, 100)} className="h-1" />
                 </div>
               </div>
             );
