@@ -7,7 +7,8 @@ export const exportChecklistToXLS = (checklistData: any[], level: string) => {
     'Пункт проверки': item.text,
     'Обязательный': item.isRequired ? 'Да' : 'Нет',
     'Выполнен': item.isCompleted ? 'Да' : 'Нет',
-    'Статус': item.isCompleted ? 'Выполнено' : 'Не выполнено'
+    'Статус': item.isCompleted ? 'Выполнено' : 'Не выполнено',
+    'Неактивно': item.is_disabled ? 'Да' : 'Нет'
   }));
 
   // Calculate statistics
@@ -43,7 +44,8 @@ export const exportChecklistToXLS = (checklistData: any[], level: string) => {
     { wch: 50 },  // Пункт проверки
     { wch: 15 },  // Обязательный
     { wch: 15 },  // Выполнен
-    { wch: 20 }   // Статус
+    { wch: 20 },  // Статус
+    { wch: 15 }   // Неактивно
   ];
 
   // Add worksheet to workbook

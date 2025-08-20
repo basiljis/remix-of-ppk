@@ -219,8 +219,122 @@ export const AdminPanel = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground mb-4">
-            Всего элементов в базе: {items.length}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Общая статистика */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Общая статистика</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-2xl font-bold text-primary">{items.length}</div>
+                <div className="text-xs text-muted-foreground">Всего критериев</div>
+              </CardContent>
+            </Card>
+
+            {/* Статистика по блокам */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">По блокам</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-2xl font-bold text-accent">
+                  {[...new Set(items.map(item => item.block))].length}
+                </div>
+                <div className="text-xs text-muted-foreground">Уникальных блоков</div>
+              </CardContent>
+            </Card>
+
+            {/* Активные критерии */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Активные</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-2xl font-bold text-success">
+                  {items.filter(item => !(item as any).is_disabled).length}
+                </div>
+                <div className="text-xs text-muted-foreground">Активных критериев</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Статистика по уровням образования */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Распределение по уровням образования</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">ДО</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-xl font-bold">
+                    {items.filter(item => item.education_level_do && !(item as any).is_disabled).length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Дошкольное образование</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">НОО</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-xl font-bold">
+                    {items.filter(item => item.education_level_noo && !(item as any).is_disabled).length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Начальное общее образование</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">ОО</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-xl font-bold">
+                    {items.filter(item => item.education_level_oo && !(item as any).is_disabled).length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Основное общее образование</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">СОО</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-xl font-bold">
+                    {items.filter(item => item.education_level_soo && !(item as any).is_disabled).length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Среднее общее образование</div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Статистика по блокам с детализацией */}
+          <div className="space-y-4 mt-6">
+            <h3 className="text-lg font-semibold">Детализация по блокам</h3>
+            <div className="space-y-2">
+              {[...new Set(items.map(item => item.block))].map(blockName => {
+                const blockItems = items.filter(item => item.block === blockName);
+                const activeItems = blockItems.filter(item => !(item as any).is_disabled);
+                return (
+                  <div key={blockName} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <div>
+                      <div className="font-medium">{blockName}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {activeItems.length} активных из {blockItems.length} всего
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold">{activeItems.length}</div>
+                      <div className="text-xs text-muted-foreground">критериев</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>

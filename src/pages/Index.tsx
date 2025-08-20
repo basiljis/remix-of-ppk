@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Users, Calendar, BookOpen, Download, ClipboardList, Database, AlertTriangle, BarChart3, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Administration } from "@/components/Administration";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Index = () => {
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel>("elementary");
@@ -88,7 +89,8 @@ const Index = () => {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Система автоматизации ППк
             </h1>
-            <div className="flex-1 flex justify-end">
+            <div className="flex-1 flex justify-end gap-2">
+              <ThemeToggle />
               <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
           </div>
