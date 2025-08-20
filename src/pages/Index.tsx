@@ -100,15 +100,18 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="hidden md:grid w-full grid-cols-6 mb-8">
+          <TabsList className="hidden md:grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="protocol" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
               Протокол ППк
             </TabsTrigger>
+            {/* HIDDEN: Раздел чек-листов временно скрыт - для восстановления раскомментируйте следующие строки */}
+            {/* 
             <TabsTrigger value="checklists" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Чеклисты
-            </TabsTrigger>
+            </TabsTrigger> 
+            */}
             <TabsTrigger value="list" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               Список ППк
@@ -134,8 +137,11 @@ const Index = () => {
             />
           </TabsContent>
 
+          {/* HIDDEN: Контент чек-листов временно скрыт - для восстановления раскомментируйте следующий блок */}
+          {/* 
           <TabsContent value="checklists" className="space-y-6">
             {/* Level Selector */}
+            {/* 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -171,6 +177,7 @@ const Index = () => {
             {!loading && !error && (
               <div className="grid lg:grid-cols-4 gap-6">
                 {/* Statistics Panel */}
+                {/* 
                 <div className="lg:col-span-1">
                   <Card>
                     <CardHeader>
@@ -208,6 +215,7 @@ const Index = () => {
                 </div>
 
                 {/* Checklists */}
+                {/* 
                 <div className="lg:col-span-3 space-y-6">
                   {currentChecklists.length === 0 ? (
                     <Card>
@@ -239,6 +247,7 @@ const Index = () => {
               </div>
             )}
           </TabsContent>
+          */}
 
 
           <TabsContent value="list" className="space-y-6">
