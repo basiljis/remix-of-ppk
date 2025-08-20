@@ -81,7 +81,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8">{/* Убираем container mx-auto для полной ширины */}
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -130,11 +130,13 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="protocol" className="space-y-6">
-            <ProtocolForm 
-              onProtocolSave={handleProtocolSave} 
-              editingProtocol={editingProtocol}
-            />
+          <TabsContent value="protocol" className="space-y-6 w-full">
+            <div className="w-full max-w-none"> {/* Убираем ограничения ширины */}
+              <ProtocolForm 
+                onProtocolSave={handleProtocolSave} 
+                editingProtocol={editingProtocol}
+              />
+            </div>
           </TabsContent>
 
           {/* HIDDEN: Контент чек-листов временно скрыт - для восстановления раскомментируйте следующий блок */}

@@ -371,7 +371,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="w-full mx-auto"> {/* Убираем max-w-4xl для полной ширины */}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
