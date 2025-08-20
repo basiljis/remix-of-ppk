@@ -5,15 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { ChevronLeft, ChevronRight, List, BarChart3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, List, BarChart3, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProtocolChecklistBlock } from "@/hooks/useProtocolChecklistData";
 import { ProtocolResultsPanel } from "@/components/ProtocolResultsPanel";
 import { AssistanceDirectionsPanel } from "@/components/AssistanceDirectionsPanel";
+import { ProtocolConclusionPanel } from "@/components/ProtocolConclusionPanel";
 
 interface ProtocolChecklistPaginatedProps {
   blocks: ProtocolChecklistBlock[];
   educationLevel: string;
+  childName: string;
   onItemChange: (itemId: string, value: 0 | 1) => void;
   calculateBlockScore: (block: ProtocolChecklistBlock, educationLevel?: string) => {
     score: number;
@@ -29,6 +31,7 @@ interface ProtocolChecklistPaginatedProps {
 export const ProtocolChecklistPaginated = ({ 
   blocks, 
   educationLevel,
+  childName,
   onItemChange, 
   calculateBlockScore 
 }: ProtocolChecklistPaginatedProps) => {
@@ -132,7 +135,7 @@ export const ProtocolChecklistPaginated = ({
 
       {/* Основной контент */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="checklist" className="flex items-center gap-2">
             <List className="h-4 w-4" />
             Чек-лист
@@ -144,6 +147,10 @@ export const ProtocolChecklistPaginated = ({
           <TabsTrigger value="assistance" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Направления помощи
+          </TabsTrigger>
+          <TabsTrigger value="conclusion" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Заключение
           </TabsTrigger>
         </TabsList>
 
@@ -273,6 +280,15 @@ export const ProtocolChecklistPaginated = ({
           <AssistanceDirectionsPanel 
             blocks={blocks}
             educationLevel={educationLevel}
+            calculateBlockScore={calculateBlockScore}
+          />
+        </TabsContent>
+
+        <TabsContent value="conclusion" className="space-y-4">
+          <ProtocolConclusionPanel 
+            blocks={blocks}
+            educationLevel={educationLevel}
+            childName={childName}
             calculateBlockScore={calculateBlockScore}
           />
         </TabsContent>

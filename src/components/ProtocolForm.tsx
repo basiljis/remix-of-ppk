@@ -815,6 +815,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                 <ProtocolChecklistPaginated
                   blocks={checklistBlocks}
                   educationLevel={selectedLevel}
+                  childName={formData.childData.fullName || 'Не указано'}
                   onItemChange={handleChecklistItemChange}
                   calculateBlockScore={calculateBlockScore}
                 />
