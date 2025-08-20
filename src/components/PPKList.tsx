@@ -15,6 +15,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useProtocols } from '@/hooks/useProtocols';
 import { useToast } from '@/hooks/use-toast';
 import { formatProtocolToText, exportProtocolToText, exportProtocolToXLS, formatChecklistResults } from '@/utils/protocolExportUtils';
+import { ProtocolResultsPanel } from '@/components/ProtocolResultsPanel';
+import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
 
 interface PPKListProps {
   onNewProtocol: () => void;
@@ -23,6 +25,7 @@ interface PPKListProps {
 
 export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol }) => {
   const { protocols, deleteProtocol, loading, loadProtocols } = useProtocols();
+  const { calculateBlockScore } = useProtocolChecklistData();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -429,16 +432,27 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                      </div>
                                    </div>
                                    
-                                   {record.checklist_data && Object.keys(record.checklist_data).length > 0 && (
-                                     <div>
-                                       <p className="font-semibold mb-2">Результаты чек-листов:</p>
-                                       <div className="bg-muted p-3 rounded max-h-60 overflow-y-auto">
-                                         <div className="text-sm whitespace-pre-wrap font-mono">
-                                           {formatChecklistResults(record.checklist_data)}
-                                         </div>
-                                       </div>
-                                     </div>
-                                   )}
+                                    {record.checklist_data && record.checklist_data.blocks && record.checklist_data.blocks.length > 0 && (
+                                      <div>
+                                        <p className="font-semibold mb-3">Результаты заполнения чек-листа:</p>
+                                        <ProtocolResultsPanel 
+                                          blocks={record.checklist_data.blocks}
+                                          educationLevel={record.education_level || 'elementary'}
+                                          calculateBlockScore={calculateBlockScore}
+                                        />
+                                      </div>
+                                    )}
+                                    
+                                    {record.checklist_data && Object.keys(record.checklist_data).length > 0 && !record.checklist_data.blocks && (
+                                      <div>
+                                        <p className="font-semibold mb-2">Результаты чек-листов (старый формат):</p>
+                                        <div className="bg-muted p-3 rounded max-h-60 overflow-y-auto">
+                                          <div className="text-sm whitespace-pre-wrap font-mono">
+                                            {formatChecklistResults(record.checklist_data)}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                    
                                    {record.protocol_data && Object.keys(record.protocol_data).length > 0 && (
                                      <div>
