@@ -454,33 +454,36 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                       </div>
                                     )}
                                    
-                                   {record.protocol_data && Object.keys(record.protocol_data).length > 0 && (
-                                     <div>
-                                       <p className="font-semibold mb-2">Данные протокола:</p>
-                                       <div className="bg-muted p-3 rounded max-h-60 overflow-y-auto">
-                                         <div className="text-sm space-y-2">
-                                           {Object.entries(record.protocol_data).map(([key, value]) => {
-                                             let displayValue = '';
-                                             if (typeof value === 'object' && value !== null) {
-                                               if (Array.isArray(value)) {
-                                                 displayValue = value.join(', ');
-                                               } else {
-                                                 displayValue = Object.entries(value).map(([k, v]) => `${k}: ${v}`).join('; ');
-                                               }
-                                             } else {
-                                               displayValue = String(value);
-                                             }
-                                             return (
-                                               <div key={key} className="border-b pb-1">
-                                                 <span className="font-medium">{key}:</span>{' '}
-                                                 <span>{displayValue}</span>
-                                               </div>
-                                             );
-                                           })}
+                                    {/* HIDDEN: Данные протокола скрыты - для восстановления раскомментируйте следующий блок */}
+                                    {/* 
+                                    {record.protocol_data && Object.keys(record.protocol_data).length > 0 && (
+                                      <div>
+                                        <p className="font-semibold mb-2">Данные протокола:</p>
+                                        <div className="bg-muted p-3 rounded max-h-60 overflow-y-auto">
+                                          <div className="text-sm space-y-2">
+                                            {Object.entries(record.protocol_data).map(([key, value]) => {
+                                              let displayValue = '';
+                                              if (typeof value === 'object' && value !== null) {
+                                                if (Array.isArray(value)) {
+                                                  displayValue = value.join(', ');
+                                                } else {
+                                                  displayValue = Object.entries(value).map(([k, v]) => `${k}: ${v}`).join('; ');
+                                                }
+                                              } else {
+                                                displayValue = String(value);
+                                              }
+                                              return (
+                                                <div key={key} className="border-b pb-1">
+                                                  <span className="font-medium">{key}:</span>{' '}
+                                                  <span>{displayValue}</span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
+                                       </div>
+                                     )}
+                                     */}
                                   </div>
                                 </ScrollArea>
                               </DialogContent>
