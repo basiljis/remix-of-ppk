@@ -17,6 +17,7 @@ import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { generateConsentPDF } from "@/components/ConsentPDF";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
+import { ProtocolResultsPanel } from '@/components/ProtocolResultsPanel';
 
 interface ChildData {
   fullName: string;
@@ -844,12 +845,25 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                        <CardHeader>
                          <div className="flex justify-between items-center">
                            <CardTitle className="text-xl font-bold">{block.title}</CardTitle>
-                           <Badge variant="outline" className="text-base px-3 py-1">
-                             Баллов: {(() => {
-                               const { score, maxScore } = calculateBlockScore(block);
-                               return `${score} / ${maxScore}`;
-                             })()}
-                           </Badge>
+                            <div className="flex flex-col gap-2">
+                              <Badge variant="outline" className="text-base px-3 py-1">
+                                Баллов: {(() => {
+                                  const { score, maxScore } = calculateBlockScore(block);
+                                  return `${score} / ${maxScore}`;
+                                })()}
+                              </Badge>
+                              <div className="text-sm text-muted-foreground space-y-1">
+                                {(() => {
+                                  const { yesCountWithWeight1, sumWeight1Criteria, formulaPercentage } = calculateBlockScore(block);
+                                  return (
+                                    <>
+                                      <div>Критерии с весом 1: {yesCountWithWeight1} из {sumWeight1Criteria}</div>
+                                      <div>Процент по формуле: {formulaPercentage.toFixed(1)}%</div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            </div>
                          </div>
                        </CardHeader>
                        <CardContent>
@@ -951,9 +965,15 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                      </Card>
                    </div>
                  ));
-               })()}
-           </div>
-        )}
+                })()}
+                
+                {/* Панель результатов */}
+                <ProtocolResultsPanel 
+                  blocks={checklistBlocks} 
+                  calculateBlockScore={calculateBlockScore}
+                />
+            </div>
+         )}
 
         {/* Навигация */}
         <div className="flex justify-between pt-6 border-t">

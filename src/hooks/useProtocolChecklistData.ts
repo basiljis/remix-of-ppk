@@ -184,22 +184,48 @@ export const useProtocolChecklistData = () => {
     );
   };
 
-  const calculateBlockScore = (block: ProtocolChecklistBlock): { score: number; maxScore: number; percentage: number } => {
+  const calculateBlockScore = (block: ProtocolChecklistBlock): { 
+    score: number; 
+    maxScore: number; 
+    percentage: number;
+    yesCountWithWeight1: number;
+    sumWeight1Criteria: number;
+    formulaPercentage: number;
+  } => {
     let totalScore = 0;
     let maxScore = 0;
+    let yesCountWithWeight1 = 0;
+    let sumWeight1Criteria = 0;
 
     block.topics.forEach(topic => {
       topic.subtopics.forEach(subtopic => {
         subtopic.items.forEach(item => {
           totalScore += (item.score || 0) * item.weight;
           maxScore += item.weight;
+          
+          // Подсчитываем критерии с весом 1
+          if (item.weight === 1) {
+            sumWeight1Criteria += 1;
+            if (item.score === 1) {
+              yesCountWithWeight1 += 1;
+            }
+          }
         });
       });
     });
 
     const percentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+    // Новая формула: (количество "да" с весом 1) * (сумма критериев с весом 1) / 100
+    const formulaPercentage = sumWeight1Criteria > 0 ? (yesCountWithWeight1 * sumWeight1Criteria) / 100 : 0;
     
-    return { score: totalScore, maxScore, percentage };
+    return { 
+      score: totalScore, 
+      maxScore, 
+      percentage,
+      yesCountWithWeight1,
+      sumWeight1Criteria,
+      formulaPercentage: formulaPercentage * 100 // Конвертируем в проценты
+    };
   };
 
   return {
