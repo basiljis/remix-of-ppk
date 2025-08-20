@@ -3,6 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ProtocolChecklistBlock } from "@/hooks/useProtocolChecklistData";
 import { Calculator, TrendingUp, Target } from "lucide-react";
+import { getPercentageColor } from "@/utils/assistanceDirections";
 
 interface ProtocolResultsPanelProps {
   blocks: ProtocolChecklistBlock[];
@@ -55,12 +56,32 @@ export const ProtocolResultsPanel = ({ blocks, educationLevel, calculateBlockSco
               </div>
               <div className="text-sm text-muted-foreground">Сумма по критериям</div>
             </div>
-            <div className="text-center p-4 border rounded-lg bg-background">
-              <div className="text-2xl font-bold text-accent">
-                {totalStats.formulaPercentage.toFixed(1)}%
+              <div className="text-center p-4 border rounded-lg bg-background">
+                <div className={`text-2xl font-bold ${
+                  getPercentageColor(totalStats.formulaPercentage) === 'success' ? 'text-green-600' :
+                  getPercentageColor(totalStats.formulaPercentage) === 'warning' ? 'text-yellow-600' :
+                  'text-red-600'
+                }`}>
+                  {totalStats.formulaPercentage.toFixed(1)}%
+                </div>
+                <div className="text-sm text-muted-foreground">% по формуле</div>
+                <Badge 
+                  variant={
+                    getPercentageColor(totalStats.formulaPercentage) === 'success' ? 'default' :
+                    getPercentageColor(totalStats.formulaPercentage) === 'warning' ? 'secondary' : 
+                    'destructive'
+                  }
+                  className={`mt-1 ${
+                    getPercentageColor(totalStats.formulaPercentage) === 'success' ? 'bg-green-100 text-green-800 border-green-200' :
+                    getPercentageColor(totalStats.formulaPercentage) === 'warning' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                    'bg-red-100 text-red-800 border-red-200'
+                  }`}
+                >
+                  {getPercentageColor(totalStats.formulaPercentage) === 'success' ? 'Низкий уровень' :
+                   getPercentageColor(totalStats.formulaPercentage) === 'warning' ? 'Средний уровень' :
+                   'Высокий уровень'}
+                </Badge>
               </div>
-              <div className="text-sm text-muted-foreground">% по формуле</div>
-            </div>
             <div className="text-center p-4 border rounded-lg bg-background">
               <div className="text-2xl font-bold text-secondary">
                 {totalStats.yesCount}
@@ -114,9 +135,25 @@ export const ProtocolResultsPanel = ({ blocks, educationLevel, calculateBlockSco
               <div key={block.id} className="p-4 border rounded-lg bg-card">
                 <div className="flex justify-between items-start mb-3">
                   <h4 className="font-semibold">{block.title}</h4>
-                  <Badge variant="outline">
-                    {blockStats.score.toFixed(1)} / {blockStats.maxScore}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">
+                      {blockStats.score.toFixed(1)} / {blockStats.maxScore}
+                    </Badge>
+                    <Badge 
+                      variant={
+                        getPercentageColor(blockStats.formulaPercentage) === 'success' ? 'default' :
+                        getPercentageColor(blockStats.formulaPercentage) === 'warning' ? 'secondary' : 
+                        'destructive'
+                      }
+                      className={
+                        getPercentageColor(blockStats.formulaPercentage) === 'success' ? 'bg-green-100 text-green-800 border-green-200' :
+                        getPercentageColor(blockStats.formulaPercentage) === 'warning' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                        'bg-red-100 text-red-800 border-red-200'
+                      }
+                    >
+                      {blockStats.formulaPercentage.toFixed(1)}%
+                    </Badge>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 text-sm">

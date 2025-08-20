@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, List, BarChart3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProtocolChecklistBlock } from "@/hooks/useProtocolChecklistData";
 import { ProtocolResultsPanel } from "@/components/ProtocolResultsPanel";
+import { AssistanceDirectionsPanel } from "@/components/AssistanceDirectionsPanel";
 
 interface ProtocolChecklistPaginatedProps {
   blocks: ProtocolChecklistBlock[];
@@ -131,7 +132,7 @@ export const ProtocolChecklistPaginated = ({
 
       {/* Основной контент */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="checklist" className="flex items-center gap-2">
             <List className="h-4 w-4" />
             Чек-лист
@@ -139,6 +140,10 @@ export const ProtocolChecklistPaginated = ({
           <TabsTrigger value="results" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Итоги
+          </TabsTrigger>
+          <TabsTrigger value="assistance" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Направления помощи
           </TabsTrigger>
         </TabsList>
 
@@ -259,6 +264,14 @@ export const ProtocolChecklistPaginated = ({
         <TabsContent value="results" className="space-y-4">
           <ProtocolResultsPanel 
             blocks={blocks} 
+            educationLevel={educationLevel}
+            calculateBlockScore={calculateBlockScore}
+          />
+        </TabsContent>
+
+        <TabsContent value="assistance" className="space-y-4">
+          <AssistanceDirectionsPanel 
+            blocks={blocks}
             educationLevel={educationLevel}
             calculateBlockScore={calculateBlockScore}
           />
