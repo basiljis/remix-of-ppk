@@ -178,67 +178,81 @@ export const ProtocolChecklistPaginated = ({
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {currentBlock.topics.map((topic) => (
-                <div key={topic.id} className="space-y-4">
-                  <h4 className="font-semibold text-lg text-primary border-b pb-2">
-                    {topic.title}
-                  </h4>
-                  
-                  {topic.subtopics.map((subtopic) => (
-                    <div key={subtopic.id} className="space-y-3">
-                      <h5 className="font-medium text-base text-secondary-foreground">
-                        {subtopic.title}
-                      </h5>
+              {currentBlock.topics.map((topic, topicIndex) => {
+                const prevTopic = topicIndex > 0 ? currentBlock.topics[topicIndex - 1] : null;
+                const showTopicTitle = !prevTopic || prevTopic.title !== topic.title;
+                
+                return (
+                  <div key={topic.id} className="space-y-4">
+                    {showTopicTitle && (
+                      <h4 className="font-semibold text-lg text-primary border-b pb-2">
+                        {topic.title}
+                      </h4>
+                    )}
+                    
+                    {topic.subtopics.map((subtopic, subtopicIndex) => {
+                      const prevSubtopic = subtopicIndex > 0 ? topic.subtopics[subtopicIndex - 1] : null;
+                      const showSubtopicTitle = !prevSubtopic || prevSubtopic.title !== subtopic.title;
                       
-                      <div className="space-y-3 pl-4 border-l-2 border-muted">
-                        {subtopic.items.map((item) => (
-                          <div key={item.checklist_item_id} className="space-y-2">
-                            <div className="flex items-start gap-3">
-                              <div className="flex-1">
-                                <p className="text-sm font-medium leading-relaxed">
-                                  {item.description}
-                                </p>
-                                {item.weight !== 1 && (
-                                  <Badge variant="secondary" className="mt-1 text-xs">
-                                    Вес: {item.weight}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex-shrink-0">
-                                <Badge 
-                                  variant={item.score === 1 ? "default" : item.score === 0 ? "destructive" : "outline"}
-                                  className="text-xs"
+                      return (
+                        <div key={subtopic.id} className="space-y-3">
+                          {showSubtopicTitle && (
+                            <h5 className="font-medium text-base text-secondary-foreground">
+                              {subtopic.title}
+                            </h5>
+                          )}
+                          
+                          <div className="space-y-3 pl-4 border-l-2 border-muted">
+                            {subtopic.items.map((item) => (
+                              <div key={item.checklist_item_id} className="space-y-2">
+                                <div className="flex items-start gap-3">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium leading-relaxed">
+                                      {item.description}
+                                    </p>
+                                    {item.weight !== 1 && (
+                                      <Badge variant="secondary" className="mt-1 text-xs">
+                                        Вес: {item.weight}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex-shrink-0">
+                                    <Badge 
+                                      variant={item.score === 1 ? "default" : item.score === 0 ? "destructive" : "outline"}
+                                      className="text-xs"
+                                    >
+                                      {item.score === 1 ? "Да" : item.score === 0 ? "Нет" : "—"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                
+                                <RadioGroup
+                                  value={item.score?.toString() || ""}
+                                  onValueChange={(value) => onItemChange(item.checklist_item_id, parseInt(value) as 0 | 1)}
+                                  className="flex gap-4 ml-4"
                                 >
-                                  {item.score === 1 ? "Да" : item.score === 0 ? "Нет" : "—"}
-                                </Badge>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="0" id={`${item.checklist_item_id}-0`} />
+                                    <Label htmlFor={`${item.checklist_item_id}-0`} className="text-sm font-medium cursor-pointer">
+                                      {item.score_0_label || "Нет"}
+                                    </Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="1" id={`${item.checklist_item_id}-1`} />
+                                    <Label htmlFor={`${item.checklist_item_id}-1`} className="text-sm font-medium cursor-pointer">
+                                      {item.score_1_label || "Да"}
+                                    </Label>
+                                  </div>
+                                </RadioGroup>
                               </div>
-                            </div>
-                            
-                            <RadioGroup
-                              value={item.score?.toString() || ""}
-                              onValueChange={(value) => onItemChange(item.checklist_item_id, parseInt(value) as 0 | 1)}
-                              className="flex gap-4 ml-4"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="0" id={`${item.checklist_item_id}-0`} />
-                                <Label htmlFor={`${item.checklist_item_id}-0`} className="text-sm font-medium cursor-pointer">
-                                  {item.score_0_label || "Нет"}
-                                </Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="1" id={`${item.checklist_item_id}-1`} />
-                                <Label htmlFor={`${item.checklist_item_id}-1`} className="text-sm font-medium cursor-pointer">
-                                  {item.score_1_label || "Да"}
-                                </Label>
-                              </div>
-                            </RadioGroup>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
 
