@@ -361,8 +361,13 @@ export const AdminPanel = () => {
                 <Input
                   id="weight"
                   type="number"
+                  min="0"
+                  step="0.1"
                   value={formData.weight}
-                  onChange={(e) => updateFormField('weight', parseFloat(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    updateFormField('weight', isNaN(value) ? 0 : value);
+                  }}
                 />
               </div>
             </div>
