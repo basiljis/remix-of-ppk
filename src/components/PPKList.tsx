@@ -434,35 +434,35 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                      </div>
                                    </div>
                                    
-                                      {record.checklist_data && record.checklist_data.blocks && record.checklist_data.blocks.length > 0 && (
-                                        <div className="space-y-6">
-                                          <div>
-                                            <p className="font-semibold mb-3">Результаты заполнения чек-листа:</p>
-                                            <ProtocolResultsPanel 
-                                              blocks={record.checklist_data.blocks}
-                                              educationLevel={record.education_level || 'elementary'}
-                                              calculateBlockScore={calculateBlockScore}
-                                            />
-                                          </div>
-                                          <div>
-                                            <p className="font-semibold mb-3">Направления коррекционно-развивающей помощи:</p>
-                                            <AssistanceDirectionsPanel 
-                                              blocks={record.checklist_data.blocks}
-                                              educationLevel={record.education_level || 'elementary'}
-                                              calculateBlockScore={calculateBlockScore}
-                                            />
-                                          </div>
-                                          <div>
-                                            <p className="font-semibold mb-3">Заключение протокола:</p>
-                                            <ProtocolConclusionPanel 
-                                              blocks={record.checklist_data.blocks}
-                                              educationLevel={record.education_level || 'elementary'}
-                                              childName={record.child_name || 'Не указано'}
-                                              calculateBlockScore={calculateBlockScore}
-                                            />
-                                          </div>
-                                        </div>
-                                      )}
+                                       {record.checklist_data && record.checklist_data.blocks && Array.isArray(record.checklist_data.blocks) && record.checklist_data.blocks.length > 0 && (
+                                         <div className="space-y-6">
+                                           <div>
+                                             <p className="font-semibold mb-3">Результаты заполнения чек-листа:</p>
+                                             <ProtocolResultsPanel 
+                                               blocks={record.checklist_data.blocks}
+                                               educationLevel={record.education_level || 'elementary'}
+                                               calculateBlockScore={calculateBlockScore}
+                                             />
+                                           </div>
+                                           <div>
+                                             <p className="font-semibold mb-3">Направления коррекционно-развивающей помощи:</p>
+                                             <AssistanceDirectionsPanel 
+                                               blocks={record.checklist_data.blocks}
+                                               educationLevel={record.education_level || 'elementary'}
+                                               calculateBlockScore={calculateBlockScore}
+                                             />
+                                           </div>
+                                           <div>
+                                             <p className="font-semibold mb-3">Заключение протокола:</p>
+                                             <ProtocolConclusionPanel 
+                                               blocks={record.checklist_data.blocks}
+                                               educationLevel={record.education_level || 'elementary'}
+                                               childName={record.child_name || 'Не указано'}
+                                               calculateBlockScore={calculateBlockScore}
+                                             />
+                                           </div>
+                                         </div>
+                                       )}
                                     
                                     {record.checklist_data && Object.keys(record.checklist_data).length > 0 && !record.checklist_data.blocks && (
                                       <div>

@@ -10,7 +10,6 @@ interface MobileMenuProps {
 
 const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
-  { id: "checklists", label: "Чеклисты", icon: Users },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
   { id: "instructions", label: "Инструкции", icon: BookOpen },
