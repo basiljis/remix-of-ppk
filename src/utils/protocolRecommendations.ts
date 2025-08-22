@@ -22,7 +22,11 @@ export interface ProtocolConclusion {
 export const determineSpecialistAssignments = (
   blockAssessments: BlockAssessment[]
 ): SpecialistAssignment => {
-  const maxGroup = Math.max(...blockAssessments.map(b => b.group.group)) as 1 | 2 | 3;
+  // Filter out assessments with null groups and get max group
+  const assessmentsWithGroups = blockAssessments.filter(assessment => assessment.group !== null);
+  const maxGroup = assessmentsWithGroups.length > 0 
+    ? Math.max(...assessmentsWithGroups.map(b => b.group!.group)) as 1 | 2 | 3
+    : 1;
   
   // Педагог - всегда "ДА" для групп 1 и 2
   const teacher = maxGroup <= 2;
@@ -31,7 +35,7 @@ export const determineSpecialistAssignments = (
   const speechTherapist = blockAssessments.some(assessment => {
     const isLanguageBlock = assessment.blockTitle.toLowerCase().includes('речев') || 
                            assessment.blockTitle.toLowerCase().includes('речь');
-    return isLanguageBlock && assessment.group.group >= 2;
+    return isLanguageBlock && assessment.group && assessment.group.group >= 2;
   });
   
   // Педагог-психолог - для регулятивного и когнитивного блоков при группе 2 или 3
@@ -41,14 +45,14 @@ export const determineSpecialistAssignments = (
     const isCognitiveBlock = assessment.blockTitle.toLowerCase().includes('когнитив') ||
                             assessment.blockTitle.toLowerCase().includes('познават') ||
                             assessment.blockTitle.toLowerCase().includes('мышлен');
-    return (isRegulativeBlock || isCognitiveBlock) && assessment.group.group >= 2;
+    return (isRegulativeBlock || isCognitiveBlock) && assessment.group && assessment.group.group >= 2;
   });
   
   // Социальный педагог - для поведенческого блока при группе 3
   const socialWorker = blockAssessments.some(assessment => {
     const isBehavioralBlock = assessment.blockTitle.toLowerCase().includes('поведенч') ||
                              assessment.blockTitle.toLowerCase().includes('поведени');
-    return isBehavioralBlock && assessment.group.group === 3;
+    return isBehavioralBlock && assessment.group && assessment.group.group === 3;
   });
   
   // Необходимость направления на ЦПМПК - только для группы 3
@@ -94,7 +98,7 @@ export const generateWorkFormRecommendations = (
     
     // Специфические рекомендации по блокам
     blockAssessments.forEach(assessment => {
-      if (assessment.group.group >= 2) {
+      if (assessment.group && assessment.group.group >= 2) {
         const blockName = assessment.blockTitle.toLowerCase();
         if (blockName.includes('речев')) {
           recommendations.push("Логопедические занятия 2-3 раза в неделю");
@@ -142,7 +146,7 @@ export const generateCPMPKRecommendation = (
   if (!needsCPMPK) return undefined;
   
   const problematicBlocks = blockAssessments
-    .filter(assessment => assessment.group.group === 3)
+    .filter(assessment => assessment.group && assessment.group.group === 3)
     .map(assessment => assessment.blockTitle)
     .join(', ');
   
@@ -204,7 +208,11 @@ export const generateProtocolConclusion = (
   childName: string,
   educationLevel: string
 ): ProtocolConclusion => {
-  const maxGroup = Math.max(...analysis.blockAssessments.map(b => b.group.group)) as 1 | 2 | 3;
+  // Filter out assessments with null groups and get max group  
+  const assessmentsWithGroups = analysis.blockAssessments.filter(assessment => assessment.group !== null);
+  const maxGroup = assessmentsWithGroups.length > 0 
+    ? Math.max(...assessmentsWithGroups.map(b => b.group!.group)) as 1 | 2 | 3
+    : 1;
   const finalStatus = determineFinalStatus(maxGroup);
   const specialistAssignments = determineSpecialistAssignments(analysis.blockAssessments);
   const workFormRecommendations = generateWorkFormRecommendations(maxGroup, analysis.blockAssessments);
