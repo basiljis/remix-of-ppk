@@ -20,21 +20,16 @@ interface ProtocolResultsPanelProps {
 }
 
 export const ProtocolResultsPanel = ({ blocks, educationLevel, calculateBlockScore }: ProtocolResultsPanelProps) => {
-  // Общая статистика
-  const totalStats = blocks.reduce((acc, block) => {
-    const blockStats = calculateBlockScore(block, educationLevel);
-    return {
-      totalScore: acc.totalScore + blockStats.score,
-      maxScore: acc.maxScore + blockStats.maxScore,
-      yesCount: acc.yesCount + blockStats.yesCount,
-      formulaPercentage: acc.formulaPercentage + blockStats.formulaPercentage
-    };
-  }, {
-    totalScore: 0,
-    maxScore: 0,
-    yesCount: 0,
-    formulaPercentage: 0
-  });
+  // Общая статистика - получаем максимальный процент среди всех блоков
+  const blockStats = blocks.map(block => calculateBlockScore(block, educationLevel));
+  
+  const totalStats = {
+    totalScore: blockStats.reduce((sum, stats) => sum + stats.score, 0),
+    maxScore: blockStats.reduce((sum, stats) => sum + stats.maxScore, 0),
+    yesCount: blockStats.reduce((sum, stats) => sum + stats.yesCount, 0),
+    // Максимальный процент среди блоков, а не сумма
+    formulaPercentage: blockStats.length > 0 ? Math.max(...blockStats.map(stats => stats.formulaPercentage)) : 0
+  };
 
   const overallPercentage = totalStats.maxScore > 0 ? (totalStats.totalScore / totalStats.maxScore) * 100 : 0;
 
@@ -113,7 +108,10 @@ export const ProtocolResultsPanel = ({ blocks, educationLevel, calculateBlockSco
               Формула расчета: СК × В (существенные критерии × вес критерия)
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Уровень {educationLevel}: вес одного критерия = {blocks.length > 0 ? calculateBlockScore(blocks[0], educationLevel).weightPerCriteria.toFixed(1) : '0'}%
+              Итоговый процент = максимальный процент среди всех блоков (не сумма)
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Каждый блок рассчитывается индивидуально и не может превышать 100%
             </div>
           </div>
         </CardContent>

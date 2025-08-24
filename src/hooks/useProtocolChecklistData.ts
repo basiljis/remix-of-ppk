@@ -196,12 +196,14 @@ export const useProtocolChecklistData = () => {
     let totalScore = 0;
     let maxScore = 0;
     let yesCount = 0;
+    let totalItemsInBlock = 0;
 
     block.topics.forEach(topic => {
       topic.subtopics.forEach(subtopic => {
         subtopic.items.forEach(item => {
           totalScore += (item.score || 0) * item.weight;
           maxScore += item.weight;
+          totalItemsInBlock += 1;
           
           // Подсчитываем критерии с ответом "да" (существенные критерии)
           if (item.score === 1) {
@@ -211,22 +213,32 @@ export const useProtocolChecklistData = () => {
       });
     });
 
-    // Определение веса одного критерия в зависимости от уровня образования
-    const getWeightPerCriteria = (level: string) => {
-      switch (level) {
-        case 'preschool': return 100 / 7; // ≈ 14,3%
-        case 'elementary': return 100 / 8; // = 12,5%
-        case 'middle': return 100 / 9; // ≈ 11,1%
-        case 'high': return 100 / 10; // = 10,0%
-        default: return 10; // По умолчанию как СОО
-      }
+    // Определение максимального количества критериев для данного блока
+    const getMaxCriteriaForBlock = (level: string, blockItemsCount: number) => {
+      // Вес одного критерия в зависимости от уровня образования
+      const totalMaxCriteria = {
+        'preschool': 7,
+        'elementary': 8, 
+        'middle': 9,
+        'high': 10
+      };
+      
+      const maxForLevel = totalMaxCriteria[level as keyof typeof totalMaxCriteria] || 10;
+      
+      // Если критериев в блоке меньше максимума для уровня, 
+      // используем количество критериев в блоке
+      return Math.min(blockItemsCount, maxForLevel);
     };
+
+    const maxCriteriaForBlock = getMaxCriteriaForBlock(educationLevel || 'high', totalItemsInBlock);
+    const weightPerCriteria = maxCriteriaForBlock > 0 ? 100 / maxCriteriaForBlock : 0;
 
     const percentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
     
-    // Новая формула: % = СК × В (существенные критерии × вес критерия)
-    const weightPerCriteria = getWeightPerCriteria(educationLevel || 'high');
-    const formulaPercentage = yesCount * weightPerCriteria;
+    // Формула: % = СК × В, но не более 100%
+    // СК - существенные критерии (ответ "да")
+    // В - вес одного критерия для данного блока
+    const formulaPercentage = Math.min(yesCount * weightPerCriteria, 100);
     
     return { 
       score: totalScore, 
