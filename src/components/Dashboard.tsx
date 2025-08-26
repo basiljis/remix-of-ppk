@@ -7,12 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter } from "lucide-react";
+import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter, FileText, Users, Target } from "lucide-react";
 import { useProtocols, Protocol } from "@/hooks/useProtocols";
 import { useOrganizations, Organization } from "@/hooks/useOrganizations";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import { analyzeProtocolResults } from "@/utils/assistanceDirections";
+import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
+import { useProtocolChecklistData } from "@/hooks/useProtocolChecklistData";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 export const Dashboard = () => {
   const {
@@ -149,6 +153,111 @@ export const Dashboard = () => {
     name: district,
     count
   }));
+
+  // Получение чеклист данных для анализа заключений и рекомендаций
+  const { getBlocksForEducationLevel, calculateBlockScore } = useProtocolChecklistData();
+
+  // Анализ заключений и рекомендаций
+  const conclusionAnalysis = filteredProtocols
+    .filter(p => p.status === 'completed' && p.checklist_data)
+    .map(protocol => {
+      try {
+        const blocks = getBlocksForEducationLevel(protocol.education_level);
+        // Восстанавливаем оценки из сохраненных данных протокола
+        blocks.forEach(block => {
+          block.topics.forEach(topic => {
+            topic.subtopics.forEach(subtopic => {
+              subtopic.items.forEach(item => {
+                const savedScore = protocol.checklist_data?.[item.id];
+                if (savedScore !== undefined) {
+                  item.score = savedScore;
+                }
+              });
+            });
+          });
+        });
+
+        const analysis = analyzeProtocolResults(blocks, calculateBlockScore, protocol.education_level);
+        const conclusion = generateProtocolConclusion(analysis, protocol.child_name, protocol.education_level);
+        
+        return {
+          protocolId: protocol.id,
+          childName: protocol.child_name,
+          overallGroup: analysis.overallGroup,
+          specialists: conclusion.specialistAssignments,
+          recommendations: analysis.recommendations,
+          conclusion: conclusion.conclusionText
+        };
+      } catch (error) {
+        console.error(`Error analyzing protocol ${protocol.id}:`, error);
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  // Статистика по группам помощи
+  const groupData = [
+    {
+      name: 'Группа 1 (норма)',
+      value: conclusionAnalysis.filter(c => c?.overallGroup.group === 1).length,
+      color: '#00C49F'
+    },
+    {
+      name: 'Группа 2 (риск)',
+      value: conclusionAnalysis.filter(c => c?.overallGroup.group === 2).length,
+      color: '#FFBB28'
+    },
+    {
+      name: 'Группа 3 (нарушение)',
+      value: conclusionAnalysis.filter(c => c?.overallGroup.group === 3).length,
+      color: '#FF8042'
+    }
+  ].filter(item => item.value > 0);
+
+  // Статистика по специалистам
+  const specialistData = [
+    {
+      name: 'Учитель',
+      value: conclusionAnalysis.filter(c => c?.specialists.teacher).length,
+      color: '#0088FE'
+    },
+    {
+      name: 'Логопед',
+      value: conclusionAnalysis.filter(c => c?.specialists.speechTherapist).length,
+      color: '#00C49F'
+    },
+    {
+      name: 'Психолог',
+      value: conclusionAnalysis.filter(c => c?.specialists.psychologist).length,
+      color: '#FFBB28'
+    },
+    {
+      name: 'Социальный педагог',
+      value: conclusionAnalysis.filter(c => c?.specialists.socialWorker).length,
+      color: '#FF8042'
+    },
+    {
+      name: 'Направление в ЦПМПК',
+      value: conclusionAnalysis.filter(c => c?.specialists.needsCPMPK).length,
+      color: '#8884D8'
+    }
+  ].filter(item => item.value > 0);
+
+  // Анализ рекомендаций
+  const recommendationCounts = conclusionAnalysis.reduce((acc, analysis) => {
+    if (analysis?.recommendations) {
+      analysis.recommendations.forEach(rec => {
+        const key = rec.substring(0, 50) + '...'; // Сокращаем для отображения
+        acc[key] = (acc[key] || 0) + 1;
+      });
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const topRecommendations = Object.entries(recommendationCounts)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 10)
+    .map(([rec, count]) => ({ name: rec, value: count }));
   return <div className="space-y-6">
       {/* Фильтры */}
       <Card>
@@ -282,7 +391,7 @@ export const Dashboard = () => {
       </Card>
 
       {/* Статистические карточки */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">{filteredProtocols.length}</div>
@@ -311,6 +420,22 @@ export const Dashboard = () => {
               {Math.round(filteredProtocols.reduce((sum, p) => sum + (p.completion_percentage || 0), 0) / filteredProtocols.length || 0)}%
             </div>
             <p className="text-muted-foreground">Средняя готовность</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold text-primary">
+              {conclusionAnalysis.length}
+            </div>
+            <p className="text-muted-foreground">С заключениями</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold text-secondary">
+              {conclusionAnalysis.filter(c => c?.specialists.needsCPMPK).length}
+            </div>
+            <p className="text-muted-foreground">Направлений в ЦПМПК</p>
           </CardContent>
         </Card>
       </div>
@@ -405,6 +530,142 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Анализ заключений и рекомендаций */}
+      {conclusionAnalysis.length > 0 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Анализ заключений и рекомендаций
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Группы помощи */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Группы помощи</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={groupData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value }) => `${name}: ${value}`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {groupData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Специалисты */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Рекомендованные специалисты</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={specialistData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Топ рекомендации */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Частые рекомендации</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {topRecommendations.map((rec, index) => (
+                      <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
+                        <span className="text-sm truncate flex-1">{rec.name}</span>
+                        <Badge variant="secondary">{rec.value}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Детальный список заключений */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Детальный анализ заключений
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {conclusionAnalysis.slice(0, 20).map((analysis, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{analysis?.childName}</h4>
+                      <Badge 
+                        variant={
+                          analysis?.overallGroup.group === 1 ? "default" :
+                          analysis?.overallGroup.group === 2 ? "secondary" : "destructive"
+                        }
+                      >
+                        {analysis?.overallGroup.status}
+                      </Badge>
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground mb-2">
+                      <strong>Специалисты:</strong> {
+                        Object.entries(analysis?.specialists || {})
+                          .filter(([key, value]) => value && key !== 'needsCPMPK')
+                          .map(([key]) => {
+                            switch(key) {
+                              case 'teacher': return 'Учитель';
+                              case 'speechTherapist': return 'Логопед';
+                              case 'psychologist': return 'Психолог';
+                              case 'socialWorker': return 'Социальный педагог';
+                              default: return key;
+                            }
+                          })
+                          .join(', ') || 'Не требуется'
+                      }
+                      {analysis?.specialists.needsCPMPK && (
+                        <Badge variant="outline" className="ml-2">ЦПМПК</Badge>
+                      )}
+                    </div>
+                    
+                    <div className="text-sm">
+                      <strong>Рекомендации:</strong>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        {analysis?.recommendations.slice(0, 3).map((rec, i) => (
+                          <li key={i} className="text-muted-foreground">{rec}</li>
+                        ))}
+                        {analysis?.recommendations.length > 3 && (
+                          <li className="text-muted-foreground italic">
+                            +{analysis.recommendations.length - 3} ещё...
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+                {conclusionAnalysis.length > 20 && (
+                  <div className="text-center text-muted-foreground">
+                    Показано 20 из {conclusionAnalysis.length} заключений
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Столбчатая диаграмма по округам */}
       {districtData.length > 0 && <Card>
