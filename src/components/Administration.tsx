@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
+import { UserManagement } from "@/components/UserManagement";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -143,21 +144,29 @@ export const Administration = () => {
       </div>
 
       <Tabs defaultValue="organizations" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
+          <TabsTrigger 
+            value="users" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Пользователи</span>
+            <span className="sm:hidden">Польз.</span>
+          </TabsTrigger>
           <TabsTrigger 
             value="organizations" 
             className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
           >
             <Building className="h-4 w-4" />
-            <span className="hidden sm:inline">Управление организациями</span>
-            <span className="sm:hidden">Организации</span>
+            <span className="hidden sm:inline">Организации</span>
+            <span className="sm:hidden">Орг.</span>
           </TabsTrigger>
           <TabsTrigger 
             value="checklist" 
             className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
           >
             <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Управление чеклистом</span>
+            <span className="hidden sm:inline">Чеклист</span>
             <span className="sm:hidden">Чеклист</span>
           </TabsTrigger>
           <TabsTrigger 
@@ -165,10 +174,14 @@ export const Administration = () => {
             className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
           >
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Управление инструкциями</span>
-            <span className="sm:hidden">Инструкции</span>
+            <span className="hidden sm:inline">Инструкции</span>
+            <span className="sm:hidden">Инстр.</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="users" className="space-y-6">
+          <UserManagement />
+        </TabsContent>
 
         <TabsContent value="organizations" className="space-y-6">
           <Card>

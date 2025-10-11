@@ -14,6 +14,7 @@ import {
 interface AppSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  isAdmin?: boolean;
 }
 
 const menuItems = [
@@ -24,7 +25,7 @@ const menuItems = [
   { id: "administration", label: "Администрирование", icon: Settings },
 ];
 
-export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, isAdmin = true }: AppSidebarProps) {
   const { state } = useSidebar();
 
   return (
@@ -35,6 +36,8 @@ export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
+                if (item.id === "administration" && !isAdmin) return null;
+                
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 
