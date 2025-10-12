@@ -34,14 +34,6 @@ export const UserManagement = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      
-      // First get all auth users
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error("Auth error:", authError);
-        // Fall back to loading profiles only
-      }
 
       // Load profiles with relations
       const { data: profilesData, error: profilesError } = await supabase
@@ -77,7 +69,7 @@ export const UserManagement = () => {
       // Combine profiles with their roles
       const usersWithRoles = (profilesData || []).map((profile) => ({
         ...profile,
-        user_roles: rolesMap[profile.id] || [{ role: 'user' }], // Default to user role if none found
+        user_roles: rolesMap[profile.id] || [{ role: 'user' }],
       }));
 
       setUsers(usersWithRoles);
@@ -177,11 +169,28 @@ export const UserManagement = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Управление пользователями</CardTitle>
-        <CardDescription>
-          Просмотр, блокировка и изменение ролей пользователей
-        </CardDescription>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <CardTitle>Управление пользователями</CardTitle>
+          <CardDescription>
+            Просмотр, блокировка и изменение ролей пользователей
+          </CardDescription>
+        </div>
+        <Button variant="outline" onClick={async () => {
+          try {
+            setLoading(true);
+            const { data, error } = await supabase.functions.invoke('sync-auth-users');
+            if (error) throw error;
+            toast({ title: 'Синхронизация завершена', description: `Создано профилей: ${data?.createdProfiles || 0}, ролей: ${data?.createdRoles || 0}` });
+            await loadUsers();
+          } catch (e: any) {
+            toast({ title: 'Ошибка синхронизации', description: e.message || 'Недостаточно прав или ошибка сервера', variant: 'destructive' });
+          } finally {
+            setLoading(false);
+          }
+        }}>
+          Синхронизировать пользователей
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
