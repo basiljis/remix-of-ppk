@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,6 +57,7 @@ const Auth = () => {
 
   // Reset password form
   const [resetEmail, setResetEmail] = useState("");
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   // Load reference data
   useState(() => {
@@ -194,6 +196,7 @@ const Auth = () => {
         description: "Проверьте почту для восстановления пароля",
       });
       setResetEmail("");
+      setResetDialogOpen(false);
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -210,15 +213,15 @@ const Auth = () => {
       <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
         {/* Left side - Form */}
         <div className="p-8 md:p-12 flex flex-col justify-center">
-          <div className="mb-8">
-            <img src="/lovable-uploads/f971f75e-c922-48b7-a527-0263972e4807.png" alt="Logo" className="h-12 mb-6" />
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold mb-2">Система управления протоколами ППК</h1>
+            <p className="text-muted-foreground">Цифровое решение для работы психолого-педагогических консилиумов</p>
           </div>
           
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Вход</TabsTrigger>
               <TabsTrigger value="signup">Регистрация</TabsTrigger>
-              <TabsTrigger value="reset">Сброс пароля</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="space-y-4">
@@ -257,105 +260,143 @@ const Auth = () => {
                 >
                   {loading ? "Вход..." : "Войти"}
                 </Button>
+                
+                <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="link" className="w-full text-sm text-muted-foreground hover:text-primary">
+                      Забыли пароль?
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Сброс пароля</DialogTitle>
+                      <DialogDescription>
+                        Введите email для восстановления доступа
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleResetPassword} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email">Email</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          placeholder="your@email.com"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? "Отправка..." : "Отправить ссылку для сброса"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </form>
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
               <h2 className="text-2xl font-bold mb-2">Регистрация</h2>
-              <p className="text-muted-foreground text-sm mb-6">Создайте новый аккаунт для работы с системой</p>
+              <p className="text-muted-foreground text-sm mb-4">Создайте новый аккаунт для работы с системой</p>
               
-              <form onSubmit={handleSignup} className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">ФИО *</Label>
-                  <Input
-                    id="fullName"
-                    value={signupData.fullName}
-                    onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                    required
-                  />
-                </div>
+              <form onSubmit={handleSignup} className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="fullName" className="text-sm">ФИО *</Label>
+                    <Input
+                      id="fullName"
+                      value={signupData.fullName}
+                      onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                      required
+                      className="h-10"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Телефон *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+7 (999) 999-99-99"
-                    value={signupData.phone}
-                    onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm">Телефон *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+7 (999) 999-99-99"
+                      value={signupData.phone}
+                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                      required
+                      className="h-10"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email (логин) *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={signupData.email}
-                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm">Email (логин) *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={signupData.email}
+                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      required
+                      className="h-10"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Пароль *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={signupData.password}
-                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm">Пароль *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={signupData.password}
+                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                      required
+                      className="h-10"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="position">Должность *</Label>
-                  <Select
-                    value={signupData.positionId}
-                    onValueChange={(value) => setSignupData({ ...signupData, positionId: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите должность" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {positions.map((position) => (
-                        <SelectItem key={position.id} value={position.id}>
-                          {position.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="position" className="text-sm">Должность *</Label>
+                    <Select
+                      value={signupData.positionId}
+                      onValueChange={(value) => setSignupData({ ...signupData, positionId: value })}
+                      required
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Выберите должность" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {positions.map((position) => (
+                          <SelectItem key={position.id} value={position.id}>
+                            {position.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="region">Регион *</Label>
-                  <Select
-                    value={signupData.regionId}
-                    onValueChange={(value) => setSignupData({ ...signupData, regionId: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите регион" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {regions.map((region) => (
-                        <SelectItem key={region.id} value={region.id}>
-                          {region.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="region" className="text-sm">Регион *</Label>
+                    <Select
+                      value={signupData.regionId}
+                      onValueChange={(value) => setSignupData({ ...signupData, regionId: value })}
+                      required
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Выберите регион" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regions.map((region) => (
+                          <SelectItem key={region.id} value={region.id}>
+                            {region.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>Образовательная организация *</Label>
-                  <OrganizationSelector
-                    value={signupData.organizationId}
-                    onChange={(value) => setSignupData({ ...signupData, organizationId: value })}
-                    placeholder="Выберите организацию"
-                  />
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-sm">Образовательная организация *</Label>
+                    <OrganizationSelector
+                      value={signupData.organizationId}
+                      onChange={(value) => setSignupData({ ...signupData, organizationId: value })}
+                      placeholder="Выберите организацию"
+                    />
+                  </div>
                 </div>
 
                 <Button 
@@ -367,49 +408,15 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-
-            <TabsContent value="reset" className="space-y-4">
-              <h2 className="text-2xl font-bold mb-2">Сброс пароля</h2>
-              <p className="text-muted-foreground text-sm mb-6">Введите email для восстановления доступа</p>
-              
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email" className="text-sm font-medium">Email</Label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    required
-                    className="h-11"
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
-                  disabled={loading}
-                >
-                  {loading ? "Отправка..." : "Отправить ссылку для сброса"}
-                </Button>
-              </form>
-            </TabsContent>
           </Tabs>
         </div>
 
         {/* Right side - Image */}
         <div className="hidden md:block relative bg-gradient-to-br from-primary to-primary/80">
-          <div className="absolute inset-0 flex items-center justify-center p-12">
-            <img 
-              src="/lovable-uploads/f971f75e-c922-48b7-a527-0263972e4807.png" 
-              alt="Children" 
-              className="w-full h-full object-cover rounded-lg opacity-20"
-            />
-          </div>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white p-8">
-              <h1 className="text-4xl font-bold mb-4">Система управления протоколами ППК</h1>
-              <p className="text-lg opacity-90">Цифровое решение для работы психолого-педагогических консилиумов</p>
+              <h2 className="text-3xl font-bold mb-4">Добро пожаловать</h2>
+              <p className="text-lg opacity-90">Профессиональный инструмент для эффективной работы ППК</p>
             </div>
           </div>
         </div>
