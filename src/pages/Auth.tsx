@@ -206,24 +206,28 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle>Система управления протоколами ППК</CardTitle>
-          <CardDescription>Вход в систему или регистрация нового пользователя</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-3">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
+        {/* Left side - Form */}
+        <div className="p-8 md:p-12 flex flex-col justify-center">
+          <div className="mb-8">
+            <img src="/lovable-uploads/f971f75e-c922-48b7-a527-0263972e4807.png" alt="Logo" className="h-12 mb-6" />
+          </div>
+          
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="login">Вход</TabsTrigger>
               <TabsTrigger value="signup">Регистрация</TabsTrigger>
               <TabsTrigger value="reset">Сброс пароля</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="space-y-4">
+              <h2 className="text-2xl font-bold mb-2">Вход в систему</h2>
+              <p className="text-muted-foreground text-sm mb-6">Введите свои учетные данные для входа</p>
+              
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -231,26 +235,36 @@ const Auth = () => {
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Пароль</Label>
+                  <Label htmlFor="login-password" className="text-sm font-medium">Пароль</Label>
                   <Input
                     id="login-password"
                     type="password"
+                    placeholder="Введите пароль"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
+                    className="h-11"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+                  disabled={loading}
+                >
                   {loading ? "Вход..." : "Войти"}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
-              <form onSubmit={handleSignup} className="space-y-4">
+              <h2 className="text-2xl font-bold mb-2">Регистрация</h2>
+              <p className="text-muted-foreground text-sm mb-6">Создайте новый аккаунт для работы с системой</p>
+              
+              <form onSubmit={handleSignup} className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">ФИО *</Label>
                   <Input
@@ -344,16 +358,23 @@ const Auth = () => {
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+                  disabled={loading}
+                >
                   {loading ? "Регистрация..." : "Зарегистрироваться"}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="reset" className="space-y-4">
+              <h2 className="text-2xl font-bold mb-2">Сброс пароля</h2>
+              <p className="text-muted-foreground text-sm mb-6">Введите email для восстановления доступа</p>
+              
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email</Label>
+                  <Label htmlFor="reset-email" className="text-sm font-medium">Email</Label>
                   <Input
                     id="reset-email"
                     type="email"
@@ -361,16 +382,38 @@ const Auth = () => {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     required
+                    className="h-11"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+                  disabled={loading}
+                >
                   {loading ? "Отправка..." : "Отправить ссылку для сброса"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Right side - Image */}
+        <div className="hidden md:block relative bg-gradient-to-br from-primary to-primary/80">
+          <div className="absolute inset-0 flex items-center justify-center p-12">
+            <img 
+              src="/lovable-uploads/f971f75e-c922-48b7-a527-0263972e4807.png" 
+              alt="Children" 
+              className="w-full h-full object-cover rounded-lg opacity-20"
+            />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-white p-8">
+              <h1 className="text-4xl font-bold mb-4">Система управления протоколами ППК</h1>
+              <p className="text-lg opacity-90">Цифровое решение для работы психолого-педагогических консилиумов</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

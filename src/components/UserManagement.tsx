@@ -35,7 +35,15 @@ export const UserManagement = () => {
     try {
       setLoading(true);
       
-      // Load profiles
+      // First get all auth users
+      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error("Auth error:", authError);
+        // Fall back to loading profiles only
+      }
+
+      // Load profiles with relations
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select(`
@@ -48,23 +56,33 @@ export const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      // Load roles for each user
-      const usersWithRoles = await Promise.all(
-        (profilesData || []).map(async (profile) => {
-          const { data: rolesData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", profile.id);
+      // Load all roles at once
+      const { data: allRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
 
-          return {
-            ...profile,
-            user_roles: rolesData || [],
-          };
-        })
-      );
+      if (rolesError) {
+        console.error("Roles error:", rolesError);
+      }
+
+      // Create a map of user roles
+      const rolesMap = (allRoles || []).reduce((acc, role) => {
+        if (!acc[role.user_id]) {
+          acc[role.user_id] = [];
+        }
+        acc[role.user_id].push({ role: role.role });
+        return acc;
+      }, {} as Record<string, Array<{ role: string }>>);
+
+      // Combine profiles with their roles
+      const usersWithRoles = (profilesData || []).map((profile) => ({
+        ...profile,
+        user_roles: rolesMap[profile.id] || [{ role: 'user' }], // Default to user role if none found
+      }));
 
       setUsers(usersWithRoles);
     } catch (error: any) {
+      console.error("Error loading users:", error);
       toast({
         title: "Ошибка загрузки",
         description: error.message,
