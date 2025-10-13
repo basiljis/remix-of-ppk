@@ -141,22 +141,23 @@ const Auth = () => {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Не удалось создать пользователя");
 
-      // Create profile
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authData.user.id,
+      // Create access request instead of profile
+      const { error: requestError } = await supabase.from("access_requests").insert({
+        user_id: authData.user.id,
         full_name: validatedData.fullName,
         phone: validatedData.phone,
         email: validatedData.email,
         position_id: validatedData.positionId,
         region_id: validatedData.regionId,
         organization_id: validatedData.organizationId,
+        status: "pending",
       });
 
-      if (profileError) throw profileError;
+      if (requestError) throw requestError;
 
       toast({
-        title: "Регистрация завершена",
-        description: "Проверьте почту для подтверждения аккаунта",
+        title: "Заявка отправлена",
+        description: "Ваша заявка на доступ отправлена администратору. Вы получите уведомление после её рассмотрения.",
       });
 
       // Clear form

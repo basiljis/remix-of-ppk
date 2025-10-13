@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          organization_id: string | null
+          phone: string
+          position_id: string
+          region_id: string
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          organization_id?: string | null
+          phone: string
+          position_id: string
+          region_id: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          organization_id?: string | null
+          phone?: string
+          position_id?: string
+          region_id?: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_requests_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_logs: {
         Row: {
           action_type: string

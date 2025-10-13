@@ -17,8 +17,11 @@ import { Badge } from "@/components/ui/badge";
 import { analyzeProtocolResults } from "@/utils/assistanceDirections";
 import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
 import { useProtocolChecklistData } from "@/hooks/useProtocolChecklistData";
+import { useAuth } from "@/hooks/useAuth";
+import { AccessRequestStatus } from "@/components/AccessRequestStatus";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 export const Dashboard = () => {
+  const { hasAccessRequest } = useAuth();
   const {
     protocols,
     loading
@@ -26,6 +29,11 @@ export const Dashboard = () => {
   const {
     organizations
   } = useOrganizations();
+
+  // Show access request status if user has a pending/rejected request
+  if (hasAccessRequest) {
+    return <AccessRequestStatus />;
+  }
   const [filteredProtocols, setFilteredProtocols] = useState<Protocol[]>(protocols);
 
   // Фильтры

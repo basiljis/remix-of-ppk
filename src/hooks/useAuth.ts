@@ -32,9 +32,28 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasAccessRequest, setHasAccessRequest] = useState(false);
 
   const loadUserData = async (userId: string) => {
     try {
+      // Check for access request first
+      const { data: accessRequest } = await supabase
+        .from("access_requests")
+        .select("status")
+        .eq("user_id", userId)
+        .single();
+
+      if (accessRequest) {
+        setHasAccessRequest(true);
+        
+        // If request is not approved, don't load profile
+        if (accessRequest.status !== "approved") {
+          setProfile(null);
+          setRoles([]);
+          return;
+        }
+      }
+
       // Load profile
       const { data: profileData } = await supabase
         .from("profiles")
@@ -49,6 +68,7 @@ export const useAuth = () => {
 
       if (profileData) {
         setProfile(profileData);
+        setHasAccessRequest(false);
       }
 
       // Load roles
@@ -118,6 +138,7 @@ export const useAuth = () => {
     isAdmin,
     isRegionalOperator,
     isUser,
+    hasAccessRequest,
     signOut,
   };
 };
