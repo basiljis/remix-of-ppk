@@ -86,8 +86,17 @@ const Index = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
+    try {
+      await signOut();
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Ошибка выхода",
+        description: "Не удалось выйти из системы",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
