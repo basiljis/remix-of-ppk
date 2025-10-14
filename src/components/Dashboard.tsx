@@ -72,7 +72,7 @@ export const Dashboard = () => {
     if (parallelFilter && parallelFilter !== "all") {
       // Фильтр по параллели - извлекаем номер класса или тип группы из protocolData
       filtered = filtered.filter(p => {
-        const classNumber = p.protocol_data?.childData?.classNumber || "";
+        const classNumber = (p.protocol_data as any)?.childData?.classNumber || "";
         const isPreschool = p.education_level === "preschool";
         if (isPreschool) {
           return classNumber.toLowerCase().includes(parallelFilter.toLowerCase());

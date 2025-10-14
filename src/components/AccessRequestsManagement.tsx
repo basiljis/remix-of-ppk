@@ -12,6 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -52,6 +59,7 @@ export const AccessRequestsManagement = () => {
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<AccessRequest | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("user");
   const [adminNotes, setAdminNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
@@ -150,13 +158,24 @@ export const AccessRequestsManagement = () => {
 
       if (profileError) throw profileError;
 
+      // Assign role
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert([{
+          user_id: selectedRequest.user_id,
+          role: selectedRole as "admin" | "regional_operator" | "user",
+        }]);
+
+      if (roleError) throw roleError;
+
       toast({
         title: "Успешно",
-        description: "Заявка одобрена, пользователю предоставлен доступ",
+        description: `Заявка одобрена. Роль: ${selectedRole === 'admin' ? 'Администратор' : selectedRole === 'regional_operator' ? 'Региональный оператор' : 'Пользователь'}`,
       });
 
       setSelectedRequest(null);
       setAdminNotes("");
+      setSelectedRole("user");
       fetchRequests();
     } catch (error) {
       console.error("Error approving request:", error);
@@ -333,6 +352,20 @@ export const AccessRequestsManagement = () => {
               <div>
                 <span className="font-semibold">Округ:</span> {selectedRequest?.regions?.name}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Роль пользователя</Label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Пользователь</SelectItem>
+                  <SelectItem value="regional_operator">Региональный оператор</SelectItem>
+                  <SelectItem value="admin">Администратор</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
