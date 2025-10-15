@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { useToast } from "@/hooks/use-toast";
 import { Administration } from "@/components/Administration";
+import { UserProfile } from "@/components/UserProfile";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -100,6 +101,8 @@ const Index = () => {
         return <Dashboard />;
       case "instructions":
         return <InstructionsSection />;
+      case "profile":
+        return <UserProfile />;
       case "administration":
         return <Administration />;
       case "checklists":
