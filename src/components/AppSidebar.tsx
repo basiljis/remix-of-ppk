@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Database, BarChart3, BookOpen, Settings } from "lucide-react";
+import { ClipboardList, Users, Database, BarChart3, BookOpen, Settings, UserCircle } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,7 @@ const menuItems = [
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
   { id: "instructions", label: "Инструкции", icon: BookOpen },
+  { id: "profile", label: "Профиль", icon: UserCircle },
   { id: "administration", label: "Администрирование", icon: Settings },
 ];
 
