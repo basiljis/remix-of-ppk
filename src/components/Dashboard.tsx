@@ -17,11 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { analyzeProtocolResults } from "@/utils/assistanceDirections";
 import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
 import { useProtocolChecklistData } from "@/hooks/useProtocolChecklistData";
-import { useAuth } from "@/hooks/useAuth";
-import { AccessRequestStatus } from "@/components/AccessRequestStatus";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 export const Dashboard = () => {
-  const { hasAccessRequest } = useAuth();
   const {
     protocols,
     loading
@@ -29,11 +26,6 @@ export const Dashboard = () => {
   const {
     organizations
   } = useOrganizations();
-
-  // Show access request status if user has a pending/rejected request
-  if (hasAccessRequest) {
-    return <AccessRequestStatus />;
-  }
   const [filteredProtocols, setFilteredProtocols] = useState<Protocol[]>(protocols);
 
   // Фильтры
@@ -72,7 +64,7 @@ export const Dashboard = () => {
     if (parallelFilter && parallelFilter !== "all") {
       // Фильтр по параллели - извлекаем номер класса или тип группы из protocolData
       filtered = filtered.filter(p => {
-        const classNumber = (p.protocol_data as any)?.childData?.classNumber || "";
+        const classNumber = p.protocol_data?.childData?.classNumber || "";
         const isPreschool = p.education_level === "preschool";
         if (isPreschool) {
           return classNumber.toLowerCase().includes(parallelFilter.toLowerCase());

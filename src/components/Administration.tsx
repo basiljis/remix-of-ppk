@@ -1,12 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
-import { UserManagement } from "@/components/UserManagement";
-import { AccessRequestsManagement } from "@/components/AccessRequestsManagement";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -144,38 +142,22 @@ export const Administration = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="access-requests" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 h-auto p-1">
-          <TabsTrigger 
-            value="access-requests" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
-          >
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Заявки</span>
-            <span className="sm:hidden">Заявки</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="users" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
-          >
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Пользователи</span>
-            <span className="sm:hidden">Польз.</span>
-          </TabsTrigger>
+      <Tabs defaultValue="organizations" className="w-full">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 h-auto p-1">
           <TabsTrigger 
             value="organizations" 
             className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
           >
             <Building className="h-4 w-4" />
-            <span className="hidden sm:inline">Организации</span>
-            <span className="sm:hidden">Орг.</span>
+            <span className="hidden sm:inline">Управление организациями</span>
+            <span className="sm:hidden">Организации</span>
           </TabsTrigger>
           <TabsTrigger 
             value="checklist" 
             className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
           >
             <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Чеклист</span>
+            <span className="hidden sm:inline">Управление чеклистом</span>
             <span className="sm:hidden">Чеклист</span>
           </TabsTrigger>
           <TabsTrigger 
@@ -183,31 +165,10 @@ export const Administration = () => {
             className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
           >
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Инструкции</span>
-            <span className="sm:hidden">Инстр.</span>
+            <span className="hidden sm:inline">Управление инструкциями</span>
+            <span className="sm:hidden">Инструкции</span>
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="access-requests" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Заявки на доступ
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Рассмотрение и одобрение заявок пользователей на получение доступа к системе
-              </p>
-            </CardContent>
-          </Card>
-          <AccessRequestsManagement />
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-6">
-          <UserManagement />
-        </TabsContent>
 
         <TabsContent value="organizations" className="space-y-6">
           <Card>

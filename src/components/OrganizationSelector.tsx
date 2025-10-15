@@ -26,6 +26,8 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
 
   return (
     <div className="space-y-2">
+      <Label htmlFor="organization">{label}</Label>
+      
       <div className="w-full">
         <Select value={value} onValueChange={onChange} disabled={loading}>
           <SelectTrigger>

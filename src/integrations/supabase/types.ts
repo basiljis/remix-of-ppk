@@ -14,75 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      access_requests: {
-        Row: {
-          admin_notes: string | null
-          created_at: string
-          email: string
-          full_name: string
-          id: string
-          organization_id: string | null
-          phone: string
-          position_id: string
-          region_id: string
-          requested_at: string
-          reviewed_at: string | null
-          reviewed_by: string | null
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          admin_notes?: string | null
-          created_at?: string
-          email: string
-          full_name: string
-          id?: string
-          organization_id?: string | null
-          phone: string
-          position_id: string
-          region_id: string
-          requested_at?: string
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          admin_notes?: string | null
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: string
-          organization_id?: string | null
-          phone?: string
-          position_id?: string
-          region_id?: string
-          requested_at?: string
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "access_requests_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "access_requests_position_id_fkey"
-            columns: ["position_id"]
-            isOneToOne: false
-            referencedRelation: "positions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       api_logs: {
         Row: {
           action_type: string
@@ -490,88 +421,6 @@ export type Database = {
         }
         Relationships: []
       }
-      positions: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          email: string
-          full_name: string
-          id: string
-          is_blocked: boolean
-          organization_id: string | null
-          phone: string
-          position_id: string
-          region_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          full_name: string
-          id: string
-          is_blocked?: boolean
-          organization_id?: string | null
-          phone: string
-          position_id: string
-          region_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: string
-          is_blocked?: boolean
-          organization_id?: string | null
-          phone?: string
-          position_id?: string
-          region_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_position_id_fkey"
-            columns: ["position_id"]
-            isOneToOne: false
-            referencedRelation: "positions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_region_id_fkey"
-            columns: ["region_id"]
-            isOneToOne: false
-            referencedRelation: "regions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       protocol_checklist_items: {
         Row: {
           block: string
@@ -709,42 +558,6 @@ export type Database = {
           },
         ]
       }
-      regions: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -752,14 +565,6 @@ export type Database = {
     Functions: {
       generate_protocol_number: {
         Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_user_organization: {
-        Args: { _user_id: string }
-        Returns: string
-      }
-      get_user_region: {
-        Args: { _user_id: string }
         Returns: string
       }
       gtrgm_compress: {
@@ -782,13 +587,6 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       set_limit: {
         Args: { "": number }
         Returns: number
@@ -803,7 +601,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "regional_operator" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -930,8 +728,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "regional_operator", "user"],
-    },
+    Enums: {},
   },
 } as const

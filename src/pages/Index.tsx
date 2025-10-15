@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { ChecklistCard } from "@/components/ChecklistCard";
 import { EducationLevelSelector, EducationLevel } from "@/components/EducationLevelSelector";
 import { InstructionsSection } from "@/components/InstructionsSection";
@@ -10,31 +9,18 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { Footer } from "@/components/Footer";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { Administration } from "@/components/Administration";
-import { UserProfile } from "@/components/UserProfile";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 
 const Index = () => {
-  const navigate = useNavigate();
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel>("elementary");
   const [activeTab, setActiveTab] = useState("protocol");
   const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
   const [editingProtocol, setEditingProtocol] = useState<any>(null);
   const { toast } = useToast();
-  const { user, loading, isAdmin, signOut, profile } = useAuth();
-  const { checklists, loading: checklistLoading, error } = useChecklistData();
-
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
+  const { checklists, loading, error } = useChecklistData();
 
   const handleLevelChange = (level: EducationLevel) => {
     setSelectedLevel(level);
@@ -70,8 +56,10 @@ const Index = () => {
     });
   };
 
+
   const handleProtocolSave = (protocolData: any) => {
     console.log("Saved protocol:", protocolData);
+    // Здесь можно добавить логику сохранения в базу данных
   };
 
   const generateReport = () => {
@@ -85,32 +73,6 @@ const Index = () => {
       description: `Найдено ${totalRequired} обязательных элементов для проверки`,
     });
   };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate("/auth");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast({
-        title: "Ошибка выхода",
-        description: "Не удалось выйти из системы",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Загрузка...</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -138,12 +100,29 @@ const Index = () => {
         return <Dashboard />;
       case "instructions":
         return <InstructionsSection />;
-      case "profile":
-        return <UserProfile />;
       case "administration":
-        return isAdmin ? <Administration /> : (
-          <div className="text-center p-8">
-            <p className="text-muted-foreground">У вас нет доступа к этому разделу</p>
+        return <Administration />;
+      case "checklists":
+        return (
+          <div className="space-y-6">
+            {currentChecklists.map((checklist) => (
+              <ChecklistCard
+                key={checklist.id}
+                title={checklist.name}
+                items={checklist.items.map(item => {
+                  const stateKey = `${checklist.id}-${item.id}`;
+                  return {
+                    id: item.id,
+                    text: item.text,
+                    completed: checklistStates[stateKey] || item.isCompleted,
+                    required: item.isRequired
+                  };
+                })}
+                onItemToggle={(itemId) => handleItemToggle(checklist.id, itemId)}
+                variant="primary"
+                level={selectedLevel}
+              />
+            ))}
           </div>
         );
       default:
@@ -153,40 +132,37 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-gradient-to-br from-background via-background to-accent/5">
-        <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
+      <div className="min-h-screen flex w-full">
+        <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         
-        <main className="flex-1 w-full">
-          <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container mx-auto">
-              <div className="flex h-16 items-center justify-between px-4">
-                <div className="flex items-center gap-4">
-                  <SidebarTrigger />
-                  <div className="hidden md:block">
-                    <h1 className="text-lg font-semibold">Система Протоколов ППК</h1>
-                    <p className="text-sm text-muted-foreground">
-                      {profile?.full_name} - {profile?.positions?.name}
-                    </p>
-                  </div>
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex justify-between items-center h-16 px-6">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                <div className="md:hidden">
+                  <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
-                  <ThemeToggle />
-                  <Button variant="outline" size="sm" onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Выход</span>
-                  </Button>
-                </div>
+                <h1 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  Система автоматизации ППк
+                </h1>
+              </div>
+              <div className="flex items-center gap-4">
+                <ThemeToggle />
               </div>
             </div>
-          </div>
+          </header>
 
-          <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-            {renderTabContent()}
-          </div>
+          {/* Main content */}
+          <main className="flex-1 p-6 bg-gradient-to-br from-background via-secondary/20 to-background">
+            <div className="max-w-7xl mx-auto w-full">
+              {renderTabContent()}
+            </div>
+          </main>
 
           <Footer activeTab={activeTab} onTabChange={setActiveTab} />
-        </main>
+        </div>
       </div>
     </SidebarProvider>
   );

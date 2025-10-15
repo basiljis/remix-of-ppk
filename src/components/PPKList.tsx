@@ -348,40 +348,40 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                        <p className="font-semibold">ФИО обучающегося:</p>
                                        <p>{record.child_name}</p>
                                      </div>
-                                      <div>
-                                        <p className="font-semibold">Класс/группа:</p>
-                                        <p>{(record.protocol_data as any)?.childData?.classNumber || 'Не указан'}{(record.protocol_data as any)?.childData?.classLetter || ''}</p>
-                                      </div>
+                                     <div>
+                                       <p className="font-semibold">Класс/группа:</p>
+                                       <p>{record.protocol_data?.childData?.classNumber || 'Не указан'}{record.protocol_data?.childData?.classLetter || ''}</p>
+                                     </div>
                                      {record.child_birth_date && (
                                        <div>
                                          <p className="font-semibold">Дата рождения:</p>
                                          <p>{new Date(record.child_birth_date).toLocaleDateString()}</p>
                                        </div>
                                      )}
-                                      <div>
-                                        <p className="font-semibold">Инициатор обращения:</p>
-                                        <p>{(record.protocol_data as any)?.childData?.whobrought || 'Не указан'}</p>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">Повод обращения в ППк:</p>
-                                        <p>{record.consultation_reason || 'Не указан'}</p>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">Коллегиальное заключение:</p>
-                                        <p>{(record.protocol_data as any)?.collegialConclusion || 'Не указано'}</p>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">Результат обращения:</p>
-                                        <p>{(record.protocol_data as any)?.appealResult || 'Не указан'}</p>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">Цель направления:</p>
-                                        <p>{(record.protocol_data as any)?.purposeOfReferral || 'Не указана'}</p>
-                                      </div>
-                                      <div className="col-span-2">
-                                        <p className="font-semibold">Перечень документов представленных на ППк:</p>
-                                        <p>{(record.protocol_data as any)?.documents?.map((doc: any) => doc.present ? doc.name : null).filter(Boolean).join(', ') || 'Не указаны'}</p>
-                                      </div>
+                                     <div>
+                                       <p className="font-semibold">Инициатор обращения:</p>
+                                       <p>{record.protocol_data?.childData?.whobrought || 'Не указан'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Повод обращения в ППк:</p>
+                                       <p>{record.consultation_reason || 'Не указан'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Коллегиальное заключение:</p>
+                                       <p>{record.protocol_data?.collegialConclusion || 'Не указано'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Результат обращения:</p>
+                                       <p>{record.protocol_data?.appealResult || 'Не указан'}</p>
+                                     </div>
+                                     <div>
+                                       <p className="font-semibold">Цель направления:</p>
+                                       <p>{record.protocol_data?.purposeOfReferral || 'Не указана'}</p>
+                                     </div>
+                                     <div className="col-span-2">
+                                       <p className="font-semibold">Перечень документов представленных на ППк:</p>
+                                       <p>{record.protocol_data?.documents?.map((doc: any) => doc.present ? doc.name : null).filter(Boolean).join(', ') || 'Не указаны'}</p>
+                                     </div>
                                      <div>
                                        <p className="font-semibold">Организация:</p>
                                        <p>{record.organizations?.name || 'Не указана'}</p>
@@ -434,37 +434,37 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                      </div>
                                    </div>
                                    
-                                        {record.checklist_data && (record.checklist_data as any).blocks && Array.isArray((record.checklist_data as any).blocks) && (record.checklist_data as any).blocks.length > 0 && (
-                                          <div className="space-y-6">
-                                            <div>
-                                              <p className="font-semibold mb-3">Результаты заполнения чек-листа:</p>
-                                              <ProtocolResultsPanel 
-                                                blocks={(record.checklist_data as any).blocks}
-                                                educationLevel={record.education_level || 'elementary'}
-                                                calculateBlockScore={calculateBlockScore}
-                                              />
-                                            </div>
-                                            <div>
-                                              <p className="font-semibold mb-3">Направления коррекционно-развивающей помощи:</p>
-                                              <AssistanceDirectionsPanel 
-                                                blocks={(record.checklist_data as any).blocks}
-                                                educationLevel={record.education_level || 'elementary'}
-                                                calculateBlockScore={calculateBlockScore}
-                                              />
-                                            </div>
-                                            <div>
-                                              <p className="font-semibold mb-3">Заключение протокола:</p>
-                                              <ProtocolConclusionPanel 
-                                                blocks={(record.checklist_data as any).blocks}
-                                                educationLevel={record.education_level || 'elementary'}
-                                                childName={record.child_name || 'Не указано'}
-                                                calculateBlockScore={calculateBlockScore}
-                                              />
-                                            </div>
-                                          </div>
-                                        )}
-                                     
-                                     {record.checklist_data && Object.keys(record.checklist_data).length > 0 && !(record.checklist_data as any).blocks && (
+                                       {record.checklist_data && record.checklist_data.blocks && Array.isArray(record.checklist_data.blocks) && record.checklist_data.blocks.length > 0 && (
+                                         <div className="space-y-6">
+                                           <div>
+                                             <p className="font-semibold mb-3">Результаты заполнения чек-листа:</p>
+                                             <ProtocolResultsPanel 
+                                               blocks={record.checklist_data.blocks}
+                                               educationLevel={record.education_level || 'elementary'}
+                                               calculateBlockScore={calculateBlockScore}
+                                             />
+                                           </div>
+                                           <div>
+                                             <p className="font-semibold mb-3">Направления коррекционно-развивающей помощи:</p>
+                                             <AssistanceDirectionsPanel 
+                                               blocks={record.checklist_data.blocks}
+                                               educationLevel={record.education_level || 'elementary'}
+                                               calculateBlockScore={calculateBlockScore}
+                                             />
+                                           </div>
+                                           <div>
+                                             <p className="font-semibold mb-3">Заключение протокола:</p>
+                                             <ProtocolConclusionPanel 
+                                               blocks={record.checklist_data.blocks}
+                                               educationLevel={record.education_level || 'elementary'}
+                                               childName={record.child_name || 'Не указано'}
+                                               calculateBlockScore={calculateBlockScore}
+                                             />
+                                           </div>
+                                         </div>
+                                       )}
+                                    
+                                    {record.checklist_data && Object.keys(record.checklist_data).length > 0 && !record.checklist_data.blocks && (
                                       <div>
                                         <p className="font-semibold mb-2">Результаты чек-листов (старый формат):</p>
                                         <div className="bg-muted p-3 rounded max-h-60 overflow-y-auto">

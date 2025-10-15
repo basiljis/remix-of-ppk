@@ -6,7 +6,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 interface MobileMenuProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  isAdmin?: boolean;
 }
 
 const menuItems = [
@@ -17,7 +16,7 @@ const menuItems = [
   { id: "administration", label: "Администрирование", icon: Settings },
 ];
 
-export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMenuProps) => {
+export const MobileMenu = ({ activeTab, onTabChange }: MobileMenuProps) => {
   const [open, setOpen] = useState(false);
 
   const handleTabClick = (tabId: string) => {
@@ -38,8 +37,6 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMen
         </SheetHeader>
         <div className="mt-6 space-y-2">
           {menuItems.map((item) => {
-            if (item.id === "administration" && !isAdmin) return null;
-            
             const Icon = item.icon;
             return (
               <Button
