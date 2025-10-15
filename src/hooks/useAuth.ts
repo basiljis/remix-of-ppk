@@ -108,7 +108,7 @@ export const useAuth = () => {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        loadUserData(session.user.id);
+        loadUserData(session.user.id).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
@@ -130,7 +130,7 @@ export const useAuth = () => {
       setSession(null);
       setProfile(null);
       setRoles([]);
-      setHasAccessRequest(null);
+      setHasAccessRequest(false);
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
