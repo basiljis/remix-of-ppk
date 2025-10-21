@@ -31,20 +31,12 @@ export interface Protocol {
 }
 
 export const useProtocols = () => {
-  const [protocols, setProtocols] = useState<Protocol[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadProtocols();
-  }, []);
-
-  const loadProtocols = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  const { data: protocols = [], isLoading: loading, error, refetch: loadProtocols } = useOptimizedQuery(
+    ['protocols'],
+    async () => {
       const { data, error: fetchError } = await supabase
         .from('protocols')
         .select(`
@@ -59,18 +51,15 @@ export const useProtocols = () => {
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
+      return data || [];
+    },
+    {},
+    { staleTime: 1000 * 60 * 5 } // 5 minutes
+  );
 
-      setProtocols(data || []);
-    } catch (err) {
-      console.error('Error loading protocols:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const saveProtocol = async (protocolData: Omit<Protocol, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
+  const saveProtocolMutation = useOptimizedMutation<Protocol, Omit<Protocol, 'id' | 'created_at' | 'updated_at'>>(
+    async (protocolData) => {
       const { data, error } = await supabase
         .from('protocols')
         .insert(protocolData)
@@ -78,27 +67,29 @@ export const useProtocols = () => {
         .single();
 
       if (error) throw error;
-
-      setProtocols(prev => [data, ...prev]);
-      toast({
-        title: "Протокол сохранен",
-        description: "Протокол успешно добавлен в базу данных"
-      });
-
-      return data;
-    } catch (err) {
-      console.error('Error saving protocol:', err);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось сохранить протокол",
-        variant: "destructive"
-      });
-      throw err;
+      return data as Protocol;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['protocols'] });
+        toast({
+          title: "Протокол сохранен",
+          description: "Протокол успешно добавлен в базу данных"
+        });
+      },
+      onError: (err) => {
+        console.error('Error saving protocol:', err);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось сохранить протокол",
+          variant: "destructive"
+        });
+      },
     }
-  };
+  );
 
-  const updateProtocol = async (id: string, updates: Partial<Protocol>) => {
-    try {
+  const updateProtocolMutation = useOptimizedMutation<Protocol, { id: string; updates: Partial<Protocol> }>(
+    async ({ id, updates }) => {
       const { data, error } = await supabase
         .from('protocols')
         .update(updates)
@@ -107,49 +98,54 @@ export const useProtocols = () => {
         .single();
 
       if (error) throw error;
-
-      setProtocols(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-      toast({
-        title: "Протокол обновлен",
-        description: "Изменения успешно сохранены"
-      });
-
-      return data;
-    } catch (err) {
-      console.error('Error updating protocol:', err);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось обновить протокол",
-        variant: "destructive"
-      });
-      throw err;
+      return data as Protocol;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['protocols'] });
+        toast({
+          title: "Протокол обновлен",
+          description: "Изменения успешно сохранены"
+        });
+      },
+      onError: (err) => {
+        console.error('Error updating protocol:', err);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось обновить протокол",
+          variant: "destructive"
+        });
+      },
     }
-  };
+  );
 
-  const deleteProtocol = async (id: string) => {
-    try {
+  const deleteProtocolMutation = useOptimizedMutation<void, string>(
+    async (id) => {
       const { error } = await supabase
         .from('protocols')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-
-      setProtocols(prev => prev.filter(p => p.id !== id));
-      toast({
-        title: "Протокол удален",
-        description: "Протокол успешно удален из базы данных"
-      });
-    } catch (err) {
-      console.error('Error deleting protocol:', err);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось удалить протокол",
-        variant: "destructive"
-      });
-      throw err;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['protocols'] });
+        toast({
+          title: "Протокол удален",
+          description: "Протокол успешно удален из базы данных"
+        });
+      },
+      onError: (err) => {
+        console.error('Error deleting protocol:', err);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось удалить протокол",
+          variant: "destructive"
+        });
+      },
     }
-  };
+  );
 
   const getProtocol = (id: string): Protocol | undefined => {
     return protocols.find(p => p.id === id);
@@ -158,11 +154,12 @@ export const useProtocols = () => {
   return {
     protocols,
     loading,
-    error,
+    error: error ? (error instanceof Error ? error.message : 'Unknown error') : null,
     loadProtocols,
-    saveProtocol,
-    updateProtocol,
-    deleteProtocol,
-    getProtocol
+    saveProtocol: saveProtocolMutation.mutateAsync,
+    updateProtocol: (id: string, updates: Partial<Protocol>) => 
+      updateProtocolMutation.mutateAsync({ id, updates }),
+    deleteProtocol: deleteProtocolMutation.mutateAsync,
+    getProtocol: (id: string) => protocols.find(p => p.id === id)
   };
 };

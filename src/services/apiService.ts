@@ -58,69 +58,23 @@ export interface SessionResponse {
 class ApiService {
   private apiToken: string | null = null;
 
-  // Функция для авторизации и получения токена
-  async createSession(): Promise<string> {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-      const response = await fetch(`${API_BASE}/auth/createSession`, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Basic ' + btoa('go_gppc:NHFud4'), // базовая авторизация
-          'Content-Type': 'application/json'
-        },
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`Ошибка авторизации: ${response.status}`);
-      }
-
-      const data: SessionResponse = await response.json();
-      this.apiToken = data.data.token;
-      console.log('Успешная авторизация в ЕКИС API');
-      return this.apiToken;
-    } catch (error) {
-      console.error('Ошибка при создании сессии:', error);
-      throw error;
-    }
-  }
-
-  // Запрос к методу getActual с токеном
+  // NOTE: Direct API calls have been disabled for security reasons.
+  // All API interactions should go through the educom-api edge function
+  // which securely manages credentials in environment variables.
+  
   async getActualEduorgs(): Promise<EduOrgResponse> {
     try {
-      if (!this.apiToken) {
-        await this.createSession();
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
-      const response = await fetch(`${API_BASE}/eduorg/getActual`, {
-        method: 'POST',
-        headers: {
-          'X-API-TOKEN': this.apiToken!,
-          'Content-Type': 'application/json'
-        },
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`Ошибка запроса образовательных организаций: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(`Получено ${data.data.eduorgs.length} организаций из ЕКИС API`);
-      return data;
+      console.warn('Direct API access is deprecated. Use educom-api edge function instead.');
+      console.log(`Using ${FALLBACK_ORGANIZATIONS.length} fallback organizations`);
+      
+      // Return fallback data - clients should use the edge function for actual data
+      return {
+        data: {
+          eduorgs: FALLBACK_ORGANIZATIONS
+        }
+      };
     } catch (error) {
-      console.warn('API недоступен, используем резервные данные:', error);
-      console.log(`Используем ${FALLBACK_ORGANIZATIONS.length} резервных организаций`);
-      // Return fallback data when API is not available
+      console.error('Error in getActualEduorgs:', error);
       return {
         data: {
           eduorgs: FALLBACK_ORGANIZATIONS
@@ -184,7 +138,7 @@ class ApiService {
     }
   }
 
-  // Сброс токена (для повторной авторизации при необходимости)
+  // Legacy method - no longer used
   resetToken(): void {
     this.apiToken = null;
   }

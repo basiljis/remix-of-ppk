@@ -61,4 +61,4 @@ vector_port = 54328
 backend = "postgres"
 
 [functions.educom-api]
-verify_jwt = false
+verify_jwt = true

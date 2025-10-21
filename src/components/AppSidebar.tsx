@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Database, BarChart3, BookOpen, Settings, UserCircle } from "lucide-react";
+import { ClipboardList, Users, Database, BarChart3, BookOpen, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,7 @@ import {
 interface AppSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  isAdmin?: boolean;
 }
 
 const menuItems = [
@@ -21,11 +22,10 @@ const menuItems = [
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
   { id: "instructions", label: "Инструкции", icon: BookOpen },
-  { id: "profile", label: "Профиль", icon: UserCircle },
   { id: "administration", label: "Администрирование", icon: Settings },
 ];
 
-export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, isAdmin = true }: AppSidebarProps) {
   const { state } = useSidebar();
 
   return (
@@ -36,6 +36,8 @@ export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
+                if (item.id === "administration" && !isAdmin) return null;
+                
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 
