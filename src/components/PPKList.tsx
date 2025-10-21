@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,10 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    loadProtocols();
+  }, []);
 
   // Filter protocols based on search and filters
   const filteredRecords = protocols.filter(protocol => {
