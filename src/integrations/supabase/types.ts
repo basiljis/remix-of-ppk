@@ -750,38 +750,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_protocol_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_user_organization: {
-        Args: { _user_id: string }
-        Returns: string
-      }
-      get_user_region: {
-        Args: { _user_id: string }
-        Returns: string
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
+      generate_protocol_number: { Args: never; Returns: string }
+      get_user_organization: { Args: { _user_id: string }; Returns: string }
+      get_user_region: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -789,18 +760,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "regional_operator" | "user"
