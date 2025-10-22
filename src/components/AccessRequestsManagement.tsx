@@ -168,9 +168,28 @@ export const AccessRequestsManagement = () => {
 
       if (roleError) throw roleError;
 
+      // Send approval email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-approval-email', {
+          body: {
+            email: selectedRequest.email,
+            fullName: selectedRequest.full_name,
+            organizationName: selectedRequest.organizations?.name,
+          },
+        });
+
+        if (emailError) {
+          console.error("Error sending approval email:", emailError);
+          // Don't fail the approval if email fails
+        }
+      } catch (emailError) {
+        console.error("Error sending approval email:", emailError);
+        // Don't fail the approval if email fails
+      }
+
       toast({
         title: "Успешно",
-        description: `Заявка одобрена. Роль: ${selectedRole === 'admin' ? 'Администратор' : selectedRole === 'regional_operator' ? 'Региональный оператор' : 'Пользователь'}`,
+        description: `Заявка одобрена, уведомление отправлено на email. Роль: ${selectedRole === 'admin' ? 'Администратор' : selectedRole === 'regional_operator' ? 'Региональный оператор' : 'Пользователь'}`,
       });
 
       setSelectedRequest(null);
