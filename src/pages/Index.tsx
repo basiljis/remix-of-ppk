@@ -25,7 +25,7 @@ const Index = () => {
   const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
   const [editingProtocol, setEditingProtocol] = useState<any>(null);
   const { toast } = useToast();
-  const { user, loading, isAdmin, signOut, profile } = useAuth();
+  const { user, loading, isAdmin, signOut, profile, hasAccessRequest } = useAuth();
   const { checklists, loading: checklistLoading, error } = useChecklistData();
 
   // Redirect to auth if not logged in
@@ -34,6 +34,13 @@ const Index = () => {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // If user has pending access request, route to status page
+  useEffect(() => {
+    if (!loading && user && hasAccessRequest && !profile) {
+      navigate("/access-status");
+    }
+  }, [loading, user, hasAccessRequest, profile, navigate]);
 
   const handleLevelChange = (level: EducationLevel) => {
     setSelectedLevel(level);

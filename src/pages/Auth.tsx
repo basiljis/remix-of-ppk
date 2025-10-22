@@ -106,6 +106,20 @@ const Auth = () => {
         title: "Вход выполнен",
         description: "Добро пожаловать!",
       });
+
+      // If access request is pending/rejected, redirect to status page
+      const { data: reqs } = await supabase
+        .from("access_requests")
+        .select("status")
+        .eq("user_id", data.user.id)
+        .order("requested_at", { ascending: false })
+        .limit(1);
+      const request = reqs?.[0];
+      if (request && request.status !== "approved") {
+        navigate("/access-status");
+        return;
+      }
+
       navigate("/");
     } catch (error: any) {
       toast({
@@ -159,6 +173,9 @@ const Auth = () => {
         title: "Заявка отправлена",
         description: "Ваша заявка на доступ отправлена администратору. Вы получите уведомление после её рассмотрения.",
       });
+
+      // Перейти на страницу статуса заявки
+      navigate("/access-status");
 
       // Clear form
       setSignupData({
