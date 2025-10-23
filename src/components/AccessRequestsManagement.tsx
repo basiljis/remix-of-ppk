@@ -39,6 +39,7 @@ interface AccessRequest {
   position_id: string;
   organization_id: string | null;
   region_id: string;
+  role: "user" | "regional_operator" | "admin";
   status: "pending" | "approved" | "rejected";
   admin_notes: string | null;
   requested_at: string;
@@ -82,6 +83,7 @@ export const AccessRequestsManagement = () => {
           position_id,
           organization_id,
           region_id,
+          role,
           status,
           admin_notes,
           requested_at,
@@ -332,6 +334,7 @@ export const AccessRequestsManagement = () => {
                 <TableHead>Должность</TableHead>
                 <TableHead>Организация</TableHead>
                 <TableHead>Округ</TableHead>
+                <TableHead>Запрошенная роль</TableHead>
                 <TableHead>Дата заявки</TableHead>
                 <TableHead>Статус</TableHead>
                 <TableHead>Действия</TableHead>
@@ -347,6 +350,13 @@ export const AccessRequestsManagement = () => {
                   <TableCell>{request.organizations?.name || "-"}</TableCell>
                   <TableCell>{request.regions?.name}</TableCell>
                   <TableCell>
+                    <Badge variant="outline">
+                      {request.role === "admin" ? "Администратор" : 
+                       request.role === "regional_operator" ? "Региональный оператор" : 
+                       "Пользователь"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     {new Date(request.requested_at).toLocaleDateString("ru-RU")}
                   </TableCell>
                   <TableCell>{getStatusBadge(request.status)}</TableCell>
@@ -355,6 +365,7 @@ export const AccessRequestsManagement = () => {
                       <Button
                         onClick={() => {
                           setSelectedRequest(request);
+                          setSelectedRole(request.role || "user");
                           setAdminNotes(request.admin_notes || "");
                         }}
                         variant="outline"
@@ -397,7 +408,7 @@ export const AccessRequestsManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Роль пользователя</Label>
+              <Label htmlFor="role">Роль пользователя *</Label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
                   <SelectValue />
@@ -408,6 +419,11 @@ export const AccessRequestsManagement = () => {
                   <SelectItem value="admin">Администратор</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-sm text-muted-foreground">
+                Запрошенная роль: {selectedRequest?.role === "admin" ? "Администратор" : 
+                                   selectedRequest?.role === "regional_operator" ? "Региональный оператор" : 
+                                   "Пользователь"}
+              </p>
             </div>
 
             <div className="space-y-2">
