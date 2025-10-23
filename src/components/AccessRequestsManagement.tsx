@@ -175,6 +175,7 @@ export const AccessRequestsManagement = () => {
             email: selectedRequest.email,
             fullName: selectedRequest.full_name,
             organizationName: selectedRequest.organizations?.name,
+            status: "approved",
           },
         });
 
@@ -229,9 +230,31 @@ export const AccessRequestsManagement = () => {
 
       if (error) throw error;
 
+      // Send rejection email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-approval-email', {
+          body: {
+            email: selectedRequest.email,
+            fullName: selectedRequest.full_name,
+            organizationName: selectedRequest.organizations?.name,
+            status: "rejected",
+            adminNotes: adminNotes || undefined,
+          },
+        });
+
+        if (emailError) {
+          console.error("Error sending rejection email:", emailError);
+          // Don't fail the rejection if email fails
+        }
+      } catch (emailError) {
+        console.error("Error sending rejection email:", emailError);
+        // Don't fail the rejection if email fails
+      }
+
+
       toast({
         title: "Успешно",
-        description: "Заявка отклонена",
+        description: "Заявка отклонена, уведомление отправлено на email",
       });
 
       setSelectedRequest(null);
