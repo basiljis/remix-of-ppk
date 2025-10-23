@@ -55,6 +55,9 @@ const Auth = () => {
     organizationId: "",
   });
 
+  // Validation errors
+  const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
+
   // Reset password form
   const [resetEmail, setResetEmail] = useState("");
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -135,10 +138,24 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSignupErrors({});
 
     try {
       // Validate form data
-      const validatedData = signupSchema.parse(signupData);
+      const result = signupSchema.safeParse(signupData);
+      
+      if (!result.success) {
+        const errors: Record<string, string> = {};
+        result.error.issues.forEach((issue) => {
+          const path = issue.path[0] as string;
+          errors[path] = issue.message;
+        });
+        setSignupErrors(errors);
+        setLoading(false);
+        return;
+      }
+      
+      const validatedData = result.data;
 
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -324,10 +341,16 @@ const Auth = () => {
                     <Input
                       id="fullName"
                       value={signupData.fullName}
-                      onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, fullName: e.target.value });
+                        setSignupErrors({ ...signupErrors, fullName: "" });
+                      }}
                       required
-                      className="h-10"
+                      className={`h-10 ${signupErrors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
+                    {signupErrors.fullName && (
+                      <p className="text-sm text-destructive">{signupErrors.fullName}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -337,10 +360,16 @@ const Auth = () => {
                       type="tel"
                       placeholder="+7 (999) 999-99-99"
                       value={signupData.phone}
-                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, phone: e.target.value });
+                        setSignupErrors({ ...signupErrors, phone: "" });
+                      }}
                       required
-                      className="h-10"
+                      className={`h-10 ${signupErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
+                    {signupErrors.phone && (
+                      <p className="text-sm text-destructive">{signupErrors.phone}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -349,10 +378,16 @@ const Auth = () => {
                       id="email"
                       type="email"
                       value={signupData.email}
-                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, email: e.target.value });
+                        setSignupErrors({ ...signupErrors, email: "" });
+                      }}
                       required
-                      className="h-10"
+                      className={`h-10 ${signupErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
+                    {signupErrors.email && (
+                      <p className="text-sm text-destructive">{signupErrors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -361,20 +396,29 @@ const Auth = () => {
                       id="password"
                       type="password"
                       value={signupData.password}
-                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, password: e.target.value });
+                        setSignupErrors({ ...signupErrors, password: "" });
+                      }}
                       required
-                      className="h-10"
+                      className={`h-10 ${signupErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
+                    {signupErrors.password && (
+                      <p className="text-sm text-destructive">{signupErrors.password}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="position" className="text-sm">Должность *</Label>
                     <Select
                       value={signupData.positionId}
-                      onValueChange={(value) => setSignupData({ ...signupData, positionId: value })}
+                      onValueChange={(value) => {
+                        setSignupData({ ...signupData, positionId: value });
+                        setSignupErrors({ ...signupErrors, positionId: "" });
+                      }}
                       required
                     >
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className={`h-10 ${signupErrors.positionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
                         <SelectValue placeholder="Выберите должность" />
                       </SelectTrigger>
                       <SelectContent>
@@ -385,16 +429,22 @@ const Auth = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    {signupErrors.positionId && (
+                      <p className="text-sm text-destructive">{signupErrors.positionId}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="region" className="text-sm">Регион *</Label>
                     <Select
                       value={signupData.regionId}
-                      onValueChange={(value) => setSignupData({ ...signupData, regionId: value })}
+                      onValueChange={(value) => {
+                        setSignupData({ ...signupData, regionId: value });
+                        setSignupErrors({ ...signupErrors, regionId: "" });
+                      }}
                       required
                     >
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className={`h-10 ${signupErrors.regionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
                         <SelectValue placeholder="Выберите регион" />
                       </SelectTrigger>
                       <SelectContent>
@@ -405,15 +455,24 @@ const Auth = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    {signupErrors.regionId && (
+                      <p className="text-sm text-destructive">{signupErrors.regionId}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-sm">Образовательная организация *</Label>
                     <OrganizationSelector
                       value={signupData.organizationId}
-                      onChange={(value) => setSignupData({ ...signupData, organizationId: value })}
+                      onChange={(value) => {
+                        setSignupData({ ...signupData, organizationId: value });
+                        setSignupErrors({ ...signupErrors, organizationId: "" });
+                      }}
                       placeholder="Выберите организацию"
                     />
+                    {signupErrors.organizationId && (
+                      <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
+                    )}
                   </div>
                 </div>
 
