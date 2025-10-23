@@ -28,6 +28,7 @@ export type Database = {
           requested_at: string
           reviewed_at: string | null
           reviewed_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
           status: string
           updated_at: string
           user_id: string
@@ -45,6 +46,7 @@ export type Database = {
           requested_at?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
           status?: string
           updated_at?: string
           user_id: string
@@ -62,6 +64,7 @@ export type Database = {
           requested_at?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
           status?: string
           updated_at?: string
           user_id?: string

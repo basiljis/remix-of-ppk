@@ -23,6 +23,9 @@ const signupSchema = z.object({
   positionId: z.string().min(1, "Должность обязательна для заполнения"),
   regionId: z.string().min(1, "Регион обязателен для заполнения"),
   organizationId: z.string().min(1, "Организация обязательна для заполнения"),
+  role: z.enum(["user", "regional_operator", "admin"], { 
+    errorMap: () => ({ message: "Роль обязательна для заполнения" })
+  }),
 });
 
 const Auth = () => {
@@ -53,6 +56,7 @@ const Auth = () => {
     positionId: "",
     regionId: "",
     organizationId: "",
+    role: "user" as "user" | "regional_operator" | "admin",
   });
 
   // Validation errors
@@ -181,6 +185,7 @@ const Auth = () => {
         position_id: validatedData.positionId,
         region_id: validatedData.regionId,
         organization_id: validatedData.organizationId,
+        role: validatedData.role,
         status: "pending",
       });
 
@@ -203,6 +208,7 @@ const Auth = () => {
         positionId: "",
         regionId: "",
         organizationId: "",
+        role: "user",
       });
     } catch (error: any) {
       toast({
@@ -472,6 +478,30 @@ const Auth = () => {
                     />
                     {signupErrors.organizationId && (
                       <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="role" className="text-sm">Роль *</Label>
+                    <Select
+                      value={signupData.role}
+                      onValueChange={(value: "user" | "regional_operator" | "admin") => {
+                        setSignupData({ ...signupData, role: value });
+                        setSignupErrors({ ...signupErrors, role: "" });
+                      }}
+                      required
+                    >
+                      <SelectTrigger className={`h-10 ${signupErrors.role ? "border-destructive focus-visible:ring-destructive" : ""}`}>
+                        <SelectValue placeholder="Выберите роль" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">Пользователь</SelectItem>
+                        <SelectItem value="regional_operator">Региональный оператор</SelectItem>
+                        <SelectItem value="admin">Администратор</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {signupErrors.role && (
+                      <p className="text-sm text-destructive">{signupErrors.role}</p>
                     )}
                   </div>
                 </div>
