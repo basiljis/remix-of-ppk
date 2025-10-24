@@ -19,4 +19,34 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Optimize chunk splitting to reduce unused JS
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate vendor chunks
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-components': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-label',
+            '@radix-ui/react-toast',
+          ],
+          'supabase': ['@supabase/supabase-js'],
+          'query': ['@tanstack/react-query'],
+        },
+      },
+    },
+    // Enable minification and tree-shaking
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',
+        drop_debugger: mode === 'production',
+      },
+    },
+    // Increase chunk size warning limit for better splitting
+    chunkSizeWarningLimit: 600,
+  },
 }));
