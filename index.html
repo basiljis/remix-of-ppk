@@ -20,11 +20,22 @@
     <!-- Yandex.Metrika counter (deferred to reduce unused JS) -->
     <script type="text/javascript">
       (function(w, d) {
+        // Suppress Yandex Metrika WebSocket errors from console
+        var originalError = w.console.error;
+        w.console.error = function() {
+          var args = Array.prototype.slice.call(arguments);
+          var errorMsg = args.join(' ');
+          if (errorMsg.indexOf('yandex') === -1 || errorMsg.indexOf('WebSocket') === -1) {
+            originalError.apply(w.console, args);
+          }
+        };
+        
         w.ym = w.ym || function(){ (w.ym.a = w.ym.a || []).push(arguments) }; w.ym.l = 1*new Date();
         function loadYandex(){
           if (d.getElementById('ym-tag-loaded')) return;
           var s = d.createElement('script'); s.async = true; s.id='ym-tag-loaded';
           s.src = 'https://mc.yandex.ru/metrika/tag.js?id=103841131';
+          s.onerror = function() { /* Silently handle script load errors */ };
           var a = d.getElementsByTagName('script')[0]; a.parentNode.insertBefore(s, a);
           w.ym(103841131, 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: 'dataLayer', accurateTrackBounce: true, trackLinks: true });
         }
