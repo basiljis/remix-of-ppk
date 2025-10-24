@@ -465,11 +465,11 @@ Deno.serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Edge function error:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        details: error.stack 
+        error: 'Произошла внутренняя ошибка',
+        code: 'INTERNAL_ERROR'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

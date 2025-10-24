@@ -13,13 +13,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
 
-const phoneRegex = /^(\+7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$/;
-
 const signupSchema = z.object({
-  fullName: z.string().min(1, "ФИО обязательно для заполнения"),
-  phone: z.string().regex(phoneRegex, "Некорректный формат телефона"),
-  email: z.string().email("Некорректный email"),
-  password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
+  fullName: z.string()
+    .trim()
+    .min(1, "ФИО обязательно для заполнения")
+    .max(200, "ФИО слишком длинное")
+    .regex(/^[а-яА-ЯёЁa-zA-Z\s\-]+$/, "Только буквы, пробелы и дефисы"),
+  phone: z.string()
+    .regex(/^\+?7[0-9]{10}$/, "Формат: +79991234567")
+    .transform(val => val.replace(/[^0-9+]/g, '')),
+  email: z.string()
+    .trim()
+    .email("Некорректный email")
+    .max(255, "Email слишком длинный"),
+  password: z.string()
+    .min(8, "Минимум 8 символов")
+    .regex(/[A-ZА-Я]/, "Нужна заглавная буква")
+    .regex(/[0-9]/, "Нужна цифра"),
   positionId: z.string().min(1, "Должность обязательна для заполнения"),
   regionId: z.string().min(1, "Регион обязателен для заполнения"),
   organizationId: z.string().min(1, "Организация обязательна для заполнения"),

@@ -359,6 +359,41 @@ export type Database = {
           },
         ]
       }
+      organization_api_credentials: {
+        Row: {
+          api_token: string
+          created_at: string
+          id: string
+          organization_id: string
+          token_expires_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_token: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_token?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_api_credentials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_reorganizations: {
         Row: {
           created_at: string
@@ -406,7 +441,6 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
-          api_token: string | null
           coordinates_lat: number | null
           coordinates_lng: number | null
           created_at: string
@@ -428,14 +462,12 @@ export type Database = {
           short_name: string | null
           status_id: number | null
           status_name: string | null
-          token_expires_at: string | null
           type: string | null
           updated_at: string
           website: string | null
         }
         Insert: {
           address?: string | null
-          api_token?: string | null
           coordinates_lat?: number | null
           coordinates_lng?: number | null
           created_at?: string
@@ -457,14 +489,12 @@ export type Database = {
           short_name?: string | null
           status_id?: number | null
           status_name?: string | null
-          token_expires_at?: string | null
           type?: string | null
           updated_at?: string
           website?: string | null
         }
         Update: {
           address?: string | null
-          api_token?: string | null
           coordinates_lat?: number | null
           coordinates_lng?: number | null
           created_at?: string
@@ -486,7 +516,6 @@ export type Database = {
           short_name?: string | null
           status_id?: number | null
           status_name?: string | null
-          token_expires_at?: string | null
           type?: string | null
           updated_at?: string
           website?: string | null
