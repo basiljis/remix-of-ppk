@@ -11,6 +11,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
+import RootGate from "./pages/RootGate";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +24,8 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<RootGate />} />
+              <Route path="/app" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/access-status" element={<AccessRequestStatus />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
