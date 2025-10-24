@@ -110,9 +110,9 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center">
         <p>Загрузка...</p>
-      </div>
+      </main>
     );
   }
 

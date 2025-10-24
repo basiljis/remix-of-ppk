@@ -20,7 +20,7 @@ const RootGate = () => {
   }, []);
 
   if (!checked) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <main className="min-h-screen flex items-center justify-center">Loading...</main>;
   }
 
   return <Navigate to={isAuthed ? "/app" : "/auth"} replace />;

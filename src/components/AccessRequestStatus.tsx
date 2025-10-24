@@ -110,7 +110,7 @@ export const AccessRequestStatus = () => {
   if (!statusContent) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
@@ -178,6 +178,6 @@ export const AccessRequestStatus = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 };

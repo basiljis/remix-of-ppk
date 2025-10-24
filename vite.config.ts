@@ -38,14 +38,8 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Enable minification and tree-shaking
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
-      },
-    },
+    // Use esbuild for minification (faster and no extra dependencies)
+    minify: 'esbuild',
     // Increase chunk size warning limit for better splitting
     chunkSizeWarningLimit: 600,
   },
