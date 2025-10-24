@@ -131,11 +131,12 @@ export const AccessRequestsManagement = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Update access request
+      // Update access request with selected role
       const { error: updateError } = await supabase
         .from("access_requests")
         .update({
           status: "approved",
+          role: selectedRole as "admin" | "regional_operator" | "user",
           admin_notes: adminNotes,
           reviewed_at: new Date().toISOString(),
           reviewed_by: user.id,
@@ -143,32 +144,6 @@ export const AccessRequestsManagement = () => {
         .eq("id", selectedRequest.id);
 
       if (updateError) throw updateError;
-
-      // Create or update profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .upsert({
-          id: selectedRequest.user_id,
-          full_name: selectedRequest.full_name,
-          email: selectedRequest.email,
-          phone: selectedRequest.phone,
-          position_id: selectedRequest.position_id,
-          organization_id: selectedRequest.organization_id,
-          region_id: selectedRequest.region_id,
-          is_blocked: false,
-        });
-
-      if (profileError) throw profileError;
-
-      // Assign role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert([{
-          user_id: selectedRequest.user_id,
-          role: selectedRole as "admin" | "regional_operator" | "user",
-        }]);
-
-      if (roleError) throw roleError;
 
       // Send approval email
       try {
