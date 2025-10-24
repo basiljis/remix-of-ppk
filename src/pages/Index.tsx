@@ -1,22 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChecklistCard } from "@/components/ChecklistCard";
 import { EducationLevelSelector, EducationLevel } from "@/components/EducationLevelSelector";
-import { InstructionsSection } from "@/components/InstructionsSection";
-import { ProtocolForm } from "@/components/ProtocolForm";
-import { PPKList } from "@/components/PPKList";
-import { Dashboard } from "@/components/Dashboard";
 import { MobileMenu } from "@/components/MobileMenu";
 import { Footer } from "@/components/Footer";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Administration } from "@/components/Administration";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+
+// Lazy load heavy components for better FCP
+const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
+const ProtocolForm = lazy(() => import("@/components/ProtocolForm").then(m => ({ default: m.ProtocolForm })));
+const PPKList = lazy(() => import("@/components/PPKList").then(m => ({ default: m.PPKList })));
+const Dashboard = lazy(() => import("@/components/Dashboard").then(m => ({ default: m.Dashboard })));
+const Administration = lazy(() => import("@/components/Administration").then(m => ({ default: m.Administration })));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -119,33 +121,51 @@ const Index = () => {
   }
 
   const renderTabContent = () => {
+    const loadingFallback = <div className="flex items-center justify-center p-8">Загрузка...</div>;
+    
     switch (activeTab) {
       case "protocol":
         return (
-          <ProtocolForm 
-            onProtocolSave={handleProtocolSave} 
-            editingProtocol={editingProtocol}
-          />
+          <Suspense fallback={loadingFallback}>
+            <ProtocolForm 
+              onProtocolSave={handleProtocolSave} 
+              editingProtocol={editingProtocol}
+            />
+          </Suspense>
         );
       case "list":
         return (
-          <PPKList 
-            onNewProtocol={() => {
-              setEditingProtocol(null);
-              setActiveTab("protocol");
-            }} 
-            onEditProtocol={(protocol) => {
-              setEditingProtocol(protocol);
-              setActiveTab("protocol");
-            }}
-          />
+          <Suspense fallback={loadingFallback}>
+            <PPKList 
+              onNewProtocol={() => {
+                setEditingProtocol(null);
+                setActiveTab("protocol");
+              }} 
+              onEditProtocol={(protocol) => {
+                setEditingProtocol(protocol);
+                setActiveTab("protocol");
+              }}
+            />
+          </Suspense>
         );
       case "dashboard":
-        return <Dashboard />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <Dashboard />
+          </Suspense>
+        );
       case "instructions":
-        return <InstructionsSection />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <InstructionsSection />
+          </Suspense>
+        );
       case "administration":
-        return isAdmin ? <Administration /> : (
+        return isAdmin ? (
+          <Suspense fallback={loadingFallback}>
+            <Administration />
+          </Suspense>
+        ) : (
           <div className="text-center p-8">
             <p className="text-muted-foreground">У вас нет доступа к этому разделу</p>
           </div>
