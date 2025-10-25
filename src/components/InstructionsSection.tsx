@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 export const InstructionsSection = () => {
   const { instructions: customInstructions, loading: customLoading, error: customError } = useInstructions('custom');
   const { instructions: workInstructions, loading: workLoading, error: workError } = useInstructions('work');
-  const { instructions: legalInstructions, loading: legalLoading, error: legalError } = useInstructions('legal');
+  // Legal instructions are static, not loaded from DB
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -190,12 +190,68 @@ export const InstructionsSection = () => {
                   <p className="text-sm text-muted-foreground">
                     Система позволяет отслеживать готовность всех участников консилиума к проведению заседания.
                   </p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Дополнение: Эффективное использование системы для администратора</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4">
+                <div className="border-l-4 border-primary pl-4">
+                  <h4 className="font-semibold">Управление доступом</h4>
+                  <p className="text-sm text-muted-foreground">
+                    В разделе "Администрирование" → "Заявки" рассматривайте заявки пользователей на доступ к системе. 
+                    Вы можете одобрить заявку с назначением роли (Пользователь, Региональный оператор, Администратор) 
+                    или отклонить с указанием причины. Используйте фильтры по ролям, статусам и организациям для быстрого поиска.
+                  </p>
+                </div>
+                <div className="border-l-4 border-secondary pl-4">
+                  <h4 className="font-semibold">Управление пользователями</h4>
+                  <p className="text-sm text-muted-foreground">
+                    В разделе "Пользователи" вы можете редактировать данные пользователей, изменять их роли, 
+                    блокировать и разблокировать аккаунты. Используйте фильтры по организациям, должностям и ролям 
+                    для удобного управления большим количеством пользователей.
+                  </p>
+                </div>
+                <div className="border-l-4 border-accent pl-4">
+                  <h4 className="font-semibold">Мониторинг системы</h4>
+                  <p className="text-sm text-muted-foreground">
+                    В разделе "Панель администратора" доступна детальная статистика по авторизациям, заявкам, 
+                    протоколам, организациям и должностям. Используйте эти данные для анализа активности 
+                    и планирования развития системы.
+                  </p>
+                </div>
+                <div className="border-l-4 border-primary pl-4">
+                  <h4 className="font-semibold">Работа с организациями</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Управляйте списком образовательных организаций через раздел "Организации". 
+                    Вы можете экспортировать и импортировать данные через XLS файлы, 
+                    синхронизировать с ЕКИС, добавлять новые организации вручную.
+                  </p>
+                </div>
+                <div className="border-l-4 border-secondary pl-4">
+                  <h4 className="font-semibold">Настройка чеклистов</h4>
+                  <p className="text-sm text-muted-foreground">
+                    В разделе "Чеклист" настраивайте элементы протокола для разных уровней образования. 
+                    Экспортируйте и импортируйте данные через XLS для массового обновления.
+                  </p>
+                </div>
+                <div className="border-l-4 border-accent pl-4">
+                  <h4 className="font-semibold">Управление инструкциями</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Создавайте и редактируйте пользовательские инструкции в разделе "Инструкции". 
+                    Нормативно-правовая база является статичной и одинаковой для всех пользователей.
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Dynamic Work Instructions */}
+          {/* Dynamic Work Instructions - same for all users */}
           {workInstructions.map((instruction) => (
             <Card key={instruction.id}>
               <CardHeader>
@@ -417,8 +473,9 @@ export const InstructionsSection = () => {
         </TabsContent>
 
         <TabsContent value="legal" className="space-y-6">
-          {/* Dynamic Legal Instructions */}
-          {legalInstructions.map((instruction) => (
+          {/* Static Legal Instructions - same for everyone */}
+          {/* Previously loaded from database, now static as per requirements */}
+          {false && [].map((instruction) => (
             <Card key={instruction.id}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

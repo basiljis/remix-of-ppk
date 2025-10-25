@@ -5,7 +5,7 @@ import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users 
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
-import { UserManagement } from "@/components/UserManagement";
+import { UserManagementEnhanced } from "@/components/UserManagementEnhanced";
 import { AccessRequestsManagement } from "@/components/AccessRequestsManagement";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
@@ -206,7 +206,7 @@ export const Administration = () => {
         </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
-          <UserManagement />
+          <UserManagementEnhanced />
         </TabsContent>
 
         <TabsContent value="organizations" className="space-y-6">

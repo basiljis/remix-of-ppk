@@ -285,6 +285,19 @@ export const AccessRequestsManagement = () => {
     );
   }
 
+  const [filterRole, setFilterRole] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterOrg, setFilterOrg] = useState<string>("all");
+
+  const filteredRequests = requests.filter((req) => {
+    if (filterRole !== "all" && req.role !== filterRole) return false;
+    if (filterStatus !== "all" && req.status !== filterStatus) return false;
+    if (filterOrg !== "all" && req.organizations?.name !== filterOrg) return false;
+    return true;
+  });
+
+  const uniqueOrgs = Array.from(new Set(requests.map(r => r.organizations?.name).filter(Boolean)));
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -294,9 +307,56 @@ export const AccessRequestsManagement = () => {
         </Button>
       </div>
 
-      {requests.length === 0 ? (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>Роль</Label>
+          <Select value={filterRole} onValueChange={setFilterRole}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все роли</SelectItem>
+              <SelectItem value="user">Пользователь</SelectItem>
+              <SelectItem value="regional_operator">Региональный оператор</SelectItem>
+              <SelectItem value="admin">Администратор</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Статус</Label>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="pending">Ожидает</SelectItem>
+              <SelectItem value="approved">Одобрено</SelectItem>
+              <SelectItem value="rejected">Отклонено</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Организация</Label>
+          <Select value={filterOrg} onValueChange={setFilterOrg}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все организации</SelectItem>
+              {uniqueOrgs.map((org) => (
+                <SelectItem key={org} value={org!}>{org}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {filteredRequests.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          Нет заявок на доступ
+          {requests.length === 0 ? "Нет заявок на доступ" : "Заявки не найдены по заданным фильтрам"}
         </div>
       ) : (
         <div className="border rounded-lg">
@@ -316,7 +376,7 @@ export const AccessRequestsManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((request) => (
+              {filteredRequests.map((request) => (
                 <TableRow key={request.id}>
                   <TableCell className="font-medium">{request.full_name}</TableCell>
                   <TableCell>{request.email}</TableCell>

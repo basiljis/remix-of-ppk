@@ -2,8 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PerformanceMonitor } from '@/components/PerformanceMonitor';
+import { AdminStatisticsPanel } from '@/components/AdminStatisticsPanel';
 import { useOptimizedStatistics } from '@/hooks/useOptimizedQuery';
-import { Activity, Database, TrendingUp } from 'lucide-react';
+import { Activity, Database, TrendingUp, BarChart3 } from 'lucide-react';
 
 export const AdminPerformancePanel: React.FC = () => {
   const { data: statistics, isLoading } = useOptimizedStatistics();
@@ -22,10 +23,14 @@ export const AdminPerformancePanel: React.FC = () => {
       <h2 className="text-2xl font-bold">Панель администратора</h2>
       
       <Tabs defaultValue="statistics" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="statistics">
             <TrendingUp className="h-4 w-4 mr-2" />
             Статистика
+          </TabsTrigger>
+          <TabsTrigger value="admin-stats">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Детальная статистика
           </TabsTrigger>
           <TabsTrigger value="performance">
             <Activity className="h-4 w-4 mr-2" />
@@ -143,6 +148,10 @@ export const AdminPerformancePanel: React.FC = () => {
               </Card>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="admin-stats">
+          <AdminStatisticsPanel />
         </TabsContent>
 
         <TabsContent value="performance">

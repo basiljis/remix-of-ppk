@@ -484,7 +484,7 @@ const Auth = () => {
                         setSignupData({ ...signupData, organizationId: value });
                         setSignupErrors({ ...signupErrors, organizationId: "" });
                       }}
-                      placeholder="Выберите организацию"
+                      placeholder="Если не нашли организацию выберите Иное..."
                     />
                     {signupErrors.organizationId && (
                       <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
