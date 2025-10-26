@@ -39,7 +39,12 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = true, onNavigateT
     <Sidebar className={state === "collapsed" ? "w-14" : "w-60"} collapsible="icon">
       <SidebarHeader className="p-4 border-b">
         <div className="flex items-center justify-between">
-          <h2 className={`text-lg font-semibold ${state === "collapsed" ? "hidden" : ""}`}>ППК Система</h2>
+          <button 
+            onClick={() => onTabChange("protocol")}
+            className={`text-lg font-semibold hover:text-primary transition-colors ${state === "collapsed" ? "hidden" : ""}`}
+          >
+            ППК Система
+          </button>
           <div className="flex items-center gap-2">
             <button
               onClick={onNavigateToProfile}

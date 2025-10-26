@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User } from "lucide-react";
+import { Loader2, Upload, User, ArrowLeft } from "lucide-react";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -118,7 +120,18 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
-      <h1 className="text-3xl font-bold">Профиль</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/")}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Назад
+        </Button>
+        <h1 className="text-3xl font-bold">Профиль</h1>
+      </div>
 
       <Card>
         <CardHeader>
