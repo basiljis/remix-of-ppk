@@ -178,7 +178,12 @@ const Index = () => {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-gradient-to-br from-background via-background to-accent/5">
-        <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
+        <AppSidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          isAdmin={isAdmin}
+          onNavigateToProfile={() => navigate("/profile")}
+        />
         
         <main className="flex-1 w-full">
           <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

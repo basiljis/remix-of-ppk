@@ -11,6 +11,9 @@ export interface UserProfile {
   region_id: string;
   organization_id: string;
   is_blocked: boolean;
+  avatar_url?: string;
+  notifications_enabled?: boolean;
+  email_notifications?: boolean;
   positions?: {
     name: string;
   };

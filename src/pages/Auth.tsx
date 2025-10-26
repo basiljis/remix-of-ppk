@@ -476,22 +476,7 @@ const Auth = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <Label className="text-sm">Образовательная организация *</Label>
-                    <OrganizationSelector
-                      value={signupData.organizationId}
-                      onChange={(value) => {
-                        setSignupData({ ...signupData, organizationId: value });
-                        setSignupErrors({ ...signupErrors, organizationId: "" });
-                      }}
-                      placeholder="Если не нашли организацию выберите Иное..."
-                    />
-                    {signupErrors.organizationId && (
-                      <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2">
                     <Label htmlFor="role" className="text-sm">Роль *</Label>
                     <Select
                       value={signupData.role}
@@ -512,6 +497,21 @@ const Auth = () => {
                     </Select>
                     {signupErrors.role && (
                       <p className="text-sm text-destructive">{signupErrors.role}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-sm">Образовательная организация *</Label>
+                    <OrganizationSelector
+                      value={signupData.organizationId}
+                      onChange={(value) => {
+                        setSignupData({ ...signupData, organizationId: value });
+                        setSignupErrors({ ...signupErrors, organizationId: "" });
+                      }}
+                      placeholder="Если не нашли организацию выберите Иное..."
+                    />
+                    {signupErrors.organizationId && (
+                      <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
                     )}
                   </div>
                 </div>

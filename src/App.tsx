@@ -11,6 +11,7 @@ const ThemeProvider = lazy(() => import("@/components/ui/theme-provider").then(m
 // Lazy load route components for better FCP
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
 const RootGate = lazy(() => import("./pages/RootGate").then(m => ({ default: m.default })));
@@ -30,6 +31,7 @@ const App = () => (
                 <Route path="/" element={<RootGate />} />
                 <Route path="/app" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/access-status" element={<AccessRequestStatus />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

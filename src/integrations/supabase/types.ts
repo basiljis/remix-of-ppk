@@ -545,11 +545,14 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string
+          email_notifications: boolean | null
           full_name: string
           id: string
           is_blocked: boolean
+          notifications_enabled: boolean | null
           organization_id: string | null
           phone: string
           position_id: string
@@ -557,11 +560,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email: string
+          email_notifications?: boolean | null
           full_name: string
           id: string
           is_blocked?: boolean
+          notifications_enabled?: boolean | null
           organization_id?: string | null
           phone: string
           position_id: string
@@ -569,11 +575,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
+          email_notifications?: boolean | null
           full_name?: string
           id?: string
           is_blocked?: boolean
+          notifications_enabled?: boolean | null
           organization_id?: string | null
           phone?: string
           position_id?: string
