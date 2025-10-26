@@ -63,6 +63,9 @@ export const AccessRequestsManagement = () => {
   const [selectedRole, setSelectedRole] = useState<string>("user");
   const [adminNotes, setAdminNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [filterRole, setFilterRole] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterOrg, setFilterOrg] = useState<string>("all");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -277,18 +280,6 @@ export const AccessRequestsManagement = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
-
-  const [filterRole, setFilterRole] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterOrg, setFilterOrg] = useState<string>("all");
-
   const filteredRequests = requests.filter((req) => {
     if (filterRole !== "all" && req.role !== filterRole) return false;
     if (filterStatus !== "all" && req.status !== filterStatus) return false;
@@ -297,6 +288,14 @@ export const AccessRequestsManagement = () => {
   });
 
   const uniqueOrgs = Array.from(new Set(requests.map(r => r.organizations?.name).filter(Boolean)));
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
