@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, User, ArrowLeft } from "lucide-react";
 
@@ -19,6 +20,7 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   
   const [fullName, setFullName] = useState("");
+  const [organizationId, setOrganizationId] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -26,6 +28,7 @@ export default function Profile() {
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || "");
+      setOrganizationId(profile.organization_id || "");
       setAvatarUrl(profile.avatar_url || "");
       setNotificationsEnabled(profile.notifications_enabled ?? true);
       setEmailNotifications(profile.email_notifications ?? true);
@@ -87,6 +90,7 @@ export default function Profile() {
         .from('profiles')
         .update({
           full_name: fullName,
+          organization_id: organizationId || null,
           notifications_enabled: notificationsEnabled,
           email_notifications: emailNotifications,
         })
@@ -209,7 +213,11 @@ export default function Profile() {
 
             <div className="space-y-2">
               <Label>Организация</Label>
-              <Input value={profile.organizations?.name || "—"} disabled />
+              <OrganizationSelector
+                value={organizationId}
+                onChange={setOrganizationId}
+                placeholder="Выберите организацию"
+              />
             </div>
           </div>
         </CardContent>
