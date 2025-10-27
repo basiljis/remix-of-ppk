@@ -181,27 +181,36 @@ export const exportProtocolToXLS = (protocol: ProtocolData) => {
   wsMain['!cols'] = [{ wch: 25 }, { wch: 50 }];
   XLSX.utils.book_append_sheet(wb, wsMain, 'Основная информация');
 
-  // Данные чек-листов
+  // Данные чек-листов с группировкой по топикам
   if (protocol.checklist_data && Object.keys(protocol.checklist_data).length > 0) {
     const checklistData: any[] = [];
+    let currentTopic = '';
     
     Object.entries(protocol.checklist_data).forEach(([category, items]) => {
-      checklistData.push({
-        'Категория': category,
-        'Пункт': '',
-        'Статус': '',
-        'Обязательный': '',
-        'Описание': ''
-      });
-      
       if (Array.isArray(items)) {
         items.forEach((item: any, index: number) => {
+          // Если есть топик и он отличается от текущего, добавляем строку-заголовок
+          if (item.topic && item.topic !== currentTopic) {
+            currentTopic = item.topic;
+            checklistData.push({
+              'Блок': item.block || '',
+              'Топик': currentTopic,
+              'Подтопик': '',
+              'Пункт': '',
+              'Описание': '',
+              'Статус': '',
+              'Обязательный': ''
+            });
+          }
+          
           checklistData.push({
-            'Категория': '',
+            'Блок': item.block || '',
+            'Топик': '',
+            'Подтопик': item.subtopic || '',
             'Пункт': `${index + 1}`,
+            'Описание': item.description || item.text || item.name || '',
             'Статус': item.isCompleted !== undefined ? (item.isCompleted ? 'Выполнено' : 'Не выполнено') : '',
-            'Обязательный': item.isRequired !== undefined ? (item.isRequired ? 'Да' : 'Нет') : '',
-            'Описание': item.text || item.name || JSON.stringify(item)
+            'Обязательный': item.isRequired !== undefined ? (item.isRequired ? 'Да' : 'Нет') : ''
           });
         });
       }
@@ -209,16 +218,24 @@ export const exportProtocolToXLS = (protocol: ProtocolData) => {
     
     if (checklistData.length > 0) {
       const wsChecklist = XLSX.utils.json_to_sheet(checklistData);
-      wsChecklist['!cols'] = [{ wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 50 }];
+      wsChecklist['!cols'] = [{ wch: 15 }, { wch: 25 }, { wch: 25 }, { wch: 8 }, { wch: 40 }, { wch: 15 }, { wch: 15 }];
       XLSX.utils.book_append_sheet(wb, wsChecklist, 'Чек-листы');
     }
   }
 
   // Данные протокола
   if (protocol.protocol_data && Object.keys(protocol.protocol_data).length > 0) {
+    const formatValue = (value: any): string => {
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'boolean') return value ? 'Да' : 'Нет';
+      if (Array.isArray(value)) return value.join(', ');
+      if (typeof value === 'object') return JSON.stringify(value, null, 2);
+      return String(value);
+    };
+
     const protocolDataArray = Object.entries(protocol.protocol_data).map(([key, value]) => ({
       'Параметр': key,
-      'Значение': typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
+      'Значение': formatValue(value)
     }));
     
     const wsProtocol = XLSX.utils.json_to_sheet(protocolDataArray);
