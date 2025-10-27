@@ -1,12 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3 } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
 import { UserManagementEnhanced } from "@/components/UserManagementEnhanced";
 import { AccessRequestsManagement } from "@/components/AccessRequestsManagement";
+import { AdminStatisticsPanel } from "@/components/AdminStatisticsPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -145,7 +146,7 @@ export const Administration = () => {
       </div>
 
       <Tabs defaultValue="access-requests" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 gap-1 h-auto p-1">
           <TabsTrigger 
             value="access-requests" 
             className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
@@ -185,6 +186,14 @@ export const Administration = () => {
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Инструкции</span>
             <span className="sm:hidden">Инстр.</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="statistics" 
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Статистика</span>
+            <span className="sm:hidden">Стат.</span>
           </TabsTrigger>
         </TabsList>
 
@@ -344,6 +353,10 @@ export const Administration = () => {
             </CardContent>
           </Card>
           <InstructionsEditor />
+        </TabsContent>
+
+        <TabsContent value="statistics" className="space-y-6">
+          <AdminStatisticsPanel />
         </TabsContent>
       </Tabs>
     </div>
