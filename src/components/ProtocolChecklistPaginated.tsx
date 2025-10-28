@@ -135,22 +135,26 @@ export const ProtocolChecklistPaginated = ({
 
       {/* Основной контент */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="w-full">
           <TabsTrigger value="checklist" className="flex items-center gap-2">
             <List className="h-4 w-4" />
-            Чек-лист
+            <span className="hidden sm:inline">Чек-лист</span>
+            <span className="sm:hidden">Список</span>
           </TabsTrigger>
           <TabsTrigger value="results" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Итоги
+            <span className="hidden sm:inline">Итоги</span>
+            <span className="sm:hidden">Итоги</span>
           </TabsTrigger>
           <TabsTrigger value="assistance" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Направления помощи
+            <span className="hidden sm:inline">Направления помощи</span>
+            <span className="sm:hidden">Помощь</span>
           </TabsTrigger>
           <TabsTrigger value="conclusion" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Заключение
+            <span className="hidden sm:inline">Заключение</span>
+            <span className="sm:hidden">Итог</span>
           </TabsTrigger>
         </TabsList>
 

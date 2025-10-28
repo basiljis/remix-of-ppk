@@ -22,28 +22,28 @@ export const InstructionsSection = () => {
       </div>
 
       <Tabs defaultValue="instructions" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 h-auto p-1">
+        <TabsList className="w-full">
           <TabsTrigger 
             value="instructions" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <BookOpen className="h-4 w-4" />
+            <BookOpen className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Инструкции по работе</span>
             <span className="sm:hidden">Инструкции</span>
           </TabsTrigger>
           <TabsTrigger 
             value="custom" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Пользовательские инструкции</span>
+            <FileText className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Пользовательские</span>
             <span className="sm:hidden">Польз.</span>
           </TabsTrigger>
           <TabsTrigger 
             value="legal" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <Scale className="h-4 w-4" />
+            <Scale className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Нормативно-правовая база</span>
             <span className="sm:hidden">НПБ</span>
           </TabsTrigger>

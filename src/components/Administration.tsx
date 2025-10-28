@@ -146,52 +146,52 @@ export const Administration = () => {
       </div>
 
       <Tabs defaultValue="access-requests" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 gap-1 h-auto p-1">
+        <TabsList className="w-full">
           <TabsTrigger 
             value="access-requests" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <Users className="h-4 w-4" />
+            <Users className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Заявки</span>
-            <span className="sm:hidden">Заявки</span>
+            <span className="sm:hidden">Заяв.</span>
           </TabsTrigger>
           <TabsTrigger 
             value="users" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <Users className="h-4 w-4" />
+            <Users className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Пользователи</span>
             <span className="sm:hidden">Польз.</span>
           </TabsTrigger>
           <TabsTrigger 
             value="organizations" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <Building className="h-4 w-4" />
+            <Building className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Организации</span>
             <span className="sm:hidden">Орг.</span>
           </TabsTrigger>
           <TabsTrigger 
             value="checklist" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Чеклист</span>
             <span className="sm:hidden">Чеклист</span>
           </TabsTrigger>
           <TabsTrigger 
             value="instructions" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <FileText className="h-4 w-4" />
+            <FileText className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Инструкции</span>
             <span className="sm:hidden">Инстр.</span>
           </TabsTrigger>
           <TabsTrigger 
             value="statistics" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
           >
-            <BarChart3 className="h-4 w-4" />
+            <BarChart3 className="h-4 w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Статистика</span>
             <span className="sm:hidden">Стат.</span>
           </TabsTrigger>
