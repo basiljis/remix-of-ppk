@@ -8,9 +8,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -32,8 +37,29 @@ const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
-  { id: "instructions", label: "Инструкции", icon: BookOpen },
-  { id: "administration", label: "Администрирование", icon: Settings },
+  { 
+    id: "instructions", 
+    label: "Инструкции", 
+    icon: BookOpen,
+    subItems: [
+      { id: "instructions-work", label: "По работе" },
+      { id: "instructions-custom", label: "Пользовательские" },
+      { id: "instructions-legal", label: "НПБ" },
+    ]
+  },
+  { 
+    id: "administration", 
+    label: "Администрирование", 
+    icon: Settings,
+    subItems: [
+      { id: "administration-access-requests", label: "Заявки" },
+      { id: "administration-users", label: "Пользователи" },
+      { id: "administration-organizations", label: "Организации" },
+      { id: "administration-checklist", label: "Чеклист" },
+      { id: "administration-instructions", label: "Инструкции" },
+      { id: "administration-statistics", label: "Статистика" },
+    ]
+  },
 ];
 
 export function AppSidebar({ activeTab, onTabChange, isAdmin = true, onNavigateToProfile }: AppSidebarProps) {
@@ -84,7 +110,63 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = true, onNavigateT
                 if (item.id === "administration" && !isAdmin) return null;
                 
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive = activeTab === item.id || activeTab.startsWith(item.id + "-");
+                const hasSubItems = 'subItems' in item && item.subItems;
+                
+                if (hasSubItems) {
+                  return (
+                    <Collapsible
+                      key={item.id}
+                      asChild
+                      defaultOpen={isActive}
+                      className="group/collapsible"
+                    >
+                      <SidebarMenuItem>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <CollapsibleTrigger asChild>
+                              <SidebarMenuButton
+                                className={`w-full justify-start gap-3 ${
+                                  isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                                }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                                {state !== "collapsed" && (
+                                  <>
+                                    <span>{item.label}</span>
+                                    <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                  </>
+                                )}
+                              </SidebarMenuButton>
+                            </CollapsibleTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{item.label}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {item.subItems.map((subItem) => {
+                              const isSubActive = activeTab === subItem.id;
+                              return (
+                                <SidebarMenuSubItem key={subItem.id}>
+                                  <SidebarMenuSubButton
+                                    onClick={() => onTabChange(subItem.id)}
+                                    className={
+                                      isSubActive ? "bg-primary/10 text-primary font-medium" : ""
+                                    }
+                                  >
+                                    <span>{subItem.label}</span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              );
+                            })}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  );
+                }
                 
                 return (
                   <SidebarMenuItem key={item.id}>

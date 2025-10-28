@@ -154,16 +154,23 @@ const Index = () => {
             <Dashboard />
           </Suspense>
         );
-      case "instructions":
+      case "instructions-work":
+      case "instructions-custom":
+      case "instructions-legal":
         return (
           <Suspense fallback={loadingFallback}>
-            <InstructionsSection />
+            <InstructionsSection activeSubTab={activeTab.replace("instructions-", "")} />
           </Suspense>
         );
-      case "administration":
+      case "administration-access-requests":
+      case "administration-users":
+      case "administration-organizations":
+      case "administration-checklist":
+      case "administration-instructions":
+      case "administration-statistics":
         return isAdmin ? (
           <Suspense fallback={loadingFallback}>
-            <Administration />
+            <Administration activeSubTab={activeTab.replace("administration-", "")} />
           </Suspense>
         ) : (
           <div className="text-center p-8">

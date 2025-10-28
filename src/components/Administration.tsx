@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3 } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
@@ -19,7 +18,11 @@ import {
   importProtocolChecklistFromXLS
 } from "@/utils/xlsUtils";
 
-export const Administration = () => {
+interface AdministrationProps {
+  activeSubTab?: string;
+}
+
+export const Administration = ({ activeSubTab = "access-requests" }: AdministrationProps) => {
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -145,59 +148,8 @@ export const Administration = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="access-requests" className="w-full">
-        <TabsList className="w-full">
-          <TabsTrigger 
-            value="access-requests" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <Users className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Заявки</span>
-            <span className="sm:hidden">Заяв.</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="users" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <Users className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Пользователи</span>
-            <span className="sm:hidden">Польз.</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="organizations" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <Building className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Организации</span>
-            <span className="sm:hidden">Орг.</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="checklist" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <Settings className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Чеклист</span>
-            <span className="sm:hidden">Чеклист</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="instructions" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <FileText className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Инструкции</span>
-            <span className="sm:hidden">Инстр.</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="statistics" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <BarChart3 className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Статистика</span>
-            <span className="sm:hidden">Стат.</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="access-requests" className="space-y-6">
+      {activeSubTab === "access-requests" && (
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -212,13 +164,17 @@ export const Administration = () => {
             </CardContent>
           </Card>
           <AccessRequestsManagement />
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="users" className="space-y-6">
+      {activeSubTab === "users" && (
+        <div className="space-y-6">
           <UserManagementEnhanced />
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="organizations" className="space-y-6">
+      {activeSubTab === "organizations" && (
+        <div className="space-y-6">
           <Card>
             <CardContent>
               <p className="text-muted-foreground mb-4">
@@ -273,9 +229,11 @@ export const Administration = () => {
             </CardContent>
           </Card>
           <OrganizationsManagement />
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="checklist" className="space-y-6">
+      {activeSubTab === "checklist" && (
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -336,9 +294,11 @@ export const Administration = () => {
             </CardContent>
           </Card>
           <AdminPanel />
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="instructions" className="space-y-6">
+      {activeSubTab === "instructions" && (
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -353,12 +313,14 @@ export const Administration = () => {
             </CardContent>
           </Card>
           <InstructionsEditor />
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="statistics" className="space-y-6">
+      {activeSubTab === "statistics" && (
+        <div className="space-y-6">
           <AdminStatisticsPanel />
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 };

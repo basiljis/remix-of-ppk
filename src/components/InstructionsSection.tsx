@@ -1,12 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Scale, Users, FileText, AlertTriangle, CheckCircle, Download } from "lucide-react";
 import { useInstructions } from "@/hooks/useInstructions";
 import { Button } from "@/components/ui/button";
 
-export const InstructionsSection = () => {
+interface InstructionsSectionProps {
+  activeSubTab?: string;
+}
+
+export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSectionProps) => {
   const { instructions: customInstructions, loading: customLoading, error: customError } = useInstructions('custom');
   const { instructions: workInstructions, loading: workLoading, error: workError } = useInstructions('work');
   // Legal instructions are static, not loaded from DB
@@ -21,35 +24,8 @@ export const InstructionsSection = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="instructions" className="w-full">
-        <TabsList className="w-full">
-          <TabsTrigger 
-            value="instructions" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <BookOpen className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Инструкции по работе</span>
-            <span className="sm:hidden">Инструкции</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="custom" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <FileText className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Пользовательские</span>
-            <span className="sm:hidden">Польз.</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="legal" 
-            className="flex items-center gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3"
-          >
-            <Scale className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Нормативно-правовая база</span>
-            <span className="sm:hidden">НПБ</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="instructions" className="space-y-6">
+      {activeSubTab === "work" && (
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -346,9 +322,11 @@ export const InstructionsSection = () => {
               </CardContent>
             </Card>
           ))}
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="custom" className="space-y-6">
+      {activeSubTab === "custom" && (
+        <div className="space-y-6">
           {customLoading ? (
             <Card>
               <CardContent className="p-6 text-center">
@@ -470,9 +448,11 @@ export const InstructionsSection = () => {
               </Card>
             ))
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="legal" className="space-y-6">
+      {activeSubTab === "legal" && (
+        <div className="space-y-6">
           {/* Static Legal Instructions - same for everyone */}
           {/* Previously loaded from database, now static as per requirements */}
           {false && [].map((instruction) => (
@@ -716,8 +696,8 @@ export const InstructionsSection = () => {
               </Accordion>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 };
