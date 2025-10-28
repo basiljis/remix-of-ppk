@@ -209,9 +209,9 @@ export function InstructionsEditor() {
       setIsDialogOpen(false);
       setEditingInstruction(null);
       fetchInstructions();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving instruction:', error);
-      toast.error('Ошибка при сохранении');
+      toast.error(`Ошибка при сохранении: ${error?.message || 'Неизвестная ошибка'}`);
     } finally {
       setIsLoading(false);
     }
@@ -221,6 +221,16 @@ export function InstructionsEditor() {
     if (!confirm('Удалить инструкцию?')) return;
 
     try {
+      // Удаляем связанные файлы (не критично, если не получится из-за RLS)
+      const { error: filesError } = await supabase
+        .from('instruction_files')
+        .delete()
+        .eq('instruction_id', id);
+      if (filesError) {
+        console.warn('Error deleting related files (non-fatal):', filesError);
+      }
+
+      // Мягкое удаление инструкции
       const { error } = await supabase
         .from('instructions')
         .update({ is_active: false })
@@ -229,9 +239,9 @@ export function InstructionsEditor() {
       if (error) throw error;
       toast.success('Инструкция удалена');
       fetchInstructions();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting instruction:', error);
-      toast.error('Ошибка при удалении');
+      toast.error(`Ошибка при удалении: ${error?.message || 'Неизвестная ошибка'}`);
     }
   };
 
@@ -263,13 +273,26 @@ export function InstructionsEditor() {
     });
   };
 
-  const deleteSection = (sectionId: string) => {
+  const deleteSection = async (sectionId: string) => {
     if (!editingInstruction) return;
 
+    // Оптимистично убираем раздел из UI
     setEditingInstruction({
       ...editingInstruction,
       content: editingInstruction.content.filter(section => section.id !== sectionId)
     });
+
+    // Если инструкция уже сохранена — удалим связанные файлы раздела из БД
+    if (editingInstruction.id) {
+      const { error } = await supabase
+        .from('instruction_files')
+        .delete()
+        .match({ instruction_id: editingInstruction.id, section_id: sectionId });
+      if (error) {
+        console.error('Error deleting section files:', error);
+        toast.error('Не удалось удалить файлы раздела (проверьте права)');
+      }
+    }
   };
 
   const addSubsection = (sectionId: string) => {
@@ -310,9 +333,10 @@ export function InstructionsEditor() {
     });
   };
 
-  const deleteSubsection = (sectionId: string, subsectionId: string) => {
+  const deleteSubsection = async (sectionId: string, subsectionId: string) => {
     if (!editingInstruction) return;
 
+    // Оптимистично убираем подраздел из UI
     setEditingInstruction({
       ...editingInstruction,
       content: editingInstruction.content.map(section =>
@@ -324,6 +348,18 @@ export function InstructionsEditor() {
           : section
       )
     });
+
+    // Если инструкция уже сохранена — удалим связанные файлы подраздела из БД
+    if (editingInstruction.id) {
+      const { error } = await supabase
+        .from('instruction_files')
+        .delete()
+        .match({ instruction_id: editingInstruction.id, section_id: sectionId, subsection_id: subsectionId });
+      if (error) {
+        console.error('Error deleting subsection files:', error);
+        toast.error('Не удалось удалить файлы подраздела (проверьте права)');
+      }
+    }
   };
 
   const handleFileUpload = async (file: File, sectionId?: string, subsectionId?: string) => {
