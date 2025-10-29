@@ -11,7 +11,9 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationsDialog } from "@/components/NotificationsDialog";
 
 // Lazy load heavy components for better FCP
 const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
@@ -29,6 +31,7 @@ const Index = () => {
   const { toast } = useToast();
   const { user, loading, isAdmin, signOut, profile, hasAccessRequest } = useAuth();
   const { checklists, loading: checklistLoading, error } = useChecklistData();
+  const notificationCount = 0;
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -189,7 +192,6 @@ const Index = () => {
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
           isAdmin={isAdmin}
-          onNavigateToProfile={() => navigate("/profile")}
         />
         
         <main className="flex-1 w-full">
@@ -207,6 +209,18 @@ const Index = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
+                  <NotificationsDialog notificationCount={notificationCount} />
+                  <button
+                    onClick={() => navigate("/profile")}
+                    className="flex items-center gap-2 p-2 hover:bg-accent rounded-md transition-colors"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url || ""} />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
                   <ThemeToggle />
                   <Button variant="outline" size="sm" onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />
