@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import Preloader from "@/components/Preloader";
 
 // Lightweight auth gate to avoid loading heavy routes until needed
 const RootGate = () => {
@@ -20,7 +21,7 @@ const RootGate = () => {
   }, []);
 
   if (!checked) {
-    return <main className="min-h-screen flex items-center justify-center">Loading...</main>;
+    return <Preloader />;
   }
 
   return <Navigate to={isAuthed ? "/app" : "/auth"} replace />;
