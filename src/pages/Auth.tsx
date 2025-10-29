@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
+import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const signupSchema = z.object({
   fullName: z.string()
@@ -35,6 +37,9 @@ const signupSchema = z.object({
   organizationId: z.string().min(1, "Организация обязательна для заполнения"),
   role: z.enum(["user", "regional_operator", "admin"], { 
     errorMap: () => ({ message: "Роль обязательна для заполнения" })
+  }),
+  dataProcessingConsent: z.boolean().refine(val => val === true, {
+    message: "Необходимо согласие на обработку персональных данных"
   }),
 });
 
@@ -67,6 +72,7 @@ const Auth = () => {
     regionId: "",
     organizationId: "",
     role: "user" as "user" | "regional_operator" | "admin",
+    dataProcessingConsent: false,
   });
 
   // Validation errors
@@ -219,6 +225,7 @@ const Auth = () => {
         regionId: "",
         organizationId: "",
         role: "user",
+        dataProcessingConsent: false,
       });
     } catch (error: any) {
       toast({
@@ -512,6 +519,30 @@ const Auth = () => {
                     />
                     {signupErrors.organizationId && (
                       <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <div className="flex items-start space-x-2">
+                      <Checkbox
+                        id="dataProcessingConsent"
+                        checked={signupData.dataProcessingConsent}
+                        onCheckedChange={(checked) => {
+                          setSignupData({ ...signupData, dataProcessingConsent: checked as boolean });
+                          setSignupErrors({ ...signupErrors, dataProcessingConsent: "" });
+                        }}
+                        className={signupErrors.dataProcessingConsent ? "border-destructive" : ""}
+                      />
+                      <label
+                        htmlFor="dataProcessingConsent"
+                        className="text-sm leading-tight cursor-pointer"
+                      >
+                        Я согласен на обработку персональных данных в соответствии с{" "}
+                        <DataProcessingAgreement />
+                      </label>
+                    </div>
+                    {signupErrors.dataProcessingConsent && (
+                      <p className="text-sm text-destructive">{signupErrors.dataProcessingConsent}</p>
                     )}
                   </div>
                 </div>
