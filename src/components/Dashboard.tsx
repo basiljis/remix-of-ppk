@@ -19,6 +19,7 @@ import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
 import { useProtocolChecklistData } from "@/hooks/useProtocolChecklistData";
 import { useAuth } from "@/hooks/useAuth";
 import { AccessRequestStatus } from "@/components/AccessRequestStatus";
+import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear, SchoolYear } from "@/utils/schoolYear";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 export const Dashboard = () => {
   const { hasAccessRequest } = useAuth();
@@ -43,16 +44,31 @@ export const Dashboard = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [parallelFilter, setParallelFilter] = useState("all");
   const [reasonFilter, setReasonFilter] = useState("");
+  const [schoolYearFilter, setSchoolYearFilter] = useState<string>(() => getCurrentSchoolYear().value);
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
+  
+  const availableSchoolYears = getAvailableSchoolYears();
 
   // Данные из организаций
   const districts = [...new Set(organizations.map(org => org.district).filter(Boolean))] as string[];
   useEffect(() => {
     applyFilters();
-  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, dateFrom, dateTo, organizations]);
+  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, schoolYearFilter, dateFrom, dateTo, organizations]);
   const applyFilters = () => {
     let filtered = [...protocols];
+    
+    // Фильтр по учебному году
+    if (schoolYearFilter && schoolYearFilter !== "all") {
+      const selectedYear = availableSchoolYears.find(y => y.value === schoolYearFilter);
+      if (selectedYear) {
+        filtered = filtered.filter(p => {
+          const createdDate = new Date(p.created_at);
+          return isDateInSchoolYear(createdDate, selectedYear);
+        });
+      }
+    }
+    
     if (eduOrgFilter) {
       // Find organization by ID and filter protocols
       const selectedOrg = organizations.find(org => org.id === eduOrgFilter);
@@ -99,6 +115,7 @@ export const Dashboard = () => {
     setTypeFilter("all");
     setParallelFilter("all");
     setReasonFilter("");
+    setSchoolYearFilter(getCurrentSchoolYear().value);
     setDateFrom(undefined);
     setDateTo(undefined);
   };
@@ -277,6 +294,21 @@ export const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
+              <Label>Учебный год</Label>
+              <Select value={schoolYearFilter} onValueChange={setSchoolYearFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите учебный год" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все годы</SelectItem>
+                  {availableSchoolYears.map(year => (
+                    <SelectItem key={year.value} value={year.value}>{year.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          
             <div>
               <Label></Label>
               <OrganizationSelector value={eduOrgFilter} onChange={setEduOrgFilter} placeholder="Поиск и выбор организации..." />

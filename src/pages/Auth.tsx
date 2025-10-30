@@ -244,14 +244,14 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;
 
       toast({
         title: "Письмо отправлено",
-        description: "Проверьте почту для восстановления пароля",
+        description: "Проверьте почту для восстановления пароля. Перейдите по ссылке в письме для создания нового пароля.",
       });
       setResetEmail("");
       setResetDialogOpen(false);

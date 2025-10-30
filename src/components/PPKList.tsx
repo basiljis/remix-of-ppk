@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ import { ProtocolResultsPanel } from '@/components/ProtocolResultsPanel';
 import { AssistanceDirectionsPanel } from '@/components/AssistanceDirectionsPanel';
 import { ProtocolConclusionPanel } from '@/components/ProtocolConclusionPanel';
 import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
+import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear } from '@/utils/schoolYear';
 
 interface PPKListProps {
   onNewProtocol: () => void;
@@ -34,9 +36,12 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   const [typeFilter, setTypeFilter] = useState('all');
   const [reasonFilter, setReasonFilter] = useState('all');
   const [meetingTypeFilter, setMeetingTypeFilter] = useState('all');
+  const [schoolYearFilter, setSchoolYearFilter] = useState<string>(() => getCurrentSchoolYear().value);
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  const availableSchoolYears = getAvailableSchoolYears();
 
   // Filter protocols based on search and filters
   const filteredRecords = protocols.filter(protocol => {
@@ -47,8 +52,18 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     const matchesType = typeFilter === 'all' || protocol.consultation_type === typeFilter;
     const matchesReason = reasonFilter === 'all' || protocol.consultation_reason === reasonFilter;
     const matchesMeetingType = meetingTypeFilter === 'all' || protocol.meeting_type === meetingTypeFilter;
+    
+    // School year filter
+    let matchesSchoolYear = true;
+    if (schoolYearFilter && schoolYearFilter !== 'all') {
+      const selectedYear = availableSchoolYears.find(y => y.value === schoolYearFilter);
+      if (selectedYear) {
+        const createdDate = new Date(protocol.created_at);
+        matchesSchoolYear = isDateInSchoolYear(createdDate, selectedYear);
+      }
+    }
 
-    return matchesSearch && matchesStatus && matchesType && matchesReason && matchesMeetingType;
+    return matchesSearch && matchesStatus && matchesType && matchesReason && matchesMeetingType && matchesSchoolYear;
   });
 
   // Pagination logic
@@ -204,6 +219,22 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
         {/* Фильтры */}
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-64">
+            <Label>Учебный год</Label>
+            <Select value={schoolYearFilter} onValueChange={setSchoolYearFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите учебный год" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все годы</SelectItem>
+                {availableSchoolYears.map(year => (
+                  <SelectItem key={year.value} value={year.value}>{year.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        
+          <div className="flex-1 min-w-64">
+            <Label>Поиск</Label>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -215,53 +246,65 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
             </div>
           </div>
           
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Статус" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все статусы</SelectItem>
-              <SelectItem value="completed">Завершенные</SelectItem>
-              <SelectItem value="in_progress">В процессе</SelectItem>
-              <SelectItem value="draft">Черновики</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-48">
+            <Label>Статус</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Статус" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все статусы</SelectItem>
+                <SelectItem value="completed">Завершенные</SelectItem>
+                <SelectItem value="in_progress">В процессе</SelectItem>
+                <SelectItem value="draft">Черновики</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Тип" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все типы</SelectItem>
-              <SelectItem value="primary">Первичные</SelectItem>
-              <SelectItem value="secondary">Повторные</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-48">
+            <Label>Тип</Label>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Тип" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все типы</SelectItem>
+                <SelectItem value="primary">Первичные</SelectItem>
+                <SelectItem value="secondary">Повторные</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={reasonFilter} onValueChange={setReasonFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Причина" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все причины</SelectItem>
-              <SelectItem value="трудности в обучении">Трудности в обучении</SelectItem>
-              <SelectItem value="повторное обследование">Повторное обследование</SelectItem>
-              <SelectItem value="социальная дезадаптация">Социальная дезадаптация</SelectItem>
-              <SelectItem value="нарушения речи">Нарушения речи</SelectItem>
-              <SelectItem value="поведенческие нарушения">Поведенческие нарушения</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-48">
+            <Label>Причина</Label>
+            <Select value={reasonFilter} onValueChange={setReasonFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Причина" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все причины</SelectItem>
+                <SelectItem value="трудности в обучении">Трудности в обучении</SelectItem>
+                <SelectItem value="повторное обследование">Повторное обследование</SelectItem>
+                <SelectItem value="социальная дезадаптация">Социальная дезадаптация</SelectItem>
+                <SelectItem value="нарушения речи">Нарушения речи</SelectItem>
+                <SelectItem value="поведенческие нарушения">Поведенческие нарушения</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={meetingTypeFilter} onValueChange={setMeetingTypeFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Тип заседания" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все типы заседаний</SelectItem>
-              <SelectItem value="scheduled">Плановые</SelectItem>
-              <SelectItem value="unscheduled">Внеплановые</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-48">
+            <Label>Тип заседания</Label>
+            <Select value={meetingTypeFilter} onValueChange={setMeetingTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Тип заседания" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все типы заседаний</SelectItem>
+                <SelectItem value="scheduled">Плановые</SelectItem>
+                <SelectItem value="unscheduled">Внеплановые</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <Button 
             onClick={handleRefresh} 
