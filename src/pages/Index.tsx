@@ -225,14 +225,12 @@ const Index = () => {
           </div>
         </header>
 
-        {/* Sidebar - positioned below header */}
-        <div className="pt-16">
-          <AppSidebar 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-            isAdmin={isAdmin}
-          />
-        </div>
+        {/* Sidebar - positioned below header with top padding */}
+        <AppSidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          isAdmin={isAdmin}
+        />
         
         {/* Main content */}
         <main className="flex-1 w-full pt-16">

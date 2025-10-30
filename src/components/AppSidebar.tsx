@@ -63,7 +63,7 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = true }: AppSideba
 
   return (
     <TooltipProvider>
-      <Sidebar className={state === "collapsed" ? "w-14" : "w-60"} collapsible="icon">
+      <Sidebar className={`${state === "collapsed" ? "w-14" : "w-60"} pt-16`} collapsible="icon">
         <SidebarHeader className="p-4 border-b">
           <button 
             onClick={() => onTabChange("protocol")}
