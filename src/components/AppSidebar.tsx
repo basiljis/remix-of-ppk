@@ -65,14 +65,6 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = true }: AppSideba
   return (
     <TooltipProvider>
       <Sidebar className={`${state === "collapsed" ? "w-14" : "w-60"} pt-16`} collapsible="icon">
-        <SidebarHeader className="p-4 border-b">
-          <button 
-            onClick={() => onTabChange("protocol")}
-            className={`text-lg font-semibold hover:text-primary transition-colors ${state === "collapsed" ? "hidden" : ""}`}
-          >
-            ППК Система
-          </button>
-        </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Система ППК</SidebarGroupLabel>
