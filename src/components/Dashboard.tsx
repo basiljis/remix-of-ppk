@@ -20,6 +20,7 @@ import { useProtocolChecklistData } from "@/hooks/useProtocolChecklistData";
 import { useAuth } from "@/hooks/useAuth";
 import { AccessRequestStatus } from "@/components/AccessRequestStatus";
 import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear, SchoolYear } from "@/utils/schoolYear";
+import { useSchoolYears } from "@/hooks/useSchoolYears";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 export const Dashboard = () => {
   const { hasAccessRequest } = useAuth();
@@ -48,7 +49,13 @@ export const Dashboard = () => {
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
   
-  const availableSchoolYears = getAvailableSchoolYears();
+  // Fetch school years from database
+  const { schoolYearsFormatted, loading: yearsLoading } = useSchoolYears();
+  
+  // Use database school years if available, otherwise use generated ones
+  const availableSchoolYears = schoolYearsFormatted.length > 0 
+    ? schoolYearsFormatted 
+    : getAvailableSchoolYears();
 
   // Данные из организаций
   const districts = [...new Set(organizations.map(org => org.district).filter(Boolean))] as string[];

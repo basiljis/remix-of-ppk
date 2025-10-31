@@ -21,6 +21,7 @@ import { AssistanceDirectionsPanel } from '@/components/AssistanceDirectionsPane
 import { ProtocolConclusionPanel } from '@/components/ProtocolConclusionPanel';
 import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
 import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear } from '@/utils/schoolYear';
+import { useSchoolYears } from '@/hooks/useSchoolYears';
 
 interface PPKListProps {
   onNewProtocol: () => void;
@@ -41,7 +42,13 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
-  const availableSchoolYears = getAvailableSchoolYears();
+  // Fetch school years from database
+  const { schoolYearsFormatted, loading: yearsLoading } = useSchoolYears();
+  
+  // Use database school years if available, otherwise use generated ones
+  const availableSchoolYears = schoolYearsFormatted.length > 0 
+    ? schoolYearsFormatted 
+    : getAvailableSchoolYears();
 
   // Filter protocols based on search and filters
   const filteredRecords = protocols.filter(protocol => {

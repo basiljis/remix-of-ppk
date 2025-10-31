@@ -54,6 +54,7 @@ const menuItems = [
       { id: "administration-checklist", label: "Чеклист" },
       { id: "administration-instructions", label: "Инструкции" },
       { id: "administration-statistics", label: "Статистика" },
+      { id: "administration-school-years", label: "Учебные годы" },
     ]
   },
 ];

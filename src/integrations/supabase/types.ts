@@ -768,6 +768,39 @@ export type Database = {
         }
         Relationships: []
       }
+      school_years: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          is_active: boolean
+          label: string
+          start_date: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          label: string
+          start_date: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          start_date?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

@@ -644,23 +644,6 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
         {/* Шаг 3: Завершение протокола */}
         {currentStep === 3 && (
           <div className="space-y-6">
-            {/* Генерация документов */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Генерация документов
-              </h3>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button onClick={generateConsent} variant="outline" className="w-full" disabled={!canSaveProtocol()}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Согласие родителя
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Для генерации согласия необходимо заполнить все обязательные поля данных об обучающемся.
-              </p>
-            </div>
-
             <div>
               <h3 className="text-lg font-semibold mb-4">Данные протокола</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
