@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save, Download, Upload, X } from "lucide-react";
+import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save, Download } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData } from "@/data/protocolChecklistData";
 import { useProtocols } from "@/hooks/useProtocols";
@@ -35,8 +35,6 @@ interface ChildData {
   whobrought: string;
   relationship: string;
   educationalOrganization: string;
-  cpmpcConclusionFile?: string; // URL файла заключения ЦПМПК
-  iprFile?: string; // URL файла ИПРА
 }
 
 interface DocumentCheck {
@@ -77,10 +75,6 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLevel, setSelectedLevel] = useState<"preschool" | "elementary" | "middle" | "high">("elementary");
-  const [uploadingCpmpk, setUploadingCpmpk] = useState(false);
-  const [uploadingIpr, setUploadingIpr] = useState(false);
-  const cpmpkFileInputRef = useRef<HTMLInputElement>(null);
-  const iprFileInputRef = useRef<HTMLInputElement>(null);
   
   // Remove state for checklistBlocks as it's now computed via useMemo
   const { saveProtocol, updateProtocol } = useProtocols();
@@ -233,135 +227,6 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     }));
   };
 
-  // Handle file upload for CPMPK conclusion
-  const handleCpmpkFileUpload = async (file: File) => {
-    if (!file) return;
-
-    setUploadingCpmpk(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-cpmpk.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('protocol-documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('protocol-documents')
-        .getPublicUrl(filePath);
-
-      updateChildData('cpmpcConclusionFile', filePath);
-      
-      toast({
-        title: "Файл загружен",
-        description: "Заключение ЦПМПК успешно загружено"
-      });
-    } catch (error) {
-      console.error('Error uploading CPMPK file:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить файл",
-        variant: "destructive"
-      });
-    } finally {
-      setUploadingCpmpk(false);
-    }
-  };
-
-  // Handle file upload for IPR
-  const handleIprFileUpload = async (file: File) => {
-    if (!file) return;
-
-    setUploadingIpr(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-ipr.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('protocol-documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('protocol-documents')
-        .getPublicUrl(filePath);
-
-      updateChildData('iprFile', filePath);
-      
-      toast({
-        title: "Файл загружен",
-        description: "ИПРА успешно загружена"
-      });
-    } catch (error) {
-      console.error('Error uploading IPR file:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить файл",
-        variant: "destructive"
-      });
-    } finally {
-      setUploadingIpr(false);
-    }
-  };
-
-  // Delete CPMPK file
-  const handleDeleteCpmpkFile = async () => {
-    if (!formData.childData.cpmpcConclusionFile) return;
-
-    try {
-      const { error } = await supabase.storage
-        .from('protocol-documents')
-        .remove([formData.childData.cpmpcConclusionFile]);
-
-      if (error) throw error;
-
-      updateChildData('cpmpcConclusionFile', '');
-      
-      toast({
-        title: "Файл удален",
-        description: "Заключение ЦПМПК удалено"
-      });
-    } catch (error) {
-      console.error('Error deleting CPMPK file:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось удалить файл",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Delete IPR file
-  const handleDeleteIprFile = async () => {
-    if (!formData.childData.iprFile) return;
-
-    try {
-      const { error } = await supabase.storage
-        .from('protocol-documents')
-        .remove([formData.childData.iprFile]);
-
-      if (error) throw error;
-
-      updateChildData('iprFile', '');
-      
-      toast({
-        title: "Файл удален",
-        description: "ИПРА удалена"
-      });
-    } catch (error) {
-      console.error('Error deleting IPR file:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось удалить файл",
-        variant: "destructive"
-      });
-    }
-  };
 
   const nextStep = () => {
     if (currentStep < 4) {
@@ -781,97 +646,6 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
 
             {/* Документы для загрузки */}
             <div className="space-y-4 border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">Дополнительные документы</h3>
-              
-              {/* CPMPK Conclusion */}
-              <div className="space-y-2">
-                <Label>Заключение ЦПМПК г. Москвы (при наличии)</Label>
-                {formData.childData.cpmpcConclusionFile ? (
-                  <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
-                    <FileText className="h-4 w-4" />
-                    <span className="flex-1 text-sm">Файл загружен</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleDeleteCpmpkFile}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => cpmpkFileInputRef.current?.click()}
-                      disabled={uploadingCpmpk}
-                      className="w-full"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploadingCpmpk ? "Загрузка..." : "Загрузить заключение ЦПМПК"}
-                    </Button>
-                    <input
-                      ref={cpmpkFileInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleCpmpkFileUpload(file);
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                  </>
-                )}
-              </div>
-
-              {/* IPR */}
-              <div className="space-y-2">
-                <Label>Индивидуальная программа реабилитации и абилитации для ребёнка-инвалида (при наличии)</Label>
-                {formData.childData.iprFile ? (
-                  <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
-                    <FileText className="h-4 w-4" />
-                    <span className="flex-1 text-sm">Файл загружен</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleDeleteIprFile}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => iprFileInputRef.current?.click()}
-                      disabled={uploadingIpr}
-                      className="w-full"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploadingIpr ? "Загрузка..." : "Загрузить ИПРА"}
-                    </Button>
-                    <input
-                      ref={iprFileInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleIprFileUpload(file);
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                  </>
-                )}
-              </div>
             </div>
           </div>
         )}
