@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Menu, X, ClipboardList, Users, Database, BarChart3, BookOpen, Settings } from "lucide-react";
+import { Menu, ClipboardList, Database, BarChart3, BookOpen, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface MobileMenuProps {
   activeTab: string;
@@ -13,8 +14,30 @@ const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
-  { id: "instructions", label: "Инструкции", icon: BookOpen },
-  { id: "administration", label: "Администрирование", icon: Settings },
+  { 
+    id: "instructions", 
+    label: "Инструкции", 
+    icon: BookOpen,
+    subItems: [
+      { id: "instructions-work", label: "По работе" },
+      { id: "instructions-custom", label: "Пользовательские" },
+      { id: "instructions-legal", label: "НПБ" },
+    ]
+  },
+  { 
+    id: "administration", 
+    label: "Администрирование", 
+    icon: Settings,
+    subItems: [
+      { id: "administration-access-requests", label: "Заявки" },
+      { id: "administration-users", label: "Пользователи" },
+      { id: "administration-organizations", label: "Организации" },
+      { id: "administration-checklist", label: "Чеклист" },
+      { id: "administration-instructions", label: "Инструкции" },
+      { id: "administration-statistics", label: "Статистика" },
+      { id: "administration-school-years", label: "Учебные годы" },
+    ]
+  },
 ];
 
 export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMenuProps) => {
@@ -41,6 +64,47 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMen
             if (item.id === "administration" && !isAdmin) return null;
             
             const Icon = item.icon;
+            const isActive = activeTab === item.id || activeTab.startsWith(item.id + "-");
+            const hasSubItems = 'subItems' in item && item.subItems;
+            
+            if (hasSubItems) {
+              return (
+                <Collapsible
+                  key={item.id}
+                  defaultOpen={isActive}
+                  className="space-y-1"
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant={isActive ? "default" : "ghost"}
+                      className="w-full justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="h-4 w-4" />
+                        {item.label}
+                      </div>
+                      <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-1 pl-4">
+                    {item.subItems.map((subItem) => {
+                      const isSubActive = activeTab === subItem.id;
+                      return (
+                        <Button
+                          key={subItem.id}
+                          variant={isSubActive ? "secondary" : "ghost"}
+                          className="w-full justify-start text-sm"
+                          onClick={() => handleTabClick(subItem.id)}
+                        >
+                          {subItem.label}
+                        </Button>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            }
+            
             return (
               <Button
                 key={item.id}
