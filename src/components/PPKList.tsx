@@ -60,13 +60,17 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     const matchesReason = reasonFilter === 'all' || protocol.consultation_reason === reasonFilter;
     const matchesMeetingType = meetingTypeFilter === 'all' || protocol.meeting_type === meetingTypeFilter;
     
-    // School year filter
+    // School year filter (используем дату проведения ППК)
     let matchesSchoolYear = true;
     if (schoolYearFilter && schoolYearFilter !== 'all') {
       const selectedYear = availableSchoolYears.find(y => y.value === schoolYearFilter);
       if (selectedYear) {
-        const createdDate = new Date(protocol.created_at);
-        matchesSchoolYear = isDateInSchoolYear(createdDate, selectedYear);
+        // Используем дату проведения из protocol_data.consultationDate
+        const protocolData = protocol.protocol_data as any;
+        const consultationDate = protocolData?.consultationDate 
+          ? new Date(protocolData.consultationDate)
+          : new Date(protocol.created_at); // Fallback на created_at если consultationDate не указана
+        matchesSchoolYear = isDateInSchoolYear(consultationDate, selectedYear);
       }
     }
 

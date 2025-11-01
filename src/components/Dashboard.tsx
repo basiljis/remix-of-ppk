@@ -65,13 +65,17 @@ export const Dashboard = () => {
   const applyFilters = () => {
     let filtered = [...protocols];
     
-    // Фильтр по учебному году
+    // Фильтр по учебному году (используем дату проведения ППК)
     if (schoolYearFilter && schoolYearFilter !== "all") {
       const selectedYear = availableSchoolYears.find(y => y.value === schoolYearFilter);
       if (selectedYear) {
         filtered = filtered.filter(p => {
-          const createdDate = new Date(p.created_at);
-          return isDateInSchoolYear(createdDate, selectedYear);
+          // Используем дату проведения из protocol_data.consultationDate
+          const protocolData = p.protocol_data as any;
+          const consultationDate = protocolData?.consultationDate 
+            ? new Date(protocolData.consultationDate)
+            : new Date(p.created_at); // Fallback на created_at если consultationDate не указана
+          return isDateInSchoolYear(consultationDate, selectedYear);
         });
       }
     }
