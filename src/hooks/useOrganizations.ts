@@ -12,6 +12,7 @@ export interface Organization {
   type?: string;
   mrsd?: string;
   is_manual: boolean;
+  region_id?: string;
 }
 
 export const useOrganizations = () => {
@@ -43,7 +44,8 @@ export const useOrganizations = () => {
         name: org.full_name || org.name,
         district: org.district,
         type: org.type,
-        is_manual: org.is_manual || false
+        is_manual: org.is_manual || false,
+        region_id: org.region_id
       }));
 
       setOrganizations(transformedOrgs);

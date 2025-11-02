@@ -313,6 +313,13 @@ Deno.serve(async (req) => {
                              org.status_id === 2 ? 'В стадии открытия (приказ)' : 
                              org.status_id === 3 ? 'В стадии закрытия (приказ)' : 'Неизвестно'
 
+            // Получаем регион "Москва" из базы
+            const { data: moscowRegion } = await supabase
+              .from('regions')
+              .select('id')
+              .eq('name', 'Москва')
+              .maybeSingle()
+            
             // Уpsert организации
             const { error: upsertError } = await supabase
               .from('organizations')
@@ -331,6 +338,7 @@ Deno.serve(async (req) => {
                 email: org.email,
                 website: org.website,
                 parent_organization: org.parent_org,
+                region_id: moscowRegion?.id || null,
                 last_sync_at: new Date().toISOString(),
                 is_manual: false
               }, {

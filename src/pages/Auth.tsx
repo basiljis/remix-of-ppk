@@ -526,6 +526,7 @@ const Auth = () => {
                         setSignupErrors({ ...signupErrors, organizationId: "" });
                       }}
                       placeholder="Если не нашли организацию выберите Иное..."
+                      regionFilter={signupData.regionId}
                     />
                     {signupErrors.organizationId && (
                       <p className="text-sm text-destructive">{signupErrors.organizationId}</p>

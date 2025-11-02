@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet, RefreshCw } from 'lucide-react';
+import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet, RefreshCw, Copy } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProtocols } from '@/hooks/useProtocols';
@@ -218,6 +218,39 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const handleCopyProtocol = (protocol: any) => {
+    // Create a new protocol with only child data copied
+    const newProtocol = {
+      protocol_data: {
+        childData: {
+          fullName: protocol.child_name || '',
+          birthDate: protocol.child_birth_date || '',
+          age: (protocol.protocol_data as any)?.childData?.age || '',
+          classNumber: '',
+          classLetter: '',
+          address: (protocol.protocol_data as any)?.childData?.address || '',
+          registrationAddress: (protocol.protocol_data as any)?.childData?.registrationAddress || '',
+          sameAsAddress: (protocol.protocol_data as any)?.childData?.sameAsAddress || false,
+          parentName: (protocol.protocol_data as any)?.childData?.parentName || '',
+          parentPhone: (protocol.protocol_data as any)?.childData?.parentPhone || '',
+          whobrought: (protocol.protocol_data as any)?.childData?.whobrought || '',
+          relationship: (protocol.protocol_data as any)?.childData?.relationship || '',
+          educationalOrganization: protocol.organization_id || '',
+        }
+      },
+      child_name: protocol.child_name,
+      child_birth_date: protocol.child_birth_date,
+      education_level: protocol.education_level,
+      organization_id: protocol.organization_id,
+    };
+    
+    onEditProtocol(newProtocol);
+    toast({
+      title: "Создание нового ППК",
+      description: `Данные ребенка ${protocol.child_name} скопированы в новый протокол`,
+    });
   };
 
   return (
@@ -581,6 +614,22 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                               </TooltipContent>
                             </Tooltip>
                           )}
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleCopyProtocol(record)}
+                                className="text-purple-600 hover:text-purple-800"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Новый ППК с данными ребенка</p>
+                            </TooltipContent>
+                          </Tooltip>
                           
                           <DropdownMenu>
                             <Tooltip>

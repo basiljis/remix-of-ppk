@@ -459,6 +459,7 @@ export type Database = {
           name: string
           parent_organization: string | null
           phone: string | null
+          region_id: string | null
           short_name: string | null
           status_id: number | null
           status_name: string | null
@@ -486,6 +487,7 @@ export type Database = {
           name: string
           parent_organization?: string | null
           phone?: string | null
+          region_id?: string | null
           short_name?: string | null
           status_id?: number | null
           status_name?: string | null
@@ -513,6 +515,7 @@ export type Database = {
           name?: string
           parent_organization?: string | null
           phone?: string | null
+          region_id?: string | null
           short_name?: string | null
           status_id?: number | null
           status_name?: string | null
@@ -520,7 +523,15 @@ export type Database = {
           updated_at?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       positions: {
         Row: {

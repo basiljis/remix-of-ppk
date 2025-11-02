@@ -9,12 +9,14 @@ interface OrganizationSelectorProps {
   onChange: (value: string) => void;
   label?: string;
   placeholder?: string;
+  regionFilter?: string;
 }
 export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   value,
   onChange,
   label = "Образовательная организация",
-  placeholder = "Выберите организацию"
+  placeholder = "Выберите организацию",
+  regionFilter
 }) => {
   const {
     organizations,
@@ -22,7 +24,12 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
     searchOrganizations
   } = useOrganizations();
   const [searchQuery, setSearchQuery] = useState('');
-  const filteredOrganizations = searchOrganizations(searchQuery);
+  
+  // Filter organizations by region if regionFilter is provided
+  let filteredOrganizations = searchOrganizations(searchQuery);
+  if (regionFilter) {
+    filteredOrganizations = filteredOrganizations.filter(org => org.region_id === regionFilter);
+  }
   const selectedOrg = organizations.find(org => org.id === value);
   return <div className="space-y-2">
       <div className="w-full">
