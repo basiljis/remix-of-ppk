@@ -14,6 +14,8 @@ import { useOrganizations } from '@/hooks/useOrganizations';
 import { MOSCOW_DISTRICTS } from '@/constants/moscowDistricts';
 import { useToast } from '@/hooks/use-toast';
 import { EducomOrganizationsList } from './EducomOrganizationsList';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 export const OrganizationsManagement = () => {
   const { 
@@ -32,6 +34,7 @@ export const OrganizationsManagement = () => {
   const [newOrgDistrict, setNewOrgDistrict] = useState('');
   const [newOrgType, setNewOrgType] = useState('');
   const [newOrgMrsd, setNewOrgMrsd] = useState('');
+  const [newOrgRegion, setNewOrgRegion] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDistrict, setFilterDistrict] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -46,6 +49,19 @@ export const OrganizationsManagement = () => {
   const [editOrgDistrict, setEditOrgDistrict] = useState('');
   const [editOrgType, setEditOrgType] = useState('');
   const [editOrgMrsd, setEditOrgMrsd] = useState('');
+  const [editOrgRegion, setEditOrgRegion] = useState('');
+  
+  // Regions data
+  const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    loadRegions();
+  }, []);
+
+  const loadRegions = async () => {
+    const { data } = await supabase.from('regions').select('*').order('name');
+    if (data) setRegions(data);
+  };
 
   const handleAddOrganization = async () => {
     if (!newOrgName.trim()) return;
@@ -55,7 +71,8 @@ export const OrganizationsManagement = () => {
         name: newOrgName,
         district: newOrgDistrict,
         type: newOrgType,
-        mrsd: newOrgMrsd
+        mrsd: newOrgMrsd,
+        region_id: newOrgRegion
       });
       
       setShowAddDialog(false);
@@ -63,6 +80,7 @@ export const OrganizationsManagement = () => {
       setNewOrgDistrict('');
       setNewOrgType('');
       setNewOrgMrsd('');
+      setNewOrgRegion('');
     } catch (error) {
       console.error('Error adding organization:', error);
     }
@@ -93,6 +111,7 @@ export const OrganizationsManagement = () => {
     setEditOrgDistrict(org.district || '');
     setEditOrgType(org.type || '');
     setEditOrgMrsd(org.mrsd || '');
+    setEditOrgRegion(org.region_id || '');
     setShowEditDialog(true);
   };
 
@@ -104,7 +123,8 @@ export const OrganizationsManagement = () => {
         name: editOrgName,
         district: editOrgDistrict,
         type: editOrgType,
-        mrsd: editOrgMrsd
+        mrsd: editOrgMrsd,
+        region_id: editOrgRegion
       });
       
       setShowEditDialog(false);
@@ -113,6 +133,7 @@ export const OrganizationsManagement = () => {
       setEditOrgDistrict('');
       setEditOrgType('');
       setEditOrgMrsd('');
+      setEditOrgRegion('');
     } catch (error) {
       console.error('Error updating organization:', error);
     }
@@ -265,6 +286,21 @@ export const OrganizationsManagement = () => {
                       onChange={(e) => setNewOrgMrsd(e.target.value)}
                       placeholder="Введите номер МРСД"
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-org-region">Регион</Label>
+                    <Select value={newOrgRegion} onValueChange={setNewOrgRegion}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите регион" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regions.map((region) => (
+                          <SelectItem key={region.id} value={region.id}>
+                            {region.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" onClick={() => setShowAddDialog(false)}>
@@ -588,6 +624,21 @@ export const OrganizationsManagement = () => {
                 onChange={(e) => setEditOrgMrsd(e.target.value)}
                 placeholder="Введите номер МРСД"
               />
+            </div>
+            <div>
+              <Label htmlFor="edit-org-region">Регион</Label>
+              <Select value={editOrgRegion} onValueChange={setEditOrgRegion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите регион" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map((region) => (
+                    <SelectItem key={region.id} value={region.id}>
+                      {region.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowEditDialog(false)}>
