@@ -9,7 +9,8 @@ export const exportOrganizationsTemplate = () => {
       'Округ': '',
       'Тип организации': '',
       'Адрес': '',
-      'МРСД': ''
+      'МРСД': '',
+      'Регион': ''
     }
   ];
 
@@ -22,7 +23,8 @@ export const exportOrganizationsTemplate = () => {
     { wch: 20 }, // Округ
     { wch: 25 }, // Тип организации
     { wch: 40 }, // Адрес
-    { wch: 15 }  // МРСД
+    { wch: 15 }, // МРСД
+    { wch: 20 }  // Регион
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, 'Шаблон организаций');
@@ -36,7 +38,7 @@ export const exportOrganizationsData = async () => {
   try {
     const { data: organizations, error } = await supabase
       .from('organizations')
-      .select('*')
+      .select('*, regions(name)')
       .order('name');
 
     if (error) throw error;
@@ -48,6 +50,7 @@ export const exportOrganizationsData = async () => {
       'Тип организации': org.type || '',
       'Адрес': org.address || '',
       'МРСД': org.mrsd || '',
+      'Регион': org.regions?.name || '',
       'Внешний ID': org.external_id || '',
       'Источник': org.is_manual ? 'Ручное добавление' : 'ЕКИС',
       'Дата создания': new Date(org.created_at).toLocaleDateString('ru-RU'),
@@ -64,6 +67,7 @@ export const exportOrganizationsData = async () => {
       { wch: 25 }, // Тип организации
       { wch: 40 }, // Адрес
       { wch: 15 }, // МРСД
+      { wch: 20 }, // Регион
       { wch: 15 }, // Внешний ID
       { wch: 20 }, // Источник
       { wch: 15 }, // Дата создания
@@ -92,14 +96,27 @@ export const importOrganizationsFromXLS = async (file: File): Promise<number> =>
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        const organizations = jsonData.map((row: any) => ({
-          name: row['Название организации'] || '',
-          district: row['Округ'] || null,
-          type: row['Тип организации'] || null,
-          address: row['Адрес'] || null,
-          mrsd: row['МРСД'] || null,
-          is_manual: true
-        })).filter(org => org.name.trim() !== '');
+        // Get all regions to map region names to IDs
+        const { data: regions } = await supabase
+          .from('regions')
+          .select('id, name');
+
+        const regionMap = new Map(regions?.map(r => [r.name, r.id]) || []);
+
+        const organizations = jsonData.map((row: any) => {
+          const regionName = row['Регион'] || '';
+          const regionId = regionName ? regionMap.get(regionName) : null;
+
+          return {
+            name: row['Название организации'] || '',
+            district: row['Округ'] || null,
+            type: row['Тип организации'] || null,
+            address: row['Адрес'] || null,
+            mrsd: row['МРСД'] || null,
+            region_id: regionId,
+            is_manual: true
+          };
+        }).filter(org => org.name.trim() !== '');
 
         if (organizations.length === 0) {
           throw new Error('Файл не содержит данных организаций');
