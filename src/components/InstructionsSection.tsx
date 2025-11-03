@@ -605,6 +605,17 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
                       </div>
 
                       <div className="border rounded-lg p-4">
+                        <h4 className="font-semibold mb-2">Приказ об утверждении стандарта деятельности психолого-педагогических консилиумов</h4>
+                        <p className="text-sm text-muted-foreground mb-2">№ 666 от 15.08.2022</p>
+                        <p className="text-sm mb-2">
+                          Утверждает стандарт деятельности психолого-педагогических консилиумов образовательных организаций.
+                        </p>
+                        <a href="https://base.garant.ru/405280341/?ysclid=mhir5wgilx300004324" target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
+                          Официальный текст на Гарант
+                        </a>
+                      </div>
+
+                      <div className="border rounded-lg p-4">
                         <h4 className="font-semibold mb-2">Приказ об утверждении ФГОС</h4>
                         <p className="text-sm text-muted-foreground mb-2">Различные номера для разных уровней образования</p>
                         <p className="text-sm">

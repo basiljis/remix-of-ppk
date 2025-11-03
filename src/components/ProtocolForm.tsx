@@ -20,6 +20,7 @@ import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
 import { ProtocolResultsPanel } from '@/components/ProtocolResultsPanel';
 import { ProtocolChecklistPaginated } from '@/components/ProtocolChecklistPaginated';
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ChildData {
   fullName: string;
@@ -86,6 +87,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     calculateBlockScore,
     loading: protocolChecklistLoading 
   } = useProtocolChecklistData();
+  const { profile, isAdmin, isRegionalOperator } = useAuth();
 
   // Инициализация данных при редактировании
   useEffect(() => {
@@ -105,6 +107,13 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       // Данные чек-листа будут загружены автоматически через hook
     }
   }, [editingProtocol, selectedLevel]);
+
+  // Автоматически устанавливаем организацию для обычного пользователя
+  useEffect(() => {
+    if (profile && !isAdmin && !isRegionalOperator && profile.organization_id && !editingProtocol) {
+      updateChildData("educationalOrganization", profile.organization_id);
+    }
+  }, [profile, isAdmin, isRegionalOperator, editingProtocol]);
 
   // Compute checklist blocks from the new hook
   const checklistBlocks = useMemo(() => {
@@ -499,10 +508,22 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </Select>
                 </div>
                 <div>
-                  <OrganizationSelector
-                    value={formData.childData.educationalOrganization}
-                    onChange={(value) => updateChildData("educationalOrganization", value)}
-                  />
+                  {isAdmin || isRegionalOperator ? (
+                    <OrganizationSelector
+                      value={formData.childData.educationalOrganization}
+                      onChange={(value) => updateChildData("educationalOrganization", value)}
+                      regionFilter={isRegionalOperator ? profile?.region_id : undefined}
+                    />
+                  ) : (
+                    <div>
+                      <Label>Образовательная организация</Label>
+                      <Input
+                        value={profile?.organization_id || formData.childData.educationalOrganization}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="address">Адрес проживания</Label>
