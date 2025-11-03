@@ -221,7 +221,20 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   };
 
   const handleCopyProtocol = (protocol: any) => {
-    // Create a new protocol with only child data copied
+    // Create a new protocol with child data copied and complete structure
+    const initialDocuments = [
+      { id: "representation", name: "Представление педагогического работника", required: true, present: false },
+      { id: "psychologist", name: "Заключение педагога-психолога", required: true, present: false },
+      { id: "logoped", name: "Заключение учителя-логопеда", required: false, present: false },
+      { id: "defectologist", name: "Заключение учителя-дефектолога", required: false, present: false },
+      { id: "social", name: "Заключение социального педагога", required: false, present: false },
+      { id: "medical", name: "Справка о состоянии здоровья", required: false, present: false },
+      { id: "characteristic", name: "Характеристика обучающегося", required: true, present: false },
+      { id: "products", name: "Результаты продуктивной деятельности", required: false, present: false },
+      { id: "cpmpk", name: "Заключение ЦПМПК г. Москвы (при наличии)", required: false, present: false },
+      { id: "ipr", name: "Индивидуальная программа реабилитации и абилитации для ребёнка-инвалида (при наличии)", required: false, present: false },
+    ];
+
     const newProtocol = {
       protocol_data: {
         childData: {
@@ -238,7 +251,15 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
           whobrought: (protocol.protocol_data as any)?.childData?.whobrought || '',
           relationship: (protocol.protocol_data as any)?.childData?.relationship || '',
           educationalOrganization: protocol.organization_id || '',
-        }
+        },
+        documents: initialDocuments,
+        consultationType: "primary" as const,
+        consultationDate: new Date().toISOString().split('T')[0],
+        reason: "",
+        previousConsultations: "",
+        ppkNumber: "",
+        sessionTopic: "",
+        meetingType: "scheduled" as const
       },
       child_name: protocol.child_name,
       child_birth_date: protocol.child_birth_date,
