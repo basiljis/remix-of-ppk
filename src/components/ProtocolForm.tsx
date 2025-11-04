@@ -508,22 +508,12 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </Select>
                 </div>
                 <div>
-                  {isAdmin || isRegionalOperator ? (
-                    <OrganizationSelector
-                      value={formData.childData.educationalOrganization}
-                      onChange={(value) => updateChildData("educationalOrganization", value)}
-                      regionFilter={isRegionalOperator ? profile?.region_id : undefined}
-                    />
-                  ) : (
-                    <div>
-                      <Label>Образовательная организация</Label>
-                      <Input
-                        value={profile?.organization_id || formData.childData.educationalOrganization}
-                        disabled
-                        className="bg-muted"
-                      />
-                    </div>
-                  )}
+                  <OrganizationSelector
+                    value={formData.childData.educationalOrganization}
+                    onChange={(value) => updateChildData("educationalOrganization", value)}
+                    regionFilter={isRegionalOperator ? profile?.region_id : undefined}
+                    disabled={!isAdmin && !isRegionalOperator}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="address">Адрес проживания</Label>

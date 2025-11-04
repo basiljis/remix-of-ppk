@@ -10,13 +10,15 @@ interface OrganizationSelectorProps {
   label?: string;
   placeholder?: string;
   regionFilter?: string;
+  disabled?: boolean;
 }
 export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   value,
   onChange,
   label = "Образовательная организация",
   placeholder = "Выберите организацию",
-  regionFilter
+  regionFilter,
+  disabled = false
 }) => {
   const {
     organizations,
@@ -32,8 +34,9 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   }
   const selectedOrg = organizations.find(org => org.id === value);
   return <div className="space-y-2">
+      <Label>{label}</Label>
       <div className="w-full">
-        <Select value={value} onValueChange={onChange} disabled={loading}>
+        <Select value={value} onValueChange={onChange} disabled={loading || disabled}>
           <SelectTrigger>
             <SelectValue placeholder={loading ? "Загрузка..." : placeholder}>
               {selectedOrg ? <div className="flex flex-col text-left">
