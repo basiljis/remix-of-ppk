@@ -26,7 +26,7 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
     searchOrganizations
   } = useOrganizations();
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Filter organizations by region if regionFilter is provided
   let filteredOrganizations = searchOrganizations(searchQuery);
   if (regionFilter) {
@@ -78,6 +78,6 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
         </Select>
       </div>
       
-      {!selectedOrg && organizations.length > 0 && <p className="text-xs text-muted-foreground">Не нашли нужную организацию? Обратитесь к администратору или выберите Иное</p>}
+      {!selectedOrg && organizations.length > 0 && <p className="text-xs text-muted-foreground">Не нашли нужную организацию? Обратитесь к администратору</p>}
     </div>;
 };
