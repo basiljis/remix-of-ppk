@@ -8,14 +8,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, RotateCcw, Building2, MapPin, Filter, Download, Edit, Trash2, Database } from 'lucide-react';
+import { Plus, Search, RotateCcw, Building2, MapPin, Filter, Download, Edit, Trash2, Database, CheckSquare, Square } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { MOSCOW_DISTRICTS } from '@/constants/moscowDistricts';
 import { useToast } from '@/hooks/use-toast';
 import { EducomOrganizationsList } from './EducomOrganizationsList';
+import { BulkEditOrganizationsDialog } from './BulkEditOrganizationsDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
+import { Switch } from '@/components/ui/switch';
 
 export const OrganizationsManagement = () => {
   const { 
@@ -50,6 +52,18 @@ export const OrganizationsManagement = () => {
   const [editOrgType, setEditOrgType] = useState('');
   const [editOrgMrsd, setEditOrgMrsd] = useState('');
   const [editOrgRegion, setEditOrgRegion] = useState('');
+  const [editOrgExtId, setEditOrgExtId] = useState('');
+  const [editOrgAddress, setEditOrgAddress] = useState('');
+  const [editOrgPhone, setEditOrgPhone] = useState('');
+  const [editOrgEmail, setEditOrgEmail] = useState('');
+  const [editOrgWebsite, setEditOrgWebsite] = useState('');
+  
+  // Bulk edit state
+  const [selectedOrgs, setSelectedOrgs] = useState<Set<string>>(new Set());
+  const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
+  
+  // API toggle
+  const [hideApiOrgs, setHideApiOrgs] = useState(false);
   
   // Regions data
   const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
@@ -112,6 +126,11 @@ export const OrganizationsManagement = () => {
     setEditOrgType(org.type || '');
     setEditOrgMrsd(org.mrsd || '');
     setEditOrgRegion(org.region_id || '');
+    setEditOrgExtId(org.external_id || '');
+    setEditOrgAddress(org.address || '');
+    setEditOrgPhone(org.phone || '');
+    setEditOrgEmail(org.email || '');
+    setEditOrgWebsite(org.website || '');
     setShowEditDialog(true);
   };
 
@@ -124,7 +143,12 @@ export const OrganizationsManagement = () => {
         district: editOrgDistrict,
         type: editOrgType,
         mrsd: editOrgMrsd,
-        region_id: editOrgRegion
+        region_id: editOrgRegion,
+        external_id: editOrgExtId || null,
+        address: editOrgAddress || null,
+        phone: editOrgPhone || null,
+        email: editOrgEmail || null,
+        website: editOrgWebsite || null
       });
       
       setShowEditDialog(false);
@@ -134,6 +158,11 @@ export const OrganizationsManagement = () => {
       setEditOrgType('');
       setEditOrgMrsd('');
       setEditOrgRegion('');
+      setEditOrgExtId('');
+      setEditOrgAddress('');
+      setEditOrgPhone('');
+      setEditOrgEmail('');
+      setEditOrgWebsite('');
     } catch (error) {
       console.error('Error updating organization:', error);
     }
@@ -151,6 +180,11 @@ export const OrganizationsManagement = () => {
 
   // Apply all filters
   let filteredOrganizations = searchOrganizations(searchQuery);
+  
+  // Filter out API organizations if toggle is on
+  if (hideApiOrgs) {
+    filteredOrganizations = filteredOrganizations.filter(org => org.is_manual);
+  }
   
   if (filterDistrict && filterDistrict !== 'all') {
     filteredOrganizations = filteredOrganizations.filter(org => 
@@ -185,6 +219,48 @@ export const OrganizationsManagement = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const toggleSelectOrg = (orgId: string) => {
+    const newSelected = new Set(selectedOrgs);
+    if (newSelected.has(orgId)) {
+      newSelected.delete(orgId);
+    } else {
+      newSelected.add(orgId);
+    }
+    setSelectedOrgs(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrgs.size === paginatedOrganizations.length) {
+      setSelectedOrgs(new Set());
+    } else {
+      setSelectedOrgs(new Set(paginatedOrganizations.map(org => org.id)));
+    }
+  };
+
+  const handleBulkEdit = async (updates: Partial<any>) => {
+    try {
+      const orgIds = Array.from(selectedOrgs);
+      
+      for (const orgId of orgIds) {
+        await updateOrganization(orgId, updates);
+      }
+      
+      toast({
+        title: "Массовое обновление завершено",
+        description: `Обновлено ${orgIds.length} организаций`
+      });
+      
+      setSelectedOrgs(new Set());
+    } catch (error) {
+      console.error('Bulk edit error:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить все организации",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -419,8 +495,20 @@ export const OrganizationsManagement = () => {
             </Button>
           </div>
           
-          <div className="mt-4 text-sm text-muted-foreground">
-            Показано: {paginatedOrganizations.length} из {filteredOrganizations.length} организаций (страница {currentPage} из {totalPages})
+          <div className="flex items-center justify-between mt-4 gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="hide-api-orgs"
+                checked={hideApiOrgs}
+                onCheckedChange={setHideApiOrgs}
+              />
+              <Label htmlFor="hide-api-orgs" className="text-sm cursor-pointer">
+                Скрыть организации из ЕКИС API
+              </Label>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              Показано: {paginatedOrganizations.length} из {filteredOrganizations.length} организаций
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -428,10 +516,17 @@ export const OrganizationsManagement = () => {
       {/* Organizations List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Список организаций
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Список организаций
+            </CardTitle>
+            {selectedOrgs.size > 0 && (
+              <Button onClick={() => setShowBulkEditDialog(true)}>
+                Редактировать {selectedOrgs.size} организаций
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -451,13 +546,49 @@ export const OrganizationsManagement = () => {
             </div>
           ) : (
             <>
+              {paginatedOrganizations.length > 0 && (
+                <div className="mb-3 flex items-center gap-2 p-2 bg-muted/30 rounded">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleSelectAll}
+                    className="flex items-center gap-2"
+                  >
+                    {selectedOrgs.size === paginatedOrganizations.length ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                    Выбрать все на странице
+                  </Button>
+                  {selectedOrgs.size > 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      Выбрано: {selectedOrgs.size}
+                    </span>
+                  )}
+                </div>
+              )}
+              
               <div className="space-y-3">
                 {paginatedOrganizations.map((org, index) => (
                 <div 
                   key={org.id} 
                   className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="mt-1 h-8 w-8"
+                      onClick={() => toggleSelectOrg(org.id)}
+                    >
+                      {selectedOrgs.has(org.id) ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </Button>
+                    
                     <div className="flex-1">
                        <div className="flex items-center gap-2 mb-2">
                          <h3 className="font-medium">#{startIndex + index + 1}. {org.name}</h3>
@@ -466,21 +597,23 @@ export const OrganizationsManagement = () => {
                          </Badge>
                        </div>
                       
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        {org.external_id && (
-                          <div>ID: {org.external_id}</div>
-                        )}
-                        {org.mrsd && (
-                          <div>№МРСД: {org.mrsd}</div>
-                        )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                        {org.external_id && <div>ID: {org.external_id}</div>}
+                        {org.mrsd && <div>№МРСД: {org.mrsd}</div>}
                         {org.district && (
                           <div className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
                             {org.district}
                           </div>
                         )}
-                        {org.type && (
-                          <div>Тип: {org.type}</div>
+                        {org.type && <div>Тип: {org.type}</div>}
+                        {org.address && <div className="col-span-2">Адрес: {org.address}</div>}
+                        {org.phone && <div>Телефон: {org.phone}</div>}
+                        {org.email && <div>Email: {org.email}</div>}
+                        {org.website && (
+                          <div className="col-span-2">
+                            Сайт: <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{org.website}</a>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -600,6 +733,15 @@ export const OrganizationsManagement = () => {
               </Select>
             </div>
             <div>
+              <Label htmlFor="edit-org-ext-id">Внешний ID</Label>
+              <Input
+                id="edit-org-ext-id"
+                value={editOrgExtId}
+                onChange={(e) => setEditOrgExtId(e.target.value)}
+                placeholder="Внешний идентификатор"
+              />
+            </div>
+            <div>
               <Label htmlFor="edit-org-type">Тип организации</Label>
               <Select value={editOrgType} onValueChange={setEditOrgType}>
                 <SelectTrigger>
@@ -640,6 +782,43 @@ export const OrganizationsManagement = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label htmlFor="edit-org-address">Адрес</Label>
+              <Input
+                id="edit-org-address"
+                value={editOrgAddress}
+                onChange={(e) => setEditOrgAddress(e.target.value)}
+                placeholder="Полный адрес организации"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-org-phone">Телефон</Label>
+              <Input
+                id="edit-org-phone"
+                value={editOrgPhone}
+                onChange={(e) => setEditOrgPhone(e.target.value)}
+                placeholder="+7 (XXX) XXX-XX-XX"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-org-email">Email</Label>
+              <Input
+                id="edit-org-email"
+                type="email"
+                value={editOrgEmail}
+                onChange={(e) => setEditOrgEmail(e.target.value)}
+                placeholder="email@example.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-org-website">Веб-сайт</Label>
+              <Input
+                id="edit-org-website"
+                value={editOrgWebsite}
+                onChange={(e) => setEditOrgWebsite(e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowEditDialog(false)}>
                 Отмена
@@ -651,6 +830,15 @@ export const OrganizationsManagement = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Edit Dialog */}
+      <BulkEditOrganizationsDialog
+        open={showBulkEditDialog}
+        onOpenChange={setShowBulkEditDialog}
+        selectedOrganizations={Array.from(selectedOrgs).map(id => organizations.find(org => org.id === id)).filter(Boolean)}
+        onSave={handleBulkEdit}
+        regions={regions}
+      />
               </div>
             </TabsContent>
           </Tabs>
