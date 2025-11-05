@@ -735,16 +735,6 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="consultationDate" className={isRequiredFieldEmpty(formData.consultationDate) ? "text-red-500" : ""}>Дата проведения ППк *</Label>
-                <Input
-                  id="consultationDate"
-                  type="date"
-                  value={formData.consultationDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, consultationDate: e.target.value }))}
-                  className={getRequiredFieldClass(formData.consultationDate)}
-                />
-              </div>
             </div>
             
             <div>
