@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { EducationLevelSelector, type EducationLevel } from "@/components/EducationLevelSelector";
 import { differenceInYears, differenceInMonths, parseISO } from "date-fns";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface ChildData {
   fullName: string;
@@ -78,6 +79,10 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLevel, setSelectedLevel] = useState<"preschool" | "elementary" | "middle" | "high">("elementary");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [pendingStep, setPendingStep] = useState<number | null>(null);
+  const initialFormDataRef = useRef<string>("");
   
   // Remove state for checklistBlocks as it's now computed via useMemo
   const { saveProtocol, updateProtocol } = useProtocols();
@@ -91,39 +96,6 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   } = useProtocolChecklistData();
   const { profile, isAdmin, isRegionalOperator } = useAuth();
 
-  // Инициализация данных при редактировании
-  useEffect(() => {
-    if (editingProtocol) {
-      console.log('Loading editing protocol:', editingProtocol);
-      
-      // Загружаем данные из редактируемого протокола
-      if (editingProtocol.protocol_data) {
-        setFormData(editingProtocol.protocol_data);
-      }
-      
-      // Устанавливаем уровень образования
-      if (editingProtocol.education_level) {
-        setSelectedLevel(editingProtocol.education_level);
-      }
-      
-      // Данные чек-листа будут загружены автоматически через hook
-    }
-  }, [editingProtocol, selectedLevel]);
-
-  // Автоматически устанавливаем организацию для обычного пользователя
-  useEffect(() => {
-    if (profile && !isAdmin && !isRegionalOperator && profile.organization_id && !editingProtocol) {
-      updateChildData("educationalOrganization", profile.organization_id);
-    }
-  }, [profile, isAdmin, isRegionalOperator, editingProtocol]);
-
-  // Compute checklist blocks from the new hook
-  const checklistBlocks = useMemo(() => {
-    if (!selectedLevel) return [];
-    console.log('Getting blocks for level:', selectedLevel);
-    return getBlocksForEducationLevel(selectedLevel);
-  }, [selectedLevel, getBlocksForEducationLevel]);
-  
   const [formData, setFormData] = useState<ProtocolData>({
     childData: {
       fullName: "",
@@ -149,6 +121,50 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     sessionTopic: "",
     meetingType: "scheduled"
   });
+
+  // Инициализация данных при редактировании
+  useEffect(() => {
+    if (editingProtocol) {
+      console.log('Loading editing protocol:', editingProtocol);
+      
+      // Загружаем данные из редактируемого протокола
+      if (editingProtocol.protocol_data) {
+        setFormData(editingProtocol.protocol_data);
+      }
+      
+      // Устанавливаем уровень образования
+      if (editingProtocol.education_level) {
+        setSelectedLevel(editingProtocol.education_level);
+      }
+      
+      // Данные чек-листа будут загружены автоматически через hook
+    }
+  }, [editingProtocol, selectedLevel]);
+
+  // Инициализация начального состояния формы
+  useEffect(() => {
+    initialFormDataRef.current = JSON.stringify(formData);
+  }, [editingProtocol]);
+
+  // Отслеживание изменений в форме
+  useEffect(() => {
+    const currentFormDataString = JSON.stringify(formData);
+    setHasUnsavedChanges(currentFormDataString !== initialFormDataRef.current);
+  }, [formData]);
+
+  // Автоматически устанавливаем организацию для обычного пользователя
+  useEffect(() => {
+    if (profile && !isAdmin && !isRegionalOperator && profile.organization_id && !editingProtocol) {
+      updateChildData("educationalOrganization", profile.organization_id);
+    }
+  }, [profile, isAdmin, isRegionalOperator, editingProtocol]);
+
+  // Compute checklist blocks from the new hook
+  const checklistBlocks = useMemo(() => {
+    if (!selectedLevel) return [];
+    console.log('Getting blocks for level:', selectedLevel);
+    return getBlocksForEducationLevel(selectedLevel);
+  }, [selectedLevel, getBlocksForEducationLevel]);
 
   const updateChildData = (field: keyof ChildData, value: string) => {
     setFormData(prev => ({
@@ -239,16 +255,44 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   };
 
 
+  const handleStepChange = (newStep: number) => {
+    if (hasUnsavedChanges && canSaveProtocol()) {
+      setPendingStep(newStep);
+      setShowSaveDialog(true);
+    } else {
+      setCurrentStep(newStep);
+    }
+  };
+
   const nextStep = () => {
     if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
+      handleStepChange(currentStep + 1);
     }
   };
 
   const prevStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      handleStepChange(currentStep - 1);
     }
+  };
+
+  const handleSaveAndContinue = async () => {
+    await saveProtocolData(true);
+    setHasUnsavedChanges(false);
+    initialFormDataRef.current = JSON.stringify(formData);
+    if (pendingStep !== null) {
+      setCurrentStep(pendingStep);
+      setPendingStep(null);
+    }
+    setShowSaveDialog(false);
+  };
+
+  const handleContinueWithoutSaving = () => {
+    if (pendingStep !== null) {
+      setCurrentStep(pendingStep);
+      setPendingStep(null);
+    }
+    setShowSaveDialog(false);
   };
 
   const saveProtocolData = async (isDraft: boolean = false) => {
@@ -310,6 +354,10 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
             : `Протокол успешно завершен и сохранен. Номер: ${savedProtocol?.ppk_number || 'Будет присвоен автоматически'}`
         });
       }
+      
+      // Обновляем начальное состояние после успешного сохранения
+      setHasUnsavedChanges(false);
+      initialFormDataRef.current = JSON.stringify(formData);
     } catch (error) {
       console.error('Error saving protocol:', error);
       return;
@@ -872,6 +920,26 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
           </div>
         </div>
       </CardContent>
+
+      {/* Диалог сохранения черновика */}
+      <AlertDialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Сохранить изменения?</AlertDialogTitle>
+            <AlertDialogDescription>
+              У вас есть несохраненные изменения в протоколе. Хотите сохранить их как черновик перед переходом?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleContinueWithoutSaving}>
+              Продолжить без сохранения
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleSaveAndContinue}>
+              Сохранить черновик
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
