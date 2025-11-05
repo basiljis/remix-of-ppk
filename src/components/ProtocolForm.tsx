@@ -21,6 +21,8 @@ import { ProtocolResultsPanel } from '@/components/ProtocolResultsPanel';
 import { ProtocolChecklistPaginated } from '@/components/ProtocolChecklistPaginated';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { EducationLevelSelector, type EducationLevel } from "@/components/EducationLevelSelector";
+import { differenceInYears, differenceInMonths, parseISO } from "date-fns";
 
 interface ChildData {
   fullName: string;
@@ -423,48 +425,61 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                     className={getRequiredFieldClass(formData.childData.fullName)}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="birthDate" className={isRequiredFieldEmpty(formData.childData.birthDate) ? "text-red-500" : ""}>
-                    Дата рождения *
-                  </Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={formData.childData.birthDate}
-                    onChange={(e) => updateChildData("birthDate", e.target.value)}
-                    className={getRequiredFieldClass(formData.childData.birthDate)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="age" className={isRequiredFieldEmpty(formData.childData.age) ? "text-red-500" : ""}>
-                    Возраст *
-                  </Label>
-                  <Select value={formData.childData.age} onValueChange={(value) => {
-                    updateChildData("age", value);
-                    // Автоматическое определение уровня образования по возрасту
-                    const ageNum = parseInt(value);
-                    if (ageNum >= 3 && ageNum <= 6) {
-                      setSelectedLevel("preschool");
-                    } else if (ageNum >= 7 && ageNum <= 10) {
-                      setSelectedLevel("elementary");
-                    } else if (ageNum >= 11 && ageNum <= 15) {
-                      setSelectedLevel("middle");
-                    } else if (ageNum >= 16 && ageNum <= 18) {
-                      setSelectedLevel("high");
-                    }
-                  }}>
-                    <SelectTrigger className={getRequiredFieldClass(formData.childData.age)}>
-                      <SelectValue placeholder="Выберите возраст" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 16 }, (_, i) => i + 3).map(age => (
-                        <SelectItem key={age} value={age.toString()}>
-                          {age} {age === 1 ? 'год' : age <= 4 ? 'года' : 'лет'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                 <div>
+                   <Label htmlFor="birthDate" className={isRequiredFieldEmpty(formData.childData.birthDate) ? "text-red-500" : ""}>
+                     Дата рождения *
+                   </Label>
+                   <Input
+                     id="birthDate"
+                     type="date"
+                     value={formData.childData.birthDate}
+                     onChange={(e) => {
+                       const birthDate = e.target.value;
+                       updateChildData("birthDate", birthDate);
+                       
+                       // Автоматический расчет возраста
+                       if (birthDate) {
+                         const birthDateObj = parseISO(birthDate);
+                         const years = differenceInYears(new Date(), birthDateObj);
+                         const months = differenceInMonths(new Date(), birthDateObj) % 12;
+                         const ageString = months > 0 ? `${years} лет ${months} мес.` : `${years} лет`;
+                         updateChildData("age", ageString);
+                       }
+                     }}
+                     className={getRequiredFieldClass(formData.childData.birthDate)}
+                   />
+                 </div>
+                 <div>
+                   <Label htmlFor="age" className={isRequiredFieldEmpty(formData.childData.age) ? "text-red-500" : ""}>
+                     Возраст *
+                   </Label>
+                   <Input
+                     id="age"
+                     value={formData.childData.age}
+                     readOnly
+                     placeholder="Выберите дату рождения"
+                     className={getRequiredFieldClass(formData.childData.age)}
+                   />
+                 </div>
+                 <div>
+                   <Label htmlFor="consultationDate" className={isRequiredFieldEmpty(formData.consultationDate) ? "text-red-500" : ""}>
+                     Дата проведения ППк *
+                   </Label>
+                   <Input
+                     id="consultationDate"
+                     type="date"
+                     value={formData.consultationDate}
+                     onChange={(e) => setFormData(prev => ({ ...prev, consultationDate: e.target.value }))}
+                     className={getRequiredFieldClass(formData.consultationDate)}
+                   />
+                 </div>
+                 <div className="md:col-span-2">
+                   <Label>Уровень образования *</Label>
+                   <EducationLevelSelector 
+                     selectedLevel={selectedLevel}
+                     onLevelChange={handleLevelChange}
+                   />
+                 </div>
                 <div>
                   <Label htmlFor="classNumber" className={isRequiredFieldEmpty(formData.childData.classNumber) ? "text-red-500" : ""}>
                     Номер класса/группы *

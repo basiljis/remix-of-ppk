@@ -6,11 +6,22 @@ export const exportOrganizationsTemplate = () => {
   const templateData = [
     {
       'Название организации': '',
+      'Полное название': '',
+      'Краткое название': '',
       'Округ': '',
       'Тип организации': '',
       'Адрес': '',
+      'Телефон': '',
+      'Email': '',
+      'Сайт': '',
       'МРСД': '',
-      'Регион': ''
+      'Регион': '',
+      'Внешний ID': '',
+      'EKIS ID': '',
+      'Родительская организация': '',
+      'Метро': '',
+      'Статус ID': '',
+      'Статус': ''
     }
   ];
 
@@ -20,11 +31,22 @@ export const exportOrganizationsTemplate = () => {
   // Set column widths
   ws['!cols'] = [
     { wch: 50 }, // Название организации
+    { wch: 50 }, // Полное название
+    { wch: 50 }, // Краткое название
     { wch: 20 }, // Округ
     { wch: 25 }, // Тип организации
     { wch: 40 }, // Адрес
+    { wch: 20 }, // Телефон
+    { wch: 30 }, // Email
+    { wch: 40 }, // Сайт
     { wch: 15 }, // МРСД
-    { wch: 20 }  // Регион
+    { wch: 20 }, // Регион
+    { wch: 20 }, // Внешний ID
+    { wch: 20 }, // EKIS ID
+    { wch: 50 }, // Родительская организация
+    { wch: 25 }, // Метро
+    { wch: 15 }, // Статус ID
+    { wch: 30 }  // Статус
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, 'Шаблон организаций');
@@ -109,11 +131,22 @@ export const importOrganizationsFromXLS = async (file: File): Promise<number> =>
 
           return {
             name: row['Название организации'] || '',
+            full_name: row['Полное название'] || null,
+            short_name: row['Краткое название'] || null,
             district: row['Округ'] || null,
             type: row['Тип организации'] || null,
             address: row['Адрес'] || null,
+            phone: row['Телефон'] || null,
+            email: row['Email'] || null,
+            website: row['Сайт'] || null,
             mrsd: row['МРСД'] || null,
             region_id: regionId,
+            external_id: row['Внешний ID'] || null,
+            ekis_id: row['EKIS ID'] || null,
+            parent_organization: row['Родительская организация'] || null,
+            metro_station: row['Метро'] || null,
+            status_id: row['Статус ID'] ? parseInt(row['Статус ID']) : null,
+            status_name: row['Статус'] || null,
             is_manual: true
           };
         }).filter(org => org.name.trim() !== '');
