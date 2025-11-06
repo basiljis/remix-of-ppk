@@ -152,6 +152,21 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     setHasUnsavedChanges(currentFormDataString !== initialFormDataRef.current);
   }, [formData]);
 
+  // Автосохранение черновика каждые 2 минуты
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (hasUnsavedChanges && canSaveProtocol()) {
+        saveProtocolData(true);
+        toast({
+          title: "Автосохранение",
+          description: "Черновик автоматически сохранен"
+        });
+      }
+    }, 120000); // 2 минуты = 120000 мс
+
+    return () => clearInterval(autoSaveInterval);
+  }, [hasUnsavedChanges, formData]);
+
   // Автоматически устанавливаем организацию для обычного пользователя
   useEffect(() => {
     if (profile && !isAdmin && !isRegionalOperator && profile.organization_id && !editingProtocol) {
