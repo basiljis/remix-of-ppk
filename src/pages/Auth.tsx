@@ -207,29 +207,9 @@ const Auth = () => {
 
       if (requestError) throw requestError;
 
-      // Send registration confirmation email
-      try {
-        const { data: orgData } = await supabase
-          .from("organizations")
-          .select("name")
-          .eq("id", validatedData.organizationId)
-          .single();
-
-        await supabase.functions.invoke('send-registration-email', {
-          body: {
-            email: validatedData.email,
-            fullName: validatedData.fullName,
-            organizationName: orgData?.name,
-          },
-        });
-      } catch (emailError) {
-        console.error("Error sending registration email:", emailError);
-        // Don't fail registration if email fails
-      }
-
       toast({
         title: "Заявка отправлена",
-        description: "Ваша заявка на доступ отправлена администратору. Вы получите уведомление на email после её рассмотрения.",
+        description: "Ваша заявка на доступ отправлена администратору. Вы получите уведомление после её рассмотрения.",
       });
 
       // Перейти на страницу статуса заявки

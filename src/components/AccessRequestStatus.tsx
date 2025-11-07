@@ -31,11 +31,9 @@ export const AccessRequestStatus = () => {
         .from("access_requests")
         .select("status, requested_at, reviewed_at, admin_notes")
         .eq("user_id", user.id)
-        .order("requested_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error("Error fetching access request:", error);
         return;
       }
