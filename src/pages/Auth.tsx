@@ -241,7 +241,9 @@ const Auth = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!resetEmail || !resetEmail.trim()) {
+    const emailValue = resetEmail?.trim() || "";
+    
+    if (!emailValue) {
       toast({
         title: "Ошибка",
         description: "Введите email для восстановления пароля",
@@ -250,10 +252,21 @@ const Auth = () => {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailValue)) {
+      toast({
+        title: "Ошибка",
+        description: "Некорректный формат email",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailValue, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
@@ -268,7 +281,7 @@ const Auth = () => {
     } catch (error: any) {
       toast({
         title: "Ошибка",
-        description: error.message,
+        description: error.message || "Не удалось отправить письмо для восстановления пароля",
         variant: "destructive",
       });
     } finally {
