@@ -227,7 +227,8 @@ const Auth = () => {
         // Don't fail registration if email fails
       }
 
-      // Сохранить user_id для страницы статуса перед показом toast
+      // Сохранить user_id для страницы статуса
+      console.log("[Auth] Saving pending_user_id to localStorage:", authData.user.id);
       localStorage.setItem("pending_user_id", authData.user.id);
       
       toast({
@@ -236,6 +237,7 @@ const Auth = () => {
       });
 
       // Немедленно перейти на страницу статуса заявки
+      console.log("[Auth] Navigating to /access-status");
       setTimeout(() => navigate("/access-status"), 100);
 
       // Clear form

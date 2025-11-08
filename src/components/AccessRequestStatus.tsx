@@ -32,11 +32,16 @@ export const AccessRequestStatus = () => {
       if (!userId) {
         userId = localStorage.getItem("pending_user_id");
         if (!userId) {
+          console.error("[AccessRequestStatus] No user ID found");
           navigate("/auth");
           return;
         }
+        console.log("[AccessRequestStatus] Using pending_user_id from localStorage:", userId);
+      } else {
+        console.log("[AccessRequestStatus] Using authenticated user ID:", userId);
       }
 
+      console.log("[AccessRequestStatus] Fetching access request for user:", userId);
       const { data, error } = await supabase
         .from("access_requests")
         .select("status, requested_at, reviewed_at, admin_notes")
@@ -46,10 +51,11 @@ export const AccessRequestStatus = () => {
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching access request:", error);
+        console.error("[AccessRequestStatus] Error fetching access request:", error);
         return;
       }
 
+      console.log("[AccessRequestStatus] Access request data:", data);
       setRequest(data as AccessRequest);
       
       // Если заявка одобрена или отклонена, очистить localStorage
@@ -57,7 +63,7 @@ export const AccessRequestStatus = () => {
         localStorage.removeItem("pending_user_id");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("[AccessRequestStatus] Unexpected error:", error);
     } finally {
       setLoading(false);
     }
@@ -77,7 +83,31 @@ export const AccessRequestStatus = () => {
   }
 
   if (!request) {
-    return null;
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <AlertCircle className="w-12 h-12 text-yellow-500" />
+            </div>
+            <CardTitle className="text-2xl">Заявка не найдена</CardTitle>
+            <CardDescription className="text-base">
+              Не удалось найти вашу заявку на доступ. Возможно, она еще обрабатывается.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-center gap-3">
+              <Button onClick={() => window.location.reload()} variant="outline" size="lg">
+                Обновить
+              </Button>
+              <Button onClick={handleLogout} variant="outline" size="lg">
+                Выйти
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    );
   }
 
   const getStatusContent = () => {
