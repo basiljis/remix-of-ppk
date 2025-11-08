@@ -227,16 +227,16 @@ const Auth = () => {
         // Don't fail registration if email fails
       }
 
+      // Сохранить user_id для страницы статуса перед показом toast
+      localStorage.setItem("pending_user_id", authData.user.id);
+      
       toast({
         title: "Заявка отправлена",
         description: "Ваша заявка на доступ отправлена администратору. Вы получите уведомление на email после её рассмотрения.",
       });
 
-      // Сохранить user_id для страницы статуса
-      localStorage.setItem("pending_user_id", authData.user.id);
-
-      // Перейти на страницу статуса заявки
-      navigate("/access-status");
+      // Немедленно перейти на страницу статуса заявки
+      setTimeout(() => navigate("/access-status"), 100);
 
       // Clear form
       setSignupData({
