@@ -232,6 +232,9 @@ const Auth = () => {
         description: "Ваша заявка на доступ отправлена администратору. Вы получите уведомление на email после её рассмотрения.",
       });
 
+      // Сохранить user_id для страницы статуса
+      localStorage.setItem("pending_user_id", authData.user.id);
+
       // Перейти на страницу статуса заявки
       navigate("/access-status");
 

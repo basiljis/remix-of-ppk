@@ -24,13 +24,23 @@ export const AccessRequestStatus = () => {
 
   const fetchRequestStatus = async () => {
     try {
+      // Попробовать получить текущего пользователя
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      
+      // Если пользователь не авторизован, проверить localStorage
+      let userId = user?.id;
+      if (!userId) {
+        userId = localStorage.getItem("pending_user_id");
+        if (!userId) {
+          navigate("/auth");
+          return;
+        }
+      }
 
       const { data, error } = await supabase
         .from("access_requests")
         .select("status, requested_at, reviewed_at, admin_notes")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("requested_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -41,6 +51,11 @@ export const AccessRequestStatus = () => {
       }
 
       setRequest(data as AccessRequest);
+      
+      // Если заявка одобрена или отклонена, очистить localStorage
+      if (data?.status === "approved" || data?.status === "rejected") {
+        localStorage.removeItem("pending_user_id");
+      }
     } catch (error) {
       console.error("Error:", error);
     } finally {
