@@ -1,7 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +37,10 @@ const handler = async (req: Request): Promise<Response> => {
     const subject = isApproved 
       ? "Доступ к системе ППК одобрен" 
       : "Заявка на доступ к системе ППК отклонена";
+    
+    let logStatus = "pending";
+    let errorMessage = null;
+    let resendId = null;
     
     const emailHtml = isApproved ? `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -77,6 +86,20 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("Email sent successfully:", emailResponse);
+    
+    logStatus = "success";
+    resendId = emailResponse.data?.id || null;
+
+    // Log successful email
+    await supabase.from("email_logs").insert({
+      recipient: email,
+      subject: subject,
+      email_type: isApproved ? "approval" : "rejection",
+      status: logStatus,
+      resend_id: resendId,
+      email_body: emailHtml,
+      metadata: { fullName, organizationName, adminNotes, status },
+    });
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
@@ -87,6 +110,21 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in send-approval-email function:", error);
+    
+    // Log failed email attempt
+    try {
+      const { email, status } = await req.json();
+      await supabase.from("email_logs").insert({
+        recipient: email || "unknown",
+        subject: status === "approved" ? "Доступ к системе ППК одобрен" : "Заявка на доступ к системе ППК отклонена",
+        email_type: status === "approved" ? "approval" : "rejection",
+        status: "error",
+        error_message: error.message,
+      });
+    } catch (logError) {
+      console.error("Failed to log email error:", logError);
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       {
