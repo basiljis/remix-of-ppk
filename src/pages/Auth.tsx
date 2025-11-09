@@ -81,6 +81,9 @@ const Auth = () => {
   // Reset password form
   const [resetEmail, setResetEmail] = useState("");
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  
+  // Success dialog for registration
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
   // Load reference data
   useState(() => {
@@ -177,6 +180,27 @@ const Auth = () => {
       
       const validatedData = result.data;
 
+      // Check if email already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', validatedData.email)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('[Auth] Error checking existing user:', checkError);
+      }
+
+      if (existingUser) {
+        toast({
+          title: "Email уже зарегистрирован",
+          description: "Пользователь с таким email уже существует. Попробуйте восстановить доступ через 'Забыли пароль?'",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: validatedData.email,
@@ -231,14 +255,15 @@ const Auth = () => {
       console.log("[Auth] Saving pending_user_id to localStorage:", authData.user.id);
       localStorage.setItem("pending_user_id", authData.user.id);
       
-      toast({
-        title: "Заявка отправлена",
-        description: "Ваша заявка на доступ отправлена администратору. Вы получите уведомление на email после её рассмотрения.",
-      });
-
-      // Немедленно перейти на страницу статуса заявки
-      console.log("[Auth] Navigating to /access-status");
-      setTimeout(() => navigate("/access-status"), 100);
+      // Показать модальное окно с уведомлением
+      setSuccessDialogOpen(true);
+      
+      // Автоматически закрыть модальное окно и перейти на страницу статуса через 5 секунд
+      setTimeout(() => {
+        setSuccessDialogOpen(false);
+        console.log("[Auth] Navigating to /access-status");
+        navigate("/access-status");
+      }, 5000);
 
       // Clear form
       setSignupData({
@@ -315,8 +340,9 @@ const Auth = () => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
-      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
+    <>
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+        <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
         {/* Left side - Form */}
         <div className="p-8 md:p-12 flex flex-col justify-center">
           <div className="mb-8 text-center">
@@ -618,6 +644,31 @@ const Auth = () => {
         </div>
       </div>
     </main>
+
+    {/* Success Dialog */}
+    <Dialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center text-2xl">Благодарим за регистрацию!</DialogTitle>
+          <DialogDescription className="text-center pt-4 text-base leading-relaxed">
+            В ближайшее время заявка будет рассмотрена администратором. 
+            После завершения проверки на указанный вами адрес электронной почты придёт соответствующее уведомление.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-center pt-4">
+          <Button
+            onClick={() => {
+              setSuccessDialogOpen(false);
+              navigate("/access-status");
+            }}
+            className="w-full"
+          >
+            Перейти к статусу заявки
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 };
 
