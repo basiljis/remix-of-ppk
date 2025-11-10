@@ -134,7 +134,17 @@ export const AccessRequestsManagement = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Update access request with selected role
+      // First, add the user role
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: selectedRequest.user_id,
+          role: selectedRole as "admin" | "regional_operator" | "user",
+        });
+
+      if (roleError) throw roleError;
+
+      // Update access request
       const { error: updateError } = await supabase
         .from("access_requests")
         .update({
