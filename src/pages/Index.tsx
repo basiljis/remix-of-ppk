@@ -31,7 +31,6 @@ const Index = () => {
   const { toast } = useToast();
   const { user, loading, isAdmin, signOut, profile, hasAccessRequest } = useAuth();
   const { checklists, loading: checklistLoading, error } = useChecklistData();
-  const notificationCount = 0;
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -205,7 +204,7 @@ const Index = () => {
               </div>
               <div className="flex items-center gap-2">
                 <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
-                <NotificationsDialog notificationCount={notificationCount} />
+                <NotificationsDialog onNavigate={setActiveTab} />
                 <button
                   onClick={() => navigate("/profile")}
                   className="flex items-center gap-2 p-2 hover:bg-accent rounded-md transition-colors"

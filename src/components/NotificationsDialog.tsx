@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, FileText, UserPlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,59 +10,94 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { useNotifications } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
+import { ru } from "date-fns/locale";
 
 interface NotificationsDialogProps {
-  notificationCount: number;
+  onNavigate?: (tab: string) => void;
 }
 
-export function NotificationsDialog({ notificationCount }: NotificationsDialogProps) {
-  // Заглушка для уведомлений - здесь можно добавить реальную логику загрузки уведомлений
-  const notifications = [
-    {
-      id: 1,
-      title: "Новый протокол",
-      description: "Создан новый протокол №123",
-      time: "5 минут назад",
-      read: false,
-    },
-    // Можно добавить больше уведомлений
-  ];
+export function NotificationsDialog({ onNavigate }: NotificationsDialogProps) {
+  const { notifications, count } = useNotifications();
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "draft_protocol":
+        return <FileText className="h-4 w-4" />;
+      case "pending_request":
+        return <UserPlus className="h-4 w-4" />;
+      default:
+        return <Bell className="h-4 w-4" />;
+    }
+  };
+
+  const getNotificationBadgeVariant = (type: string) => {
+    switch (type) {
+      case "draft_protocol":
+        return "secondary" as const;
+      case "pending_request":
+        return "default" as const;
+      default:
+        return "outline" as const;
+    }
+  };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
-          {notificationCount > 0 && (
+          {count > 0 && (
             <Badge 
               variant="destructive" 
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
             >
-              {notificationCount > 9 ? '9+' : notificationCount}
+              {count > 9 ? '9+' : count}
             </Badge>
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Уведомления</DialogTitle>
           <DialogDescription>
-            У вас {notificationCount} {notificationCount === 1 ? 'новое уведомление' : 'новых уведомлений'}
+            {count === 0
+              ? "Нет новых уведомлений"
+              : `У вас ${count} ${count === 1 ? "новое уведомление" : "новых уведомлений"}`}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-[300px] w-full pr-4">
+        <ScrollArea className="h-[400px] w-full pr-4">
           {notifications.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 rounded-lg border ${
-                    notification.read ? 'bg-background' : 'bg-accent'
-                  }`}
+                  className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    if (notification.link && onNavigate) {
+                      onNavigate(notification.link);
+                    }
+                  }}
                 >
-                  <h4 className="text-sm font-semibold">{notification.title}</h4>
-                  <p className="text-sm text-muted-foreground">{notification.description}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                  <div className="flex items-start gap-3">
+                    <Badge
+                      variant={getNotificationBadgeVariant(notification.type)}
+                      className="mt-0.5"
+                    >
+                      {getNotificationIcon(notification.type)}
+                    </Badge>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold">{notification.title}</h4>
+                      <p className="text-sm text-muted-foreground">{notification.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(notification.created_at), {
+                          addSuffix: true,
+                          locale: ru,
+                        })}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
