@@ -26,6 +26,8 @@ interface ProtocolChecklistPaginatedProps {
     formulaPercentage: number;
     weightPerCriteria: number;
   };
+  onConclusionChange?: (conclusionText: string) => void;
+  savedConclusion?: string;
 }
 
 export const ProtocolChecklistPaginated = ({ 
@@ -33,7 +35,9 @@ export const ProtocolChecklistPaginated = ({
   educationLevel,
   childName,
   onItemChange, 
-  calculateBlockScore 
+  calculateBlockScore,
+  onConclusionChange,
+  savedConclusion
 }: ProtocolChecklistPaginatedProps) => {
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("checklist");
@@ -308,6 +312,8 @@ export const ProtocolChecklistPaginated = ({
             educationLevel={educationLevel}
             childName={childName}
             calculateBlockScore={calculateBlockScore}
+            onConclusionChange={onConclusionChange}
+            savedConclusion={savedConclusion}
           />
         </TabsContent>
       </Tabs>

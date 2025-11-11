@@ -23,13 +23,17 @@ interface ProtocolConclusionPanelProps {
     formulaPercentage: number;
     weightPerCriteria: number;
   };
+  onConclusionChange?: (conclusionText: string) => void;
+  savedConclusion?: string;
 }
 
 export const ProtocolConclusionPanel = ({ 
   blocks, 
   educationLevel, 
   childName, 
-  calculateBlockScore 
+  calculateBlockScore,
+  onConclusionChange,
+  savedConclusion
 }: ProtocolConclusionPanelProps) => {
   const [editableConclusion, setEditableConclusion] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
@@ -38,6 +42,13 @@ export const ProtocolConclusionPanel = ({
   const analysis = analyzeProtocolResults(blocks, calculateBlockScore, educationLevel);
   const conclusion: ProtocolConclusion = generateProtocolConclusion(analysis, childName, educationLevel);
 
+  // Инициализируем редактируемое заключение из сохраненного или сгенерированного
+  useState(() => {
+    if (savedConclusion) {
+      setEditableConclusion(savedConclusion);
+    }
+  });
+
   const handleEditConclusion = () => {
     setEditableConclusion(conclusion.conclusionText);
     setIsEditing(true);
@@ -45,6 +56,10 @@ export const ProtocolConclusionPanel = ({
 
   const handleSaveConclusion = () => {
     setIsEditing(false);
+    // Передаем отредактированный текст заключения в родительский компонент
+    if (onConclusionChange) {
+      onConclusionChange(editableConclusion);
+    }
     toast({
       title: "Заключение сохранено",
       description: "Изменения в заключении протокола сохранены",
@@ -281,7 +296,7 @@ export const ProtocolConclusionPanel = ({
           ) : (
             <div className="bg-muted p-4 rounded-lg">
               <pre className="text-sm whitespace-pre-wrap font-mono">
-                {conclusion.conclusionText}
+                {savedConclusion || editableConclusion || conclusion.conclusionText}
               </pre>
             </div>
           )}

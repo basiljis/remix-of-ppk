@@ -58,6 +58,7 @@ interface ProtocolData {
   ppkNumber?: string;
   sessionTopic?: string;
   meetingType?: "scheduled" | "unscheduled";
+  conclusionText?: string;
 }
 
 const initialDocuments: DocumentCheck[] = [
@@ -119,7 +120,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     previousConsultations: "",
     ppkNumber: "",
     sessionTopic: "",
-    meetingType: "scheduled"
+    meetingType: "scheduled",
+    conclusionText: ""
   });
 
   // Инициализация данных при редактировании
@@ -391,6 +393,13 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     updateItemScore(itemId, value);
   };
 
+  const handleConclusionChange = (conclusionText: string) => {
+    setFormData(prev => ({
+      ...prev,
+      conclusionText
+    }));
+  };
+
   const getStepTitle = () => {
     switch (currentStep) {
       case 1: return "Данные ребенка и родителя";
@@ -402,50 +411,58 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   };
 
   const calculateProgress = () => {
-    let progress = 0;
+    let totalFields = 0;
+    let filledFields = 0;
     
-    // Шаг 1: проверка заполнения основных полей
-    const requiredFields = [
+    // Шаг 1: проверка заполнения основных обязательных полей
+    const step1RequiredFields = [
       formData.childData.fullName,
       formData.childData.birthDate,
       formData.childData.age,
       formData.childData.classNumber,
       formData.childData.parentName,
       formData.childData.parentPhone,
-      formData.childData.whobrought
+      formData.childData.whobrought,
+      formData.childData.educationalOrganization
     ];
-    const filledFields = requiredFields.filter(field => field.trim() !== "").length;
-    progress += (filledFields / requiredFields.length) * 25;
+    totalFields += step1RequiredFields.length;
+    filledFields += step1RequiredFields.filter(field => field && field.trim() !== "").length;
     
-    // Шаг 2: проверка документов
+    // Шаг 2: проверка обязательных документов
     const requiredDocs = formData.documents.filter(doc => doc.required);
-    const presentRequiredDocs = requiredDocs.filter(doc => doc.present);
-    progress += (presentRequiredDocs.length / requiredDocs.length) * 25;
+    totalFields += requiredDocs.length;
+    filledFields += requiredDocs.filter(doc => doc.present).length;
     
-    // Шаг 3: завершение протокола
-    const protocolFields = [formData.consultationDate, formData.reason, formData.sessionTopic || ''];
-    const filledProtocolFields = protocolFields.filter(field => field.trim() !== "").length;
-    progress += (filledProtocolFields / protocolFields.length) * 25;
+    // Шаг 3: завершение протокола - все поля обязательные
+    const step3RequiredFields = [
+      formData.consultationDate,
+      formData.reason,
+      formData.sessionTopic || ''
+    ];
+    totalFields += step3RequiredFields.length;
+    filledFields += step3RequiredFields.filter(field => field && field.trim() !== "").length;
     
-    // Шаг 4: чек-лист
-    const totalChecklistItems = checklistBlocks.reduce((sum, block) => {
-      return sum + block.topics.reduce((topicSum: number, topic: any) => {
-        return topicSum + topic.subtopics.reduce((subtopicSum: number, subtopic: any) => {
-          return subtopicSum + subtopic.items.length;
+    // Шаг 4: чек-лист - считаем только обязательные пункты
+    const supabaseChecklist = getChecklistByLevelAndType(selectedLevel, 'protocol');
+    if (supabaseChecklist) {
+      const requiredChecklistItems = supabaseChecklist.items.filter(item => item.isRequired);
+      const completedRequiredItems = checklistBlocks.reduce((sum, block) => {
+        return sum + block.topics.reduce((topicSum: number, topic: any) => {
+          return topicSum + topic.subtopics.reduce((subtopicSum: number, subtopic: any) => {
+            return subtopicSum + subtopic.items.filter((item: any) => 
+              requiredChecklistItems.some(req => req.id === item.checklist_item_id) && 
+              item.score !== undefined
+            ).length;
+          }, 0);
         }, 0);
       }, 0);
-    }, 0);
-    const filledChecklistItems = checklistBlocks.reduce((sum, block) => {
-      return sum + block.topics.reduce((topicSum: number, topic: any) => {
-        return topicSum + topic.subtopics.reduce((subtopicSum: number, subtopic: any) => {
-          return subtopicSum + subtopic.items.filter((item: any) => item.score !== undefined).length;
-        }, 0);
-      }, 0);
-    }, 0);
-    if (totalChecklistItems > 0) {
-      progress += (filledChecklistItems / totalChecklistItems) * 25;
+      
+      totalFields += requiredChecklistItems.length;
+      filledFields += completedRequiredItems;
     }
     
+    // Рассчитываем процент только от обязательных полей
+    const progress = totalFields > 0 ? (filledFields / totalFields) * 100 : 0;
     return Math.round(progress);
   };
 
@@ -890,6 +907,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   childName={formData.childData.fullName || 'Не указано'}
                   onItemChange={handleChecklistItemChange}
                   calculateBlockScore={calculateBlockScore}
+                  onConclusionChange={handleConclusionChange}
+                  savedConclusion={formData.conclusionText}
                 />
               )}
            </div>
