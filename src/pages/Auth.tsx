@@ -14,6 +14,7 @@ import { z } from "zod";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SystemInfoDialog } from "@/components/SystemInfoDialog";
 
 const signupSchema = z.object({
   fullName: z.string()
@@ -393,12 +394,13 @@ const Auth = () => {
                   {loading ? "Вход..." : "Войти"}
                 </Button>
                 
-                <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="link" className="w-full text-sm text-muted-foreground hover:text-primary">
-                      Забыли пароль?
-                    </Button>
-                  </DialogTrigger>
+                <div className="space-y-2">
+                  <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="link" className="w-full text-sm text-muted-foreground hover:text-primary">
+                        Забыли пароль?
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Сброс пароля</DialogTitle>
@@ -424,6 +426,9 @@ const Auth = () => {
                     </form>
                   </DialogContent>
                 </Dialog>
+                
+                <SystemInfoDialog />
+                </div>
               </form>
             </TabsContent>
 
@@ -628,6 +633,8 @@ const Auth = () => {
                 >
                   {loading ? "Регистрация..." : "Зарегистрироваться"}
                 </Button>
+                
+                <SystemInfoDialog />
               </form>
             </TabsContent>
           </Tabs>

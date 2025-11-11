@@ -169,6 +169,59 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     return () => clearInterval(autoSaveInterval);
   }, [hasUnsavedChanges, formData]);
 
+  // Загрузка предыдущих протоколов при выборе вторичной консультации
+  useEffect(() => {
+    const loadPreviousProtocols = async () => {
+      if (formData.consultationType === "secondary" && formData.childData.fullName && formData.childData.educationalOrganization) {
+        try {
+          const { data: previousProtocols, error } = await supabase
+            .from("protocols")
+            .select("protocol_data, created_at, ppk_number")
+            .eq("child_name", formData.childData.fullName)
+            .eq("organization_id", formData.childData.educationalOrganization)
+            .eq("status", "completed")
+            .order("created_at", { ascending: false })
+            .limit(5);
+
+          if (error) {
+            console.error("Error loading previous protocols:", error);
+            return;
+          }
+
+          if (previousProtocols && previousProtocols.length > 0) {
+            const historyText = previousProtocols
+              .map((p: any, index: number) => {
+                const date = new Date(p.created_at).toLocaleDateString("ru-RU");
+                const conclusion = p.protocol_data?.conclusionText || "Заключение не сохранено";
+                const ppkNumber = p.ppk_number || "Номер не указан";
+                return `${index + 1}. Протокол №${ppkNumber} от ${date}:\n${conclusion}`;
+              })
+              .join("\n\n---\n\n");
+
+            setFormData(prev => ({
+              ...prev,
+              previousConsultations: historyText
+            }));
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              previousConsultations: "Предыдущие протоколы для данного обучающегося не найдены"
+            }));
+          }
+        } catch (error) {
+          console.error("Error loading previous protocols:", error);
+        }
+      } else if (formData.consultationType === "primary") {
+        setFormData(prev => ({
+          ...prev,
+          previousConsultations: ""
+        }));
+      }
+    };
+
+    loadPreviousProtocols();
+  }, [formData.consultationType, formData.childData.fullName, formData.childData.educationalOrganization]);
+
   // Автоматически устанавливаем организацию для обычного пользователя
   useEffect(() => {
     if (profile && !isAdmin && !isRegionalOperator && profile.organization_id && !editingProtocol) {
@@ -835,9 +888,13 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   id="previousConsultations"
                   value={formData.previousConsultations}
                   onChange={(e) => setFormData(prev => ({ ...prev, previousConsultations: e.target.value }))}
-                  placeholder="Укажите даты и результаты предыдущих консилиумов..."
+                  placeholder="Загрузка предыдущих консультаций..."
                   className="min-h-24"
+                  readOnly
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Автоматически загружается текст заключений из предыдущих протоколов этого обучающегося
+                </p>
               </div>
             )}
             
