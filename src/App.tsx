@@ -12,6 +12,7 @@ const ThemeProvider = lazy(() => import("@/components/ui/theme-provider").then(m
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
+const ChildProfile = lazy(() => import("./pages/ChildProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/app" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/child-profile" element={<ChildProfile />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/access-status" element={<AccessRequestStatus />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

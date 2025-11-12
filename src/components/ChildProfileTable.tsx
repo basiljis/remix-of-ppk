@@ -1,0 +1,115 @@
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+
+interface Protocol {
+  id: string;
+  created_at: string;
+  ppk_number: string;
+  checklist_data: any;
+}
+
+interface Props {
+  protocols: Protocol[];
+}
+
+export function ChildProfileTable({ protocols }: Props) {
+  // Calculate block scores for each protocol
+  const calculateBlockScores = (protocol: Protocol) => {
+    if (!protocol.checklist_data?.blocks) return {};
+
+    const blockScores: { [key: string]: number } = {};
+    
+    protocol.checklist_data.blocks.forEach((block: any) => {
+      if (block.items && Array.isArray(block.items)) {
+        const scores = block.items.map((item: any) => item.score || 0);
+        const average = scores.length > 0 
+          ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length 
+          : 0;
+        blockScores[block.name] = Math.round(average * 100);
+      }
+    });
+
+    return blockScores;
+  };
+
+  // Get all unique block names
+  const allBlocks = new Set<string>();
+  protocols.forEach(protocol => {
+    const scores = calculateBlockScores(protocol);
+    Object.keys(scores).forEach(block => allBlocks.add(block));
+  });
+
+  const blockNames = Array.from(allBlocks);
+
+  // Calculate trends for each block
+  const calculateTrend = (blockName: string, currentIndex: number) => {
+    if (currentIndex === 0) return null;
+    
+    const currentScore = calculateBlockScores(protocols[currentIndex])[blockName] || 0;
+    const previousScore = calculateBlockScores(protocols[currentIndex - 1])[blockName] || 0;
+    
+    if (currentScore > previousScore) return "up";
+    if (currentScore < previousScore) return "down";
+    return "same";
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Таблица динамики по ППк</CardTitle>
+        <CardDescription>
+          Процентные показатели по всем блокам с индикацией изменений
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[180px]">Блок</TableHead>
+              {protocols.map((protocol) => (
+                <TableHead key={protocol.id} className="text-center min-w-[120px]">
+                  <div className="flex flex-col">
+                    <span className="font-medium">№{protocol.ppk_number || "—"}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(protocol.created_at).toLocaleDateString("ru-RU")}
+                    </span>
+                  </div>
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {blockNames.map((blockName) => (
+              <TableRow key={blockName}>
+                <TableCell className="font-medium">{blockName}</TableCell>
+                {protocols.map((protocol, index) => {
+                  const scores = calculateBlockScores(protocol);
+                  const score = scores[blockName];
+                  const trend = calculateTrend(blockName, index);
+
+                  return (
+                    <TableCell key={protocol.id} className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="font-medium">{score !== undefined ? `${score}%` : "—"}</span>
+                        {trend === "up" && (
+                          <TrendingUp className="h-4 w-4 text-success-foreground" />
+                        )}
+                        {trend === "down" && (
+                          <TrendingDown className="h-4 w-4 text-destructive" />
+                        )}
+                        {trend === "same" && (
+                          <Minus className="h-4 w-4 text-warning-foreground" />
+                        )}
+                      </div>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
