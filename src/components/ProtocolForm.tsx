@@ -24,6 +24,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { EducationLevelSelector, type EducationLevel } from "@/components/EducationLevelSelector";
 import { differenceInYears, differenceInMonths, parseISO } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { PreviousProtocolDialog } from "@/components/PreviousProtocolDialog";
+import { Eye } from "lucide-react";
 
 interface ChildData {
   fullName: string;
@@ -84,6 +86,9 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [pendingStep, setPendingStep] = useState<number | null>(null);
   const initialFormDataRef = useRef<string>("");
+  const [previousProtocols, setPreviousProtocols] = useState<any[]>([]);
+  const [selectedProtocol, setSelectedProtocol] = useState<any | null>(null);
+  const [showProtocolDialog, setShowProtocolDialog] = useState(false);
   
   // Remove state for checklistBlocks as it's now computed via useMemo
   const { saveProtocol, updateProtocol } = useProtocols();
@@ -174,9 +179,9 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     const loadPreviousProtocols = async () => {
       if (formData.consultationType === "secondary" && formData.childData.fullName && formData.childData.educationalOrganization) {
         try {
-          const { data: previousProtocols, error } = await supabase
+          const { data: protocols, error } = await supabase
             .from("protocols")
-            .select("protocol_data, created_at, ppk_number")
+            .select("*")
             .eq("child_name", formData.childData.fullName)
             .eq("organization_id", formData.childData.educationalOrganization)
             .eq("status", "completed")
@@ -188,8 +193,9 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
             return;
           }
 
-          if (previousProtocols && previousProtocols.length > 0) {
-            const historyText = previousProtocols
+          if (protocols && protocols.length > 0) {
+            setPreviousProtocols(protocols);
+            const historyText = protocols
               .map((p: any, index: number) => {
                 const date = new Date(p.created_at).toLocaleDateString("ru-RU");
                 const conclusion = p.protocol_data?.conclusionText || "Заключение не сохранено";
@@ -203,6 +209,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
               previousConsultations: historyText
             }));
           } else {
+            setPreviousProtocols([]);
             setFormData(prev => ({
               ...prev,
               previousConsultations: "Предыдущие протоколы для данного обучающегося не найдены"
@@ -212,6 +219,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
           console.error("Error loading previous protocols:", error);
         }
       } else if (formData.consultationType === "primary") {
+        setPreviousProtocols([]);
         setFormData(prev => ({
           ...prev,
           previousConsultations: ""
@@ -883,7 +891,47 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
 
             {formData.consultationType === "secondary" && (
               <div>
-                <Label htmlFor="previousConsultations">История предыдущих консультаций</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="previousConsultations">История предыдущих консультаций</Label>
+                  {previousProtocols.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Найдено протоколов: {previousProtocols.length}
+                    </p>
+                  )}
+                </div>
+                
+                {previousProtocols.length > 0 && (
+                  <div className="mb-3 space-y-2">
+                    {previousProtocols.map((protocol: any, index: number) => (
+                      <div 
+                        key={protocol.id} 
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            Протокол №{protocol.ppk_number || "Не указан"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(protocol.created_at).toLocaleDateString("ru-RU")}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedProtocol(protocol);
+                            setShowProtocolDialog(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Просмотр
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 <Textarea
                   id="previousConsultations"
                   value={formData.previousConsultations}
@@ -1031,6 +1079,13 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Диалог просмотра предыдущего протокола */}
+      <PreviousProtocolDialog
+        open={showProtocolDialog}
+        onOpenChange={setShowProtocolDialog}
+        protocol={selectedProtocol}
+      />
     </Card>
   );
 };
