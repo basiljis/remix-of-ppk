@@ -23,7 +23,7 @@ import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear, Scho
 import { useSchoolYears } from "@/hooks/useSchoolYears";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 export const Dashboard = () => {
-  const { hasAccessRequest } = useAuth();
+  const { hasAccessRequest, profile, isAdmin, isRegionalOperator } = useAuth();
   const {
     protocols,
     loading
@@ -31,6 +31,21 @@ export const Dashboard = () => {
   const {
     organizations
   } = useOrganizations();
+
+  // Filter organizations based on user role
+  const filteredOrganizations = organizations.filter(org => {
+    if (isAdmin) {
+      // Admins see all organizations
+      return true;
+    } else if (isRegionalOperator && profile?.region_id) {
+      // Regional operators see only organizations in their region
+      return org.region_id === profile.region_id;
+    } else if (profile?.organization_id) {
+      // Regular users see only their organization
+      return org.id === profile.organization_id;
+    }
+    return false;
+  });
 
   // Show access request status if user has a pending/rejected request
   if (hasAccessRequest) {
@@ -57,8 +72,8 @@ export const Dashboard = () => {
     ? schoolYearsFormatted 
     : getAvailableSchoolYears();
 
-  // Данные из организаций
-  const districts = [...new Set(organizations.map(org => org.district).filter(Boolean))] as string[];
+  // Данные из организаций (используем отфильтрованные организации)
+  const districts = [...new Set(filteredOrganizations.map(org => org.district).filter(Boolean))] as string[];
   useEffect(() => {
     applyFilters();
   }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, schoolYearFilter, dateFrom, dateTo, organizations]);
@@ -322,7 +337,12 @@ export const Dashboard = () => {
           
             <div>
               <Label></Label>
-              <OrganizationSelector value={eduOrgFilter} onChange={setEduOrgFilter} placeholder="Поиск и выбор организации..." />
+              <OrganizationSelector 
+                value={eduOrgFilter} 
+                onChange={setEduOrgFilter} 
+                placeholder="Поиск и выбор организации..." 
+                organizations={filteredOrganizations}
+              />
             </div>
             
             <div>

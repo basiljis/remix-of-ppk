@@ -11,6 +11,7 @@ interface OrganizationSelectorProps {
   placeholder?: string;
   regionFilter?: string;
   disabled?: boolean;
+  organizations?: Organization[]; // Allow passing filtered organizations
 }
 export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   value,
@@ -18,17 +19,28 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   label = "Образовательная организация",
   placeholder = "Выберите организацию",
   regionFilter,
-  disabled = false
+  disabled = false,
+  organizations: providedOrganizations
 }) => {
   const {
-    organizations,
+    organizations: allOrganizations,
     loading,
     searchOrganizations
   } = useOrganizations();
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Use provided organizations if available, otherwise use all organizations
+  const organizations = providedOrganizations || allOrganizations;
+
   // Filter organizations by region if regionFilter is provided
-  let filteredOrganizations = searchOrganizations(searchQuery);
+  let filteredOrganizations = searchQuery 
+    ? organizations.filter(org => 
+        org.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        org.external_id?.includes(searchQuery) ||
+        org.district?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : organizations;
+  
   if (regionFilter) {
     filteredOrganizations = filteredOrganizations.filter(org => org.region_id === regionFilter);
   }
