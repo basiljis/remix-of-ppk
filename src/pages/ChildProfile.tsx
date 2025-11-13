@@ -8,6 +8,7 @@ import { ChildProfileRadarChart } from "@/components/ChildProfileRadarChart";
 import { ChildProfileBarChart } from "@/components/ChildProfileBarChart";
 import { ChildProfileTable } from "@/components/ChildProfileTable";
 import { ChildProfileRecommendations } from "@/components/ChildProfileRecommendations";
+import { ChildProfileComparison } from "@/components/ChildProfileComparison";
 import Preloader from "@/components/Preloader";
 
 interface Protocol {
@@ -169,6 +170,15 @@ export default function ChildProfile() {
           <ChildProfileRadarChart protocols={protocols} />
           <ChildProfileBarChart protocols={protocols} />
         </div>
+
+        {/* Comparison with averages */}
+        {protocols.length > 0 && (
+          <ChildProfileComparison
+            childBirthDate={protocols[protocols.length - 1].child_birth_date}
+            organizationId={protocols[protocols.length - 1].organization_id}
+            currentProtocol={protocols[protocols.length - 1]}
+          />
+        )}
 
         {/* Recommendations */}
         <ChildProfileRecommendations protocols={protocols} />
