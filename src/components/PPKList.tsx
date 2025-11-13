@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet, RefreshCw, Copy } from 'lucide-react';
+import { Eye, Trash2, Plus, Search, Edit, Download, FileText, FileSpreadsheet, RefreshCw, Copy, User } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProtocols } from '@/hooks/useProtocols';
@@ -29,6 +30,7 @@ interface PPKListProps {
 }
 
 export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol }) => {
+  const navigate = useNavigate();
   const { protocols, deleteProtocol, loading, loadProtocols } = useProtocols();
   const { calculateBlockScore } = useProtocolChecklistData();
   const { toast } = useToast();
@@ -618,6 +620,22 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                               </DialogContent>
                           </Dialog>
                           
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => navigate(`/child-profile?name=${encodeURIComponent(record.child_name)}&org=${record.organization_id}`)}
+                                className="text-green-600 hover:text-green-800"
+                              >
+                                <User className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Профиль ребёнка</p>
+                            </TooltipContent>
+                          </Tooltip>
+
                           {record.status !== 'completed' && (
                             <Tooltip>
                               <TooltipTrigger asChild>
