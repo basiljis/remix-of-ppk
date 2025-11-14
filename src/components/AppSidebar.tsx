@@ -56,6 +56,7 @@ const menuItems = [
       { id: "administration-statistics", label: "Статистика" },
       { id: "administration-school-years", label: "Учебные годы" },
       { id: "administration-email-logs", label: "Логи Email" },
+      { id: "administration-auth-logs", label: "Логи авторизации" },
     ]
   },
 ];
