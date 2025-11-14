@@ -3,13 +3,17 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, School, User } from "lucide-react";
+import { ArrowLeft, Calendar, School, User, CalendarIcon } from "lucide-react";
 import { ChildProfileRadarChart } from "@/components/ChildProfileRadarChart";
 import { ChildProfileBarChart } from "@/components/ChildProfileBarChart";
 import { ChildProfileTable } from "@/components/ChildProfileTable";
 import { ChildProfileRecommendations } from "@/components/ChildProfileRecommendations";
 import { ChildProfileComparison } from "@/components/ChildProfileComparison";
 import Preloader from "@/components/Preloader";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface Protocol {
   id: string;
@@ -29,15 +33,19 @@ export default function ChildProfile() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [protocols, setProtocols] = useState<Protocol[]>([]);
+  const [allProtocols, setAllProtocols] = useState<Protocol[]>([]);
   const [loading, setLoading] = useState(true);
   const [childInfo, setChildInfo] = useState<{
     name: string;
     birthDate: string;
     organization: string;
   } | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
 
   const childName = searchParams.get("name");
   const organizationId = searchParams.get("org");
+  const returnUrl = searchParams.get("returnUrl") || "/app";
 
   useEffect(() => {
     const loadProtocols = async () => {
@@ -63,6 +71,7 @@ export default function ChildProfile() {
         if (error) throw error;
 
         if (data && data.length > 0) {
+          setAllProtocols(data);
           setProtocols(data);
           setChildInfo({
             name: data[0].child_name,
@@ -80,6 +89,21 @@ export default function ChildProfile() {
     loadProtocols();
   }, [childName, organizationId]);
 
+  // Фильтрация по периодам
+  useEffect(() => {
+    let filtered = [...allProtocols];
+
+    if (dateFrom) {
+      filtered = filtered.filter(p => new Date(p.created_at) >= dateFrom);
+    }
+
+    if (dateTo) {
+      filtered = filtered.filter(p => new Date(p.created_at) <= dateTo);
+    }
+
+    setProtocols(filtered);
+  }, [dateFrom, dateTo, allProtocols]);
+
   if (loading) {
     return <Preloader />;
   }
@@ -95,9 +119,9 @@ export default function ChildProfile() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/app")} className="w-full">
+            <Button onClick={() => navigate(returnUrl)} className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Вернуться на главную
+              Назад
             </Button>
           </CardContent>
         </Card>
@@ -109,15 +133,78 @@ export default function ChildProfile() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <Button
             variant="outline"
-            onClick={() => navigate("/app")}
+            onClick={() => navigate(returnUrl)}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Назад
           </Button>
+
+          {/* Фильтрация по периодам */}
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !dateFrom && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom ? format(dateFrom, "dd.MM.yyyy") : "Дата от"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={dateFrom}
+                  onSelect={setDateFrom}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !dateTo && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateTo ? format(dateTo, "dd.MM.yyyy") : "Дата до"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={dateTo}
+                  onSelect={setDateTo}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {(dateFrom || dateTo) && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setDateFrom(undefined);
+                  setDateTo(undefined);
+                }}
+              >
+                Сбросить
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Child Info Card */}

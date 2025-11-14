@@ -625,7 +625,10 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => navigate(`/child-profile?name=${encodeURIComponent(record.child_name)}&org=${record.organization_id}`)}
+                                onClick={() => {
+                                  const currentPath = window.location.pathname;
+                                  navigate(`/child-profile?name=${encodeURIComponent(record.child_name)}&org=${record.organization_id}&returnUrl=${encodeURIComponent(currentPath)}`);
+                                }}
                                 className="text-green-600 hover:text-green-800"
                               >
                                 <User className="h-4 w-4" />

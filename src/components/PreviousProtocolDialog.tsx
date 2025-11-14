@@ -29,7 +29,7 @@ export const PreviousProtocolDialog = ({ open, onOpenChange, protocol }: Previou
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             Протокол №{protocol.ppk_number || "Не указан"} от{" "}
@@ -37,7 +37,7 @@ export const PreviousProtocolDialog = ({ open, onOpenChange, protocol }: Previou
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="h-full pr-4">
+        <ScrollArea className="flex-1 pr-4">
           <div className="space-y-6">
             {/* Общая информация */}
             <Card>
