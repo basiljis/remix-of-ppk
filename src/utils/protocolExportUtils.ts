@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { translateEducationLevel } from './educationLevelTranslations';
 
 export interface ProtocolData {
   child_name: string;
@@ -18,20 +19,6 @@ export interface ProtocolData {
   protocol_data?: any;
   checklist_data?: any;
 }
-
-// Перевод уровней образования на кириллицу
-const educationLevelTranslations: Record<string, string> = {
-  'preschool': 'Дошкольное образование',
-  'primary': 'Начальное общее образование',
-  'secondary': 'Основное общее образование',
-  'high': 'Среднее общее образование',
-  'vocational': 'Среднее профессиональное образование',
-  'higher': 'Высшее образование'
-};
-
-const translateEducationLevel = (level: string): string => {
-  return educationLevelTranslations[level] || level;
-};
 
 // Форматирование результатов чек-листов
 export const formatChecklistResults = (checklistData: any): string => {

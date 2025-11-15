@@ -1,4 +1,5 @@
 import { AssistanceRecommendation, BlockAssessment } from "./assistanceDirections";
+import { translateEducationLevel } from "./educationLevelTranslations";
 
 export interface SpecialistAssignment {
   teacher: boolean; // Педагог
@@ -167,7 +168,7 @@ export const generateConclusionText = (
   
   let conclusion = `ЗАКЛЮЧЕНИЕ ППК от ${currentDate}\n\n`;
   conclusion += `Обучающийся: ${childName}\n`;
-  conclusion += `Уровень образования: ${educationLevel}\n\n`;
+  conclusion += `Уровень образования: ${translateEducationLevel(educationLevel)}\n\n`;
   
   conclusion += `ИТОГОВОЕ ЗАКЛЮЧЕНИЕ:\n${finalStatus}\n\n`;
   

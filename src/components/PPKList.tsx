@@ -23,6 +23,7 @@ import { ProtocolConclusionPanel } from '@/components/ProtocolConclusionPanel';
 import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
 import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear } from '@/utils/schoolYear';
 import { useSchoolYears } from '@/hooks/useSchoolYears';
+import { translateEducationLevel } from '@/utils/educationLevelTranslations';
 
 interface PPKListProps {
   onNewProtocol: () => void;
@@ -525,11 +526,7 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                      </div>
                                      <div>
                                        <p className="font-semibold">Уровень образования:</p>
-                                       <p>{record.education_level === 'preschool' ? 'Дошкольное образование' :
-                                           record.education_level === 'elementary' ? 'Начальное общее образование' :
-                                           record.education_level === 'middle' ? 'Основное общее образование' :
-                                           record.education_level === 'high' ? 'Среднее общее образование' :
-                                           record.education_level || 'Не указан'}</p>
+                                       <p>{translateEducationLevel(record.education_level) || 'Не указан'}</p>
                                      </div>
                                      <div>
                                        <p className="font-semibold">Тип консультации:</p>
