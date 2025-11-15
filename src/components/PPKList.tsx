@@ -296,7 +296,24 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     <TooltipProvider>
       <Card>
         <CardHeader>
-          <CardTitle>Список протоколов ППК</CardTitle>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle>Список протоколов ППК</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={handleRefresh} 
+                variant="outline"
+                size="icon"
+                disabled={refreshing || loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              </Button>
+
+              <Button onClick={onNewProtocol}>
+                <Plus className="h-4 w-4 mr-2" />
+                Новый ППК
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
         {/* Фильтры */}
@@ -382,41 +399,27 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                 <SelectValue placeholder="Тип заседания" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все типы заседаний</SelectItem>
-                <SelectItem value="scheduled">Плановые</SelectItem>
-                <SelectItem value="unscheduled">Внеплановые</SelectItem>
+                <SelectItem value="all">Все типы</SelectItem>
+                <SelectItem value="плановое">Плановое</SelectItem>
+                <SelectItem value="внеплановое">Внеплановое</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="w-48">
-            <Label>Тип заключения</Label>
+            <Label>Заключение</Label>
             <Select value={conclusionTypeFilter} onValueChange={setConclusionTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Тип заключения" />
+                <SelectValue placeholder="Группа" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все заключения</SelectItem>
+                <SelectItem value="all">Все группы</SelectItem>
                 <SelectItem value="1">Группа 1 - Норма</SelectItem>
                 <SelectItem value="2">Группа 2 - Риск</SelectItem>
                 <SelectItem value="3">Группа 3 - Нарушение</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline"
-            size="icon"
-            disabled={refreshing || loading}
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </Button>
-
-          <Button onClick={onNewProtocol}>
-            <Plus className="h-4 w-4 mr-2" />
-            Новый ППК
-          </Button>
         </div>
 
         {/* Таблица */}
