@@ -9,6 +9,7 @@ import { Shield, LogIn, LogOut, UserPlus, AlertCircle, Download } from "lucide-r
 import { Button } from "@/components/ui/button";
 import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface AuthLog {
   id: string;
@@ -24,7 +25,14 @@ interface AuthLog {
 export const AuthLogsPanel = () => {
   const [logs, setLogs] = useState<AuthLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const { toast } = useToast();
+
+  const totalPages = Math.ceil(logs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentLogs = logs.slice(startIndex, endIndex);
 
   useEffect(() => {
     loadAuthLogs();
@@ -158,8 +166,8 @@ export const AuthLogsPanel = () => {
                   <TableHead>Статус</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {logs.map((log) => (
+          <TableBody>
+            {currentLogs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="whitespace-nowrap">
                       {format(new Date(log.created_at), 'dd.MM.yyyy HH:mm:ss')}
@@ -178,8 +186,39 @@ export const AuthLogsPanel = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
+          </TableBody>
+        </Table>
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
           </div>
         )}
       </CardContent>
