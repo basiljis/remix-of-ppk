@@ -24,6 +24,7 @@ import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
 import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear } from '@/utils/schoolYear';
 import { useSchoolYears } from '@/hooks/useSchoolYears';
 import { translateEducationLevel } from '@/utils/educationLevelTranslations';
+import { translateWhobrought } from '@/utils/whobroughtTranslations';
 
 interface PPKListProps {
   onNewProtocol: () => void;
@@ -496,10 +497,10 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                          <p>{new Date(record.child_birth_date).toLocaleDateString()}</p>
                                        </div>
                                      )}
-                                      <div>
-                                        <p className="font-semibold">Инициатор обращения:</p>
-                                        <p>{(record.protocol_data as any)?.childData?.whobrought || 'Не указан'}</p>
-                                      </div>
+                                       <div>
+                                         <p className="font-semibold">Инициатор обращения:</p>
+                                         <p>{translateWhobrought((record.protocol_data as any)?.childData?.whobrought)}</p>
+                                       </div>
                                       <div>
                                         <p className="font-semibold">Повод обращения в ППк:</p>
                                         <p>{record.consultation_reason || 'Не указан'}</p>
