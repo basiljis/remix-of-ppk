@@ -566,6 +566,18 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                                        <p className="font-semibold">Дата обновления:</p>
                                        <p>{new Date(record.updated_at).toLocaleDateString()}</p>
                                      </div>
+                                     {(record.protocol_data as any)?.parentConsent !== undefined && (
+                                       <div>
+                                         <p className="font-semibold">Согласие родителя:</p>
+                                         <p>
+                                           {(record.protocol_data as any).parentConsent ? (
+                                             <Badge variant="default" className="bg-green-500">Да</Badge>
+                                           ) : (
+                                             <Badge variant="secondary">Нет</Badge>
+                                           )}
+                                         </p>
+                                       </div>
+                                     )}
                                    </div>
                                    
                                         {record.checklist_data && (record.checklist_data as any).blocks && Array.isArray((record.checklist_data as any).blocks) && (record.checklist_data as any).blocks.length > 0 && (

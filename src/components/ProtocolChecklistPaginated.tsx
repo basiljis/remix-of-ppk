@@ -28,6 +28,8 @@ interface ProtocolChecklistPaginatedProps {
   };
   onConclusionChange?: (conclusionText: string) => void;
   savedConclusion?: string;
+  parentConsent?: boolean;
+  onParentConsentChange?: (consent: boolean) => void;
 }
 
 export const ProtocolChecklistPaginated = ({ 
@@ -37,7 +39,9 @@ export const ProtocolChecklistPaginated = ({
   onItemChange, 
   calculateBlockScore,
   onConclusionChange,
-  savedConclusion
+  savedConclusion,
+  parentConsent,
+  onParentConsentChange
 }: ProtocolChecklistPaginatedProps) => {
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("checklist");
@@ -314,6 +318,8 @@ export const ProtocolChecklistPaginated = ({
             calculateBlockScore={calculateBlockScore}
             onConclusionChange={onConclusionChange}
             savedConclusion={savedConclusion}
+            parentConsent={parentConsent}
+            onParentConsentChange={onParentConsentChange}
           />
         </TabsContent>
       </Tabs>
