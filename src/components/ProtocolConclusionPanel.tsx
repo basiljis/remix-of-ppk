@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ProtocolChecklistBlock } from "@/hooks/useProtocolChecklistData";
 import { analyzeProtocolResults } from "@/utils/assistanceDirections";
 import { generateProtocolConclusion, ProtocolConclusion } from "@/utils/protocolRecommendations";
@@ -25,6 +27,8 @@ interface ProtocolConclusionPanelProps {
   };
   onConclusionChange?: (conclusionText: string) => void;
   savedConclusion?: string;
+  parentConsent?: boolean;
+  onParentConsentChange?: (consent: boolean) => void;
 }
 
 export const ProtocolConclusionPanel = ({ 
@@ -33,7 +37,9 @@ export const ProtocolConclusionPanel = ({
   childName, 
   calculateBlockScore,
   onConclusionChange,
-  savedConclusion
+  savedConclusion,
+  parentConsent = false,
+  onParentConsentChange
 }: ProtocolConclusionPanelProps) => {
   const [editableConclusion, setEditableConclusion] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
@@ -300,6 +306,29 @@ export const ProtocolConclusionPanel = ({
               </pre>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Согласие родителя */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="parent-consent" 
+              checked={parentConsent}
+              onCheckedChange={(checked) => {
+                if (onParentConsentChange) {
+                  onParentConsentChange(checked === true);
+                }
+              }}
+            />
+            <Label 
+              htmlFor="parent-consent" 
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Родитель/законный представитель ознакомлен(а) с заключением и согласен(а) с ним
+            </Label>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -61,6 +61,7 @@ interface ProtocolData {
   sessionTopic?: string;
   meetingType?: "scheduled" | "unscheduled";
   conclusionText?: string;
+  parentConsent?: boolean;
 }
 
 const initialDocuments: DocumentCheck[] = [
@@ -126,7 +127,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     ppkNumber: "",
     sessionTopic: "",
     meetingType: "scheduled",
-    conclusionText: ""
+    conclusionText: "",
+    parentConsent: false
   });
 
   // Инициализация данных при редактировании
@@ -458,6 +460,13 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
     setFormData(prev => ({
       ...prev,
       conclusionText
+    }));
+  };
+
+  const handleParentConsentChange = (consent: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      parentConsent: consent
     }));
   };
 
@@ -1014,6 +1023,8 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   calculateBlockScore={calculateBlockScore}
                   onConclusionChange={handleConclusionChange}
                   savedConclusion={formData.conclusionText}
+                  parentConsent={formData.parentConsent}
+                  onParentConsentChange={handleParentConsentChange}
                 />
               )}
            </div>

@@ -94,6 +94,9 @@ export const formatProtocolToText = (protocol: ProtocolData): string => {
   if (protocol.is_ready !== undefined) {
     text += `- Готов к завершению: ${protocol.is_ready ? 'Да' : 'Нет'}\n`;
   }
+  if (protocol.protocol_data?.parentConsent !== undefined) {
+    text += `- Согласие родителя: ${protocol.protocol_data.parentConsent ? 'Да' : 'Нет'}\n`;
+  }
   text += `- Дата создания: ${new Date(protocol.created_at).toLocaleDateString()}\n`;
   if (protocol.updated_at) {
     text += `- Дата обновления: ${new Date(protocol.updated_at).toLocaleDateString()}\n`;
@@ -156,6 +159,7 @@ export const exportProtocolToXLS = (protocol: ProtocolData) => {
     { 'Поле': 'Статус', 'Значение': protocol.status === 'completed' ? 'Завершен' : 'Черновик' },
     { 'Поле': 'Готовность (%)', 'Значение': protocol.completion_percentage },
     ...(protocol.is_ready !== undefined ? [{ 'Поле': 'Готов к завершению', 'Значение': protocol.is_ready ? 'Да' : 'Нет' }] : []),
+    ...(protocol.protocol_data?.parentConsent !== undefined ? [{ 'Поле': 'Согласие родителя', 'Значение': protocol.protocol_data.parentConsent ? 'Да' : 'Нет' }] : []),
     { 'Поле': 'Дата создания', 'Значение': new Date(protocol.created_at).toLocaleDateString() },
     ...(protocol.updated_at ? [{ 'Поле': 'Дата обновления', 'Значение': new Date(protocol.updated_at).toLocaleDateString() }] : [])
   ];
