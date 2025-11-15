@@ -128,8 +128,14 @@ export const Dashboard = () => {
       filtered = filtered.filter(p => p.consultation_reason?.toLowerCase().includes(reasonFilter.toLowerCase()));
     }
     if (conclusionTypeFilter && conclusionTypeFilter !== "all") {
-      const { calculateBlockScore } = useProtocolChecklistData();
       filtered = filtered.filter(p => {
+        // Проверяем наличие сохраненного заключения в protocol_data
+        const conclusionData = (p.protocol_data as any)?.conclusion;
+        if (conclusionData?.finalGroup) {
+          return conclusionData.finalGroup.toString() === conclusionTypeFilter;
+        }
+        
+        // Если нет сохраненного заключения, вычисляем на лету
         if (!p.checklist_data || !(p.checklist_data as any).blocks) return false;
         
         const blocks = (p.checklist_data as any).blocks;
