@@ -5,7 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { Shield, LogIn, LogOut, UserPlus, AlertCircle } from "lucide-react";
+import { Shield, LogIn, LogOut, UserPlus, AlertCircle, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import * as XLSX from "xlsx";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthLog {
   id: string;
@@ -21,10 +24,36 @@ interface AuthLog {
 export const AuthLogsPanel = () => {
   const [logs, setLogs] = useState<AuthLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadAuthLogs();
   }, []);
+
+  const handleExport = () => {
+    const exportData = logs.map((log) => ({
+      'Дата и время': format(new Date(log.created_at), 'dd.MM.yyyy HH:mm:ss'),
+      'Событие': getEventLabel(log.event_type),
+      'Email пользователя': log.user_email,
+      'Статус': log.success ? 'Успешно' : 'Ошибка',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Логи авторизации');
+
+    ws['!cols'] = [
+      { wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 12 }
+    ];
+
+    const fileName = `Логи_авторизации_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    toast({
+      title: "Экспорт выполнен",
+      description: `Логи авторизации экспортированы в файл ${fileName}`,
+    });
+  };
 
   const loadAuthLogs = async () => {
     try {
@@ -79,15 +108,21 @@ export const AuthLogsPanel = () => {
   };
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader>
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
             Логи авторизации
           </CardTitle>
-        </CardHeader>
-        <CardContent>
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Экспорт в Excel
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />

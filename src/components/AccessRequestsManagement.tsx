@@ -28,7 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Loader2, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
 interface AccessRequest {
   id: string;
@@ -71,6 +72,64 @@ export const AccessRequestsManagement = () => {
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Администратор";
+      case "regional_operator":
+        return "Региональный оператор";
+      case "user":
+        return "Пользователь";
+      default:
+        return role;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Ожидает";
+      case "approved":
+        return "Одобрено";
+      case "rejected":
+        return "Отклонено";
+      default:
+        return status;
+    }
+  };
+
+  const handleExport = () => {
+    const exportData = filteredRequests.map((req) => ({
+      'ФИО': req.full_name,
+      'Email': req.email,
+      'Телефон': req.phone,
+      'Должность': req.positions?.name,
+      'Регион': req.regions?.name,
+      'Организация': req.organizations?.name || 'Не указана',
+      'Роль': getRoleLabel(req.role),
+      'Статус': getStatusLabel(req.status),
+      'Дата заявки': new Date(req.requested_at).toLocaleString('ru-RU'),
+      'Примечания': req.admin_notes || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Заявки');
+
+    ws['!cols'] = [
+      { wch: 30 }, { wch: 25 }, { wch: 15 }, { wch: 20 },
+      { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 30 }
+    ];
+
+    const fileName = `Заявки_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    toast({
+      title: "Экспорт выполнен",
+      description: `Заявки экспортированы в файл ${fileName}`,
+    });
+  };
 
   const fetchRequests = async () => {
     try {

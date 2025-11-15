@@ -13,7 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Search, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Mail, Search, AlertCircle, CheckCircle2, Clock, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import * as XLSX from "xlsx";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -21,6 +24,49 @@ export const EmailLogsPanel = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const { toast } = useToast();
+
+  const handleExport = () => {
+    if (!filteredLogs || filteredLogs.length === 0) {
+      toast({
+        title: "Нет данных",
+        description: "Отсутствуют данные для экспорта",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const typeLabels: Record<string, string> = {
+      registration: "Регистрация",
+      approval: "Одобрение",
+      rejection: "Отклонение",
+    };
+
+    const exportData = filteredLogs.map((log) => ({
+      'Дата и время': format(new Date(log.created_at), 'dd.MM.yyyy HH:mm:ss', { locale: ru }),
+      'Получатель': log.recipient,
+      'Тема': log.subject,
+      'Тип': typeLabels[log.email_type] || log.email_type,
+      'Статус': log.status === 'success' ? 'Успешно' : log.status === 'error' ? 'Ошибка' : 'В ожидании',
+      'Сообщение об ошибке': log.error_message || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Email логи');
+
+    ws['!cols'] = [
+      { wch: 20 }, { wch: 30 }, { wch: 40 }, { wch: 15 }, { wch: 12 }, { wch: 40 }
+    ];
+
+    const fileName = `Email_логи_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    toast({
+      title: "Экспорт выполнен",
+      description: `Email логи экспортированы в файл ${fileName}`,
+    });
+  };
 
   const { data: emailLogs, isLoading } = useQuery({
     queryKey: ["email-logs"],
@@ -101,10 +147,16 @@ export const EmailLogsPanel = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Логирование Email
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Логирование Email
+            </CardTitle>
+            <Button onClick={handleExport} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Экспорт в Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
