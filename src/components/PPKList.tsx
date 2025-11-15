@@ -70,7 +70,9 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     if (conclusionTypeFilter && conclusionTypeFilter !== 'all' && protocol.protocol_data) {
       const conclusionData = (protocol.protocol_data as any)?.conclusion;
       if (conclusionData?.finalGroup) {
-        matchesConclusionType = conclusionData.finalGroup.toString() === conclusionTypeFilter;
+        // Преобразуем значение фильтра (например, "group1") в число (1)
+        const filterGroup = conclusionTypeFilter.replace('group', '');
+        matchesConclusionType = conclusionData.finalGroup.toString() === filterGroup;
       } else {
         matchesConclusionType = false;
       }
