@@ -30,48 +30,23 @@ export const AuthLogsPanel = () => {
     try {
       setLoading(true);
       
-      // Получаем логи из Supabase Auth
-      const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+      // Получаем логи через edge function
+      const { data, error } = await supabase.functions.invoke('get-auth-logs');
       
-      if (usersError) throw usersError;
-
-      // Преобразуем данные в формат логов
-      const authLogs: AuthLog[] = users.flatMap(user => {
-        const logs: AuthLog[] = [];
-        
-        // Добавляем событие создания пользователя
-        if (user.created_at) {
-          logs.push({
-            id: `${user.id}-created`,
-            created_at: user.created_at,
-            event_type: 'user.created',
-            user_id: user.id,
-            user_email: user.email || 'Не указан',
-            success: true
-          });
-        }
-
-        // Добавляем последний вход
-        if (user.last_sign_in_at) {
-          logs.push({
-            id: `${user.id}-signin`,
-            created_at: user.last_sign_in_at,
-            event_type: 'user.signin',
-            user_id: user.id,
-            user_email: user.email || 'Не указан',
-            success: true
-          });
-        }
-
-        return logs;
-      });
-
-      // Сортируем по дате (новые сверху)
-      authLogs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      if (error) {
+        console.error('Error fetching auth logs:', error);
+        setLogs([]);
+        return;
+      }
       
-      setLogs(authLogs.slice(0, 100)); // Показываем последние 100 записей
+      if (data && Array.isArray(data)) {
+        setLogs(data);
+      } else {
+        setLogs([]);
+      }
     } catch (error) {
       console.error('Error loading auth logs:', error);
+      setLogs([]);
     } finally {
       setLoading(false);
     }
