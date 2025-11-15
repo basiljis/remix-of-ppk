@@ -60,6 +60,7 @@ export const Dashboard = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [parallelFilter, setParallelFilter] = useState("all");
   const [reasonFilter, setReasonFilter] = useState("");
+  const [conclusionTypeFilter, setConclusionTypeFilter] = useState("all");
   const [schoolYearFilter, setSchoolYearFilter] = useState<string>(() => getCurrentSchoolYear().value);
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
@@ -76,7 +77,7 @@ export const Dashboard = () => {
   const districts = [...new Set(filteredOrganizations.map(org => org.district).filter(Boolean))] as string[];
   useEffect(() => {
     applyFilters();
-  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, schoolYearFilter, dateFrom, dateTo, organizations]);
+  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations]);
   const applyFilters = () => {
     let filtered = [...protocols];
     
@@ -126,6 +127,18 @@ export const Dashboard = () => {
     if (reasonFilter) {
       filtered = filtered.filter(p => p.consultation_reason?.toLowerCase().includes(reasonFilter.toLowerCase()));
     }
+    if (conclusionTypeFilter && conclusionTypeFilter !== "all") {
+      const { calculateBlockScore } = useProtocolChecklistData();
+      filtered = filtered.filter(p => {
+        if (!p.checklist_data || !(p.checklist_data as any).blocks) return false;
+        
+        const blocks = (p.checklist_data as any).blocks;
+        const analysis = analyzeProtocolResults(blocks, calculateBlockScore, p.education_level);
+        const conclusion = generateProtocolConclusion(analysis, p.child_name, p.education_level);
+        
+        return conclusion.finalGroup.toString() === conclusionTypeFilter;
+      });
+    }
     if (dateFrom) {
       filtered = filtered.filter(p => new Date(p.created_at) >= dateFrom);
     }
@@ -141,6 +154,7 @@ export const Dashboard = () => {
     setTypeFilter("all");
     setParallelFilter("all");
     setReasonFilter("");
+    setConclusionTypeFilter("all");
     setSchoolYearFilter(getCurrentSchoolYear().value);
     setDateFrom(undefined);
     setDateTo(undefined);
@@ -412,6 +426,21 @@ export const Dashboard = () => {
             <div>
               <Label>Причина</Label>
               <Input placeholder="Поиск по причине..." value={reasonFilter} onChange={e => setReasonFilter(e.target.value)} />
+            </div>
+
+            <div>
+              <Label>Тип заключения</Label>
+              <Select value={conclusionTypeFilter} onValueChange={setConclusionTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Тип заключения" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все заключения</SelectItem>
+                  <SelectItem value="1">Группа 1 - Норма</SelectItem>
+                  <SelectItem value="2">Группа 2 - Риск</SelectItem>
+                  <SelectItem value="3">Группа 3 - Нарушение</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
