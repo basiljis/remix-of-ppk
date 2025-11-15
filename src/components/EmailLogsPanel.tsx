@@ -19,11 +19,14 @@ import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 export const EmailLogsPanel = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const { toast } = useToast();
 
   const handleExport = () => {
@@ -90,6 +93,11 @@ export const EmailLogsPanel = () => {
 
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  const totalPages = Math.ceil((filteredLogs?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageLogs = filteredLogs?.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -205,40 +213,73 @@ export const EmailLogsPanel = () => {
                     <TableHead>Статус</TableHead>
                     <TableHead>Resend ID</TableHead>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(log.created_at), "dd.MM.yyyy HH:mm", {
-                          locale: ru,
-                        })}
-                      </TableCell>
-                      <TableCell className="font-medium">{log.recipient}</TableCell>
-                      <TableCell className="max-w-xs truncate">{log.subject}</TableCell>
-                      <TableCell>{getEmailTypeBadge(log.email_type)}</TableCell>
-                      <TableCell>{getStatusBadge(log.status)}</TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {log.resend_id || "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              Логи не найдены
-            </div>
-          )}
+                 </TableHeader>
+                 <TableBody>
+                   {currentPageLogs && currentPageLogs.length > 0 ? (
+                     currentPageLogs.map((log) => (
+                     <TableRow key={log.id}>
+                       <TableCell className="whitespace-nowrap">
+                         {format(new Date(log.created_at), "dd.MM.yyyy HH:mm", {
+                           locale: ru,
+                         })}
+                       </TableCell>
+                       <TableCell className="font-medium">{log.recipient}</TableCell>
+                       <TableCell className="max-w-xs truncate">{log.subject}</TableCell>
+                       <TableCell>{getEmailTypeBadge(log.email_type)}</TableCell>
+                       <TableCell>{getStatusBadge(log.status)}</TableCell>
+                       <TableCell className="font-mono text-xs">
+                         {log.resend_id || "-"}
+                       </TableCell>
+                     </TableRow>
+                   ))
+                   ) : null}
+                 </TableBody>
+               </Table>
+             </div>
+           ) : (
+             <div className="text-center py-8 text-muted-foreground">
+               Логи не найдены
+             </div>
+           )}
 
-          {filteredLogs && (
-            <div className="mt-4 text-sm text-muted-foreground">
-              Всего записей: {filteredLogs.length}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
+           {filteredLogs && (
+             <div className="mt-4 text-sm text-muted-foreground">
+               Всего записей: {filteredLogs.length}
+             </div>
+           )}
+           {totalPages > 1 && (
+             <div className="flex justify-center mt-4">
+               <Pagination>
+                 <PaginationContent>
+                   <PaginationItem>
+                     <PaginationPrevious 
+                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                       className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                     />
+                   </PaginationItem>
+                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                     <PaginationItem key={page}>
+                       <PaginationLink
+                         onClick={() => setCurrentPage(page)}
+                         isActive={currentPage === page}
+                         className="cursor-pointer"
+                       >
+                         {page}
+                       </PaginationLink>
+                     </PaginationItem>
+                   ))}
+                   <PaginationItem>
+                     <PaginationNext 
+                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                       className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                     />
+                   </PaginationItem>
+                 </PaginationContent>
+               </Pagination>
+             </div>
+           )}
+         </CardContent>
+       </Card>
+     </div>
+   );
+ };

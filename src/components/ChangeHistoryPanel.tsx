@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 interface ChangeHistory {
   id: string;
@@ -32,6 +33,8 @@ interface ChangeHistory {
 export const ChangeHistoryPanel = () => {
   const [tableFilter, setTableFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const { toast } = useToast();
 
   const { data: changeHistory = [], isLoading } = useQuery({
@@ -75,6 +78,11 @@ export const ChangeHistoryPanel = () => {
       item.changes_summary?.toLowerCase().includes(searchLower)
     );
   });
+
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageHistory = filteredHistory.slice(startIndex, endIndex);
 
   const getActionBadge = (action: string) => {
     switch (action) {
@@ -202,14 +210,14 @@ export const ChangeHistoryPanel = () => {
                     Загрузка истории изменений...
                   </TableCell>
                 </TableRow>
-              ) : filteredHistory.length === 0 ? (
+              ) : currentPageHistory.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     История изменений пуста
                   </TableCell>
-                </TableRow>
-              ) : (
-                filteredHistory.map((item) => (
+              </TableRow>
+            ) : (
+              currentPageHistory.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -241,7 +249,38 @@ export const ChangeHistoryPanel = () => {
 
         {filteredHistory.length > 0 && (
           <div className="mt-4 text-sm text-muted-foreground">
-            Показано записей: {filteredHistory.length} из {changeHistory.length}
+            Показано записей: {currentPageHistory.length} из {filteredHistory.length}
+          </div>
+        )}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </CardContent>
