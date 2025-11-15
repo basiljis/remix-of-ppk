@@ -26,6 +26,8 @@ import { differenceInYears, differenceInMonths, parseISO } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { PreviousProtocolDialog } from "@/components/PreviousProtocolDialog";
 import { Eye } from "lucide-react";
+import { analyzeProtocolResults } from "@/utils/assistanceDirections";
+import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
 
 interface ChildData {
   fullName: string;
@@ -401,6 +403,25 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       blocks: checklistBlocks
     };
 
+    // Вычисляем заключение для сохранения
+    let conclusionData = null;
+    if (checklistBlocks.length > 0) {
+      const analysis = analyzeProtocolResults(checklistBlocks, calculateBlockScore, selectedLevel);
+      const conclusion = generateProtocolConclusion(analysis, formData.childData.fullName, selectedLevel);
+      conclusionData = {
+        finalGroup: conclusion.finalGroup,
+        finalStatus: conclusion.finalStatus,
+        specialistAssignments: conclusion.specialistAssignments,
+        cpmkRecommendation: conclusion.cpmkRecommendation
+      };
+    }
+
+    // Обновляем formData с данными заключения
+    const updatedFormData = {
+      ...formData,
+      conclusion: conclusionData
+    };
+
     const protocolData = {
       child_name: formData.childData.fullName,
       child_birth_date: formData.childData.birthDate || undefined,
@@ -411,7 +432,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
       ppk_number: editingProtocol ? (formData.ppkNumber || editingProtocol.ppk_number) : (formData.ppkNumber || undefined),
       session_topic: formData.sessionTopic || undefined,
       meeting_type: formData.meetingType || 'scheduled',
-      protocol_data: formData,
+      protocol_data: updatedFormData,
       checklist_data: checklistData,
       completion_percentage: completionPercentage,
       status: isDraft ? 'draft' : 'completed',
