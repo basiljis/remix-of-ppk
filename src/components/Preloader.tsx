@@ -1,54 +1,97 @@
+import { useState, useEffect } from 'react';
+
 const Preloader = () => {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 150);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const displayProgress = Math.min(Math.round(progress), 100);
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] overflow-hidden">
+      {/* Subtle grid background */}
+      <div 
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)',
+          backgroundSize: '50px 50px'
+        }}
+      />
+
+      {/* Top text */}
+      <div className="absolute top-[20%] text-center">
+        <h1 
+          className="text-[clamp(1.5rem,4vw,2.5rem)] font-light tracking-[0.3em] text-white/90 animate-fade-in"
+          style={{
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            textTransform: 'uppercase',
+            letterSpacing: '0.3em'
+          }}
+        >
+          СИСТЕМА ППК
+        </h1>
       </div>
 
-      <div className="relative z-10">
-        {/* Outer rotating ring */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-32 h-32 rounded-full border-[3px] border-primary/10 animate-ping"></div>
-        </div>
-        
-        {/* Middle rotating gradient ring */}
-        <div className="absolute inset-0 flex items-center justify-center animate-spin" style={{ animationDuration: '2s' }}>
-          <div className="w-24 h-24 rounded-full border-[4px] border-transparent border-t-primary border-r-primary/60 shadow-lg shadow-primary/20"></div>
+      {/* Vertical progress bar */}
+      <div className="relative flex flex-col items-center gap-8 animate-scale-in">
+        {/* Progress bar container */}
+        <div className="relative w-[2px] h-[280px] bg-white/10 rounded-full overflow-hidden">
+          {/* Filled progress */}
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/90 to-white/80 rounded-full transition-all duration-300 ease-out"
+            style={{ 
+              height: `${displayProgress}%`,
+              boxShadow: '0 -4px 20px rgba(255, 255, 255, 0.3)'
+            }}
+          >
+            {/* Glow effect at top */}
+            <div 
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-8 bg-white/40 rounded-full blur-lg"
+              style={{
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+              }}
+            />
+          </div>
         </div>
 
-        {/* Inner counter-rotating ring */}
-        <div className="absolute inset-0 flex items-center justify-center animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}>
-          <div className="w-20 h-20 rounded-full border-[3px] border-transparent border-b-accent border-l-accent/60"></div>
-        </div>
-        
-        {/* Center logo with gradient */}
-        <div className="relative w-16 h-16 flex items-center justify-center">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary via-accent to-primary/80 animate-pulse shadow-2xl shadow-primary/40">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-transparent"></div>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm animate-[pulse_2s_ease-in-out_infinite] shadow-inner"></div>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-primary animate-[ping_2s_ease-in-out_infinite]"></div>
+        {/* Percentage display */}
+        <div className="text-center">
+          <div 
+            className="text-[clamp(2rem,5vw,3.5rem)] font-light text-white/90 tabular-nums"
+            style={{
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.05em'
+            }}
+          >
+            {displayProgress}%
           </div>
         </div>
-        
-        {/* Loading text with animated dots */}
-        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 whitespace-nowrap">
-          <div className="flex items-center gap-2">
-            <p className="text-base font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-pulse">
-              Загрузка
-            </p>
-            <div className="flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-            </div>
-          </div>
-        </div>
+      </div>
+
+      {/* Bottom subtle text */}
+      <div className="absolute bottom-[15%] text-center">
+        <p 
+          className="text-xs font-light tracking-[0.2em] text-white/40 uppercase animate-fade-in"
+          style={{
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            animationDelay: '0.3s',
+            animationFillMode: 'backwards'
+          }}
+        >
+          Загрузка данных
+        </p>
       </div>
     </div>
   );
