@@ -85,6 +85,10 @@ const Auth = () => {
   
   // Success dialog for registration
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  
+  // Welcome dialog for login
+  const [welcomeDialogOpen, setWelcomeDialogOpen] = useState(false);
+  const [welcomeUserName, setWelcomeUserName] = useState("");
 
   // Load reference data
   useState(() => {
@@ -129,11 +133,12 @@ const Auth = () => {
         return;
       }
 
-      toast({
-        title: "✓ Вход выполнен",
-        description: "Добро пожаловать в систему!",
-        className: "border-2 border-primary bg-primary/10 text-foreground shadow-lg",
-      });
+      // Get user profile for name
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", data.user.id)
+        .single();
 
       // If access request is pending/rejected, redirect to status page
       const { data: reqs } = await supabase
@@ -148,7 +153,9 @@ const Auth = () => {
         return;
       }
 
-      navigate("/");
+      // Show welcome dialog
+      setWelcomeUserName(userProfile?.full_name || "Пользователь");
+      setWelcomeDialogOpen(true);
     } catch (error: any) {
       toast({
         title: "Ошибка входа",
@@ -672,6 +679,51 @@ const Auth = () => {
             className="w-full"
           >
             Перейти к статусу заявки
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Welcome Dialog */}
+    <Dialog open={welcomeDialogOpen} onOpenChange={(open) => {
+      setWelcomeDialogOpen(open);
+      if (!open) {
+        // Navigate after closing dialog
+        setTimeout(() => {
+          navigate("/");
+        }, 100);
+      }
+    }}>
+      <DialogContent className="sm:max-w-xl bg-gradient-to-br from-background via-background to-primary/5 border-2 border-primary shadow-2xl">
+        <DialogHeader className="space-y-4 pt-6">
+          <div className="flex justify-center mb-4">
+            <div className="relative w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center border-4 border-primary shadow-lg">
+              <img 
+                src="/lovable-uploads/f971f75e-c922-48b7-a527-0263972e4807.png" 
+                alt="Welcome" 
+                className="w-20 h-20 object-contain"
+              />
+            </div>
+          </div>
+          <DialogTitle className="text-center text-3xl font-bold text-foreground">
+            Добро пожаловать!
+          </DialogTitle>
+          <DialogDescription className="text-center text-xl font-medium text-foreground pt-2">
+            {welcomeUserName}
+          </DialogDescription>
+          <p className="text-center text-muted-foreground text-base pt-2">
+            Вы успешно вошли в систему управления протоколами ППК
+          </p>
+        </DialogHeader>
+        <div className="flex justify-center pt-6 pb-4">
+          <Button
+            onClick={() => {
+              setWelcomeDialogOpen(false);
+            }}
+            className="w-full h-12 text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg"
+            size="lg"
+          >
+            Перейти к работе
           </Button>
         </div>
       </DialogContent>
