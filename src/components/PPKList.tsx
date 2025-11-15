@@ -39,6 +39,7 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
   const [typeFilter, setTypeFilter] = useState('all');
   const [reasonFilter, setReasonFilter] = useState('all');
   const [meetingTypeFilter, setMeetingTypeFilter] = useState('all');
+  const [conclusionTypeFilter, setConclusionTypeFilter] = useState('all');
   const [schoolYearFilter, setSchoolYearFilter] = useState<string>(() => getCurrentSchoolYear().value);
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,6 +63,17 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
     const matchesReason = reasonFilter === 'all' || protocol.consultation_reason === reasonFilter;
     const matchesMeetingType = meetingTypeFilter === 'all' || protocol.meeting_type === meetingTypeFilter;
     
+    // Conclusion type filter
+    let matchesConclusionType = true;
+    if (conclusionTypeFilter && conclusionTypeFilter !== 'all' && protocol.protocol_data) {
+      const conclusionData = (protocol.protocol_data as any)?.conclusion;
+      if (conclusionData?.finalGroup) {
+        matchesConclusionType = conclusionData.finalGroup.toString() === conclusionTypeFilter;
+      } else {
+        matchesConclusionType = false;
+      }
+    }
+    
     // School year filter (используем дату проведения ППК)
     let matchesSchoolYear = true;
     if (schoolYearFilter && schoolYearFilter !== 'all') {
@@ -76,7 +88,7 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
       }
     }
 
-    return matchesSearch && matchesStatus && matchesType && matchesReason && matchesMeetingType && matchesSchoolYear;
+    return matchesSearch && matchesStatus && matchesType && matchesReason && matchesMeetingType && matchesConclusionType && matchesSchoolYear;
   });
 
   // Pagination logic
@@ -369,6 +381,21 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                 <SelectItem value="all">Все типы заседаний</SelectItem>
                 <SelectItem value="scheduled">Плановые</SelectItem>
                 <SelectItem value="unscheduled">Внеплановые</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-48">
+            <Label>Тип заключения</Label>
+            <Select value={conclusionTypeFilter} onValueChange={setConclusionTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Тип заключения" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все заключения</SelectItem>
+                <SelectItem value="1">Группа 1 - Норма</SelectItem>
+                <SelectItem value="2">Группа 2 - Риск</SelectItem>
+                <SelectItem value="3">Группа 3 - Нарушение</SelectItem>
               </SelectContent>
             </Select>
           </div>
