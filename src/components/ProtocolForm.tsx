@@ -676,7 +676,7 @@ export const ProtocolForm = ({ onProtocolSave, editingProtocol }: {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="classLetter">Литера класса</Label>
+                  <Label htmlFor="classLetter">Литера класса/группа</Label>
                   <Select value={formData.childData.classLetter} onValueChange={(value) => updateChildData("classLetter", value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите литеру" />
