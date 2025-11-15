@@ -31,9 +31,9 @@ const Preloader = () => {
       />
 
       {/* Top text */}
-      <div className="absolute top-[20%] text-center">
+      <div className="absolute top-[25%] text-center">
         <h1 
-          className="text-[clamp(1.5rem,4vw,2.5rem)] font-light tracking-[0.3em] text-white/90 animate-fade-in"
+          className="text-[clamp(0.875rem,2.5vw,1.25rem)] font-light tracking-[0.3em] text-white/90 animate-fade-in"
           style={{
             fontFamily: 'system-ui, -apple-system, sans-serif',
             textTransform: 'uppercase',
@@ -45,20 +45,20 @@ const Preloader = () => {
       </div>
 
       {/* Vertical progress bar */}
-      <div className="relative flex flex-col items-center gap-8 animate-scale-in">
+      <div className="relative flex flex-col items-center gap-4 animate-scale-in">
         {/* Progress bar container */}
-        <div className="relative w-[2px] h-[280px] bg-white/10 rounded-full overflow-hidden">
+        <div className="relative w-[1.5px] h-[140px] bg-white/10 rounded-full overflow-hidden">
           {/* Filled progress */}
           <div 
             className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/90 to-white/80 rounded-full transition-all duration-300 ease-out"
             style={{ 
               height: `${displayProgress}%`,
-              boxShadow: '0 -4px 20px rgba(255, 255, 255, 0.3)'
+              boxShadow: '0 -2px 10px rgba(255, 255, 255, 0.3)'
             }}
           >
             {/* Glow effect at top */}
             <div 
-              className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-8 bg-white/40 rounded-full blur-lg"
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/40 rounded-full blur-md"
               style={{
                 animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
               }}
@@ -69,7 +69,7 @@ const Preloader = () => {
         {/* Percentage display */}
         <div className="text-center">
           <div 
-            className="text-[clamp(2rem,5vw,3.5rem)] font-light text-white/90 tabular-nums"
+            className="text-[clamp(1.25rem,3vw,1.75rem)] font-light text-white/90 tabular-nums"
             style={{
               fontFamily: 'system-ui, -apple-system, sans-serif',
               letterSpacing: '0.05em'
@@ -81,9 +81,9 @@ const Preloader = () => {
       </div>
 
       {/* Bottom subtle text */}
-      <div className="absolute bottom-[15%] text-center">
+      <div className="absolute bottom-[20%] text-center">
         <p 
-          className="text-xs font-light tracking-[0.2em] text-white/40 uppercase animate-fade-in"
+          className="text-[10px] font-light tracking-[0.2em] text-white/40 uppercase animate-fade-in"
           style={{
             fontFamily: 'system-ui, -apple-system, sans-serif',
             animationDelay: '0.3s',
