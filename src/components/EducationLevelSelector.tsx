@@ -33,20 +33,22 @@ const levels: { value: EducationLevel; label: string; description: string }[] = 
 
 export const EducationLevelSelector = ({ selectedLevel, onLevelChange }: EducationLevelSelectorProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
       {levels.map((level) => (
         <Button
           key={level.value}
           variant={selectedLevel === level.value ? "default" : "outline"}
-          className={`h-auto p-4 flex flex-col items-center space-y-2 transition-all duration-200 ${
+          className={`h-auto p-3 sm:p-4 flex flex-col items-center space-y-1.5 sm:space-y-2 transition-all duration-200 ${
             selectedLevel === level.value
               ? "bg-primary text-primary-foreground shadow-lg scale-105"
               : "hover:bg-secondary/50"
           }`}
           onClick={() => onLevelChange(level.value)}
         >
-          <span className="font-semibold text-sm text-center">{level.label}</span>
-          <Badge variant="secondary" className="text-xs">
+          <span className="font-semibold text-xs sm:text-sm text-center leading-tight">
+            {level.label}
+          </span>
+          <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
             {level.description}
           </Badge>
         </Button>
