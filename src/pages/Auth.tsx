@@ -130,8 +130,9 @@ const Auth = () => {
       }
 
       toast({
-        title: "Вход выполнен",
-        description: "Добро пожаловать!",
+        title: "✓ Вход выполнен",
+        description: "Добро пожаловать в систему!",
+        className: "border-2 border-primary bg-primary/10 text-foreground shadow-lg",
       });
 
       // If access request is pending/rejected, redirect to status page
