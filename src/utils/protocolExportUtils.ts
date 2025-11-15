@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { translateEducationLevel } from './educationLevelTranslations';
+import { translateWhobrought } from './whobroughtTranslations';
 
 export interface ProtocolData {
   child_name: string;
@@ -144,7 +145,7 @@ export const exportProtocolToXLS = (protocol: ProtocolData) => {
     { 'Поле': 'ФИО обучающегося', 'Значение': protocol.child_name },
     { 'Поле': 'Класс/группа', 'Значение': `${protocol.protocol_data?.childData?.classNumber || ''}${protocol.protocol_data?.childData?.classLetter || ''}` },
     ...(protocol.child_birth_date ? [{ 'Поле': 'Дата рождения', 'Значение': new Date(protocol.child_birth_date).toLocaleDateString() }] : []),
-    { 'Поле': 'Инициатор обращения', 'Значение': protocol.protocol_data?.childData?.whobrought || 'Не указан' },
+    { 'Поле': 'Инициатор обращения', 'Значение': translateWhobrought(protocol.protocol_data?.childData?.whobrought) },
     { 'Поле': 'Повод обращения в ППк', 'Значение': protocol.consultation_reason || 'Не указан' },
     { 'Поле': 'Коллегиальное заключение', 'Значение': protocol.protocol_data?.collegialConclusion || 'Не указано' },
     { 'Поле': 'Результат обращения', 'Значение': protocol.protocol_data?.appealResult || 'Не указан' },
