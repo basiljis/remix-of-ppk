@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
-import { Shield, LogIn, LogOut, UserPlus, AlertCircle, Download } from "lucide-react";
+import { Shield, LogIn, LogOut, UserPlus, AlertCircle, Download, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
@@ -25,21 +26,31 @@ interface AuthLog {
 export const AuthLogsPanel = () => {
   const [logs, setLogs] = useState<AuthLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const { toast } = useToast();
 
-  const totalPages = Math.ceil(logs.length / itemsPerPage);
+  // Фильтрация логов по поисковому запросу
+  const filteredLogs = logs.filter((log) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      log.user_email.toLowerCase().includes(searchLower) ||
+      getEventLabel(log.event_type).toLowerCase().includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentLogs = logs.slice(startIndex, endIndex);
+  const currentLogs = filteredLogs.slice(startIndex, endIndex);
 
   useEffect(() => {
     loadAuthLogs();
   }, []);
 
   const handleExport = () => {
-    const exportData = logs.map((log) => ({
+    const exportData = filteredLogs.map((log) => ({
       'Дата и время': format(new Date(log.created_at), 'dd.MM.yyyy HH:mm:ss'),
       'Событие': getEventLabel(log.event_type),
       'Email пользователя': log.user_email,
@@ -144,13 +155,38 @@ export const AuthLogsPanel = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Логи авторизации
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Логи авторизации
+          </CardTitle>
+          <Button onClick={handleExport} variant="outline" size="sm" disabled={filteredLogs.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Экспорт в Excel
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {logs.length === 0 ? (
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по email или событию..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1); // Сброс на первую страницу при поиске
+              }}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        {filteredLogs.length === 0 && logs.length > 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>Логи не найдены по запросу "{searchTerm}"</p>
+          </div>
+        ) : logs.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>Логи авторизации отсутствуют</p>
@@ -219,6 +255,11 @@ export const AuthLogsPanel = () => {
             </Pagination>
           </div>
         )}
+          </div>
+        )}
+        {filteredLogs.length > 0 && (
+          <div className="mt-4 text-sm text-muted-foreground">
+            Показано записей: {currentLogs.length} из {filteredLogs.length}
           </div>
         )}
       </CardContent>
