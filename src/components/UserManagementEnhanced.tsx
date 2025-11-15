@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Ban, CheckCircle, Shield, User, Users, Edit } from "lucide-react";
+import { Ban, CheckCircle, Shield, User, Users, Edit, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
 interface UserData {
   id: string;
@@ -44,6 +45,36 @@ export const UserManagementEnhanced = () => {
     loadUsers();
     loadRefData();
   }, []);
+
+  const handleExport = () => {
+    const exportData = filteredUsers.map((user) => ({
+      'ФИО': user.full_name,
+      'Email': user.email,
+      'Телефон': user.phone,
+      'Должность': user.positions?.name || 'Не указана',
+      'Регион': user.regions?.name || 'Не указан',
+      'Организация': user.organizations?.name || 'Не указана',
+      'Роль': getRoleLabel(user.user_roles[0]?.role || 'user'),
+      'Статус': user.is_blocked ? 'Заблокирован' : 'Активен',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Пользователи');
+
+    ws['!cols'] = [
+      { wch: 30 }, { wch: 25 }, { wch: 15 }, { wch: 20 },
+      { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 12 }
+    ];
+
+    const fileName = `Пользователи_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    toast({
+      title: "Экспорт выполнен",
+      description: `Данные пользователей экспортированы в файл ${fileName}`,
+    });
+  };
 
   const loadRefData = async () => {
     const [positionsRes, regionsRes, orgsRes] = await Promise.all([
@@ -258,11 +289,18 @@ export const UserManagementEnhanced = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4 mb-4">
-          <Input
-            placeholder="Поиск по имени, email или организации..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div className="flex gap-4">
+            <Input
+              placeholder="Поиск по имени, email или организации..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+            />
+            <Button onClick={handleExport} variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Экспорт
+            </Button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
