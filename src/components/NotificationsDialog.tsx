@@ -47,11 +47,11 @@ export function NotificationsDialog({ onNavigate }: NotificationsDialogProps) {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+          <Bell className={`h-5 w-5 ${count > 0 ? 'animate-pulse text-primary' : ''}`} />
           {count > 0 && (
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 text-xs font-bold animate-bounce shadow-lg"
             >
               {count > 9 ? '9+' : count}
             </Badge>
@@ -73,7 +73,7 @@ export function NotificationsDialog({ onNavigate }: NotificationsDialogProps) {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  className="p-4 rounded-lg border-2 bg-card hover:bg-accent/70 hover:border-primary transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
                   onClick={() => {
                     if (notification.link && onNavigate) {
                       onNavigate(notification.link);
@@ -83,14 +83,14 @@ export function NotificationsDialog({ onNavigate }: NotificationsDialogProps) {
                   <div className="flex items-start gap-3">
                     <Badge
                       variant={getNotificationBadgeVariant(notification.type)}
-                      className="mt-0.5"
+                      className="mt-0.5 p-2"
                     >
                       {getNotificationIcon(notification.type)}
                     </Badge>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold">{notification.title}</h4>
-                      <p className="text-sm text-muted-foreground">{notification.description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <h4 className="text-sm font-bold text-foreground">{notification.title}</h4>
+                      <p className="text-sm text-foreground/80 mt-1">{notification.description}</p>
+                      <p className="text-xs text-muted-foreground mt-2">
                         {formatDistanceToNow(new Date(notification.created_at), {
                           addSuffix: true,
                           locale: ru,
