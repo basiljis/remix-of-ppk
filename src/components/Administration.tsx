@@ -10,6 +10,7 @@ import { AdminStatisticsPanel } from "@/components/AdminStatisticsPanel";
 import { SchoolYearsManagement } from "@/components/SchoolYearsManagement";
 import { EmailLogsPanel } from "@/components/EmailLogsPanel";
 import { AuthLogsPanel } from "@/components/AuthLogsPanel";
+import { ChangeHistoryPanel } from "@/components/ChangeHistoryPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -340,6 +341,12 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
       {activeSubTab === "auth-logs" && (
         <div className="space-y-6">
           <AuthLogsPanel />
+        </div>
+      )}
+
+      {activeSubTab === "change-history" && (
+        <div className="space-y-6">
+          <ChangeHistoryPanel />
         </div>
       )}
     </div>
