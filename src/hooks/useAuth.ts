@@ -70,6 +70,16 @@ export const useAuth = () => {
         .single();
 
       if (profileData) {
+        // Check if user is blocked
+        if (profileData.is_blocked) {
+          // Sign out blocked user
+          await supabase.auth.signOut();
+          setProfile(null);
+          setRoles([]);
+          setHasAccessRequest(false);
+          return;
+        }
+        
         setProfile(profileData);
         setHasAccessRequest(false);
       }
