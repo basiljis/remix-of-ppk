@@ -143,7 +143,7 @@ export const useAuth = () => {
       setSession(null);
       setProfile(null);
       setRoles([]);
-      setHasAccessRequest(null);
+      setHasAccessRequest(false);
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
