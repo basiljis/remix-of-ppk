@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
+import { toast } from "@/hooks/use-toast";
 
 export interface UserProfile {
   id: string;
@@ -77,6 +78,12 @@ export const useAuth = () => {
           setProfile(null);
           setRoles([]);
           setHasAccessRequest(false);
+          
+          toast({
+            title: "Доступ запрещён",
+            description: "Ваш аккаунт заблокирован администратором",
+            variant: "destructive",
+          });
           return;
         }
         
@@ -127,7 +134,38 @@ export const useAuth = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Set up periodic blocking check every 5 minutes
+    const blockCheckInterval = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("is_blocked")
+          .eq("id", session.user.id)
+          .single();
+
+        if (profileData?.is_blocked) {
+          await supabase.auth.signOut();
+          setProfile(null);
+          setRoles([]);
+          setHasAccessRequest(false);
+          setUser(null);
+          setSession(null);
+          
+          toast({
+            title: "Доступ запрещён",
+            description: "Ваш аккаунт заблокирован администратором",
+            variant: "destructive",
+          });
+        }
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(blockCheckInterval);
+    };
   }, []);
 
   const isAdmin = roles.some((r) => r.role === "admin");
