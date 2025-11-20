@@ -176,6 +176,7 @@ const Index = () => {
       case "administration-auth-logs":
       case "administration-change-history":
       case "administration-subscriptions":
+      case "administration-payment-logs":
         return isAdmin ? (
           <Suspense fallback={loadingFallback}>
             <Administration activeSubTab={activeTab.replace("administration-", "")} />

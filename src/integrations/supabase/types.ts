@@ -614,6 +614,50 @@ export type Database = {
           },
         ]
       }
+      payment_logs: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          event_type: string
+          id: string
+          payment_id: string
+          processed: boolean | null
+          raw_data: Json | null
+          status: string
+          subscription_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          event_type: string
+          id?: string
+          payment_id: string
+          processed?: boolean | null
+          raw_data?: Json | null
+          status: string
+          subscription_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          payment_id?: string
+          processed?: boolean | null
+          raw_data?: Json | null
+          status?: string
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       positions: {
         Row: {
           created_at: string

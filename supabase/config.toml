@@ -62,3 +62,21 @@ backend = "postgres"
 
 [functions.educom-api]
 verify_jwt = true
+
+[functions.yukassa-webhook]
+verify_jwt = false
+
+[functions.send-commercial-offer-request]
+verify_jwt = false
+
+[functions.send-subscription-request-email]
+verify_jwt = true
+
+[functions.send-subscription-approval-email]
+verify_jwt = true
+
+[functions.send-payment-confirmation-email]
+verify_jwt = true
+
+[functions.create-yukassa-payment]
+verify_jwt = true
