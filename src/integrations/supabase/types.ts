@@ -893,6 +893,114 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          contact_person: string
+          created_at: string | null
+          email: string
+          id: string
+          inn: string
+          kpp: string | null
+          legal_address: string
+          organization_name: string
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          subscription_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          contact_person: string
+          created_at?: string | null
+          email: string
+          id?: string
+          inn: string
+          kpp?: string | null
+          legal_address: string
+          organization_name: string
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          subscription_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          contact_person?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          inn?: string
+          kpp?: string | null
+          legal_address?: string
+          organization_name?: string
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          subscription_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string | null
+          end_date: string | null
+          id: string
+          legal_entity_data: Json | null
+          payment_id: string | null
+          payment_type: string
+          start_date: string | null
+          status: string
+          subscription_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          legal_entity_data?: Json | null
+          payment_id?: string | null
+          payment_type: string
+          start_date?: string | null
+          status?: string
+          subscription_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          legal_entity_data?: Json | null
+          payment_id?: string | null
+          payment_type?: string
+          start_date?: string | null
+          status?: string
+          subscription_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -919,6 +1027,7 @@ export type Database = {
       generate_protocol_number: { Args: never; Returns: string }
       get_user_organization: { Args: { _user_id: string }; Returns: string }
       get_user_region: { Args: { _user_id: string }; Returns: string }
+      has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
