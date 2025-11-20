@@ -27,6 +27,8 @@ export function NotificationsDialog({ onNavigate }: NotificationsDialogProps) {
         return <FileText className="h-4 w-4" />;
       case "pending_request":
         return <UserPlus className="h-4 w-4" />;
+      case "expiring_subscription":
+        return <Bell className="h-4 w-4 text-orange-500" />;
       default:
         return <Bell className="h-4 w-4" />;
     }
@@ -38,6 +40,8 @@ export function NotificationsDialog({ onNavigate }: NotificationsDialogProps) {
         return "secondary" as const;
       case "pending_request":
         return "default" as const;
+      case "expiring_subscription":
+        return "destructive" as const;
       default:
         return "outline" as const;
     }

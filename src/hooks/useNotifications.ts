@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Notification {
   id: string;
-  type: "draft_protocol" | "pending_request";
+  type: "draft_protocol" | "pending_request" | "expiring_subscription";
   title: string;
   description: string;
   created_at: string;
@@ -39,6 +39,30 @@ export function useNotifications() {
     },
   });
 
+  // Проверка истекающих подписок (за 7 дней до окончания)
+  const { data: expiringSubscriptions = [] } = useQuery({
+    queryKey: ["expiring-subscriptions"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("id, end_date, subscription_type")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .lte("end_date", sevenDaysFromNow.toISOString())
+        .gte("end_date", new Date().toISOString())
+        .order("end_date", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const notifications: Notification[] = [
     ...draftProtocols.map((protocol) => ({
       id: protocol.id,
@@ -56,6 +80,19 @@ export function useNotifications() {
       created_at: request.requested_at,
       link: "administration-access-requests",
     })),
+    ...expiringSubscriptions.map((subscription) => {
+      const daysLeft = Math.ceil(
+        (new Date(subscription.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      );
+      return {
+        id: subscription.id,
+        type: "expiring_subscription" as const,
+        title: "Подписка истекает",
+        description: `Ваша ${subscription.subscription_type === "monthly" ? "месячная" : "годовая"} подписка истекает через ${daysLeft} ${daysLeft === 1 ? "день" : daysLeft < 5 ? "дня" : "дней"}`,
+        created_at: subscription.end_date,
+        link: "profile",
+      };
+    }),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return {
