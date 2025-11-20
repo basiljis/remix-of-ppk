@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
 
 export const SystemInfoDialog = () => {
   return (
@@ -108,6 +109,10 @@ export const SystemInfoDialog = () => {
                   <p className="mt-1">Система доступна для закупки через официальные порталы поставщиков 
                   в соответствии с требованиями 44-ФЗ и 223-ФЗ.</p>
                 </div>
+              </div>
+
+              <div className="mt-4">
+                <CommercialOfferRequestForm />
               </div>
             </section>
           </div>
