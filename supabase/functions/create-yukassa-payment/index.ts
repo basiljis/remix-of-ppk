@@ -59,7 +59,7 @@ serve(async (req: Request) => {
       capture: true,
       confirmation: {
         type: "redirect",
-        return_url: `${supabaseUrl.replace("https://", "https://")}/profile?payment=success`,
+        return_url: `${supabaseUrl.replace("supabase.co", "lovableproject.com")}/profile?payment=success`,
       },
       description: description,
       metadata: {

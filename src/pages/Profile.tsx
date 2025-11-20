@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, User, ArrowLeft } from "lucide-react";
 import { SubscriptionForm } from "@/components/SubscriptionForm";
+import { PaymentStatusDialog } from "@/components/PaymentStatusDialog";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -121,6 +122,7 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
+      <PaymentStatusDialog />
       <div className="flex items-center gap-4 mb-6">
         <Button
           variant="ghost"
