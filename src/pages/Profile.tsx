@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, User, ArrowLeft } from "lucide-react";
+import { SubscriptionForm } from "@/components/SubscriptionForm";
 
 export default function Profile() {
   const navigate = useNavigate();
