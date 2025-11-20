@@ -89,6 +89,27 @@ export const SystemInfoDialog = () => {
                 Система соответствует требованиям законодательства о персональных данных.
               </p>
             </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">Виды подписок</h3>
+              <div className="space-y-3 text-muted-foreground">
+                <div className="border-l-2 border-primary pl-3">
+                  <strong className="text-foreground">1. Оплата картой</strong>
+                  <p className="mt-1">Принимаем карты МИР, платежи через СБП и другие способы онлайн-оплаты. 
+                  Быстрое подключение и мгновенная активация подписки.</p>
+                </div>
+                <div className="border-l-2 border-primary pl-3">
+                  <strong className="text-foreground">2. Выставление счета на юридическое лицо</strong>
+                  <p className="mt-1">Для образовательных организаций доступна оплата по безналичному расчету. 
+                  Предоставляем все необходимые документы для бухгалтерии.</p>
+                </div>
+                <div className="border-l-2 border-primary pl-3">
+                  <strong className="text-foreground">3. Приобретение через портал поставщиков</strong>
+                  <p className="mt-1">Система доступна для закупки через официальные порталы поставщиков 
+                  в соответствии с требованиями 44-ФЗ и 223-ФЗ.</p>
+                </div>
+              </div>
+            </section>
           </div>
         </ScrollArea>
       </DialogContent>
