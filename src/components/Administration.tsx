@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
@@ -11,6 +11,7 @@ import { SchoolYearsManagement } from "@/components/SchoolYearsManagement";
 import { EmailLogsPanel } from "@/components/EmailLogsPanel";
 import { AuthLogsPanel } from "@/components/AuthLogsPanel";
 import { ChangeHistoryPanel } from "@/components/ChangeHistoryPanel";
+import { SubscriptionsManagement } from "@/components/SubscriptionsManagement";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -347,6 +348,12 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
       {activeSubTab === "change-history" && (
         <div className="space-y-6">
           <ChangeHistoryPanel />
+        </div>
+      )}
+
+      {activeSubTab === "subscriptions" && (
+        <div className="space-y-6">
+          <SubscriptionsManagement />
         </div>
       )}
     </div>

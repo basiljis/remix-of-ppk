@@ -217,6 +217,15 @@ export default function Profile() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Подписка</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SubscriptionForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Настройки уведомлений</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

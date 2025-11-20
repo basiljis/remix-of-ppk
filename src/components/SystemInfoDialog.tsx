@@ -92,7 +92,44 @@ export const SystemInfoDialog = () => {
             </section>
 
             <section>
-              <h3 className="font-semibold text-base mb-2">Виды подписок</h3>
+              <h3 className="font-semibold text-base mb-2">Тарифы</h3>
+              <div className="space-y-3 mb-4">
+                <div className="border rounded-lg p-4 bg-muted/50">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-foreground">Месячная подписка</h4>
+                      <p className="text-sm text-muted-foreground">Идеально для тестирования</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-foreground">2 500 ₽</div>
+                      <div className="text-sm text-muted-foreground">в месяц</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border rounded-lg p-4 bg-primary/5 border-primary">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-foreground">Годовая подписка</h4>
+                      <p className="text-sm text-muted-foreground">Экономия 15%</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-foreground">25 500 ₽</div>
+                      <div className="text-sm text-muted-foreground">в год</div>
+                      <div className="text-xs text-primary font-medium">вместо 30 000 ₽</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <p className="text-sm text-blue-900 dark:text-blue-100">
+                    <strong>Тестовый режим:</strong> Сейчас система работает в тестовом режиме без ограничений по количеству протоколов. 
+                    Используйте все возможности системы бесплатно!
+                  </p>
+                </div>
+              </div>
+
+              <h3 className="font-semibold text-base mb-2 mt-6">Виды подписок</h3>
               <div className="space-y-3 text-muted-foreground">
                 <div className="border-l-2 border-primary pl-3">
                   <strong className="text-foreground">1. Оплата картой</strong>

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsDialog } from "@/components/NotificationsDialog";
+import { TestModeDialog } from "@/components/TestModeDialog";
 
 // Lazy load heavy components for better FCP
 const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
@@ -174,6 +175,7 @@ const Index = () => {
       case "administration-email-logs":
       case "administration-auth-logs":
       case "administration-change-history":
+      case "administration-subscriptions":
         return isAdmin ? (
           <Suspense fallback={loadingFallback}>
             <Administration activeSubTab={activeTab.replace("administration-", "")} />
@@ -190,6 +192,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
+      <TestModeDialog />
       <div className="flex min-h-screen w-full bg-gradient-to-br from-background via-background to-accent/5">
         {/* Header - fixed at top */}
         <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
