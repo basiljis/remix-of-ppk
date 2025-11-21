@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User, ArrowLeft } from "lucide-react";
+import { Loader2, Upload, User, ArrowLeft, CreditCard, Receipt } from "lucide-react";
 import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { PaymentStatusDialog } from "@/components/PaymentStatusDialog";
+import { PaymentHistory } from "@/components/PaymentHistory";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -136,136 +138,154 @@ export default function Profile() {
         <h1 className="text-3xl font-bold">Профиль</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Фотография профиля</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={avatarUrl} />
-              <AvatarFallback>
-                <User className="h-12 w-12" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <Label htmlFor="avatar-upload" className="cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                  {uploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4" />
-                  )}
-                  <span>Загрузить фото</span>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile" className="gap-2">
+            <User className="h-4 w-4" />
+            Профиль
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className="gap-2">
+            <CreditCard className="h-4 w-4" />
+            Подписка
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2">
+            <Receipt className="h-4 w-4" />
+            История платежей
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Фотография профиля</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-6">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={avatarUrl} />
+                  <AvatarFallback>
+                    <User className="h-12 w-12" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <Label htmlFor="avatar-upload" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                      {uploading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4" />
+                      )}
+                      <span>Загрузить фото</span>
+                    </div>
+                  </Label>
+                  <Input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleAvatarUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    JPG, PNG или WEBP. Макс. 2МБ.
+                  </p>
                 </div>
-              </Label>
-              <Input
-                id="avatar-upload"
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleAvatarUpload}
-                disabled={uploading}
-                className="hidden"
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                JPG, PNG или WEBP. Макс. 2МБ.
-              </p>
-            </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Личная информация</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">ФИО</Label>
+                  <Input
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input value={profile.email} disabled />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Телефон</Label>
+                  <Input value={profile.phone} disabled />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Должность</Label>
+                  <Input value={profile.positions?.name || "—"} disabled />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Регион</Label>
+                  <Input value={profile.regions?.name || "—"} disabled />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Организация</Label>
+                  <Input value={profile.organizations?.name || "—"} disabled />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Настройки уведомлений</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Уведомления в системе</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Получать уведомления в системе
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationsEnabled}
+                  onCheckedChange={setNotificationsEnabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Email уведомления</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Получать уведомления на email
+                  </p>
+                </div>
+                <Switch
+                  checked={emailNotifications}
+                  onCheckedChange={setEmailNotifications}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button onClick={handleSaveProfile} disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Сохранить изменения
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Личная информация</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">ФИО</Label>
-              <Input
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input value={profile.email} disabled />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Телефон</Label>
-              <Input value={profile.phone} disabled />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Должность</Label>
-              <Input value={profile.positions?.name || "—"} disabled />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Регион</Label>
-              <Input value={profile.regions?.name || "—"} disabled />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Организация</Label>
-              <Input value={profile.organizations?.name || "—"} disabled />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Подписка</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <TabsContent value="subscription" className="mt-6">
           <SubscriptionForm />
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Настройки уведомлений</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Уведомления в системе</Label>
-              <p className="text-sm text-muted-foreground">
-                Получать уведомления в системе
-              </p>
-            </div>
-            <Switch
-              checked={notificationsEnabled}
-              onCheckedChange={setNotificationsEnabled}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Email уведомления</Label>
-              <p className="text-sm text-muted-foreground">
-                Получать уведомления на email
-              </p>
-            </div>
-            <Switch
-              checked={emailNotifications}
-              onCheckedChange={setEmailNotifications}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end">
-        <Button onClick={handleSaveProfile} disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Сохранить изменения
-        </Button>
-      </div>
+        <TabsContent value="payments" className="mt-6">
+          <PaymentHistory />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
