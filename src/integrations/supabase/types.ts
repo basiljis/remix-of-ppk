@@ -1007,6 +1007,9 @@ export type Database = {
           legal_entity_data: Json | null
           payment_id: string | null
           payment_type: string
+          reminder_1day_sent: boolean | null
+          reminder_3days_sent: boolean | null
+          reminder_7days_sent: boolean | null
           start_date: string | null
           status: string
           subscription_type: string
@@ -1022,6 +1025,9 @@ export type Database = {
           legal_entity_data?: Json | null
           payment_id?: string | null
           payment_type: string
+          reminder_1day_sent?: boolean | null
+          reminder_3days_sent?: boolean | null
+          reminder_7days_sent?: boolean | null
           start_date?: string | null
           status?: string
           subscription_type: string
@@ -1037,6 +1043,9 @@ export type Database = {
           legal_entity_data?: Json | null
           payment_id?: string | null
           payment_type?: string
+          reminder_1day_sent?: boolean | null
+          reminder_3days_sent?: boolean | null
+          reminder_7days_sent?: boolean | null
           start_date?: string | null
           status?: string
           subscription_type?: string
