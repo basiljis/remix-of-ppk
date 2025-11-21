@@ -123,8 +123,7 @@ export const SystemInfoDialog = () => {
 
                 <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                   <p className="text-sm text-blue-900 dark:text-blue-100">
-                    <strong>Тестовый режим:</strong> Сейчас система работает в тестовом режиме без ограничений по количеству протоколов. 
-                    Используйте все возможности системы бесплатно!
+                    <strong>Тестовый режим:</strong> При одобрении заявки, предоставляется тестовый режим на 7 дней без ограничений по количеству протоколов
                   </p>
                 </div>
               </div>

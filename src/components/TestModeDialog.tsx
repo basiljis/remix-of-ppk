@@ -72,11 +72,8 @@ export const TestModeDialog = () => {
           </div>
 
           <div className="bg-muted/50 rounded-lg p-4 text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              Тестовый режим действует без ограничений по времени
-            </p>
-            <p className="text-xs text-muted-foreground">
-              При необходимости можете оформить платную подписку для получения дополнительных возможностей
+            <p className="text-sm text-muted-foreground">
+              При одобрении заявки, предоставляется тестовый режим на 7 дней без ограничений по количеству протоколов
             </p>
           </div>
         </div>
