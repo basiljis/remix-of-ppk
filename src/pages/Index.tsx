@@ -15,6 +15,7 @@ import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsDialog } from "@/components/NotificationsDialog";
 import { TestModeDialog } from "@/components/TestModeDialog";
+import { TrialPeriodIndicator } from "@/components/TrialPeriodIndicator";
 
 // Lazy load heavy components for better FCP
 const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
@@ -208,7 +209,10 @@ const Index = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <TrialPeriodIndicator />
+                <div className="h-8 w-px bg-border hidden lg:block" />
+                <div className="flex items-center gap-2">
                 <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
                 <NotificationsDialog onNavigate={setActiveTab} />
                 <button
@@ -223,10 +227,11 @@ const Index = () => {
                   </Avatar>
                 </button>
                 <ThemeToggle />
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Выход</span>
-                </Button>
+                  <Button variant="outline" size="sm" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Выход</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
