@@ -92,6 +92,15 @@ export const SystemInfoDialog = () => {
             </section>
 
             <section>
+              <h3 className="font-semibold text-base mb-2">Информация о разработчике</h3>
+              <div className="space-y-1 text-muted-foreground bg-muted/50 p-4 rounded-lg">
+                <div><strong className="text-foreground">ИП Загладин В.С.</strong></div>
+                <div>ИНН: 770702169499</div>
+                <div>ОГРНИП: 323774600132891</div>
+              </div>
+            </section>
+
+            <section>
               <h3 className="font-semibold text-base mb-2">Тарифы</h3>
               <div className="space-y-3 mb-4">
                 <div className="border rounded-lg p-4 bg-muted/50">

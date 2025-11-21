@@ -15,6 +15,7 @@ import { OrganizationSelector } from "@/components/OrganizationSelector";
 import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SystemInfoDialog } from "@/components/SystemInfoDialog";
+import { SupportDialog } from "@/components/SupportDialog";
 
 const signupSchema = z.object({
   fullName: z.string()
@@ -435,7 +436,10 @@ const Auth = () => {
                   </DialogContent>
                 </Dialog>
                 
-                <SystemInfoDialog />
+                <div className="space-y-2">
+                  <SystemInfoDialog />
+                  <SupportDialog />
+                </div>
                 </div>
               </form>
             </TabsContent>
@@ -642,7 +646,10 @@ const Auth = () => {
                   {loading ? "Регистрация..." : "Зарегистрироваться"}
                 </Button>
                 
-                <SystemInfoDialog />
+                <div className="space-y-2">
+                  <SystemInfoDialog />
+                  <SupportDialog />
+                </div>
               </form>
             </TabsContent>
           </Tabs>
