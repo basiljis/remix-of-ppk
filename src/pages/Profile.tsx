@@ -59,7 +59,7 @@ export default function Profile() {
         return;
       }
 
-      // Если нет активной подписки, проверяем тестовый режим
+      // Если нет активной подписки, проверяем пробный период
       const { data: accessRequest } = await supabase
         .from('access_requests')
         .select('reviewed_at')
@@ -210,7 +210,7 @@ export default function Profile() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-primary" />
-                  Тестовый режим
+                  Пробный период
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
