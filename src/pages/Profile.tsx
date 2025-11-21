@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User, ArrowLeft, CreditCard, Receipt } from "lucide-react";
+import { Loader2, Upload, User, ArrowLeft, CreditCard, Receipt, Clock } from "lucide-react";
 import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { PaymentStatusDialog } from "@/components/PaymentStatusDialog";
 import { PaymentHistory } from "@/components/PaymentHistory";
+import { Progress } from "@/components/ui/progress";
+import { differenceInDays, addDays } from "date-fns";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -26,6 +28,8 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -35,6 +39,52 @@ export default function Profile() {
       setEmailNotifications(profile.email_notifications ?? true);
     }
   }, [profile]);
+
+  useEffect(() => {
+    const checkTestMode = async () => {
+      if (!user?.id) return;
+
+      // Проверяем активную подписку
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .gte('end_date', new Date().toISOString())
+        .single();
+
+      if (subscription) {
+        setHasActiveSubscription(true);
+        setDaysLeft(null);
+        return;
+      }
+
+      // Если нет активной подписки, проверяем тестовый режим
+      const { data: accessRequest } = await supabase
+        .from('access_requests')
+        .select('reviewed_at')
+        .eq('user_id', user.id)
+        .eq('status', 'approved')
+        .single();
+
+      if (accessRequest?.reviewed_at) {
+        const approvalDate = new Date(accessRequest.reviewed_at);
+        const testEndDate = addDays(approvalDate, 7);
+        const today = new Date();
+        const remainingDays = differenceInDays(testEndDate, today);
+
+        if (remainingDays >= 0) {
+          setDaysLeft(remainingDays);
+          setHasActiveSubscription(false);
+        } else {
+          setDaysLeft(0);
+          setHasActiveSubscription(false);
+        }
+      }
+    };
+
+    checkTestMode();
+  }, [user]);
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -155,6 +205,38 @@ export default function Profile() {
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6 mt-6">
+          {!hasActiveSubscription && daysLeft !== null && (
+            <Card className="border-primary/50 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Тестовый режим
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Осталось дней:</span>
+                    <span className="font-semibold text-lg text-primary">
+                      {daysLeft} {daysLeft === 1 ? 'день' : daysLeft < 5 ? 'дня' : 'дней'}
+                    </span>
+                  </div>
+                  <Progress value={(daysLeft / 7) * 100} className="h-2" />
+                  <p className="text-xs text-muted-foreground">
+                    Тестовый период действует 7 дней с момента одобрения заявки
+                  </p>
+                </div>
+                {daysLeft <= 2 && (
+                  <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+                    <p className="text-sm text-orange-900 dark:text-orange-100">
+                      Тестовый период скоро истекает. Оформите подписку во вкладке "Подписка"
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Фотография профиля</CardTitle>
