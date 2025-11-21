@@ -13,6 +13,7 @@ import { AuthLogsPanel } from "@/components/AuthLogsPanel";
 import { ChangeHistoryPanel } from "@/components/ChangeHistoryPanel";
 import { SubscriptionsManagement } from "@/components/SubscriptionsManagement";
 import { PaymentLogsPanel } from "@/components/PaymentLogsPanel";
+import { SubscriptionsDashboard } from "@/components/SubscriptionsDashboard";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -361,6 +362,25 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
       {activeSubTab === "payment-logs" && (
         <div className="space-y-6">
           <PaymentLogsPanel />
+        </div>
+      )}
+
+      {activeSubTab === "analytics" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Аналитика подписок
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Статистика платежей, конверсии и динамика подписок
+              </p>
+            </CardContent>
+          </Card>
+          <SubscriptionsDashboard />
         </div>
       )}
     </div>
