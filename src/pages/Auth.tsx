@@ -16,6 +16,7 @@ import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SystemInfoDialog } from "@/components/SystemInfoDialog";
 import { SupportDialog } from "@/components/SupportDialog";
+import { AuthFooter } from "@/components/AuthFooter";
 
 const signupSchema = z.object({
   fullName: z.string()
@@ -350,8 +351,8 @@ const Auth = () => {
   };
 
   return (
-    <>
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+    <div className="min-h-screen flex flex-col">
+      <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
         <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
         {/* Left side - Form */}
         <div className="p-8 md:p-12 flex flex-col justify-center">
@@ -735,7 +736,9 @@ const Auth = () => {
         </div>
       </DialogContent>
     </Dialog>
-  </>
+    
+    <AuthFooter />
+  </div>
   );
 };
 
