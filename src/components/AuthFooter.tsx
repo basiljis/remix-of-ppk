@@ -189,7 +189,7 @@ export const AuthFooter = () => {
                 <p>ИП Загладин Владимир Сергеевич</p>
                 <p>ИНН: 770702169499</p>
                 <p>ОГРНИП: 323774600132891</p>
-                <p>Email: support@ppk.system</p>
+                <p>Email: info@profilaktika.site</p>
               </div>
             </section>
           </div>
@@ -209,7 +209,7 @@ export const AuthFooter = () => {
             <section>
               <h3 className="font-semibold mb-2">Техническая поддержка</h3>
               <div className="text-sm text-muted-foreground space-y-1">
-                <p>Email: support@ppk.system</p>
+                <p>Email: info@profilaktika.site</p>
                 <p>Время работы: Пн-Пт, 9:00-18:00 (МСК)</p>
               </div>
             </section>
