@@ -226,7 +226,7 @@ export const AuthFooter = () => {
             <section>
               <h3 className="font-semibold mb-2">Коммерческие вопросы</h3>
               <div className="text-sm text-muted-foreground">
-                <p>Для получения коммерческого предложения заполните форму в системе или напишите на email: sales@ppk.system</p>
+                <p>Для получения коммерческого предложения заполните форму в системе или напишите на email: info@profilaktika.site</p>
               </div>
             </section>
           </div>
