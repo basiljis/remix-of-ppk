@@ -253,6 +253,54 @@ export type Database = {
           },
         ]
       }
+      commercial_offer_requests: {
+        Row: {
+          admin_notes: string | null
+          comment: string | null
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          inn: string
+          organization_name: string
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          comment?: string | null
+          contact_person: string
+          created_at?: string
+          email: string
+          id?: string
+          inn: string
+          organization_name: string
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          comment?: string | null
+          contact_person?: string
+          created_at?: string
+          email?: string
+          id?: string
+          inn?: string
+          organization_name?: string
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           created_at: string
