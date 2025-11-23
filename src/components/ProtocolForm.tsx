@@ -654,9 +654,8 @@ export const ProtocolForm = ({
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Уровень:</span>
           <EducationLevelSelector
-            value={selectedLevel}
-            onChange={setSelectedLevel}
-            disabled={!!editingProtocol}
+            selectedLevel={selectedLevel}
+            onLevelChange={setSelectedLevel}
           />
         </div>
       </div>
@@ -1037,9 +1036,10 @@ export const ProtocolForm = ({
 
       {currentStep === 3 && (
         <ProtocolChecklistPaginated
-          level={selectedLevel}
+          educationLevel={selectedLevel}
+          childName={formData.childData.fullName}
           blocks={checklistBlocks}
-          onScoreUpdate={updateItemScore}
+          onItemChange={updateItemScore}
           calculateBlockScore={calculateBlockScore}
         />
       )}
@@ -1047,9 +1047,8 @@ export const ProtocolForm = ({
       {currentStep === 4 && (
         <ProtocolResultsPanel
           blocks={checklistBlocks}
-          calculateBlockScore={calculateBlockScore}
-          childName={formData.childData.fullName}
           educationLevel={selectedLevel}
+          calculateBlockScore={calculateBlockScore}
         />
       )}
 
