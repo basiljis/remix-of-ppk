@@ -42,11 +42,29 @@ export const CommercialOfferRequestForm = () => {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.functions.invoke('send-commercial-offer-request', {
-        body: data,
+      // Сохраняем запрос в базу данных
+      const { error: dbError } = await supabase
+        .from('commercial_offer_requests')
+        .insert([{
+          organization_name: data.organizationName,
+          inn: data.inn,
+          contact_person: data.contactPerson,
+          email: data.email,
+          phone: data.phone,
+          comment: data.comment || null,
+          status: 'pending'
+        }]);
+
+      if (dbError) throw dbError;
+
+      // Отправляем email уведомление
+      const { error: emailError } = await supabase.functions.invoke('send-commercial-offer-request', {
+        body: data
       });
 
-      if (error) throw error;
+      if (emailError) {
+        console.error('Email notification error:', emailError);
+      }
 
       toast({
         title: 'Запрос отправлен',

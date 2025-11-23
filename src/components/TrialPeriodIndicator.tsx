@@ -19,7 +19,8 @@ export const TrialPeriodIndicator = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .gte('end_date', new Date().toISOString())
+        .maybeSingle();
 
       // Если есть активная подписка, не показываем индикатор
       if (subscription) {

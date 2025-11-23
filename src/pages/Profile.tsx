@@ -51,7 +51,7 @@ export default function Profile() {
         .eq('user_id', user.id)
         .eq('status', 'active')
         .gte('end_date', new Date().toISOString())
-        .single();
+        .maybeSingle();
 
       if (subscription) {
         setHasActiveSubscription(true);
@@ -65,7 +65,7 @@ export default function Profile() {
         .select('reviewed_at')
         .eq('user_id', user.id)
         .eq('status', 'approved')
-        .single();
+        .maybeSingle();
 
       if (accessRequest?.reviewed_at) {
         const approvalDate = new Date(accessRequest.reviewed_at);
