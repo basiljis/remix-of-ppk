@@ -6,6 +6,7 @@ import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
 import { UserManagementEnhanced } from "@/components/UserManagementEnhanced";
 import { AccessRequestsManagement } from "@/components/AccessRequestsManagement";
+import { CommercialOfferRequestsManagement } from "@/components/CommercialOfferRequestsManagement";
 import { AdminStatisticsPanel } from "@/components/AdminStatisticsPanel";
 import { SchoolYearsManagement } from "@/components/SchoolYearsManagement";
 import { EmailLogsPanel } from "@/components/EmailLogsPanel";
@@ -381,6 +382,12 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
             </CardContent>
           </Card>
           <SubscriptionsDashboard />
+        </div>
+      )}
+
+      {activeSubTab === "commercial-offers" && (
+        <div className="space-y-6">
+          <CommercialOfferRequestsManagement />
         </div>
       )}
     </div>

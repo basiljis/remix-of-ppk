@@ -29,6 +29,7 @@ import { Eye } from "lucide-react";
 import { analyzeProtocolResults } from "@/utils/assistanceDirections";
 import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 
 // Интерфейсы для данных протокола и документов
 interface ChildData {
@@ -98,6 +99,9 @@ export const ProtocolForm = ({
   const [selectedProtocol, setSelectedProtocol] = useState<any | null>(null);
   const [showProtocolDialog, setShowProtocolDialog] = useState(false);
   const [hasActiveAccess, setHasActiveAccess] = useState(true);
+  
+  // Таймаут сессии 15 минут
+  useSessionTimeout();
   const [trialExpired, setTrialExpired] = useState(false);
 
   const { saveProtocol, updateProtocol } = useProtocols();
@@ -651,13 +655,6 @@ export const ProtocolForm = ({
             );
           })}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Уровень:</span>
-          <EducationLevelSelector
-            selectedLevel={selectedLevel}
-            onLevelChange={setSelectedLevel}
-          />
-        </div>
       </div>
 
       <Progress value={calculateProgress()} className="h-2" />
@@ -708,6 +705,14 @@ export const ProtocolForm = ({
                   onChange={(e) => updateChildData("age", e.target.value)}
                   className={getRequiredFieldClass(formData.childData.age)}
                   placeholder="7 лет 6 мес."
+                />
+              </div>
+
+              <div className="col-span-2 py-4">
+                <Label className="mb-3 block">Уровень образования *</Label>
+                <EducationLevelSelector
+                  selectedLevel={selectedLevel}
+                  onLevelChange={setSelectedLevel}
                 />
               </div>
 

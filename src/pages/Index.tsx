@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsDialog } from "@/components/NotificationsDialog";
 import { TestModeDialog } from "@/components/TestModeDialog";
 import { TrialPeriodIndicator } from "@/components/TrialPeriodIndicator";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 
 // Lazy load heavy components for better FCP
 const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
@@ -33,6 +34,9 @@ const Index = () => {
   const { toast } = useToast();
   const { user, loading, isAdmin, signOut, profile, hasAccessRequest } = useAuth();
   const { checklists, loading: checklistLoading, error } = useChecklistData();
+  
+  // Автоматический таймаут сессии 15 минут
+  useSessionTimeout();
 
   // Redirect to auth if not logged in
   useEffect(() => {
