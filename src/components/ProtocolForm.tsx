@@ -396,7 +396,7 @@ export const ProtocolForm = ({
   };
 
   const nextStep = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       handleStepChange(currentStep + 1);
     }
   };
@@ -593,9 +593,10 @@ export const ProtocolForm = ({
 
   const steps = [
     { number: 1, title: "Данные об обучающемся", icon: User },
-    { number: 2, title: "Документы и протокол", icon: FileText },
-    { number: 3, title: "Чек-лист обследования", icon: ClipboardList },
-    { number: 4, title: "Результаты и заключение", icon: CheckCircle }
+    { number: 2, title: "Данные протокола", icon: FileText },
+    { number: 3, title: "Документы обучающегося", icon: FileText },
+    { number: 4, title: "Чек-лист обследования", icon: ClipboardList },
+    { number: 5, title: "Результаты и заключение", icon: CheckCircle }
   ];
 
   return (
@@ -619,16 +620,16 @@ export const ProtocolForm = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+      <div className="w-full mb-6">
+        <div className="flex items-center justify-between w-full">
           {steps.map((step, index) => {
             const Icon = step.icon;
             const isActive = currentStep === step.number;
             const isCompleted = currentStep > step.number;
             
             return (
-              <div key={step.number} className="flex items-center">
-                <div className="flex flex-col items-center">
+              <div key={step.number} className="flex items-center flex-1">
+                <div className="flex flex-col items-center w-full">
                   <button
                     onClick={() => handleStepChange(step.number)}
                     className={`
@@ -641,13 +642,13 @@ export const ProtocolForm = ({
                   >
                     <Icon className="h-5 w-5" />
                   </button>
-                  <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : ''}`}>
-                    Шаг {step.number}
+                  <span className={`text-xs mt-1 text-center max-w-[80px] ${isActive ? 'font-semibold' : ''}`}>
+                    {step.title}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
                   <div className={`
-                    h-0.5 w-12 mx-2
+                    h-0.5 flex-1 mx-2
                     ${isCompleted ? 'bg-primary' : 'bg-muted-foreground/30'}
                   `} />
                 )}
@@ -841,205 +842,194 @@ export const ProtocolForm = ({
               )}
             </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button
-                onClick={generateConsent}
-                variant="outline"
-                disabled={!canSaveProtocol()}
-                className="flex-1"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Сгенерировать согласие
-              </Button>
-            </div>
           </CardContent>
         </Card>
       )}
 
       {currentStep === 2 && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Документы обучающегося</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {formData.documents.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id={doc.id}
-                        checked={doc.present}
-                        onCheckedChange={(checked) => updateDocument(doc.id, Boolean(checked))}
-                      />
-                      <Label htmlFor={doc.id} className="font-normal cursor-pointer">
-                        {doc.name}
-                        {doc.required && <span className="text-destructive ml-1">*</span>}
-                      </Label>
-                    </div>
-                    <Badge variant={doc.present ? "default" : "secondary"}>
-                      {doc.present ? "Есть" : "Нет"}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Данные протокола</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="consultationType">Тип консультации *</Label>
+              <RadioGroup
+                value={formData.consultationType}
+                onValueChange={(value: "primary" | "secondary") =>
+                  setFormData(prev => ({ ...prev, consultationType: value }))
+                }
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="primary" id="primary" />
+                  <Label htmlFor="primary">Первичная</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="secondary" id="secondary" />
+                  <Label htmlFor="secondary">Вторичная</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Данные протокола</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {formData.consultationType === "secondary" && previousProtocols.length > 0 && (
               <div>
-                <Label htmlFor="consultationType">Тип консультации *</Label>
-                <RadioGroup
-                  value={formData.consultationType}
-                  onValueChange={(value: "primary" | "secondary") =>
-                    setFormData(prev => ({ ...prev, consultationType: value }))
-                  }
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="primary" id="primary" />
-                    <Label htmlFor="primary">Первичная</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="secondary" id="secondary" />
-                    <Label htmlFor="secondary">Вторичная</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {formData.consultationType === "secondary" && previousProtocols.length > 0 && (
-                <div>
-                  <Label>Предыдущие протоколы</Label>
-                  <div className="space-y-2 mt-2">
-                    {previousProtocols.map((protocol) => (
-                      <div key={protocol.id} className="flex items-center justify-between p-3 rounded-lg border">
-                        <div>
-                          <p className="font-medium">Протокол №{protocol.ppk_number || "б/н"}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(protocol.created_at).toLocaleDateString("ru-RU")}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedProtocol(protocol);
-                            setShowProtocolDialog(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Просмотр
-                        </Button>
+                <Label>Предыдущие протоколы</Label>
+                <div className="space-y-2 mt-2">
+                  {previousProtocols.map((protocol) => (
+                    <div key={protocol.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <p className="font-medium">Протокол №{protocol.ppk_number || "б/н"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(protocol.created_at).toLocaleDateString("ru-RU")}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                  <PreviousProtocolDialog
-                    protocol={selectedProtocol}
-                    open={showProtocolDialog}
-                    onOpenChange={setShowProtocolDialog}
-                  />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedProtocol(protocol);
+                          setShowProtocolDialog(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Просмотр
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              )}
-
-              {formData.consultationType === "secondary" && (
-                <div>
-                  <Label htmlFor="previousConsultations">История предыдущих консультаций</Label>
-                  <Textarea
-                    id="previousConsultations"
-                    value={formData.previousConsultations}
-                    onChange={(e) => setFormData(prev => ({ ...prev, previousConsultations: e.target.value }))}
-                    rows={6}
-                    placeholder="История предыдущих консультаций..."
-                  />
-                </div>
-              )}
-
-              <div>
-                <Label htmlFor="consultationDate">Дата консультации *</Label>
-                <Input
-                  id="consultationDate"
-                  type="date"
-                  value={formData.consultationDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, consultationDate: e.target.value }))}
-                  className={getRequiredFieldClass(formData.consultationDate)}
+                <PreviousProtocolDialog
+                  protocol={selectedProtocol}
+                  open={showProtocolDialog}
+                  onOpenChange={setShowProtocolDialog}
                 />
               </div>
+            )}
 
+            {formData.consultationType === "secondary" && (
               <div>
-                <Label htmlFor="reason">Причина направления на ППк *</Label>
+                <Label htmlFor="previousConsultations">История предыдущих консультаций</Label>
                 <Textarea
-                  id="reason"
-                  value={formData.reason}
-                  onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-                  className={getRequiredFieldClass(formData.reason)}
-                  placeholder="Опишите причину направления..."
-                  rows={4}
+                  id="previousConsultations"
+                  value={formData.previousConsultations}
+                  onChange={(e) => setFormData(prev => ({ ...prev, previousConsultations: e.target.value }))}
+                  rows={6}
+                  placeholder="История предыдущих консультаций..."
                 />
               </div>
+            )}
 
+            <div>
+              <Label htmlFor="consultationDate">Дата консультации *</Label>
+              <Input
+                id="consultationDate"
+                type="date"
+                value={formData.consultationDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, consultationDate: e.target.value }))}
+                className={getRequiredFieldClass(formData.consultationDate)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="reason">Причина направления на ППк *</Label>
+              <Textarea
+                id="reason"
+                value={formData.reason}
+                onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                className={getRequiredFieldClass(formData.reason)}
+                placeholder="Опишите причину направления..."
+                rows={4}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="sessionTopic">Тема заседания *</Label>
+              <Input
+                id="sessionTopic"
+                value={formData.sessionTopic || ""}
+                onChange={(e) => setFormData(prev => ({ ...prev, sessionTopic: e.target.value }))}
+                className={getRequiredFieldClass(formData.sessionTopic || "")}
+                placeholder="Например: Первичное обследование, динамическое наблюдение..."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="meetingType">Тип заседания</Label>
+              <Select
+                value={formData.meetingType || "scheduled"}
+                onValueChange={(value: "scheduled" | "unscheduled") =>
+                  setFormData(prev => ({ ...prev, meetingType: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="scheduled">Плановое</SelectItem>
+                  <SelectItem value="unscheduled">Внеплановое</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editingProtocol && (
               <div>
-                <Label htmlFor="sessionTopic">Тема заседания *</Label>
+                <Label htmlFor="ppkNumber">Номер протокола ППк</Label>
                 <Input
-                  id="sessionTopic"
-                  value={formData.sessionTopic || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, sessionTopic: e.target.value }))}
-                  className={getRequiredFieldClass(formData.sessionTopic || "")}
-                  placeholder="Например: Первичное обследование, динамическое наблюдение..."
+                  id="ppkNumber"
+                  value={formData.ppkNumber || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ppkNumber: e.target.value }))}
+                  placeholder="Автоматически при сохранении"
+                  disabled
                 />
               </div>
+            )}
 
-              <div>
-                <Label htmlFor="meetingType">Тип заседания</Label>
-                <Select
-                  value={formData.meetingType || "scheduled"}
-                  onValueChange={(value: "scheduled" | "unscheduled") =>
-                    setFormData(prev => ({ ...prev, meetingType: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Плановое</SelectItem>
-                    <SelectItem value="unscheduled">Внеплановое</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {editingProtocol && (
-                <div>
-                  <Label htmlFor="ppkNumber">Номер протокола ППк</Label>
-                  <Input
-                    id="ppkNumber"
-                    value={formData.ppkNumber || ""}
-                    onChange={(e) => setFormData(prev => ({ ...prev, ppkNumber: e.target.value }))}
-                    placeholder="Автоматически при сохранении"
-                    disabled
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="parentConsent"
-                  checked={formData.parentConsent || false}
-                  onCheckedChange={(checked) =>
-                    setFormData(prev => ({ ...prev, parentConsent: Boolean(checked) }))
-                  }
-                />
-                <Label htmlFor="parentConsent" className="font-normal">
-                  Получено согласие родителя (законного представителя) на обработку персональных данных
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="parentConsent"
+                checked={formData.parentConsent || false}
+                onCheckedChange={(checked) =>
+                  setFormData(prev => ({ ...prev, parentConsent: Boolean(checked) }))
+                }
+              />
+              <Label htmlFor="parentConsent" className="font-normal">
+                Получено согласие родителя (законного представителя) на обработку персональных данных
+              </Label>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {currentStep === 3 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Документы обучающегося</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {formData.documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id={doc.id}
+                      checked={doc.present}
+                      onCheckedChange={(checked) => updateDocument(doc.id, Boolean(checked))}
+                    />
+                    <Label htmlFor={doc.id} className="font-normal cursor-pointer">
+                      {doc.name}
+                      {doc.required && <span className="text-destructive ml-1">*</span>}
+                    </Label>
+                  </div>
+                  <Badge variant={doc.present ? "default" : "secondary"}>
+                    {doc.present ? "Есть" : "Нет"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {currentStep === 4 && (
         <ProtocolChecklistPaginated
           educationLevel={selectedLevel}
           childName={formData.childData.fullName}
@@ -1049,7 +1039,7 @@ export const ProtocolForm = ({
         />
       )}
 
-      {currentStep === 4 && (
+      {currentStep === 5 && (
         <ProtocolResultsPanel
           blocks={checklistBlocks}
           educationLevel={selectedLevel}
@@ -1077,7 +1067,7 @@ export const ProtocolForm = ({
             Сохранить черновик
           </Button>
 
-          {currentStep < 4 ? (
+          {currentStep < 5 ? (
             <Button onClick={nextStep}>
               Далее
               <ChevronRight className="ml-2 h-4 w-4" />
