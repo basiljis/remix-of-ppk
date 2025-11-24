@@ -49,6 +49,7 @@ const menuItems = [
     icon: Settings,
     subItems: [
       { id: "administration-access-requests", label: "Заявки" },
+      { id: "administration-commercial-offers", label: "КП заявки" },
       { id: "administration-users", label: "Пользователи" },
       { id: "administration-organizations", label: "Организации" },
       { id: "administration-subscriptions", label: "Подписки" },
