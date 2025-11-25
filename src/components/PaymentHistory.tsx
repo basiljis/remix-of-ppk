@@ -45,22 +45,17 @@ export const PaymentHistory = () => {
 
       const { data, error } = await supabase
         .from("subscriptions")
-        .select(`
-          *,
-          payment_logs (
-            id,
-            payment_id,
-            status,
-            amount,
-            created_at,
-            event_type
-          )
-        `)
+        .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching subscriptions:", error);
+        throw error;
+      }
+      
+      console.log("Fetched subscriptions:", data);
+      return data || [];
     },
     enabled: !!user?.id,
   });
