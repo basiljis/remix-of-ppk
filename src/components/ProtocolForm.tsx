@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSubscriptionAccess } from "@/hooks/useSubscriptionAccess";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,6 +108,8 @@ export const ProtocolForm = ({
 
   const { saveProtocol, updateProtocol } = useProtocols();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const subscriptionAccess = useSubscriptionAccess();
   const { getChecklistByLevelAndType, loading: checklistLoading } = useChecklistData();
   const {
     getBlocksForEducationLevel,
@@ -624,8 +628,47 @@ export const ProtocolForm = ({
     },
   ];
 
+  // Блокировка создания нового протокола при отсутствии доступа
+  const canCreateNew = editingProtocol || subscriptionAccess.canCreateProtocols;
+
   return (
     <div className="space-y-6">
+      {!canCreateNew && !subscriptionAccess.loading && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {subscriptionAccess.trialEndDate ? (
+              <>
+                Пробный период завершился {subscriptionAccess.trialEndDate.toLocaleDateString('ru-RU')}. 
+                Создание новых протоколов доступно только при активной подписке. 
+                Созданные ранее протоколы доступны для просмотра в течение 3 лет.
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/profile')}
+                  className="ml-4"
+                >
+                  Оформить подписку
+                </Button>
+              </>
+            ) : (
+              <>
+                Для создания протоколов необходима активная подписка. 
+                Созданные ранее протоколы доступны для просмотра в течение 3 лет.
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/profile')}
+                  className="ml-4"
+                >
+                  Оформить подписку
+                </Button>
+              </>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <AlertDialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -747,22 +790,41 @@ export const ProtocolForm = ({
               </div>
 
               <div>
-                <Label htmlFor="classNumber">
-                  {selectedLevel === 'preschool' ? 'Группа' : 'Класс'} *
-                </Label>
-                <Input
-                  id="classNumber"
+                <Label htmlFor="classNumber">Класс/Группа</Label>
+                <Select
                   value={formData.childData.classNumber}
-                  onChange={(e) => updateChildData("classNumber", e.target.value)}
-                  className={getRequiredFieldClass(formData.childData.classNumber)}
-                  placeholder={selectedLevel === 'preschool' ? 'Название или номер группы' : 'Номер класса'}
-                />
+                  onValueChange={(value) => updateChildData('classNumber', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      selectedLevel === 'preschool' 
+                        ? 'Выберите группу' 
+                        : 'Выберите класс'
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedLevel === 'preschool' ? (
+                      <>
+                        <SelectItem value="Младшая группа">Младшая группа</SelectItem>
+                        <SelectItem value="Средняя группа">Средняя группа</SelectItem>
+                        <SelectItem value="Старшая группа">Старшая группа</SelectItem>
+                        <SelectItem value="Подготовительная группа">Подготовительная группа</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        {Array.from({ length: 11 }, (_, i) => (
+                          <SelectItem key={i + 1} value={(i + 1).toString()}>
+                            {i + 1} класс
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
-                <Label htmlFor="classLetter">
-                  {selectedLevel === 'preschool' ? 'Номер группы' : 'Литера класса'}
-                </Label>
+                <Label htmlFor="classLetter">Литера класса/Номер группы</Label>
                 <Input
                   id="classLetter"
                   value={formData.childData.classLetter}
@@ -975,14 +1037,32 @@ export const ProtocolForm = ({
             </div>
 
             <div>
-              <Label htmlFor="sessionTopic">Тема заседания *</Label>
-              <Input
-                id="sessionTopic"
-                value={formData.sessionTopic || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, sessionTopic: e.target.value }))}
-                className={getRequiredFieldClass(formData.sessionTopic || "")}
-                placeholder="Например: Первичное обследование, динамическое наблюдение..."
-              />
+              <Label htmlFor="sessionTopic">Тема заседания</Label>
+              <Select
+                value={formData.sessionTopic}
+                onValueChange={(value) => setFormData({ ...formData, sessionTopic: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите тему заседания" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Определение необходимости психолого-педагогической помощи">
+                    Определение необходимости психолого-педагогической помощи
+                  </SelectItem>
+                  <SelectItem value="Определение направления психолого-педагогической помощи">
+                    Определение направления психолого-педагогической помощи
+                  </SelectItem>
+                  <SelectItem value="Оценка эффективности психолого-педагогической помощи">
+                    Оценка эффективности психолого-педагогической помощи
+                  </SelectItem>
+                  <SelectItem value="Психолого-педагогическое сопровождение обучающихся с ОВЗ">
+                    Психолого-педагогическое сопровождение обучающихся с ОВЗ
+                  </SelectItem>
+                  <SelectItem value="Подготовка рекомендаций по АООП">
+                    Подготовка рекомендаций по АООП
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
