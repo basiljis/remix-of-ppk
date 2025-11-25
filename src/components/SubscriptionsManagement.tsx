@@ -23,16 +23,33 @@ export const SubscriptionsManagement = () => {
   const { data: subscriptions, isLoading: loadingSubscriptions } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: subsData, error: subsError } = await supabase
         .from("subscriptions")
-        .select(`
-          *,
-          profiles (full_name, email, organization:organizations(name))
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (subsError) throw subsError;
+
+      // Получаем информацию о пользователях отдельно
+      const userIds = subsData?.map(s => s.user_id) || [];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          email,
+          organization_id,
+          organizations (name)
+        `)
+        .in("id", userIds);
+
+      // Объединяем данные
+      const enrichedData = subsData?.map(sub => ({
+        ...sub,
+        profiles: profilesData?.find(p => p.id === sub.user_id)
+      }));
+
+      return enrichedData;
     },
   });
 
