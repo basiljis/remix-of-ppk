@@ -315,8 +315,9 @@ export const ProtocolConclusionPanel = ({
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="parent-consent" 
-              checked={parentConsent}
+              checked={parentConsent || false}
               onCheckedChange={(checked) => {
+                console.log("Parent consent checkbox changed:", checked);
                 if (onParentConsentChange) {
                   onParentConsentChange(checked === true);
                 }
@@ -324,7 +325,7 @@ export const ProtocolConclusionPanel = ({
             />
             <Label 
               htmlFor="parent-consent" 
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              className="text-sm font-medium leading-none cursor-pointer select-none"
             >
               Родитель/законный представитель ознакомлен(а) с заключением и согласен(а) с ним
             </Label>

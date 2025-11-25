@@ -3,17 +3,38 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Sparkles, Calendar, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export const TestModeDialog = () => {
   const [open, setOpen] = useState(false);
+  const [trialEndDate, setTrialEndDate] = useState<Date | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const checkTrialPeriod = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('created_at')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        const registrationDate = new Date(profile.created_at);
+        const endDate = new Date(registrationDate);
+        endDate.setDate(endDate.getDate() + 7);
+        setTrialEndDate(endDate);
+      }
+    };
+
     // Проверяем, показывали ли уже это окно в текущей сессии
     const hasSeenDialog = sessionStorage.getItem('hasSeenTestModeDialog');
     if (!hasSeenDialog) {
       setOpen(true);
       sessionStorage.setItem('hasSeenTestModeDialog', 'true');
+      checkTrialPeriod();
     }
   }, []);
 
@@ -46,12 +67,14 @@ export const TestModeDialog = () => {
               <div>
                 <p className="text-sm font-medium">Пробный период до:</p>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ru-RU')}
+                  {trialEndDate?.toLocaleDateString('ru-RU') || 'Загрузка...'}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-primary">7</p>
+              <p className="text-3xl font-bold text-primary">
+                {trialEndDate ? Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : '7'}
+              </p>
               <p className="text-xs text-muted-foreground">дней</p>
             </div>
           </div>

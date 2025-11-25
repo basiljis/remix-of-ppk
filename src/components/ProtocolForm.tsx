@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save, Download, AlertCircle } from "lucide-react";
+import { ChevronRight, ChevronLeft, User, FileText, CheckCircle, ClipboardList, Save, Download, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { getProtocolChecklistData } from "@/data/protocolChecklistData";
 import { useProtocols } from "@/hooks/useProtocols";
@@ -592,11 +592,36 @@ export const ProtocolForm = ({
   }
 
   const steps = [
-    { number: 1, title: "Данные об обучающемся", icon: User },
-    { number: 2, title: "Данные протокола", icon: FileText },
-    { number: 3, title: "Документы обучающегося", icon: FileText },
-    { number: 4, title: "Чек-лист обследования", icon: ClipboardList },
-    { number: 5, title: "Результаты и заключение", icon: CheckCircle }
+    { 
+      number: 1, 
+      title: "Данные об обучающемся", 
+      icon: User,
+      isComplete: () => !!formData.childData.fullName && !!selectedLevel && !!formData.childData.parentName
+    },
+    { 
+      number: 2, 
+      title: "Данные протокола", 
+      icon: FileText,
+      isComplete: () => !!formData.consultationType && !!formData.consultationDate
+    },
+    { 
+      number: 3, 
+      title: "Документы обучающегося", 
+      icon: FileText,
+      isComplete: () => formData.documents.filter(d => d.required).every(d => d.present)
+    },
+    { 
+      number: 4, 
+      title: "Чек-лист обследования", 
+      icon: ClipboardList,
+      isComplete: () => checklistBlocks.length > 0
+    },
+    { 
+      number: 5, 
+      title: "Результаты и заключение", 
+      icon: CheckCircle,
+      isComplete: () => !!formData.parentConsent
+    },
   ];
 
   return (
@@ -621,28 +646,32 @@ export const ProtocolForm = ({
       </AlertDialog>
 
       <div className="w-full mb-6">
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center justify-between w-full px-4 gap-2">
           {steps.map((step, index) => {
             const Icon = step.icon;
             const isActive = currentStep === step.number;
-            const isCompleted = currentStep > step.number;
+            const isCompleted = step.isComplete();
             
             return (
               <div key={step.number} className="flex items-center flex-1">
-                <div className="flex flex-col items-center w-full">
+                <div className="flex flex-col items-center flex-1">
                   <button
                     onClick={() => handleStepChange(step.number)}
                     className={`
                       flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all
                       ${isActive ? 'border-primary bg-primary text-primary-foreground' : ''}
-                      ${isCompleted ? 'border-primary bg-primary/10 text-primary' : ''}
+                      ${isCompleted && !isActive ? 'border-primary bg-primary/10 text-primary' : ''}
                       ${!isActive && !isCompleted ? 'border-muted-foreground/30 text-muted-foreground' : ''}
                       hover:scale-105
                     `}
                   >
-                    <Icon className="h-5 w-5" />
+                    {isCompleted && !isActive ? (
+                      <CheckCircle2 className="h-5 w-5" />
+                    ) : (
+                      <Icon className="h-5 w-5" />
+                    )}
                   </button>
-                  <span className={`text-xs mt-1 text-center max-w-[80px] ${isActive ? 'font-semibold' : ''}`}>
+                  <span className={`text-xs mt-1 text-center max-w-[120px] ${isActive ? 'font-semibold' : ''}`}>
                     {step.title}
                   </span>
                 </div>
@@ -718,23 +747,27 @@ export const ProtocolForm = ({
               </div>
 
               <div>
-                <Label htmlFor="classNumber">Класс *</Label>
+                <Label htmlFor="classNumber">
+                  {selectedLevel === 'preschool' ? 'Группа' : 'Класс'} *
+                </Label>
                 <Input
                   id="classNumber"
                   value={formData.childData.classNumber}
                   onChange={(e) => updateChildData("classNumber", e.target.value)}
                   className={getRequiredFieldClass(formData.childData.classNumber)}
-                  placeholder="1"
+                  placeholder={selectedLevel === 'preschool' ? 'Название или номер группы' : 'Номер класса'}
                 />
               </div>
 
               <div>
-                <Label htmlFor="classLetter">Литера класса</Label>
+                <Label htmlFor="classLetter">
+                  {selectedLevel === 'preschool' ? 'Номер группы' : 'Литера класса'}
+                </Label>
                 <Input
                   id="classLetter"
                   value={formData.childData.classLetter}
                   onChange={(e) => updateChildData("classLetter", e.target.value)}
-                  placeholder="А"
+                  placeholder={selectedLevel === 'preschool' ? 'Номер группы' : 'А, Б, В...'}
                 />
               </div>
 
@@ -761,15 +794,15 @@ export const ProtocolForm = ({
               <div className="col-span-2 flex items-center space-x-2">
                 <Checkbox
                   id="sameAsAddress"
-                  checked={formData.childData.sameAsAddress}
+                  checked={formData.childData.sameAsAddress || false}
                   onCheckedChange={(checked) => {
-                    updateChildData("sameAsAddress", String(checked));
+                    updateChildData("sameAsAddress", checked === true ? "true" : "false");
                     if (checked) {
                       updateChildData("registrationAddress", formData.childData.address);
                     }
                   }}
                 />
-                <Label htmlFor="sameAsAddress" className="font-normal">
+                <Label htmlFor="sameAsAddress" className="font-normal cursor-pointer">
                   Адрес регистрации совпадает с адресом проживания
                 </Label>
               </div>

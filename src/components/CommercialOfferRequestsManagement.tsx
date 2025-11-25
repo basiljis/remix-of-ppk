@@ -31,18 +31,27 @@ export const CommercialOfferRequestsManagement = () => {
   const [selectedRequest, setSelectedRequest] = useState<CommercialOfferRequest | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
 
-  const { data: requests, isLoading } = useQuery({
+  const { data: requests, isLoading, error } = useQuery({
     queryKey: ["commercial-offer-requests"],
     queryFn: async () => {
+      console.log("Fetching commercial offer requests...");
       const { data, error } = await supabase
         .from("commercial_offer_requests")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching commercial offers:", error);
+        throw error;
+      }
+      console.log("Fetched commercial offers:", data);
       return data as CommercialOfferRequest[];
     },
   });
+
+  console.log("Commercial offers data:", requests);
+  console.log("Is loading:", isLoading);
+  console.log("Error:", error);
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({
