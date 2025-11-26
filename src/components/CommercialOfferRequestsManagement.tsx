@@ -34,7 +34,6 @@ export const CommercialOfferRequestsManagement = () => {
   const { data: requests, isLoading, error } = useQuery({
     queryKey: ["commercial-offer-requests"],
     queryFn: async () => {
-      console.log("Fetching commercial offer requests...");
       const { data, error } = await supabase
         .from("commercial_offer_requests")
         .select("*")
@@ -44,14 +43,9 @@ export const CommercialOfferRequestsManagement = () => {
         console.error("Error fetching commercial offers:", error);
         throw error;
       }
-      console.log("Fetched commercial offers:", data);
       return data as CommercialOfferRequest[];
     },
   });
-
-  console.log("Commercial offers data:", requests);
-  console.log("Is loading:", isLoading);
-  console.log("Error:", error);
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({
@@ -133,6 +127,24 @@ export const CommercialOfferRequestsManagement = () => {
       <Card>
         <CardContent className="p-6 text-center">
           <p>Загрузка заявок...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center space-y-4">
+            <p className="text-destructive font-semibold">Ошибка загрузки заявок</p>
+            <p className="text-sm text-muted-foreground">
+              {error instanceof Error ? error.message : "Неизвестная ошибка"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Убедитесь, что у вас есть права администратора для просмотра заявок.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
