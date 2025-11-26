@@ -44,9 +44,11 @@ export const SubscriptionsManagement = () => {
   ]);
 
   // Загрузка всех пользователей с их подписками
-  const { data: usersWithSubscriptions, isLoading: loadingSubscriptions } = useQuery({
+  const { data: usersWithSubscriptions, isLoading: loadingSubscriptions, error: subscriptionsError } = useQuery({
     queryKey: ["admin-all-users-subscriptions"],
     queryFn: async () => {
+      console.log("Загрузка пользователей и подписок...");
+      
       // Получаем всех пользователей
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
@@ -55,11 +57,18 @@ export const SubscriptionsManagement = () => {
           full_name,
           email,
           organization_id,
-          organizations (name)
+          organizations!profiles_organization_id_fkey (
+            name
+          )
         `)
         .order("full_name", { ascending: true });
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error("Ошибка загрузки профилей:", profilesError);
+        throw profilesError;
+      }
+
+      console.log("Загружено профилей:", profilesData?.length || 0);
 
       // Получаем все подписки
       const { data: subsData, error: subsError } = await supabase
@@ -67,7 +76,12 @@ export const SubscriptionsManagement = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (subsError) throw subsError;
+      if (subsError) {
+        console.error("Ошибка загрузки подписок:", subsError);
+        throw subsError;
+      }
+
+      console.log("Загружено подписок:", subsData?.length || 0);
 
       // Объединяем данные
       const enrichedData = profilesData?.map(profile => {
@@ -93,6 +107,7 @@ export const SubscriptionsManagement = () => {
         };
       }) || [];
       
+      console.log("Обработано пользователей:", enrichedData.length);
       return enrichedData;
     },
   });
@@ -463,8 +478,31 @@ export const SubscriptionsManagement = () => {
           </TabsList>
 
           <TabsContent value="subscriptions" className="space-y-4">
-            {/* Фильтры */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+            {/* Обработка состояний загрузки и ошибок */}
+            {loadingSubscriptions && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Загрузка пользователей и подписок...</p>
+              </div>
+            )}
+
+            {subscriptionsError && (
+              <div className="text-center py-8">
+                <div className="bg-destructive/10 border border-destructive rounded-lg p-4 max-w-md mx-auto">
+                  <p className="text-destructive font-semibold mb-2">Ошибка загрузки данных</p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {subscriptionsError instanceof Error ? subscriptionsError.message : "Неизвестная ошибка"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Убедитесь, что у вас есть права администратора для просмотра данных.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!loadingSubscriptions && !subscriptionsError && (
+              <>
+                {/* Фильтры */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
               <div className="space-y-2">
                 <Label htmlFor="status-filter">
                   <Filter className="inline h-3 w-3 mr-1" />
@@ -666,6 +704,8 @@ export const SubscriptionsManagement = () => {
                 ))}
               </TableBody>
             </Table>
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="requests" className="space-y-4">
