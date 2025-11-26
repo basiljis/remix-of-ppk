@@ -40,26 +40,37 @@ export const useAuth = () => {
 
   const loadUserData = async (userId: string) => {
     try {
-      // Check for access request first
-      const { data: accessRequest } = await supabase
+      console.log("[useAuth] Загрузка данных пользователя:", userId);
+      
+      // Check for access request first - используем maybeSingle() вместо single()
+      const { data: accessRequest, error: accessError } = await supabase
         .from("access_requests")
         .select("status")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
+
+      // Логируем только реальные ошибки, не "нет записей"
+      if (accessError) {
+        console.error("[useAuth] Ошибка при проверке access_request:", accessError);
+      }
 
       if (accessRequest) {
+        console.log("[useAuth] Найден access_request со статусом:", accessRequest.status);
         setHasAccessRequest(true);
         
         // If request is not approved, don't load profile
         if (accessRequest.status !== "approved") {
+          console.log("[useAuth] Запрос не одобрен, профиль не загружается");
           setProfile(null);
           setRoles([]);
           return;
         }
+      } else {
+        console.log("[useAuth] Access request не найден (это нормально для существующих пользователей)");
       }
 
       // Load profile
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select(`
           *,
@@ -70,9 +81,17 @@ export const useAuth = () => {
         .eq("id", userId)
         .single();
 
+      if (profileError) {
+        console.error("[useAuth] Ошибка загрузки профиля:", profileError);
+        throw profileError;
+      }
+
       if (profileData) {
+        console.log("[useAuth] Профиль загружен:", profileData.full_name);
+        
         // Check if user is blocked
         if (profileData.is_blocked) {
+          console.warn("[useAuth] Пользователь заблокирован");
           // Sign out blocked user
           await supabase.auth.signOut();
           setProfile(null);
@@ -92,29 +111,42 @@ export const useAuth = () => {
       }
 
       // Load roles
-      const { data: rolesData } = await supabase
+      const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
+
+      if (rolesError) {
+        console.error("[useAuth] Ошибка загрузки ролей:", rolesError);
+      } else {
+        console.log("[useAuth] Роли загружены:", rolesData?.map(r => r.role).join(", ") || "нет ролей");
+      }
 
       if (rolesData) {
         setRoles(rolesData);
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      console.error("[useAuth] Критическая ошибка при загрузке данных пользователя:", error);
+      // Не блокируем загрузку при ошибке, позволяем пользователю увидеть интерфейс
+      setProfile(null);
+      setRoles([]);
     }
   };
 
   useEffect(() => {
+    console.log("[useAuth] Инициализация хука авторизации");
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("[useAuth] Auth state изменён:", event);
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
           await loadUserData(session.user.id);
         } else {
+          console.log("[useAuth] Нет активной сессии");
           setProfile(null);
           setRoles([]);
         }
@@ -124,14 +156,18 @@ export const useAuth = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("[useAuth] Проверка существующей сессии:", session ? "найдена" : "не найдена");
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        loadUserData(session.user.id);
+        loadUserData(session.user.id).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
+    }).catch(error => {
+      console.error("[useAuth] Ошибка при проверке сессии:", error);
+      setLoading(false);
     });
 
     // Set up periodic blocking check every 5 minutes

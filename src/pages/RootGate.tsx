@@ -9,22 +9,42 @@ const RootGate = () => {
   const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
+    console.log("[RootGate] Проверка авторизации...");
     let mounted = true;
-    supabase.auth.getUser().then(({ data }) => {
+    
+    supabase.auth.getUser().then(({ data, error }) => {
       if (!mounted) return;
-      setIsAuthed(!!data.user);
+      
+      if (error) {
+        console.error("[RootGate] Ошибка при получении пользователя:", error);
+      }
+      
+      const isAuthenticated = !!data.user;
+      console.log("[RootGate] Пользователь", isAuthenticated ? "авторизован" : "не авторизован");
+      
+      setIsAuthed(isAuthenticated);
       setChecked(true);
+    }).catch(error => {
+      console.error("[RootGate] Критическая ошибка при проверке авторизации:", error);
+      if (mounted) {
+        setIsAuthed(false);
+        setChecked(true);
+      }
     });
+    
     return () => {
       mounted = false;
     };
   }, []);
 
   if (!checked) {
+    console.log("[RootGate] Показываем прелоадер...");
     return <Preloader />;
   }
 
-  return <Navigate to={isAuthed ? "/app" : "/auth"} replace />;
+  const redirectPath = isAuthed ? "/app" : "/auth";
+  console.log("[RootGate] Редирект на:", redirectPath);
+  return <Navigate to={redirectPath} replace />;
 };
 
 export default RootGate;
