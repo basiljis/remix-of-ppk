@@ -30,12 +30,20 @@ const menuItems = [
     icon: Settings,
     subItems: [
       { id: "administration-access-requests", label: "Заявки" },
+      { id: "administration-commercial-offers", label: "КП заявки" },
       { id: "administration-users", label: "Пользователи" },
       { id: "administration-organizations", label: "Организации" },
+      { id: "administration-subscriptions", label: "Подписки" },
+      { id: "administration-analytics", label: "Аналитика" },
+      { id: "administration-payment-logs", label: "Логи платежей" },
       { id: "administration-checklist", label: "Чеклист" },
       { id: "administration-instructions", label: "Инструкции" },
       { id: "administration-statistics", label: "Статистика" },
       { id: "administration-school-years", label: "Учебные годы" },
+      { id: "administration-email-logs", label: "Логи Email" },
+      { id: "administration-auth-logs", label: "Логи авторизации" },
+      { id: "administration-error-logs", label: "Логи ошибок" },
+      { id: "administration-change-history", label: "История изменений" },
     ]
   },
 ];

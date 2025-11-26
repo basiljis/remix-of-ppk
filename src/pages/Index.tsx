@@ -179,6 +179,7 @@ const Index = () => {
       case "administration-school-years":
       case "administration-email-logs":
       case "administration-auth-logs":
+      case "administration-error-logs":
       case "administration-change-history":
       case "administration-subscriptions":
       case "administration-payment-logs":
