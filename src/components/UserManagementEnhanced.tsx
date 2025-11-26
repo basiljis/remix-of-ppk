@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Ban, CheckCircle, Shield, User, Users, Edit, Download } from "lucide-react";
 import * as XLSX from "xlsx";
+import { CreateUserDialog } from "./CreateUserDialog";
 
 interface UserData {
   id: string;
@@ -271,21 +272,24 @@ export const UserManagementEnhanced = () => {
             Просмотр, редактирование, блокировка и изменение ролей пользователей
           </CardDescription>
         </div>
-        <Button variant="outline" onClick={async () => {
-          try {
-            setLoading(true);
-            const { data, error } = await supabase.functions.invoke('sync-auth-users');
-            if (error) throw error;
-            toast({ title: 'Синхронизация завершена', description: `Создано профилей: ${data?.createdProfiles || 0}, ролей: ${data?.createdRoles || 0}` });
-            await loadUsers();
-          } catch (e: any) {
-            toast({ title: 'Ошибка синхронизации', description: e.message || 'Недостаточно прав или ошибка сервера', variant: 'destructive' });
-          } finally {
-            setLoading(false);
-          }
-        }}>
-          Синхронизировать пользователей
-        </Button>
+        <div className="flex gap-2">
+          <CreateUserDialog onUserCreated={loadUsers} />
+          <Button variant="outline" onClick={async () => {
+            try {
+              setLoading(true);
+              const { data, error } = await supabase.functions.invoke('sync-auth-users');
+              if (error) throw error;
+              toast({ title: 'Синхронизация завершена', description: `Создано профилей: ${data?.createdProfiles || 0}, ролей: ${data?.createdRoles || 0}` });
+              await loadUsers();
+            } catch (e: any) {
+              toast({ title: 'Ошибка синхронизации', description: e.message || 'Недостаточно прав или ошибка сервера', variant: 'destructive' });
+            } finally {
+              setLoading(false);
+            }
+          }}>
+            Синхронизировать пользователей
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 mb-4">

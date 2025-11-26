@@ -205,7 +205,7 @@ export const AccessRequestStatus = () => {
 
           <div className="flex justify-center gap-3">
             {request.status === "approved" && (
-              <Button onClick={() => window.location.reload()} size="lg">
+              <Button onClick={() => navigate("/")} size="lg">
                 Войти в систему
               </Button>
             )}
