@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,7 +10,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Building2, Calendar } from "lucide-react";
+import { CreditCard, Building2, Calendar, CheckCircle } from "lucide-react";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
 
 const legalEntitySchema = z.object({
   organizationName: z.string().min(3, "Введите название организации"),
@@ -26,6 +29,7 @@ export const SubscriptionForm = () => {
   const [subscriptionType, setSubscriptionType] = useState<"monthly" | "yearly">("yearly");
   const [paymentType, setPaymentType] = useState<"individual" | "legal">("individual");
   const [loading, setLoading] = useState(false);
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const { toast } = useToast();
 
   const form = useForm({
@@ -42,6 +46,26 @@ export const SubscriptionForm = () => {
   });
 
   const amount = subscriptionType === "monthly" ? 2500 : 25500;
+
+  // Загрузка текущей подписки
+  useEffect(() => {
+    const fetchCurrentSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .gte("end_date", new Date().toISOString())
+        .maybeSingle();
+
+      setCurrentSubscription(data);
+    };
+
+    fetchCurrentSubscription();
+  }, []);
 
   const handleIndividualPayment = async () => {
     setLoading(true);
@@ -149,14 +173,54 @@ export const SubscriptionForm = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Оформление подписки</CardTitle>
-        <CardDescription>
-          Выберите тарифный план и способ оплаты
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="space-y-6">
+      {/* Текущая подписка */}
+      {currentSubscription && (
+        <Card className="border-green-500/50 bg-green-500/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              Активная подписка
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Тип подписки</p>
+                <p className="font-medium">
+                  {currentSubscription.subscription_type === "monthly" ? "Месячная" : "Годовая"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Стоимость</p>
+                <p className="font-medium">{currentSubscription.amount.toLocaleString()} ₽</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Дата начала</p>
+                <p className="font-medium">
+                  {format(new Date(currentSubscription.start_date), "dd MMMM yyyy", { locale: ru })}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Действительна до</p>
+                <p className="font-medium">
+                  {format(new Date(currentSubscription.end_date), "dd MMMM yyyy", { locale: ru })}
+                </p>
+              </div>
+            </div>
+            <Badge className="bg-green-500">Активна</Badge>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Оформление подписки</CardTitle>
+          <CardDescription>
+            Выберите тарифный план и способ оплаты
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
         {/* Выбор тарифа */}
         <div className="space-y-3">
           <label className="text-sm font-medium">Выберите тарифный план</label>
@@ -350,5 +414,6 @@ export const SubscriptionForm = () => {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 };
