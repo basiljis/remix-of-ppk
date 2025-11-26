@@ -6,9 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, XCircle, FileText, Mail, Phone, Building } from "lucide-react";
+import { CheckCircle, XCircle, FileText, Mail, Phone, Building, Download } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import * as XLSX from "xlsx";
 
 interface CommercialOfferRequest {
   id: string;
@@ -30,6 +34,19 @@ export const CommercialOfferRequestsManagement = () => {
   const queryClient = useQueryClient();
   const [selectedRequest, setSelectedRequest] = useState<CommercialOfferRequest | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [selectedFields, setSelectedFields] = useState({
+    created_at: true,
+    organization_name: true,
+    inn: true,
+    contact_person: true,
+    email: true,
+    phone: true,
+    status: true,
+    comment: true,
+    admin_notes: true,
+    reviewed_at: true,
+  });
 
   const { data: requests, isLoading, error } = useQuery({
     queryKey: ["commercial-offer-requests"],
@@ -120,6 +137,116 @@ export const CommercialOfferRequestsManagement = () => {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Ожидает";
+      case "approved":
+        return "Одобрено";
+      case "rejected":
+        return "Отклонено";
+      default:
+        return status;
+    }
+  };
+
+  const fieldLabels = {
+    created_at: "Дата создания",
+    organization_name: "Название организации",
+    inn: "ИНН",
+    contact_person: "Контактное лицо",
+    email: "Email",
+    phone: "Телефон",
+    status: "Статус",
+    comment: "Комментарий",
+    admin_notes: "Примечания администратора",
+    reviewed_at: "Дата рассмотрения",
+  };
+
+  const handleExport = (fileFormat: "xlsx" | "csv") => {
+    if (!requests || requests.length === 0) {
+      toast({
+        title: "Нет данных",
+        description: "Нет заявок для экспорта",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const exportData = requests.map((request) => {
+      const row: any = {};
+      
+      if (selectedFields.created_at) {
+        row[fieldLabels.created_at] = format(new Date(request.created_at), "dd.MM.yyyy HH:mm", { locale: ru });
+      }
+      if (selectedFields.organization_name) {
+        row[fieldLabels.organization_name] = request.organization_name;
+      }
+      if (selectedFields.inn) {
+        row[fieldLabels.inn] = request.inn;
+      }
+      if (selectedFields.contact_person) {
+        row[fieldLabels.contact_person] = request.contact_person;
+      }
+      if (selectedFields.email) {
+        row[fieldLabels.email] = request.email;
+      }
+      if (selectedFields.phone) {
+        row[fieldLabels.phone] = request.phone;
+      }
+      if (selectedFields.status) {
+        row[fieldLabels.status] = getStatusText(request.status);
+      }
+      if (selectedFields.comment) {
+        row[fieldLabels.comment] = request.comment || "";
+      }
+      if (selectedFields.admin_notes) {
+        row[fieldLabels.admin_notes] = request.admin_notes || "";
+      }
+      if (selectedFields.reviewed_at) {
+        row[fieldLabels.reviewed_at] = request.reviewed_at 
+          ? format(new Date(request.reviewed_at), "dd.MM.yyyy HH:mm", { locale: ru })
+          : "";
+      }
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "КП заявки");
+
+    const fileName = `КП_заявки_${format(new Date(), "dd.MM.yyyy_HH-mm", { locale: ru })}`;
+    
+    if (fileFormat === "xlsx") {
+      XLSX.writeFile(workbook, `${fileName}.xlsx`);
+    } else {
+      XLSX.writeFile(workbook, `${fileName}.csv`, { bookType: "csv" });
+    }
+
+    toast({
+      title: "Экспорт выполнен",
+      description: `Файл ${fileName}.${fileFormat} успешно создан`,
+    });
+
+    setExportDialogOpen(false);
+  };
+
+  const toggleAllFields = (checked: boolean) => {
+    setSelectedFields({
+      created_at: checked,
+      organization_name: checked,
+      inn: checked,
+      contact_person: checked,
+      email: checked,
+      phone: checked,
+      status: checked,
+      comment: checked,
+      admin_notes: checked,
+      reviewed_at: checked,
+    });
+  };
+
   const pendingCount = requests?.filter((r) => r.status === "pending").length || 0;
 
   if (isLoading) {
@@ -155,15 +282,70 @@ export const CommercialOfferRequestsManagement = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Заявки на коммерческое предложение
-            </CardTitle>
-            {pendingCount > 0 && (
-              <Badge variant="destructive" className="animate-pulse">
-                {pendingCount} новых
-              </Badge>
-            )}
+              <CardTitle>Заявки на коммерческое предложение</CardTitle>
+              {pendingCount > 0 && (
+                <Badge variant="destructive" className="animate-pulse">
+                  {pendingCount} новых
+                </Badge>
+              )}
+            </div>
+            <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Экспорт
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Экспорт заявок на КП</DialogTitle>
+                  <DialogDescription>
+                    Выберите поля для экспорта и формат файла
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 pb-2 border-b">
+                    <Checkbox
+                      id="select-all"
+                      checked={Object.values(selectedFields).every(Boolean)}
+                      onCheckedChange={(checked) => toggleAllFields(checked as boolean)}
+                    />
+                    <Label htmlFor="select-all" className="font-semibold cursor-pointer">
+                      Выбрать все поля
+                    </Label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.entries(fieldLabels).map(([key, label]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={key}
+                          checked={selectedFields[key as keyof typeof selectedFields]}
+                          onCheckedChange={(checked) =>
+                            setSelectedFields((prev) => ({ ...prev, [key]: checked }))
+                          }
+                        />
+                        <Label htmlFor={key} className="cursor-pointer">
+                          {label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button variant="outline" onClick={() => setExportDialogOpen(false)}>
+                      Отмена
+                    </Button>
+                    <Button variant="outline" onClick={() => handleExport("csv")}>
+                      Экспорт в CSV
+                    </Button>
+                    <Button onClick={() => handleExport("xlsx")}>
+                      Экспорт в XLSX
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent>
