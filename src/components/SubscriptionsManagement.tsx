@@ -43,21 +43,11 @@ export const SubscriptionsManagement = () => {
     "end_date",
   ]);
 
-  // Загрузка подписок
-  const { data: subscriptions, isLoading: loadingSubscriptions } = useQuery({
-    queryKey: ["admin-subscriptions"],
+  // Загрузка всех пользователей с их подписками
+  const { data: usersWithSubscriptions, isLoading: loadingSubscriptions } = useQuery({
+    queryKey: ["admin-all-users-subscriptions"],
     queryFn: async () => {
-      const { data: subsData, error: subsError } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (subsError) throw subsError;
-
-      // Получаем информацию о пользователях
-      if (!subsData || subsData.length === 0) return [];
-
-      const userIds = subsData.map(s => s.user_id);
+      // Получаем всех пользователей
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select(`
@@ -65,27 +55,44 @@ export const SubscriptionsManagement = () => {
           full_name,
           email,
           organization_id,
-          organizations (
-            name
-          )
+          organizations (name)
         `)
-        .in("id", userIds);
+        .order("full_name", { ascending: true });
 
-      if (profilesError) {
-        console.error("Error fetching profiles:", profilesError);
-      }
+      if (profilesError) throw profilesError;
+
+      // Получаем все подписки
+      const { data: subsData, error: subsError } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (subsError) throw subsError;
 
       // Объединяем данные
-      const enrichedData = subsData.map(sub => {
-        const profile = profilesData?.find(p => p.id === sub.user_id);
-        return {
-          ...sub,
-          user_name: profile?.full_name || "Пользователь не найден",
-          user_email: profile?.email || "",
-          organization_name: profile?.organizations?.name || "—"
-        };
-      });
+      const enrichedData = profilesData?.map(profile => {
+        // Находим активную подписку пользователя
+        const activeSubscription = subsData?.find(
+          sub => sub.user_id === profile.id && 
+          sub.status === 'active' && 
+          sub.end_date && 
+          new Date(sub.end_date) > new Date()
+        );
 
+        // Или последнюю подписку если активной нет
+        const lastSubscription = subsData?.find(sub => sub.user_id === profile.id);
+        const subscription = activeSubscription || lastSubscription;
+
+        return {
+          ...subscription,
+          user_id: profile.id,
+          user_name: profile.full_name,
+          user_email: profile.email,
+          organization_name: (profile.organizations as any)?.name || "—",
+          subscription_status: activeSubscription ? 'active' : (lastSubscription ? 'expired' : 'none'),
+        };
+      }) || [];
+      
       return enrichedData;
     },
   });
@@ -109,25 +116,50 @@ export const SubscriptionsManagement = () => {
 
   // Активация/пролонгация подписки
   const activateSubscription = useMutation({
-    mutationFn: async ({ id, months }: { id: string; months: number }) => {
+    mutationFn: async ({ id, userId, months, subscriptionType, amount }: { 
+      id?: string; 
+      userId: string; 
+      months: number;
+      subscriptionType: string;
+      amount: number;
+    }) => {
       const startDate = new Date();
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + months);
 
-      const { error } = await supabase
-        .from("subscriptions")
-        .update({
-          status: "active",
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-          admin_notes: adminNotes,
-        })
-        .eq("id", id);
+      if (id) {
+        // Обновляем существующую подписку
+        const { error } = await supabase
+          .from("subscriptions")
+          .update({
+            status: "active",
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            admin_notes: adminNotes,
+          })
+          .eq("id", id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Создаём новую подписку
+        const { error } = await supabase
+          .from("subscriptions")
+          .insert({
+            user_id: userId,
+            subscription_type: subscriptionType,
+            amount: amount,
+            payment_type: "invoice",
+            status: "active",
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            admin_notes: adminNotes,
+          });
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-users-subscriptions"] });
       toast({ title: "Подписка активирована" });
       setAdminNotes("");
     },
@@ -219,38 +251,38 @@ export const SubscriptionsManagement = () => {
     },
   });
 
-  // Фильтрация подписок
-  const filteredSubscriptions = useMemo(() => {
-    if (!subscriptions) return [];
+  // Фильтрация пользователей
+  const filteredUsers = useMemo(() => {
+    if (!usersWithSubscriptions) return [];
     
-    return subscriptions.filter((sub: any) => {
-      // Фильтр по статусу
-      if (statusFilter !== "all" && sub.status !== statusFilter) {
+    return usersWithSubscriptions.filter((user: any) => {
+      // Фильтр по статусу подписки
+      if (statusFilter !== "all" && user.subscription_status !== statusFilter) {
         return false;
       }
       
       // Фильтр по типу
-      if (typeFilter !== "all" && sub.subscription_type !== typeFilter) {
+      if (typeFilter !== "all" && user.subscription_type !== typeFilter) {
         return false;
       }
       
       // Фильтр по дате начала
-      if (startDateFilter && sub.start_date) {
-        const subDate = new Date(sub.start_date);
+      if (startDateFilter && user.start_date) {
+        const subDate = new Date(user.start_date);
         const filterDate = new Date(startDateFilter);
         if (subDate < filterDate) return false;
       }
       
       // Фильтр по дате окончания
-      if (endDateFilter && sub.end_date) {
-        const subDate = new Date(sub.end_date);
+      if (endDateFilter && user.end_date) {
+        const subDate = new Date(user.end_date);
         const filterDate = new Date(endDateFilter);
         if (subDate > filterDate) return false;
       }
       
       return true;
     });
-  }, [subscriptions, statusFilter, typeFilter, startDateFilter, endDateFilter]);
+  }, [usersWithSubscriptions, statusFilter, typeFilter, startDateFilter, endDateFilter]);
 
   // Функции для экспорта
   const fieldLabels: Record<string, string> = {
@@ -293,33 +325,35 @@ export const SubscriptionsManagement = () => {
       return;
     }
 
-    const dataToExport = filteredSubscriptions.map((sub: any) => {
+    const dataToExport = filteredUsers.map((user: any) => {
       const row: any = {};
       selectedFields.forEach(field => {
         if (field === "subscription_type") {
-          row[fieldLabels[field]] = sub[field] === "monthly" ? "Месячная" : "Годовая";
+          row[fieldLabels[field]] = user[field] === "monthly" ? "Месячная" : 
+                                     user[field] === "yearly" ? "Годовая" : "—";
         } else if (field === "status") {
           const statusLabels: Record<string, string> = {
             active: "Активна",
             pending: "Ожидает",
             expired: "Истекла",
             cancelled: "Отменена",
+            none: "Нет подписки",
           };
-          row[fieldLabels[field]] = statusLabels[sub[field]] || sub[field];
+          row[fieldLabels[field]] = statusLabels[user.subscription_status] || user.subscription_status;
         } else if (field === "payment_type") {
           const paymentLabels: Record<string, string> = {
-            card: "Банковская карта",
-            legal_entity: "Юридическое лицо",
+            online: "Онлайн",
+            invoice: "По счету",
           };
-          row[fieldLabels[field]] = paymentLabels[sub[field]] || sub[field];
+          row[fieldLabels[field]] = user[field] ? (paymentLabels[user[field]] || user[field]) : "—";
         } else if (field === "amount") {
-          row[fieldLabels[field]] = sub[field] ? `${sub[field]} ₽` : "—";
+          row[fieldLabels[field]] = user[field] ? `${user[field]} ₽` : "—";
         } else if (field === "start_date" || field === "end_date" || field === "created_at") {
-          row[fieldLabels[field]] = sub[field] 
-            ? format(new Date(sub[field]), "dd.MM.yyyy", { locale: ru })
+          row[fieldLabels[field]] = user[field] 
+            ? format(new Date(user[field]), "dd.MM.yyyy", { locale: ru })
             : "—";
         } else {
-          row[fieldLabels[field]] = sub[field] || "—";
+          row[fieldLabels[field]] = user[field] || "—";
         }
       });
       return row;
@@ -327,9 +361,9 @@ export const SubscriptionsManagement = () => {
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Подписки");
+    XLSX.utils.book_append_sheet(wb, ws, "Пользователи и подписки");
 
-    const fileName = `subscriptions_${format(new Date(), "yyyy-MM-dd")}.${exportFormat}`;
+    const fileName = `users_subscriptions_${format(new Date(), "yyyy-MM-dd")}.${exportFormat}`;
     XLSX.writeFile(wb, fileName);
 
     toast({ title: "Экспорт завершён" });
@@ -344,6 +378,7 @@ export const SubscriptionsManagement = () => {
       cancelled: { label: "Отменена", variant: "outline" },
       approved: { label: "Одобрено", variant: "default" },
       rejected: { label: "Отклонено", variant: "destructive" },
+      none: { label: "Нет подписки", variant: "outline" },
     };
     const config = variants[status] || { label: status, variant: "outline" };
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -445,6 +480,7 @@ export const SubscriptionsManagement = () => {
                     <SelectItem value="pending">Ожидает</SelectItem>
                     <SelectItem value="expired">Истекла</SelectItem>
                     <SelectItem value="cancelled">Отменена</SelectItem>
+                    <SelectItem value="none">Нет подписки</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -489,9 +525,9 @@ export const SubscriptionsManagement = () => {
 
             {/* Счётчик результатов */}
             <div className="text-sm text-muted-foreground">
-              Найдено подписок: <span className="font-medium">{filteredSubscriptions.length}</span>
-              {subscriptions && filteredSubscriptions.length !== subscriptions.length && (
-                <span> из {subscriptions.length}</span>
+              Найдено пользователей: <span className="font-medium">{filteredUsers.length}</span>
+              {usersWithSubscriptions && filteredUsers.length !== usersWithSubscriptions.length && (
+                <span> из {usersWithSubscriptions.length}</span>
               )}
             </div>
 
@@ -507,25 +543,26 @@ export const SubscriptionsManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSubscriptions?.map((sub: any) => (
-                  <TableRow key={sub.id}>
+                {filteredUsers?.map((user: any) => (
+                  <TableRow key={user.user_id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{sub.user_name}</p>
-                        <p className="text-xs text-muted-foreground">{sub.user_email}</p>
+                        <p className="font-medium">{user.user_name}</p>
+                        <p className="text-xs text-muted-foreground">{user.user_email}</p>
                       </div>
                     </TableCell>
-                    <TableCell>{sub.organization_name}</TableCell>
+                    <TableCell>{user.organization_name}</TableCell>
                     <TableCell>
-                      {sub.subscription_type === "monthly" ? "Месячная" : "Годовая"}
+                      {user.subscription_type === "monthly" ? "Месячная" : 
+                       user.subscription_type === "yearly" ? "Годовая" : "—"}
                     </TableCell>
-                    <TableCell>{getStatusBadge(sub.status)}</TableCell>
+                    <TableCell>{getStatusBadge(user.subscription_status)}</TableCell>
                     <TableCell>
-                      {sub.start_date && sub.end_date ? (
+                      {user.start_date && user.end_date ? (
                         <div className="text-sm">
-                          <p>{format(new Date(sub.start_date), "dd.MM.yyyy", { locale: ru })}</p>
+                          <p>{format(new Date(user.start_date), "dd.MM.yyyy", { locale: ru })}</p>
                           <p className="text-muted-foreground">
-                            до {format(new Date(sub.end_date), "dd.MM.yyyy", { locale: ru })}
+                            до {format(new Date(user.end_date), "dd.MM.yyyy", { locale: ru })}
                           </p>
                         </div>
                       ) : (
@@ -535,18 +572,58 @@ export const SubscriptionsManagement = () => {
                     <TableCell>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button size="sm" variant="outline">
-                            Управление
+                          <Button 
+                            size="sm" 
+                            variant={user.subscription_status === "none" ? "default" : "outline"}
+                          >
+                            {user.subscription_status === "none" ? "Активировать" : "Управление"}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Управление подпиской</DialogTitle>
+                            <DialogTitle>
+                              {user.subscription_status === "none" ? "Активация подписки" : "Управление подпиской"}
+                            </DialogTitle>
                             <DialogDescription>
-                              Активируйте или продлите подписку пользователя
+                              {user.subscription_status === "none" 
+                                ? "Создайте новую подписку для пользователя" 
+                                : "Активируйте или продлите подписку пользователя"}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
+                            {user.subscription_status === "none" && (
+                              <>
+                                <div className="space-y-2">
+                                  <Label htmlFor="sub-type">Тип подписки</Label>
+                                  <Select 
+                                    defaultValue="monthly"
+                                    onValueChange={(value) => {
+                                      // Store in local state if needed
+                                      const selectEl = document.getElementById("sub-type-value") as HTMLInputElement;
+                                      if (selectEl) selectEl.value = value;
+                                    }}
+                                  >
+                                    <SelectTrigger id="sub-type">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="monthly">Месячная (1 месяц)</SelectItem>
+                                      <SelectItem value="yearly">Годовая (12 месяцев)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <input type="hidden" id="sub-type-value" defaultValue="monthly" />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="sub-amount">Сумма (₽)</Label>
+                                  <Input
+                                    id="sub-amount"
+                                    type="number"
+                                    defaultValue={1000}
+                                    min={0}
+                                  />
+                                </div>
+                              </>
+                            )}
                             <div>
                               <label className="text-sm font-medium mb-2 block">
                                 Примечания администратора
@@ -560,17 +637,25 @@ export const SubscriptionsManagement = () => {
                             </div>
                             <div className="flex gap-2">
                               <Button
-                                onClick={() =>
+                                onClick={() => {
+                                  const subTypeEl = document.getElementById("sub-type-value") as HTMLInputElement;
+                                  const amountEl = document.getElementById("sub-amount") as HTMLInputElement;
+                                  const subType = subTypeEl?.value || user.subscription_type || "monthly";
+                                  const amount = amountEl?.value ? parseFloat(amountEl.value) : (user.amount || 1000);
+                                  
                                   activateSubscription.mutate({
-                                    id: sub.id,
-                                    months: sub.subscription_type === "monthly" ? 1 : 12,
-                                  })
-                                }
+                                    id: user.id,
+                                    userId: user.user_id,
+                                    months: subType === "monthly" ? 1 : 12,
+                                    subscriptionType: subType,
+                                    amount: amount,
+                                  });
+                                }}
                                 disabled={activateSubscription.isPending}
                                 className="flex-1"
                               >
                                 <Calendar className="mr-2 h-4 w-4" />
-                                Активировать/Продлить
+                                {user.subscription_status === "none" ? "Создать подписку" : "Активировать/Продлить"}
                               </Button>
                             </div>
                           </div>
