@@ -167,57 +167,59 @@ export const CommercialOfferRequestsManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {!requests || requests.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                Нет заявок на коммерческое предложение
-              </p>
-            ) : (
-              requests.map((request) => (
-                <Card key={request.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-semibold">{request.organization_name}</span>
-                          {getStatusBadge(request.status)}
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="font-medium">ИНН:</span>
-                            {request.inn}
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="font-medium">Контакт:</span>
-                            {request.contact_person}
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Mail className="h-3 w-3" />
-                            {request.email}
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            {request.phone}
-                          </div>
-                        </div>
-                        {request.comment && (
-                          <div className="text-sm mt-2 p-2 bg-muted/50 rounded">
-                            <span className="font-medium">Комментарий:</span> {request.comment}
-                          </div>
-                        )}
-                        {request.admin_notes && (
-                          <div className="text-sm mt-2 p-2 bg-primary/10 rounded">
-                            <span className="font-medium">Примечания администратора:</span>{" "}
-                            {request.admin_notes}
-                          </div>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                          Создано: {format(new Date(request.created_at), "dd MMM yyyy, HH:mm", { locale: ru })}
-                        </div>
-                      </div>
-                      {request.status === "pending" && (
-                        <div className="flex gap-2">
+          {!requests || requests.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Нет заявок на коммерческое предложение
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b bg-muted/50">
+                  <tr className="text-left">
+                    <th className="py-2 px-3">Дата</th>
+                    <th className="py-2 px-3">Организация</th>
+                    <th className="py-2 px-3">ИНН</th>
+                    <th className="py-2 px-3">Контактное лицо</th>
+                    <th className="py-2 px-3">Email</th>
+                    <th className="py-2 px-3">Телефон</th>
+                    <th className="py-2 px-3">Статус</th>
+                    <th className="py-2 px-3">Комментарий</th>
+                    <th className="py-2 px-3">Примечания администратора</th>
+                    <th className="py-2 px-3 text-right">Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.map((request) => (
+                    <tr key={request.id} className="border-b last:border-0 hover:bg-muted/50">
+                      <td className="py-2 px-3 whitespace-nowrap text-muted-foreground">
+                        {format(new Date(request.created_at), "dd.MM.yyyy HH:mm", { locale: ru })}
+                      </td>
+                      <td className="py-2 px-3 font-medium">
+                        {request.organization_name}
+                      </td>
+                      <td className="py-2 px-3">{request.inn}</td>
+                      <td className="py-2 px-3">{request.contact_person}</td>
+                      <td className="py-2 px-3">
+                        <a href={`mailto:${request.email}`} className="text-primary hover:underline">
+                          {request.email}
+                        </a>
+                      </td>
+                      <td className="py-2 px-3">
+                        <a href={`tel:${request.phone}`} className="text-primary hover:underline">
+                          {request.phone}
+                        </a>
+                      </td>
+                      <td className="py-2 px-3">
+                        {getStatusBadge(request.status)}
+                      </td>
+                      <td className="py-2 px-3 max-w-xs truncate" title={request.comment || undefined}>
+                        {request.comment || "—"}
+                      </td>
+                      <td className="py-2 px-3 max-w-xs truncate" title={request.admin_notes || undefined}>
+                        {request.admin_notes || "—"}
+                      </td>
+                      <td className="py-2 px-3 text-right">
+                        {request.status === "pending" && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -228,14 +230,14 @@ export const CommercialOfferRequestsManagement = () => {
                           >
                             Обработать
                           </Button>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
