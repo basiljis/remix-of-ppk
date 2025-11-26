@@ -6,12 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, XCircle, FileText, Mail, Phone, Building, Download } from "lucide-react";
-import { format } from "date-fns";
+import { CheckCircle, XCircle, FileText, Mail, Phone, Building, Download, Filter, X, Calendar as CalendarIcon } from "lucide-react";
+import { format, isWithinInterval, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 
 interface CommercialOfferRequest {
@@ -47,6 +51,11 @@ export const CommercialOfferRequestsManagement = () => {
     admin_notes: true,
     reviewed_at: true,
   });
+
+  // Фильтры
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
 
   const { data: requests, isLoading, error } = useQuery({
     queryKey: ["commercial-offer-requests"],
@@ -164,7 +173,7 @@ export const CommercialOfferRequestsManagement = () => {
   };
 
   const handleExport = (fileFormat: "xlsx" | "csv") => {
-    if (!requests || requests.length === 0) {
+    if (!filteredRequests || filteredRequests.length === 0) {
       toast({
         title: "Нет данных",
         description: "Нет заявок для экспорта",
@@ -173,7 +182,7 @@ export const CommercialOfferRequestsManagement = () => {
       return;
     }
 
-    const exportData = requests.map((request) => {
+    const exportData = filteredRequests.map((request) => {
       const row: any = {};
       
       if (selectedFields.created_at) {
@@ -247,7 +256,34 @@ export const CommercialOfferRequestsManagement = () => {
     });
   };
 
+  // Применение фильтров
+  const filteredRequests = requests?.filter((request) => {
+    // Фильтр по статусу
+    if (statusFilter !== "all" && request.status !== statusFilter) {
+      return false;
+    }
+
+    // Фильтр по дате
+    const requestDate = parseISO(request.created_at);
+    if (dateFrom && dateTo) {
+      return isWithinInterval(requestDate, { start: dateFrom, end: dateTo });
+    } else if (dateFrom) {
+      return requestDate >= dateFrom;
+    } else if (dateTo) {
+      return requestDate <= dateTo;
+    }
+
+    return true;
+  }) || [];
+
   const pendingCount = requests?.filter((r) => r.status === "pending").length || 0;
+  const hasActiveFilters = statusFilter !== "all" || dateFrom || dateTo;
+
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
 
   if (isLoading) {
     return (
@@ -349,9 +385,115 @@ export const CommercialOfferRequestsManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Фильтры */}
+          <div className="mb-6 p-4 bg-muted/30 rounded-lg space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <span className="font-medium">Фильтры</span>
+                {hasActiveFilters && (
+                  <Badge variant="secondary">
+                    Найдено: {filteredRequests.length}
+                  </Badge>
+                )}
+              </div>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-8"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Сбросить
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Фильтр по статусу */}
+              <div className="space-y-2">
+                <Label htmlFor="status-filter">Статус</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger id="status-filter">
+                    <SelectValue placeholder="Все статусы" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все статусы</SelectItem>
+                    <SelectItem value="pending">Ожидает</SelectItem>
+                    <SelectItem value="approved">Одобрено</SelectItem>
+                    <SelectItem value="rejected">Отклонено</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Фильтр по дате от */}
+              <div className="space-y-2">
+                <Label>Дата от</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateFrom && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateFrom ? format(dateFrom, "dd.MM.yyyy", { locale: ru }) : "Выберите дату"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateFrom}
+                      onSelect={setDateFrom}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Фильтр по дате до */}
+              <div className="space-y-2">
+                <Label>Дата до</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateTo && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateTo ? format(dateTo, "dd.MM.yyyy", { locale: ru }) : "Выберите дату"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateTo}
+                      onSelect={setDateTo}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+
           {!requests || requests.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
               Нет заявок на коммерческое предложение
+            </p>
+          ) : filteredRequests.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              {hasActiveFilters
+                ? "Нет заявок, соответствующих выбранным фильтрам"
+                : "Нет заявок на коммерческое предложение"}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -371,7 +513,7 @@ export const CommercialOfferRequestsManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.map((request) => (
+                  {filteredRequests.map((request) => (
                     <tr key={request.id} className="border-b last:border-0 hover:bg-muted/50">
                       <td className="py-2 px-3 whitespace-nowrap text-muted-foreground">
                         {format(new Date(request.created_at), "dd.MM.yyyy HH:mm", { locale: ru })}
