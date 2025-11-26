@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { CheckCircle2, XCircle, Calendar, FileText, Download, Filter } from "lucide-react";
+import { CheckCircle2, XCircle, Calendar, FileText, Download, Filter, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,11 +24,12 @@ export const SubscriptionsManagement = () => {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
   
-  // Фильтры для подписок
+  // Единые фильтры для обеих вкладок
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [startDateFilter, setStartDateFilter] = useState<string>("");
   const [endDateFilter, setEndDateFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   
   // Экспорт
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -271,6 +272,16 @@ export const SubscriptionsManagement = () => {
     if (!usersWithSubscriptions) return [];
     
     return usersWithSubscriptions.filter((user: any) => {
+      // Поиск по имени, email, организации
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          user.user_name?.toLowerCase().includes(query) ||
+          user.user_email?.toLowerCase().includes(query) ||
+          user.organization_name?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+
       // Фильтр по статусу подписки
       if (statusFilter !== "all" && user.subscription_status !== statusFilter) {
         return false;
@@ -297,7 +308,51 @@ export const SubscriptionsManagement = () => {
       
       return true;
     });
-  }, [usersWithSubscriptions, statusFilter, typeFilter, startDateFilter, endDateFilter]);
+  }, [usersWithSubscriptions, statusFilter, typeFilter, startDateFilter, endDateFilter, searchQuery]);
+
+  // Фильтрация запросов от юр. лиц
+  const filteredRequests = useMemo(() => {
+    if (!requests) return [];
+    
+    return requests.filter((req: any) => {
+      // Поиск по названию организации, контактному лицу, email
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          req.organization_name?.toLowerCase().includes(query) ||
+          req.contact_person?.toLowerCase().includes(query) ||
+          req.email?.toLowerCase().includes(query) ||
+          req.inn?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+
+      // Фильтр по статусу
+      if (statusFilter !== "all" && req.status !== statusFilter) {
+        return false;
+      }
+      
+      // Фильтр по типу подписки
+      if (typeFilter !== "all" && req.subscription_type !== typeFilter) {
+        return false;
+      }
+      
+      // Фильтр по дате создания (от)
+      if (startDateFilter && req.created_at) {
+        const reqDate = new Date(req.created_at);
+        const filterDate = new Date(startDateFilter);
+        if (reqDate < filterDate) return false;
+      }
+      
+      // Фильтр по дате создания (до)
+      if (endDateFilter && req.created_at) {
+        const reqDate = new Date(req.created_at);
+        const filterDate = new Date(endDateFilter);
+        if (reqDate > filterDate) return false;
+      }
+      
+      return true;
+    });
+  }, [requests, statusFilter, typeFilter, startDateFilter, endDateFilter, searchQuery]);
 
   // Функции для экспорта
   const fieldLabels: Record<string, string> = {
@@ -502,64 +557,82 @@ export const SubscriptionsManagement = () => {
             {!loadingSubscriptions && !subscriptionsError && (
               <>
                 {/* Фильтры */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
-              <div className="space-y-2">
-                <Label htmlFor="status-filter">
-                  <Filter className="inline h-3 w-3 mr-1" />
-                  Статус
-                </Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger id="status-filter">
-                    <SelectValue placeholder="Все статусы" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Все статусы</SelectItem>
-                    <SelectItem value="active">Активна</SelectItem>
-                    <SelectItem value="pending">Ожидает</SelectItem>
-                    <SelectItem value="expired">Истекла</SelectItem>
-                    <SelectItem value="cancelled">Отменена</SelectItem>
-                    <SelectItem value="none">Нет подписки</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="type-filter">
-                  <Filter className="inline h-3 w-3 mr-1" />
-                  Тип
-                </Label>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger id="type-filter">
-                    <SelectValue placeholder="Все типы" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Все типы</SelectItem>
-                    <SelectItem value="monthly">Месячная</SelectItem>
-                    <SelectItem value="yearly">Годовая</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="start-date-filter">Начало от</Label>
-                <Input
-                  id="start-date-filter"
-                  type="date"
-                  value={startDateFilter}
-                  onChange={(e) => setStartDateFilter(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="end-date-filter">Окончание до</Label>
-                <Input
-                  id="end-date-filter"
-                  type="date"
-                  value={endDateFilter}
-                  onChange={(e) => setEndDateFilter(e.target.value)}
-                />
-              </div>
-            </div>
+                <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+                  {/* Поисковая строка */}
+                  <div className="space-y-2">
+                    <Label htmlFor="search-query">
+                      <Search className="inline h-3 w-3 mr-1" />
+                      Поиск
+                    </Label>
+                    <Input
+                      id="search-query"
+                      type="text"
+                      placeholder="Поиск по имени, email, организации..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Остальные фильтры */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="status-filter">
+                        <Filter className="inline h-3 w-3 mr-1" />
+                        Статус
+                      </Label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger id="status-filter">
+                          <SelectValue placeholder="Все статусы" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Все статусы</SelectItem>
+                          <SelectItem value="active">Активна</SelectItem>
+                          <SelectItem value="pending">Ожидает</SelectItem>
+                          <SelectItem value="expired">Истекла</SelectItem>
+                          <SelectItem value="cancelled">Отменена</SelectItem>
+                          <SelectItem value="none">Нет подписки</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="type-filter">
+                        <Filter className="inline h-3 w-3 mr-1" />
+                        Тип
+                      </Label>
+                      <Select value={typeFilter} onValueChange={setTypeFilter}>
+                        <SelectTrigger id="type-filter">
+                          <SelectValue placeholder="Все типы" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Все типы</SelectItem>
+                          <SelectItem value="monthly">Месячная</SelectItem>
+                          <SelectItem value="yearly">Годовая</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="start-date-filter">Начало от</Label>
+                      <Input
+                        id="start-date-filter"
+                        type="date"
+                        value={startDateFilter}
+                        onChange={(e) => setStartDateFilter(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="end-date-filter">Окончание до</Label>
+                      <Input
+                        id="end-date-filter"
+                        type="date"
+                        value={endDateFilter}
+                        onChange={(e) => setEndDateFilter(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
 
             {/* Счётчик результатов */}
             <div className="text-sm text-muted-foreground">
@@ -709,6 +782,90 @@ export const SubscriptionsManagement = () => {
           </TabsContent>
 
           <TabsContent value="requests" className="space-y-4">
+            {/* Фильтры для запросов */}
+            <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+              {/* Поисковая строка */}
+              <div className="space-y-2">
+                <Label htmlFor="search-query-requests">
+                  <Search className="inline h-3 w-3 mr-1" />
+                  Поиск
+                </Label>
+                <Input
+                  id="search-query-requests"
+                  type="text"
+                  placeholder="Поиск по организации, контактному лицу, email, ИНН..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              {/* Остальные фильтры */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status-filter-requests">
+                    <Filter className="inline h-3 w-3 mr-1" />
+                    Статус
+                  </Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger id="status-filter-requests">
+                      <SelectValue placeholder="Все статусы" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все статусы</SelectItem>
+                      <SelectItem value="pending">Ожидает</SelectItem>
+                      <SelectItem value="approved">Одобрено</SelectItem>
+                      <SelectItem value="rejected">Отклонено</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="type-filter-requests">
+                    <Filter className="inline h-3 w-3 mr-1" />
+                    Тип
+                  </Label>
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger id="type-filter-requests">
+                      <SelectValue placeholder="Все типы" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все типы</SelectItem>
+                      <SelectItem value="monthly">Месячная</SelectItem>
+                      <SelectItem value="yearly">Годовая</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="start-date-filter-requests">Дата от</Label>
+                  <Input
+                    id="start-date-filter-requests"
+                    type="date"
+                    value={startDateFilter}
+                    onChange={(e) => setStartDateFilter(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="end-date-filter-requests">Дата до</Label>
+                  <Input
+                    id="end-date-filter-requests"
+                    type="date"
+                    value={endDateFilter}
+                    onChange={(e) => setEndDateFilter(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Счётчик результатов */}
+            <div className="text-sm text-muted-foreground">
+              Найдено запросов: <span className="font-medium">{filteredRequests.length}</span>
+              {requests && filteredRequests.length !== requests.length && (
+                <span> из {requests.length}</span>
+              )}
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -721,7 +878,7 @@ export const SubscriptionsManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requests?.map((req: any) => (
+                {filteredRequests?.map((req: any) => (
                   <TableRow key={req.id}>
                     <TableCell>
                       <div>
