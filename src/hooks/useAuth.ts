@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
+import { errorLogger } from "@/services/errorLogger";
 
 export interface UserProfile {
   id: string;
@@ -83,6 +84,13 @@ export const useAuth = () => {
 
       if (profileError) {
         console.error("[useAuth] Ошибка загрузки профиля:", profileError);
+        errorLogger.logError({
+          errorType: 'Profile Load Error',
+          errorMessage: profileError.message,
+          componentName: 'useAuth',
+          severity: 'error',
+          metadata: { userId, code: profileError.code }
+        });
         throw profileError;
       }
 
@@ -127,6 +135,11 @@ export const useAuth = () => {
       }
     } catch (error) {
       console.error("[useAuth] Критическая ошибка при загрузке данных пользователя:", error);
+      errorLogger.logCritical(
+        'Auth Data Load Failed',
+        error instanceof Error ? error.message : String(error),
+        { userId }
+      );
       // Не блокируем загрузку при ошибке, позволяем пользователю увидеть интерфейс
       setProfile(null);
       setRoles([]);
