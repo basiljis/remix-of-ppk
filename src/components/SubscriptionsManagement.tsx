@@ -30,24 +30,37 @@ export const SubscriptionsManagement = () => {
 
       if (subsError) throw subsError;
 
-      // Получаем информацию о пользователях отдельно
-      const userIds = subsData?.map(s => s.user_id) || [];
-      const { data: profilesData } = await supabase
+      // Получаем информацию о пользователях
+      if (!subsData || subsData.length === 0) return [];
+
+      const userIds = subsData.map(s => s.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select(`
           id,
           full_name,
           email,
           organization_id,
-          organizations (name)
+          organizations (
+            name
+          )
         `)
         .in("id", userIds);
 
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+      }
+
       // Объединяем данные
-      const enrichedData = subsData?.map(sub => ({
-        ...sub,
-        profiles: profilesData?.find(p => p.id === sub.user_id)
-      }));
+      const enrichedData = subsData.map(sub => {
+        const profile = profilesData?.find(p => p.id === sub.user_id);
+        return {
+          ...sub,
+          user_name: profile?.full_name || "Пользователь не найден",
+          user_email: profile?.email || "",
+          organization_name: profile?.organizations?.name || "—"
+        };
+      });
 
       return enrichedData;
     },
@@ -227,11 +240,11 @@ export const SubscriptionsManagement = () => {
                   <TableRow key={sub.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{sub.profiles?.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{sub.profiles?.email}</p>
+                        <p className="font-medium">{sub.user_name}</p>
+                        <p className="text-xs text-muted-foreground">{sub.user_email}</p>
                       </div>
                     </TableCell>
-                    <TableCell>{sub.profiles?.organization?.name || "—"}</TableCell>
+                    <TableCell>{sub.organization_name}</TableCell>
                     <TableCell>
                       {sub.subscription_type === "monthly" ? "Месячная" : "Годовая"}
                     </TableCell>
