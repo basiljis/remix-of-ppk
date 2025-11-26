@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { CheckCircle2, XCircle, Calendar, FileText, Download, Filter, Search } from "lucide-react";
+import { CheckCircle2, XCircle, Calendar, FileText, Download, Filter, Search, RotateCcw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,6 +30,19 @@ export const SubscriptionsManagement = () => {
   const [startDateFilter, setStartDateFilter] = useState<string>("");
   const [endDateFilter, setEndDateFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Функция сброса всех фильтров
+  const clearAllFilters = () => {
+    setStatusFilter("all");
+    setTypeFilter("all");
+    setStartDateFilter("");
+    setEndDateFilter("");
+    setSearchQuery("");
+    toast({ 
+      title: "Фильтры сброшены",
+      description: "Все фильтры были очищены"
+    });
+  };
   
   // Экспорт
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -558,19 +571,32 @@ export const SubscriptionsManagement = () => {
               <>
                 {/* Фильтры */}
                 <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-                  {/* Поисковая строка */}
-                  <div className="space-y-2">
-                    <Label htmlFor="search-query">
-                      <Search className="inline h-3 w-3 mr-1" />
-                      Поиск
-                    </Label>
-                    <Input
-                      id="search-query"
-                      type="text"
-                      placeholder="Поиск по имени, email, организации..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                  {/* Поисковая строка и кнопка сброса */}
+                  <div className="flex gap-2">
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor="search-query">
+                        <Search className="inline h-3 w-3 mr-1" />
+                        Поиск
+                      </Label>
+                      <Input
+                        id="search-query"
+                        type="text"
+                        placeholder="Поиск по имени, email, организации..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        variant="outline"
+                        size="default"
+                        onClick={clearAllFilters}
+                        className="whitespace-nowrap"
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Сбросить фильтры
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Остальные фильтры */}
@@ -784,19 +810,32 @@ export const SubscriptionsManagement = () => {
           <TabsContent value="requests" className="space-y-4">
             {/* Фильтры для запросов */}
             <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-              {/* Поисковая строка */}
-              <div className="space-y-2">
-                <Label htmlFor="search-query-requests">
-                  <Search className="inline h-3 w-3 mr-1" />
-                  Поиск
-                </Label>
-                <Input
-                  id="search-query-requests"
-                  type="text"
-                  placeholder="Поиск по организации, контактному лицу, email, ИНН..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              {/* Поисковая строка и кнопка сброса */}
+              <div className="flex gap-2">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="search-query-requests">
+                    <Search className="inline h-3 w-3 mr-1" />
+                    Поиск
+                  </Label>
+                  <Input
+                    id="search-query-requests"
+                    type="text"
+                    placeholder="Поиск по организации, контактному лицу, email, ИНН..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    size="default"
+                    onClick={clearAllFilters}
+                    className="whitespace-nowrap"
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Сбросить фильтры
+                  </Button>
+                </div>
               </div>
 
               {/* Остальные фильтры */}
