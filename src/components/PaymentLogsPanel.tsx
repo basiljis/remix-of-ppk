@@ -19,22 +19,53 @@ export const PaymentLogsPanel = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payment_logs")
-        .select(`
-          *,
-          subscriptions (
-            id,
-            subscription_type,
-            profiles (
-              full_name,
-              email
-            )
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(100);
 
       if (error) throw error;
-      return data;
+      
+      // Получаем данные о пользователях для каждого лога
+      if (data && data.length > 0) {
+        const subscriptionIds = data
+          .map(log => log.subscription_id)
+          .filter(Boolean);
+        
+        if (subscriptionIds.length > 0) {
+          const { data: subscriptions } = await supabase
+            .from("subscriptions")
+            .select(`
+              id,
+              user_id,
+              subscription_type
+            `)
+            .in("id", subscriptionIds);
+          
+          if (subscriptions) {
+            const userIds = subscriptions.map(s => s.user_id).filter(Boolean);
+            
+            if (userIds.length > 0) {
+              const { data: profiles } = await supabase
+                .from("profiles")
+                .select("id, full_name, email")
+                .in("id", userIds);
+              
+              // Обогащаем логи данными о пользователях
+              return data.map(log => {
+                const subscription = subscriptions.find(s => s.id === log.subscription_id);
+                const profile = profiles?.find(p => p.id === subscription?.user_id);
+                return {
+                  ...log,
+                  subscription: subscription,
+                  profile: profile
+                };
+              });
+            }
+          }
+        }
+      }
+      
+      return data || [];
     },
   });
 
@@ -77,31 +108,39 @@ export const PaymentLogsPanel = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[600px]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Дата</TableHead>
-                <TableHead>Пользователь</TableHead>
-                <TableHead>Событие</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead>Сумма</TableHead>
-                <TableHead>Обработано</TableHead>
-                <TableHead>Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {logs?.map((log: any) => (
+        {!logs || logs.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Нет логов платежей</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Логи появятся после первых платежей через ЮКассу
+            </p>
+          </div>
+        ) : (
+          <ScrollArea className="h-[600px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Дата</TableHead>
+                  <TableHead>Пользователь</TableHead>
+                  <TableHead>Событие</TableHead>
+                  <TableHead>Статус</TableHead>
+                  <TableHead>Сумма</TableHead>
+                  <TableHead>Обработано</TableHead>
+                  <TableHead>Действия</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log: any) => (
                 <TableRow key={log.id}>
                   <TableCell className="whitespace-nowrap">
                     {format(new Date(log.created_at), "dd MMM yyyy, HH:mm", { locale: ru })}
                   </TableCell>
                   <TableCell>
-                    {log.subscriptions?.profiles ? (
+                    {log.profile ? (
                       <div>
-                        <p className="font-medium">{log.subscriptions.profiles.full_name}</p>
+                        <p className="font-medium">{log.profile.full_name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {log.subscriptions.profiles.email}
+                          {log.profile.email}
                         </p>
                       </div>
                     ) : (
@@ -165,14 +204,26 @@ export const PaymentLogsPanel = () => {
                             </div>
                             <div>
                               <h4 className="font-semibold mb-2">Подписка</h4>
-                              {log.subscriptions ? (
-                                <div className="text-sm">
+                              {log.subscription ? (
+                                <div className="text-sm space-y-1">
                                   <p>
                                     <span className="text-muted-foreground">Тип: </span>
-                                    {log.subscriptions.subscription_type === "monthly"
+                                    {log.subscription.subscription_type === "monthly"
                                       ? "Месячная"
                                       : "Годовая"}
                                   </p>
+                                  {log.profile && (
+                                    <>
+                                      <p>
+                                        <span className="text-muted-foreground">Пользователь: </span>
+                                        {log.profile.full_name}
+                                      </p>
+                                      <p>
+                                        <span className="text-muted-foreground">Email: </span>
+                                        {log.profile.email}
+                                      </p>
+                                    </>
+                                  )}
                                 </div>
                               ) : (
                                 <p className="text-sm text-muted-foreground">Нет данных</p>
@@ -190,10 +241,11 @@ export const PaymentLogsPanel = () => {
                     </Dialog>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );

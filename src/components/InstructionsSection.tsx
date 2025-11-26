@@ -491,6 +491,81 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
         </div>
       )}
 
+      {/* Пользовательские инструкции */}
+      {activeSubTab === "custom" && (
+        <div className="space-y-6">
+          {customLoading ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">Загрузка инструкций...</p>
+              </CardContent>
+            </Card>
+          ) : !customInstructions || customInstructions.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Пока нет пользовательских инструкций
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Администратор может добавить инструкции в разделе Администрирование → Инструкции
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            customInstructions.map((instruction) => (
+              <Card key={instruction.id} className="overflow-hidden border-2">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <BookMarked className="h-6 w-6 text-primary" />
+                    </div>
+                    <span>{instruction.title}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <Accordion type="single" collapsible className="w-full">
+                    {instruction.content && Array.isArray(instruction.content) && instruction.content.map((section: any, idx: number) => (
+                      <AccordionItem key={section.id || idx} value={`section-${idx}`}>
+                        <AccordionTrigger className="text-left hover:no-underline">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            {section.title}
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-4">
+                            {section.content && (
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                                {section.content}
+                              </p>
+                            )}
+                            {section.subsections && Array.isArray(section.subsections) && section.subsections.length > 0 && (
+                              <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                                {section.subsections.map((subsection: any, subIdx: number) => (
+                                  <div key={subsection.id || subIdx} className="space-y-2">
+                                    <h5 className="font-medium text-sm">{subsection.title}</h5>
+                                    {subsection.content && (
+                                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                        {subsection.content}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+
       {/* Нормативно-правовая база */}
       {activeSubTab === "legal" && (
         <div className="space-y-6">

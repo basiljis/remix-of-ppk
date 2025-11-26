@@ -37,7 +37,18 @@ export const SubscriptionsDashboard = () => {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center space-y-4">
+          <p className="text-muted-foreground">Нет данных для отображения</p>
+          <p className="text-sm text-muted-foreground">
+            Данные появятся после создания первых подписок
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const { chartData, statusDistribution, typeDistribution, paymentTypeDistribution, metrics } = data;
 
