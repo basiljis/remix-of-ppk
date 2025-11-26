@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Lazy load UI components to reduce initial bundle
 const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
@@ -22,31 +23,33 @@ const Preloader = lazy(() => import("@/components/Preloader"));
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <Suspense fallback={<Preloader />}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={<Preloader />}>
-              <Routes>
-                <Route path="/" element={<RootGate />} />
-                <Route path="/app" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/child-profile" element={<ChildProfile />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/access-status" element={<AccessRequestStatus />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </Suspense>
-  </QueryClientProvider>
+  <ErrorBoundary componentName="App">
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={<Preloader />}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Suspense fallback={<Preloader />}>
+                <Routes>
+                  <Route path="/" element={<RootGate />} />
+                  <Route path="/app" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/child-profile" element={<ChildProfile />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/access-status" element={<AccessRequestStatus />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
+      </Suspense>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
