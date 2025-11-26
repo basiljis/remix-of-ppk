@@ -253,7 +253,7 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
                 <div className="border-l-4 border-primary pl-4">
                   <h4 className="font-semibold">Пробный период</h4>
                   <p className="text-sm text-muted-foreground">
-                    Новые пользователи получают 14 дней бесплатного доступа к системе с момента одобрения 
+                    Новые пользователи получают 7 дней бесплатного доступа к системе с момента одобрения 
                     их заявки на доступ. В течение пробного периода доступны все функции системы: 
                     создание протоколов, работа с чеклистами, экспорт документов.
                   </p>
