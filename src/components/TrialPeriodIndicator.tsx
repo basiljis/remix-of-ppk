@@ -18,17 +18,17 @@ export const TrialPeriodIndicator = () => {
     const checkTrialPeriod = async () => {
       if (!user) return;
 
-      // Проверяем наличие активной подписки
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .gte('end_date', new Date().toISOString())
-        .maybeSingle();
+      // Проверяем наличие активной подписки через серверную функцию,
+      // которая учитывает как оплату, так и активацию администратором
+      const { data: hasActiveSubscription, error: hasActiveSubscriptionError } = await supabase
+        .rpc('has_active_subscription', { _user_id: user.id });
+
+      if (hasActiveSubscriptionError) {
+        console.error('Error checking active subscription in TrialPeriodIndicator:', hasActiveSubscriptionError);
+      }
 
       // Если есть активная подписка, не показываем индикатор
-      if (subscription) {
+      if (hasActiveSubscription) {
         setDaysLeft(null);
         setIsExpired(false);
         return;

@@ -44,16 +44,16 @@ export default function Profile() {
     const checkTestMode = async () => {
       if (!user?.id) return;
 
-      // Проверяем активную подписку
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .gte('end_date', new Date().toISOString())
-        .maybeSingle();
+      // Проверяем активную подписку через серверную функцию,
+      // которая учитывает все сценарии активации (оплата, активация администратором и т.п.)
+      const { data: hasActiveSubscription, error: hasActiveSubscriptionError } = await supabase
+        .rpc('has_active_subscription', { _user_id: user.id });
 
-      if (subscription) {
+      if (hasActiveSubscriptionError) {
+        console.error('Error checking active subscription in Profile:', hasActiveSubscriptionError);
+      }
+
+      if (hasActiveSubscription) {
         setHasActiveSubscription(true);
         setDaysLeft(null);
         return;
