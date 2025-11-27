@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSubscriptionAccess } from "@/hooks/useSubscriptionAccess";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,7 +107,7 @@ export const ProtocolForm = ({
   const { saveProtocol, updateProtocol } = useProtocols();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const subscriptionAccess = useSubscriptionAccess();
+  const subscriptionStatus = useSubscriptionStatus();
   const { getChecklistByLevelAndType, loading: checklistLoading } = useChecklistData();
   const {
     getBlocksForEducationLevel,
@@ -377,7 +377,7 @@ export const ProtocolForm = ({
 
   const saveProtocolData = async (isDraft: boolean = false) => {
     // Проверка доступа для новых протоколов (не применяется к админам и региональным операторам)
-    if (!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionAccess.canCreateProtocols) {
+    if (!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionStatus.canCreateProtocols) {
       toast({
         title: "Доступ ограничен",
         description: "Пробный период истек. Оформите подписку для создания новых протоколов.",
@@ -512,7 +512,7 @@ export const ProtocolForm = ({
 
   // Если доступ истек и это не редактирование существующего протокола
   // Админы и региональные операторы имеют полный доступ
-  if (!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionAccess.canCreateProtocols && !subscriptionAccess.loading) {
+  if (!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionStatus.canCreateProtocols && !subscriptionStatus.loading) {
     return (
       <Card className="max-w-2xl mx-auto mt-8">
         <CardHeader>
@@ -575,17 +575,17 @@ export const ProtocolForm = ({
   ];
 
   // Блокировка создания нового протокола при отсутствии доступа
-  const canCreateNew = editingProtocol || subscriptionAccess.canCreateProtocols;
+  const canCreateNew = editingProtocol || subscriptionStatus.canCreateProtocols;
 
   return (
     <div className="space-y-6">
-      {!canCreateNew && !subscriptionAccess.loading && (
+      {!canCreateNew && !subscriptionStatus.loading && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {subscriptionAccess.trialEndDate ? (
+            {subscriptionStatus.trialEndDate ? (
               <>
-                Пробный период завершился {subscriptionAccess.trialEndDate.toLocaleDateString('ru-RU')}. 
+                Пробный период завершился {subscriptionStatus.trialEndDate.toLocaleDateString('ru-RU')}. 
                 Создание новых протоколов доступно только при активной подписке. 
                 Созданные ранее протоколы доступны для просмотра в течение 3 лет.
                 <Button 
@@ -685,9 +685,9 @@ export const ProtocolForm = ({
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Уведомления о подписке - только для пользователей без активной подписки */}
-            {!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionAccess.hasActiveSubscription && (
+            {!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionStatus.hasActiveSubscription && (
               <>
-                {!subscriptionAccess.canCreateProtocols && !subscriptionAccess.loading && (
+                {!subscriptionStatus.canCreateProtocols && !subscriptionStatus.loading && (
                   <Alert variant="destructive" className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="flex items-center justify-between">
@@ -702,9 +702,9 @@ export const ProtocolForm = ({
                     </AlertDescription>
                   </Alert>
                 )}
-                {subscriptionAccess.isTrialActive && subscriptionAccess.trialEndDate && (
+                {subscriptionStatus.isTrialActive && subscriptionStatus.trialEndDate && (
                   (() => {
-                    const daysLeft = Math.ceil((subscriptionAccess.trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                    const daysLeft = Math.ceil((subscriptionStatus.trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                     return daysLeft <= 3 ? (
                       <Alert className="mb-4">
                         <AlertCircle className="h-4 w-4" />

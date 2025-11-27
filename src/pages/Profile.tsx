@@ -15,11 +15,11 @@ import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { PaymentStatusDialog } from "@/components/PaymentStatusDialog";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { Progress } from "@/components/ui/progress";
-import { differenceInDays, addDays } from "date-fns";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -28,14 +28,13 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [daysLeft, setDaysLeft] = useState<number | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const [subscriptionInfo, setSubscriptionInfo] = useState<{
-    endDate: string | null;
-    paymentType: string | null;
-    adminNotes: string | null;
-  } | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  
+  const { 
+    hasActiveSubscription, 
+    daysLeft, 
+    progress, 
+    subscriptionInfo 
+  } = useSubscriptionStatus();
 
   useEffect(() => {
     if (profile) {
@@ -45,75 +44,6 @@ export default function Profile() {
       setEmailNotifications(profile.email_notifications ?? true);
     }
   }, [profile]);
-
-  useEffect(() => {
-    const checkTestMode = async () => {
-      if (!user?.id) return;
-
-      // Проверяем роль пользователя
-      const { data: userRole } = await supabase
-        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      setIsAdmin(userRole || false);
-
-      // Проверяем активную подписку через серверную функцию,
-      // которая учитывает все сценарии активации (оплата, активация администратором и т.п.)
-      const { data: hasActiveSubscription, error: hasActiveSubscriptionError } = await supabase
-        .rpc('has_active_subscription', { _user_id: user.id });
-
-      if (hasActiveSubscriptionError) {
-        console.error('Error checking active subscription in Profile:', hasActiveSubscriptionError);
-      }
-
-      if (hasActiveSubscription) {
-        setHasActiveSubscription(true);
-        setDaysLeft(null);
-
-        // Получаем детальную информацию о подписке
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('end_date, payment_type, admin_notes')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .gte('end_date', new Date().toISOString())
-          .order('created_at', { ascending: false })
-          .maybeSingle();
-
-        if (subscription) {
-          setSubscriptionInfo({
-            endDate: subscription.end_date,
-            paymentType: subscription.payment_type,
-            adminNotes: subscription.admin_notes,
-          });
-        }
-        return;
-      }
-
-      // Если нет активной подписки, проверяем пробный период
-      const { data: accessRequest } = await supabase
-        .from('access_requests')
-        .select('reviewed_at')
-        .eq('user_id', user.id)
-        .eq('status', 'approved')
-        .maybeSingle();
-
-      if (accessRequest?.reviewed_at) {
-        const approvalDate = new Date(accessRequest.reviewed_at);
-        const testEndDate = addDays(approvalDate, 7);
-        const today = new Date();
-        const remainingDays = differenceInDays(testEndDate, today);
-
-        if (remainingDays >= 0) {
-          setDaysLeft(remainingDays);
-          setHasActiveSubscription(false);
-        } else {
-          setDaysLeft(0);
-          setHasActiveSubscription(false);
-        }
-      }
-    };
-
-    checkTestMode();
-  }, [user]);
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
