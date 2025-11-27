@@ -37,7 +37,28 @@ export const useSubscriptionAccess = (): SubscriptionAccess => {
       }
 
       try {
-        // Проверяем активную подписку
+        // Сначала проверяем активную подписку через серверную функцию,
+        // которая учитывает все сценарии активации (оплата, активация администратором и т.п.)
+        const { data: hasActiveSubscription, error: hasActiveSubscriptionError } = await supabase
+          .rpc('has_active_subscription', { _user_id: user.id });
+
+        if (hasActiveSubscriptionError) {
+          console.error('Error checking active subscription via RPC:', hasActiveSubscriptionError);
+        }
+
+        if (hasActiveSubscription) {
+          setAccess({
+            hasActiveSubscription: true,
+            isTrialActive: false,
+            trialEndDate: null,
+            canCreateProtocols: true,
+            canViewProtocols: true,
+            loading: false,
+          });
+          return;
+        }
+
+        // Если активной подписки нет, дополнительно проверяем по таблице подписок
         const { data: subscription } = await supabase
           .from('subscriptions')
           .select('*')
