@@ -17,6 +17,7 @@ import { NotificationsDialog } from "@/components/NotificationsDialog";
 import { TestModeDialog } from "@/components/TestModeDialog";
 import { TrialPeriodIndicator } from "@/components/TrialPeriodIndicator";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { useSubscriptionAccess } from "@/hooks/useSubscriptionAccess";
 
 // Lazy load heavy components for better FCP
 const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
@@ -34,6 +35,7 @@ const Index = () => {
   const { toast } = useToast();
   const { user, loading, isAdmin, signOut, profile, hasAccessRequest } = useAuth();
   const { checklists, loading: checklistLoading, error } = useChecklistData();
+  const subscriptionAccess = useSubscriptionAccess();
   
   // Автоматический таймаут сессии 15 минут
   useSessionTimeout();
@@ -128,6 +130,22 @@ const Index = () => {
     return null;
   }
 
+  const handleNewProtocol = () => {
+    if (!isAdmin && !subscriptionAccess.canCreateProtocols) {
+      toast({
+        title: "Доступ ограничен",
+        description: subscriptionAccess.isTrialActive 
+          ? "Пробный период активен, но истекает. Оформите подписку."
+          : "Пробный период истек. Оформите подписку для создания протоколов.",
+        variant: "destructive"
+      });
+      navigate("/profile");
+      return;
+    }
+    setEditingProtocol(null);
+    setActiveTab("protocol");
+  };
+
   const renderTabContent = () => {
     const loadingFallback = <div className="flex items-center justify-center p-8">Загрузка...</div>;
     
@@ -145,10 +163,7 @@ const Index = () => {
         return (
           <Suspense fallback={loadingFallback}>
             <PPKList 
-              onNewProtocol={() => {
-                setEditingProtocol(null);
-                setActiveTab("protocol");
-              }} 
+              onNewProtocol={handleNewProtocol}
               onEditProtocol={(protocol) => {
                 setEditingProtocol(protocol);
                 setActiveTab("protocol");
