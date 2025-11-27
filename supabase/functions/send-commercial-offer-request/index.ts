@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email to admin
     const adminEmailResponse = await resend.emails.send({
       from: "ППК Профилактика <onboarding@resend.dev>",
-      to: ["admin@ppk-system.ru"], // Replace with actual admin email
+      to: ["info@profilaktika.site"],
       subject: `Запрос КП от ${organizationName}`,
       html: emailHtml,
     });
@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Log emails
     await supabase.from("email_logs").insert([
       {
-        recipient: "admin@ppk-system.ru",
+        recipient: "info@profilaktika.site",
         subject: `Запрос КП от ${organizationName}`,
         email_type: "commercial_offer_request_admin",
         status: adminEmailResponse.error ? "failed" : "sent",
