@@ -100,9 +100,6 @@ export const ProtocolForm = ({
   const [previousProtocols, setPreviousProtocols] = useState<any[]>([]);
   const [selectedProtocol, setSelectedProtocol] = useState<any | null>(null);
   const [showProtocolDialog, setShowProtocolDialog] = useState(false);
-  const [hasActiveAccess, setHasActiveAccess] = useState(true);
-  const [trialExpired, setTrialExpired] = useState(false);
-  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   
   // Таймаут сессии 15 минут
   useSessionTimeout();
@@ -119,62 +116,6 @@ export const ProtocolForm = ({
     loading: protocolChecklistLoading
   } = useProtocolChecklistData();
   const { profile, isAdmin, isRegionalOperator, user } = useAuth();
-
-  // Проверка доступа к созданию протоколов
-  useEffect(() => {
-    const checkAccess = async () => {
-      if (!user || isAdmin || isRegionalOperator) {
-        setHasActiveAccess(true);
-        return;
-      }
-
-      // Проверяем активную подписку
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .gte('end_date', new Date().toISOString())
-        .maybeSingle();
-
-      if (subscription) {
-        setHasActiveAccess(true);
-        setTrialExpired(false);
-        return;
-      }
-
-      // Проверяем пробный период
-      const { data: accessRequest } = await supabase
-        .from('access_requests')
-        .select('reviewed_at')
-        .eq('user_id', user.id)
-        .eq('status', 'approved')
-        .maybeSingle();
-
-      if (accessRequest?.reviewed_at) {
-        const approvalDate = new Date(accessRequest.reviewed_at);
-        const testEndDate = addDays(approvalDate, 7);
-        const today = new Date();
-        const remainingDays = differenceInDays(testEndDate, today);
-
-        if (remainingDays >= 0) {
-          setHasActiveAccess(true);
-          setTrialExpired(false);
-          setTrialDaysLeft(remainingDays);
-        } else {
-          setHasActiveAccess(false);
-          setTrialExpired(true);
-          setTrialDaysLeft(0);
-        }
-      } else {
-        setHasActiveAccess(false);
-        setTrialExpired(true);
-        setTrialDaysLeft(0);
-      }
-    };
-
-    checkAccess();
-  }, [user, isAdmin, isRegionalOperator]);
 
   const [formData, setFormData] = useState<ProtocolData>({
     childData: {
@@ -435,8 +376,8 @@ export const ProtocolForm = ({
   };
 
   const saveProtocolData = async (isDraft: boolean = false) => {
-    // Проверка доступа для новых протоколов
-    if (!editingProtocol && !hasActiveAccess) {
+    // Проверка доступа для новых протоколов (не применяется к админам и региональным операторам)
+    if (!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionAccess.canCreateProtocols) {
       toast({
         title: "Доступ ограничен",
         description: "Пробный период истек. Оформите подписку для создания новых протоколов.",
@@ -570,7 +511,8 @@ export const ProtocolForm = ({
   };
 
   // Если доступ истек и это не редактирование существующего протокола
-  if (!hasActiveAccess && !editingProtocol && trialExpired) {
+  // Админы и региональные операторы имеют полный доступ
+  if (!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionAccess.canCreateProtocols && !subscriptionAccess.loading) {
     return (
       <Card className="max-w-2xl mx-auto mt-8">
         <CardHeader>
@@ -587,10 +529,10 @@ export const ProtocolForm = ({
             </AlertDescription>
           </Alert>
           <div className="flex gap-4">
-            <Button onClick={() => window.location.href = '/profile?tab=subscription'} className="flex-1">
+            <Button onClick={() => navigate('/profile')} className="flex-1">
               Оформить подписку
             </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/'} className="flex-1">
+            <Button variant="outline" onClick={() => navigate('/')} className="flex-1">
               На главную
             </Button>
           </div>
@@ -742,10 +684,10 @@ export const ProtocolForm = ({
             <CardTitle>Данные об обучающемся</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Уведомления о подписке */}
-            {!editingProtocol && !isAdmin && !isRegionalOperator && (
+            {/* Уведомления о подписке - только для пользователей без активной подписки */}
+            {!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionAccess.hasActiveSubscription && (
               <>
-                {!hasActiveAccess && trialExpired && (
+                {!subscriptionAccess.canCreateProtocols && !subscriptionAccess.loading && (
                   <Alert variant="destructive" className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="flex items-center justify-between">
@@ -760,20 +702,25 @@ export const ProtocolForm = ({
                     </AlertDescription>
                   </Alert>
                 )}
-                {hasActiveAccess && trialDaysLeft !== null && trialDaysLeft <= 3 && (
-                  <Alert className="mb-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="flex items-center justify-between">
-                      <span>Пробный период истекает через {trialDaysLeft} {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}. Оформите подписку.</span>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigate('/profile')}
-                      >
-                        Оформить подписку
-                      </Button>
-                    </AlertDescription>
-                  </Alert>
+                {subscriptionAccess.isTrialActive && subscriptionAccess.trialEndDate && (
+                  (() => {
+                    const daysLeft = Math.ceil((subscriptionAccess.trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                    return daysLeft <= 3 ? (
+                      <Alert className="mb-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="flex items-center justify-between">
+                          <span>Пробный период истекает через {daysLeft} {daysLeft === 1 ? 'день' : daysLeft < 5 ? 'дня' : 'дней'}. Оформите подписку.</span>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate('/profile')}
+                          >
+                            Оформить подписку
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    ) : null;
+                  })()
                 )}
               </>
             )}
