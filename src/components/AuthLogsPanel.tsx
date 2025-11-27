@@ -31,6 +31,32 @@ export const AuthLogsPanel = () => {
   const itemsPerPage = 20;
   const { toast } = useToast();
 
+  const getEventIcon = (eventType: string) => {
+    switch (eventType) {
+      case 'user.signin':
+        return <LogIn className="h-4 w-4 text-green-600" />;
+      case 'user.signout':
+        return <LogOut className="h-4 w-4 text-orange-600" />;
+      case 'user.created':
+        return <UserPlus className="h-4 w-4 text-blue-600" />;
+      default:
+        return <Shield className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getEventLabel = (eventType: string) => {
+    switch (eventType) {
+      case 'user.signin':
+        return 'Вход в систему';
+      case 'user.signout':
+        return 'Выход из системы';
+      case 'user.created':
+        return 'Регистрация';
+      default:
+        return eventType;
+    }
+  };
+
   // Фильтрация логов по поисковому запросу
   const filteredLogs = logs.filter((log) => {
     const searchLower = searchTerm.toLowerCase();
@@ -100,31 +126,6 @@ export const AuthLogsPanel = () => {
     }
   };
 
-  const getEventIcon = (eventType: string) => {
-    switch (eventType) {
-      case 'user.signin':
-        return <LogIn className="h-4 w-4 text-green-600" />;
-      case 'user.signout':
-        return <LogOut className="h-4 w-4 text-orange-600" />;
-      case 'user.created':
-        return <UserPlus className="h-4 w-4 text-blue-600" />;
-      default:
-        return <Shield className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getEventLabel = (eventType: string) => {
-    switch (eventType) {
-      case 'user.signin':
-        return 'Вход в систему';
-      case 'user.signout':
-        return 'Выход из системы';
-      case 'user.created':
-        return 'Регистрация';
-      default:
-        return eventType;
-    }
-  };
 
   if (loading) {
   return (
