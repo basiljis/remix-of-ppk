@@ -30,6 +30,12 @@ export default function Profile() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<{
+    endDate: string | null;
+    paymentType: string | null;
+    adminNotes: string | null;
+  } | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -44,6 +50,11 @@ export default function Profile() {
     const checkTestMode = async () => {
       if (!user?.id) return;
 
+      // Проверяем роль пользователя
+      const { data: userRole } = await supabase
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+      setIsAdmin(userRole || false);
+
       // Проверяем активную подписку через серверную функцию,
       // которая учитывает все сценарии активации (оплата, активация администратором и т.п.)
       const { data: hasActiveSubscription, error: hasActiveSubscriptionError } = await supabase
@@ -56,6 +67,24 @@ export default function Profile() {
       if (hasActiveSubscription) {
         setHasActiveSubscription(true);
         setDaysLeft(null);
+
+        // Получаем детальную информацию о подписке
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('end_date, payment_type, admin_notes')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .gte('end_date', new Date().toISOString())
+          .order('created_at', { ascending: false })
+          .maybeSingle();
+
+        if (subscription) {
+          setSubscriptionInfo({
+            endDate: subscription.end_date,
+            paymentType: subscription.payment_type,
+            adminNotes: subscription.admin_notes,
+          });
+        }
         return;
       }
 
@@ -205,6 +234,59 @@ export default function Profile() {
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6 mt-6">
+          {hasActiveSubscription && subscriptionInfo && (
+            <Card className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  Статус подписки
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Статус:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">Активна</span>
+                </div>
+                {subscriptionInfo.endDate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Действует до:</span>
+                    <span className="font-semibold">
+                      {new Date(subscriptionInfo.endDate).toLocaleDateString('ru-RU')}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Способ активации:</span>
+                  <span className="font-semibold">
+                    {subscriptionInfo.paymentType === 'manual' 
+                      ? 'Активирована администратором' 
+                      : subscriptionInfo.paymentType === 'yukassa'
+                      ? 'Оплачена через ЮKassa'
+                      : 'Оплачена'}
+                  </span>
+                </div>
+                {subscriptionInfo.adminNotes && (
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-muted-foreground mb-1">Примечание:</p>
+                    <p className="text-sm">{subscriptionInfo.adminNotes}</p>
+                  </div>
+                )}
+                {isAdmin && (
+                  <div className="pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/admin')}
+                      className="w-full"
+                    >
+                      Перейти в административную панель
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {!hasActiveSubscription && daysLeft !== null && (
             <Card className="border-primary/50 bg-primary/5">
               <CardHeader>
