@@ -1,74 +1,24 @@
-import { useEffect, useState } from "react";
-import { Clock, AlertCircle } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { Progress } from "@/components/ui/progress";
+import { Clock, AlertCircle } from "lucide-react";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { useNavigate } from "react-router-dom";
 
 export const TrialPeriodIndicator = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [daysLeft, setDaysLeft] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [trialEndDate, setTrialEndDate] = useState<Date | null>(null);
-  const [isExpired, setIsExpired] = useState(false);
+  const { 
+    hasActiveSubscription, 
+    isTrialActive, 
+    trialEndDate, 
+    daysLeft, 
+    progress 
+  } = useSubscriptionStatus();
 
-  useEffect(() => {
-    const checkTrialPeriod = async () => {
-      if (!user) return;
+  // Не показываем индикатор, если есть активная подписка или нет пробного периода
+  if (hasActiveSubscription || (!isTrialActive && daysLeft === null)) return null;
 
-      // Проверяем наличие активной подписки через серверную функцию,
-      // которая учитывает как оплату, так и активацию администратором
-      const { data: hasActiveSubscription, error: hasActiveSubscriptionError } = await supabase
-        .rpc('has_active_subscription', { _user_id: user.id });
-
-      if (hasActiveSubscriptionError) {
-        console.error('Error checking active subscription in TrialPeriodIndicator:', hasActiveSubscriptionError);
-      }
-
-      // Если есть активная подписка, не показываем индикатор
-      if (hasActiveSubscription) {
-        setDaysLeft(null);
-        setIsExpired(false);
-        return;
-      }
-
-      // Проверяем пробный период по дате одобрения заявки
-      const { data: accessRequest } = await supabase
-        .from('access_requests')
-        .select('reviewed_at')
-        .eq('user_id', user.id)
-        .eq('status', 'approved')
-        .maybeSingle();
-
-      if (accessRequest?.reviewed_at) {
-        const reviewDate = new Date(accessRequest.reviewed_at);
-        const endDate = new Date(reviewDate);
-        endDate.setDate(endDate.getDate() + 7);
-        setTrialEndDate(endDate);
-        
-        const now = new Date();
-        const timeLeft = endDate.getTime() - now.getTime();
-        const daysRemaining = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
-        
-        if (daysRemaining > 0) {
-          setDaysLeft(daysRemaining);
-          setIsExpired(false);
-          const progressValue = ((7 - daysRemaining) / 7) * 100;
-          setProgress(progressValue);
-        } else {
-          setDaysLeft(0);
-          setIsExpired(true);
-          setProgress(100);
-        }
-      }
-    };
-
-    checkTrialPeriod();
-  }, [user]);
-
-  if (daysLeft === null && !isExpired) return null;
+  const isExpired = daysLeft === 0;
 
   if (isExpired) {
     return (
