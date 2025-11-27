@@ -101,10 +101,11 @@ export const ProtocolForm = ({
   const [selectedProtocol, setSelectedProtocol] = useState<any | null>(null);
   const [showProtocolDialog, setShowProtocolDialog] = useState(false);
   const [hasActiveAccess, setHasActiveAccess] = useState(true);
+  const [trialExpired, setTrialExpired] = useState(false);
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   
   // Таймаут сессии 15 минут
   useSessionTimeout();
-  const [trialExpired, setTrialExpired] = useState(false);
 
   const { saveProtocol, updateProtocol } = useProtocols();
   const { toast } = useToast();
@@ -159,13 +160,16 @@ export const ProtocolForm = ({
         if (remainingDays >= 0) {
           setHasActiveAccess(true);
           setTrialExpired(false);
+          setTrialDaysLeft(remainingDays);
         } else {
           setHasActiveAccess(false);
           setTrialExpired(true);
+          setTrialDaysLeft(0);
         }
       } else {
         setHasActiveAccess(false);
         setTrialExpired(true);
+        setTrialDaysLeft(0);
       }
     };
 
@@ -738,6 +742,41 @@ export const ProtocolForm = ({
             <CardTitle>Данные об обучающемся</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Уведомления о подписке */}
+            {!editingProtocol && !isAdmin && !isRegionalOperator && (
+              <>
+                {!hasActiveAccess && trialExpired && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="flex items-center justify-between">
+                      <span>Пробный период истек. Оформите подписку для создания новых протоколов.</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate('/profile')}
+                      >
+                        Оформить подписку
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {hasActiveAccess && trialDaysLeft !== null && trialDaysLeft <= 3 && (
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="flex items-center justify-between">
+                      <span>Пробный период истекает через {trialDaysLeft} {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}. Оформите подписку.</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate('/profile')}
+                      >
+                        Оформить подписку
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <Label htmlFor="fullName">ФИО обучающегося *</Label>
