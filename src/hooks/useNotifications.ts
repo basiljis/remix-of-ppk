@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Notification {
   id: string;
-  type: "draft_protocol" | "pending_request" | "expiring_subscription";
+  type: "draft_protocol" | "pending_request" | "expiring_subscription" | "pending_commercial_offer" | "pending_subscription_request";
   title: string;
   description: string;
   created_at: string;
@@ -33,6 +33,34 @@ export function useNotifications() {
         .select("id, full_name, created_at, requested_at")
         .eq("status", "pending")
         .order("requested_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: commercialOfferRequests = [] } = useQuery({
+    queryKey: ["pending-commercial-offers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commercial_offer_requests")
+        .select("id, organization_name, created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: subscriptionRequests = [] } = useQuery({
+    queryKey: ["pending-subscription-requests"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscription_requests")
+        .select("id, organization_name, created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data || [];
@@ -75,10 +103,26 @@ export function useNotifications() {
     ...pendingRequests.map((request) => ({
       id: request.id,
       type: "pending_request" as const,
-      title: "Новая заявка",
+      title: "Новая заявка на доступ",
       description: `Заявка от ${request.full_name} ожидает рассмотрения`,
       created_at: request.requested_at,
       link: "administration-access-requests",
+    })),
+    ...commercialOfferRequests.map((request) => ({
+      id: request.id,
+      type: "pending_commercial_offer" as const,
+      title: "Новая заявка на КП",
+      description: `Заявка от ${request.organization_name} ожидает рассмотрения`,
+      created_at: request.created_at,
+      link: "administration-commercial-offers",
+    })),
+    ...subscriptionRequests.map((request) => ({
+      id: request.id,
+      type: "pending_subscription_request" as const,
+      title: "Новая заявка на подписку",
+      description: `Заявка от ${request.organization_name} ожидает рассмотрения`,
+      created_at: request.created_at,
+      link: "administration-subscriptions",
     })),
     ...expiringSubscriptions.map((subscription) => {
       const daysLeft = Math.ceil(
