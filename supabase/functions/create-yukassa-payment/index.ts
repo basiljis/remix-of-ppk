@@ -79,6 +79,8 @@ serve(async (req: Request) => {
               currency: "RUB",
             },
             vat_code: 1,
+            payment_subject: "service",
+            payment_mode: "full_prepayment",
           },
         ],
       },
