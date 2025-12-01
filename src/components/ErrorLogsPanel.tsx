@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { AlertCircle, CheckCircle, Info, AlertTriangle, Search, RefreshCw, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertCircle, CheckCircle, Info, AlertTriangle, Search, RefreshCw, Download, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import * as XLSX from "xlsx";
 
 interface ErrorLog {
@@ -37,6 +39,7 @@ export const ErrorLogsPanel = () => {
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [resolvedFilter, setResolvedFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedLog, setSelectedLog] = useState<ErrorLog | null>(null);
   const itemsPerPage = 20;
 
   const loadErrorLogs = async () => {
@@ -297,15 +300,24 @@ export const ErrorLogsPanel = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {!log.resolved && (
+                        <div className="flex gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleMarkResolved(log.id)}
+                            onClick={() => setSelectedLog(log)}
                           >
-                            Решить
+                            <Eye className="h-4 w-4" />
                           </Button>
-                        )}
+                          {!log.resolved && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleMarkResolved(log.id)}
+                            >
+                              Решить
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -351,6 +363,136 @@ export const ErrorLogsPanel = () => {
           </div>
         </div>
       </CardContent>
+
+      {/* Модальное окно с детальной информацией */}
+      <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedLog && getSeverityIcon(selectedLog.severity)}
+              Детали ошибки
+            </DialogTitle>
+            <DialogDescription>
+              Подробная информация об ошибке и stack trace
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedLog && (
+            <ScrollArea className="h-[60vh]">
+              <div className="space-y-4 pr-4">
+                {/* Основная информация */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Дата/время</Label>
+                    <p className="font-mono text-sm">{format(new Date(selectedLog.created_at), "dd.MM.yyyy HH:mm:ss")}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Серьёзность</Label>
+                    <div className="mt-1">{getSeverityBadge(selectedLog.severity)}</div>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Тип ошибки</Label>
+                    <p className="font-mono text-sm">{selectedLog.error_type}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Компонент</Label>
+                    <p className="text-sm">{selectedLog.component_name || "—"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Маршрут</Label>
+                    <p className="font-mono text-sm">{selectedLog.route || "—"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Статус</Label>
+                    <div className="mt-1">
+                      {selectedLog.resolved ? (
+                        <Badge variant="outline" className="gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Решено
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Открыто</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Сообщение об ошибке */}
+                <div>
+                  <Label className="text-muted-foreground">Сообщение об ошибке</Label>
+                  <div className="mt-2 p-3 bg-muted rounded-md">
+                    <p className="text-sm whitespace-pre-wrap">{selectedLog.error_message}</p>
+                  </div>
+                </div>
+
+                {/* Stack trace */}
+                {selectedLog.error_stack && (
+                  <div>
+                    <Label className="text-muted-foreground">Stack Trace</Label>
+                    <div className="mt-2 p-3 bg-muted rounded-md">
+                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+                        {selectedLog.error_stack}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* User Agent */}
+                {selectedLog.user_agent && (
+                  <div>
+                    <Label className="text-muted-foreground">User Agent</Label>
+                    <div className="mt-2 p-3 bg-muted rounded-md">
+                      <p className="text-xs font-mono break-all">{selectedLog.user_agent}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Browser Info */}
+                {selectedLog.browser_info && (
+                  <div>
+                    <Label className="text-muted-foreground">Информация о браузере</Label>
+                    <div className="mt-2 p-3 bg-muted rounded-md">
+                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                        {JSON.stringify(selectedLog.browser_info, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* Metadata */}
+                {selectedLog.metadata && (
+                  <div>
+                    <Label className="text-muted-foreground">Дополнительные данные</Label>
+                    <div className="mt-2 p-3 bg-muted rounded-md">
+                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                        {JSON.stringify(selectedLog.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* Действия */}
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                  {!selectedLog.resolved && (
+                    <Button
+                      onClick={() => {
+                        handleMarkResolved(selectedLog.id);
+                        setSelectedLog(null);
+                      }}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Отметить как решено
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setSelectedLog(null)}>
+                    Закрыть
+                  </Button>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
