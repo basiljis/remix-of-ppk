@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { AlertCircle, CheckCircle, Info, AlertTriangle, Search, RefreshCw, Download } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,6 +36,8 @@ export const ErrorLogsPanel = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [resolvedFilter, setResolvedFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const loadErrorLogs = async () => {
     try {
@@ -79,6 +82,11 @@ export const ErrorLogsPanel = () => {
       log.component_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.route?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentLogs = filteredLogs.slice(startIndex, endIndex);
 
   const handleMarkResolved = async (logId: string) => {
     try {
@@ -196,7 +204,10 @@ export const ErrorLogsPanel = () => {
                   id="search"
                   placeholder="Поиск по сообщению, типу, компоненту..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1); // Сброс на первую страницу при поиске
+                  }}
                   className="pl-9"
                 />
               </div>
@@ -255,7 +266,7 @@ export const ErrorLogsPanel = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredLogs.map((log) => (
+                  currentLogs.map((log) => (
                     <TableRow key={log.id}>
                       <TableCell className="whitespace-nowrap">
                         {format(new Date(log.created_at), "dd.MM.yyyy HH:mm")}
@@ -303,8 +314,40 @@ export const ErrorLogsPanel = () => {
             </Table>
           </div>
 
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+
           <div className="text-sm text-muted-foreground">
-            Показано {filteredLogs.length} из {logs.length} логов
+            Показано {currentLogs.length} из {filteredLogs.length} логов
           </div>
         </div>
       </CardContent>
