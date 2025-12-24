@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle, Info, AlertTriangle, Search, RefreshCw, Download, Eye } from "lucide-react";
+import { AlertCircle, CheckCircle, Info, AlertTriangle, Search, RefreshCw, Download, Eye, ChevronDown, ChevronRight, Layers } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -32,6 +32,16 @@ interface ErrorLog {
   resolved_by: string | null;
 }
 
+interface GroupedError {
+  key: string;
+  error_type: string;
+  error_message: string;
+  count: number;
+  lastOccurrence: string;
+  severity: string;
+  logs: ErrorLog[];
+}
+
 export const ErrorLogsPanel = () => {
   const [logs, setLogs] = useState<ErrorLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +50,8 @@ export const ErrorLogsPanel = () => {
   const [resolvedFilter, setResolvedFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<ErrorLog | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list');
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const itemsPerPage = 20;
 
   const loadErrorLogs = async () => {
@@ -86,6 +98,50 @@ export const ErrorLogsPanel = () => {
       log.route?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Группировка ошибок по типу и сообщению
+  const groupedErrors: GroupedError[] = useMemo(() => {
+    const groups = new Map<string, GroupedError>();
+    
+    filteredLogs.forEach(log => {
+      const key = `${log.error_type}::${log.error_message.substring(0, 100)}`;
+      
+      if (groups.has(key)) {
+        const group = groups.get(key)!;
+        group.count++;
+        group.logs.push(log);
+        if (new Date(log.created_at) > new Date(group.lastOccurrence)) {
+          group.lastOccurrence = log.created_at;
+        }
+      } else {
+        groups.set(key, {
+          key,
+          error_type: log.error_type,
+          error_message: log.error_message,
+          count: 1,
+          lastOccurrence: log.created_at,
+          severity: log.severity,
+          logs: [log]
+        });
+      }
+    });
+    
+    return Array.from(groups.values()).sort((a, b) => 
+      new Date(b.lastOccurrence).getTime() - new Date(a.lastOccurrence).getTime()
+    );
+  }, [filteredLogs]);
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -129,6 +185,55 @@ export const ErrorLogsPanel = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Логи ошибок");
     XLSX.writeFile(wb, `error-logs-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+  };
+
+  const handleExportSingleLog = (log: ErrorLog, formatType: 'txt' | 'json') => {
+    const dateStr = format(new Date(log.created_at), "yyyy-MM-dd_HH-mm-ss");
+    
+    if (formatType === 'json') {
+      const jsonData = JSON.stringify(log, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `error-log-${dateStr}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const textContent = `
+Лог ошибки
+==========
+Дата/время: ${format(new Date(log.created_at), "dd.MM.yyyy HH:mm:ss")}
+Тип: ${log.error_type}
+Серьёзность: ${log.severity}
+Компонент: ${log.component_name || "—"}
+Маршрут: ${log.route || "—"}
+Статус: ${log.resolved ? "Решено" : "Открыто"}
+
+Сообщение об ошибке:
+${log.error_message}
+
+${log.error_stack ? `Stack Trace:
+${log.error_stack}` : ''}
+
+${log.user_agent ? `User Agent:
+${log.user_agent}` : ''}
+
+${log.browser_info ? `Информация о браузере:
+${JSON.stringify(log.browser_info, null, 2)}` : ''}
+
+${log.metadata ? `Дополнительные данные:
+${JSON.stringify(log.metadata, null, 2)}` : ''}
+      `.trim();
+      
+      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `error-log-${dateStr}.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   const getSeverityIcon = (severity: string) => {
@@ -184,6 +289,14 @@ export const ErrorLogsPanel = () => {
         <div className="flex items-center justify-between">
           <CardTitle>Логи ошибок</CardTitle>
           <div className="flex gap-2">
+            <Button 
+              variant={viewMode === 'grouped' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => setViewMode(viewMode === 'list' ? 'grouped' : 'list')}
+            >
+              <Layers className="h-4 w-4 mr-2" />
+              {viewMode === 'grouped' ? 'Список' : 'Группировка'}
+            </Button>
             <Button variant="outline" size="sm" onClick={loadErrorLogs}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Обновить
@@ -248,6 +361,56 @@ export const ErrorLogsPanel = () => {
           </div>
 
           {/* Таблица логов */}
+          {viewMode === 'grouped' ? (
+            <div className="space-y-2">
+              {groupedErrors.map((group) => (
+                <div key={group.key} className="border rounded-lg">
+                  <button
+                    className="w-full flex items-center justify-between p-3 hover:bg-muted/50"
+                    onClick={() => toggleGroup(group.key)}
+                  >
+                    <div className="flex items-center gap-3">
+                      {expandedGroups.has(group.key) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      {getSeverityIcon(group.severity)}
+                      <span className="font-mono text-xs">{group.error_type}</span>
+                      <span className="text-sm truncate max-w-md">{group.error_message.substring(0, 80)}...</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{group.count} ошибок</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(group.lastOccurrence), "dd.MM.yyyy HH:mm")}
+                      </span>
+                    </div>
+                  </button>
+                  {expandedGroups.has(group.key) && (
+                    <div className="border-t p-2 space-y-1 bg-muted/20">
+                      {group.logs.map((log) => (
+                        <div key={log.id} className="flex items-center justify-between p-2 text-sm hover:bg-muted/50 rounded">
+                          <span className="text-muted-foreground">
+                            {format(new Date(log.created_at), "dd.MM.yyyy HH:mm:ss")}
+                          </span>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedLog(log)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {!log.resolved && (
+                              <Button variant="ghost" size="sm" onClick={() => handleMarkResolved(log.id)}>
+                                Решить
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -473,6 +636,20 @@ export const ErrorLogsPanel = () => {
 
                 {/* Действия */}
                 <div className="flex justify-end gap-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleExportSingleLog(selectedLog, 'txt')}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Экспорт TXT
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleExportSingleLog(selectedLog, 'json')}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Экспорт JSON
+                  </Button>
                   {!selectedLog.resolved && (
                     <Button
                       onClick={() => {

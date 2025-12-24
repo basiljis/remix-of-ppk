@@ -21,6 +21,9 @@ import { useChecklistData } from "@/hooks/useChecklistData";
 import { useProtocolChecklistData } from '@/hooks/useProtocolChecklistData';
 import { ProtocolResultsPanel } from '@/components/ProtocolResultsPanel';
 import { ProtocolChecklistPaginated } from '@/components/ProtocolChecklistPaginated';
+import { AssistanceDirectionsPanel } from '@/components/AssistanceDirectionsPanel';
+import { ProtocolConclusionPanel } from '@/components/ProtocolConclusionPanel';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { EducationLevelSelector, type EducationLevel } from "@/components/EducationLevelSelector";
@@ -69,6 +72,7 @@ interface ProtocolData {
   meetingType?: "scheduled" | "unscheduled";
   conclusionText?: string;
   parentConsent?: boolean;
+  parentConsentAcknowledged?: boolean; // Подтверждение ознакомления с заключением
 }
 
 const initialDocuments: DocumentCheck[] = [
@@ -100,6 +104,9 @@ export const ProtocolForm = ({
   const [previousProtocols, setPreviousProtocols] = useState<any[]>([]);
   const [selectedProtocol, setSelectedProtocol] = useState<any | null>(null);
   const [showProtocolDialog, setShowProtocolDialog] = useState(false);
+  const [savedProtocolId, setSavedProtocolId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   
   // Таймаут сессии 15 минут
   useSessionTimeout();
@@ -142,7 +149,8 @@ export const ProtocolForm = ({
     sessionTopic: "",
     meetingType: "scheduled",
     conclusionText: "",
-    parentConsent: false
+    parentConsent: false,
+    parentConsentAcknowledged: false
   });
 
   // Инициализация данных при редактировании
@@ -336,6 +344,13 @@ export const ProtocolForm = ({
   };
 
   const handleStepChange = (newStep: number) => {
+    // Если уже есть сохранённый черновик или редактируем - просто переходим без повторного сохранения
+    if (savedProtocolId || editingProtocol) {
+      setCurrentStep(newStep);
+      return;
+    }
+    
+    // Для нового протокола показываем диалог только если есть несохранённые изменения
     if (hasUnsavedChanges && canSaveProtocol()) {
       setPendingStep(newStep);
       setShowSaveDialog(true);
@@ -376,8 +391,14 @@ export const ProtocolForm = ({
   };
 
   const saveProtocolData = async (isDraft: boolean = false) => {
+    // Предотвращаем дублирование сохранения
+    if (isSaving) {
+      console.log('Already saving, skip duplicate save');
+      return;
+    }
+
     // Проверка доступа для новых протоколов (не применяется к админам и региональным операторам)
-    if (!editingProtocol && !isAdmin && !isRegionalOperator && !subscriptionStatus.canCreateProtocols) {
+    if (!editingProtocol && !savedProtocolId && !isAdmin && !isRegionalOperator && !subscriptionStatus.canCreateProtocols) {
       toast({
         title: "Доступ ограничен",
         description: "Пробный период истек. Оформите подписку для создания новых протоколов.",
@@ -404,6 +425,8 @@ export const ProtocolForm = ({
       return;
     }
 
+    setIsSaving(true);
+
     const completionPercentage = calculateProgress();
 
     const checklistData = {
@@ -428,6 +451,8 @@ export const ProtocolForm = ({
       conclusion: conclusionData
     };
 
+    const protocolId = editingProtocol?.id || savedProtocolId;
+
     const protocolData = {
       child_name: formData.childData.fullName,
       child_birth_date: formData.childData.birthDate || undefined,
@@ -435,7 +460,7 @@ export const ProtocolForm = ({
       education_level: selectedLevel,
       consultation_type: formData.consultationType,
       consultation_reason: formData.reason,
-      ppk_number: editingProtocol ? (formData.ppkNumber || editingProtocol.ppk_number) : (formData.ppkNumber || undefined),
+      ppk_number: protocolId ? (formData.ppkNumber || editingProtocol?.ppk_number) : (formData.ppkNumber || undefined),
       session_topic: formData.sessionTopic || undefined,
       meeting_type: formData.meetingType || 'scheduled',
       protocol_data: updatedFormData,
@@ -446,14 +471,23 @@ export const ProtocolForm = ({
     };
 
     try {
-      if (editingProtocol) {
-        await updateProtocol(editingProtocol.id, protocolData);
-        toast({
-          title: isDraft ? "Черновик сохранен" : "Протокол обновлен",
-          description: isDraft ? "Изменения сохранены" : "Протокол успешно обновлен"
-        });
+      if (protocolId) {
+        // Обновляем существующий протокол (уже сохранённый черновик или редактируемый)
+        await updateProtocol(protocolId, protocolData);
+        if (!isDraft) {
+          toast({
+            title: "🎉 Протокол успешно завершён!",
+            description: `Протокол для ${formData.childData.fullName} сохранён и готов к использованию.`,
+            duration: 8000,
+          });
+        }
       } else {
-        await saveProtocol(protocolData);
+        // Создаём новый протокол и сохраняем его ID
+        const result = await saveProtocol(protocolData);
+        if (result && result.id) {
+          setSavedProtocolId(result.id);
+          console.log('Saved new protocol with ID:', result.id);
+        }
         toast({
           title: isDraft ? "Черновик сохранен" : "Протокол сохранен",
           description: isDraft ? "Изменения сохранены" : "Протокол успешно создан"
@@ -464,7 +498,7 @@ export const ProtocolForm = ({
       setHasUnsavedChanges(false);
 
       if (!isDraft) {
-        onProtocolSave(formData);
+        setShowCompletionDialog(true);
       }
     } catch (error) {
       console.error('Error saving protocol:', error);
@@ -473,6 +507,8 @@ export const ProtocolForm = ({
         description: "Не удалось сохранить протокол",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -633,6 +669,45 @@ export const ProtocolForm = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Диалог успешного завершения протокола */}
+      <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl">
+              <div className="p-3 rounded-full bg-green-100">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              Протокол завершён!
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-4 pt-4">
+                <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+                  <p className="text-lg font-medium text-green-800">
+                    Протокол для {formData.childData.fullName} успешно сохранён
+                  </p>
+                  <p className="text-sm text-green-700 mt-1">
+                    Все данные и заключение готовы к использованию
+                  </p>
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={() => {
+                setShowCompletionDialog(false);
+                onProtocolSave(formData);
+                navigate('/');
+              }}
+            >
+              Перейти к списку ППк
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="w-full mb-6">
         <div className="flex items-center justify-between w-full px-4 gap-2">
@@ -1082,18 +1157,43 @@ export const ProtocolForm = ({
               </div>
             )}
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="parentConsent"
-                checked={formData.parentConsent || false}
-                onCheckedChange={(checked) =>
-                  setFormData(prev => ({ ...prev, parentConsent: Boolean(checked) }))
-                }
-              />
-              <Label htmlFor="parentConsent" className="font-normal">
-                Получено согласие родителя (законного представителя) на обработку персональных данных
-              </Label>
-            </div>
+            <Card className="border-2 border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Согласие родителя (законного представителя)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+                    <Checkbox
+                      id="parentConsent"
+                      checked={formData.parentConsent || false}
+                      onCheckedChange={(checked) =>
+                        setFormData(prev => ({ ...prev, parentConsent: Boolean(checked) }))
+                      }
+                    />
+                    <Label htmlFor="parentConsent" className="font-normal cursor-pointer">
+                      Получено согласие родителя (законного представителя) на обработку персональных данных
+                    </Label>
+                    <Badge variant={formData.parentConsent ? "default" : "secondary"} className="ml-auto">
+                      {formData.parentConsent ? "Да" : "Нет"}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={generateConsent}
+                  disabled={!canSaveProtocol()}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Скачать бланк согласия (PDF)
+                </Button>
+              </CardContent>
+            </Card>
           </CardContent>
         </Card>
       )}
@@ -1139,11 +1239,33 @@ export const ProtocolForm = ({
       )}
 
       {currentStep === 5 && (
-        <ProtocolResultsPanel
-          blocks={checklistBlocks}
-          educationLevel={selectedLevel}
-          calculateBlockScore={calculateBlockScore}
-        />
+        <div className="space-y-6">
+          {/* Результаты */}
+          <ProtocolResultsPanel
+            blocks={checklistBlocks}
+            educationLevel={selectedLevel}
+            calculateBlockScore={calculateBlockScore}
+          />
+          
+          {/* Направления помощи */}
+          <AssistanceDirectionsPanel
+            blocks={checklistBlocks}
+            educationLevel={selectedLevel}
+            calculateBlockScore={calculateBlockScore}
+          />
+          
+          {/* Заключение */}
+          <ProtocolConclusionPanel
+            blocks={checklistBlocks}
+            educationLevel={selectedLevel}
+            childName={formData.childData.fullName}
+            calculateBlockScore={calculateBlockScore}
+            onConclusionChange={(text) => setFormData(prev => ({ ...prev, conclusionText: text }))}
+            savedConclusion={formData.conclusionText}
+            parentConsent={formData.parentConsentAcknowledged || false}
+            onParentConsentChange={(consent) => setFormData(prev => ({ ...prev, parentConsentAcknowledged: consent }))}
+          />
+        </div>
       )}
 
       <div className="flex justify-between pt-4">
