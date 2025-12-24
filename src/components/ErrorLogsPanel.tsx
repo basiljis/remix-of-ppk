@@ -488,6 +488,7 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
               </TableBody>
             </Table>
           </div>
+          )}
 
           {totalPages > 1 && (
             <div className="flex justify-center mt-4">
