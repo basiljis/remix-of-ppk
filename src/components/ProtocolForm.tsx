@@ -1213,18 +1213,18 @@ export const ProtocolForm = ({
               </Select>
             </div>
 
-            {editingProtocol && (
-              <div>
-                <Label htmlFor="ppkNumber">Номер протокола ППк</Label>
-                <Input
-                  id="ppkNumber"
-                  value={formData.ppkNumber || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ppkNumber: e.target.value }))}
-                  placeholder="Автоматически при сохранении"
-                  disabled
-                />
-              </div>
-            )}
+            <div>
+              <Label htmlFor="ppkNumber">Номер протокола ППк</Label>
+              <Input
+                id="ppkNumber"
+                value={formData.ppkNumber || ""}
+                onChange={(e) => setFormData(prev => ({ ...prev, ppkNumber: e.target.value }))}
+                placeholder="Автоматически при сохранении"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Оставьте пустым для автоматической генерации
+              </p>
+            </div>
 
             <Card className="border-2 border-primary/20 bg-primary/5">
               <CardHeader>
@@ -1252,15 +1252,6 @@ export const ProtocolForm = ({
                   </div>
                 </div>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={generateConsent}
-                  disabled={!canSaveProtocol()}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Скачать бланк согласия (PDF)
-                </Button>
               </CardContent>
             </Card>
           </CardContent>

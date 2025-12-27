@@ -11,9 +11,18 @@ export const TestModeDialog = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkTrialPeriod = async () => {
+    const checkTrialPeriodAndSubscription = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Проверяем активную подписку
+      const { data: hasActiveSubscription } = await supabase
+        .rpc('has_active_subscription', { _user_id: user.id });
+
+      // Если есть активная подписка, не показываем диалог
+      if (hasActiveSubscription) {
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -27,15 +36,16 @@ export const TestModeDialog = () => {
         endDate.setDate(endDate.getDate() + 7);
         setTrialEndDate(endDate);
       }
+
+      // Показываем диалог только если нет активной подписки
+      const hasSeenDialog = sessionStorage.getItem('hasSeenTestModeDialog');
+      if (!hasSeenDialog) {
+        setOpen(true);
+        sessionStorage.setItem('hasSeenTestModeDialog', 'true');
+      }
     };
 
-    // Проверяем, показывали ли уже это окно в текущей сессии
-    const hasSeenDialog = sessionStorage.getItem('hasSeenTestModeDialog');
-    if (!hasSeenDialog) {
-      setOpen(true);
-      sessionStorage.setItem('hasSeenTestModeDialog', 'true');
-      checkTrialPeriod();
-    }
+    checkTrialPeriodAndSubscription();
   }, []);
 
   const handleSubscribe = () => {
