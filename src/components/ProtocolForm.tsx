@@ -516,34 +516,94 @@ export const ProtocolForm = ({
     let completedFields = 0;
     let totalFields = 0;
 
-    Object.values(formData.childData).forEach(value => {
+    // Шаг 1: Обязательные поля данных обучающегося
+    const requiredChildFields = ['fullName', 'birthDate', 'age', 'classNumber', 'parentName', 'parentPhone', 'whobrought', 'educationalOrganization'];
+    requiredChildFields.forEach(field => {
       totalFields++;
-      if (value && value !== false) completedFields++;
+      const value = formData.childData[field as keyof ChildData];
+      if (value && value !== '') completedFields++;
     });
 
-    formData.documents.forEach(doc => {
+    // Шаг 2: Обязательные поля протокола
+    const requiredProtocolFields = [formData.reason, formData.consultationDate, formData.sessionTopic, formData.meetingType];
+    requiredProtocolFields.forEach(field => {
+      totalFields++;
+      if (field && field.trim() !== '') completedFields++;
+    });
+
+    // Шаг 3: Обязательные документы
+    const requiredDocs = formData.documents.filter(doc => doc.required);
+    requiredDocs.forEach(doc => {
       totalFields++;
       if (doc.present) completedFields++;
     });
 
-    const protocolFields = [formData.reason, formData.consultationDate, formData.sessionTopic];
-    protocolFields.forEach(field => {
-      totalFields++;
-      if (field) completedFields++;
-    });
-
+    // Шаг 4: Чек-лист обследования
+    let checklistTotal = 0;
+    let checklistCompleted = 0;
     checklistBlocks.forEach(block => {
       block.topics.forEach((topic: any) => {
         topic.subtopics.forEach((subtopic: any) => {
           subtopic.items.forEach((item: any) => {
-            totalFields++;
-            if (item.score !== undefined) completedFields++;
+            checklistTotal++;
+            if (item.score !== undefined && item.score !== null) checklistCompleted++;
           });
         });
       });
     });
+    if (checklistTotal > 0) {
+      totalFields += checklistTotal;
+      completedFields += checklistCompleted;
+    }
 
-    return Math.round((completedFields / totalFields) * 100);
+    // Шаг 5: Согласие родителей
+    totalFields++;
+    if (formData.parentConsent) completedFields++;
+    totalFields++;
+    if (formData.parentConsentAcknowledged) completedFields++;
+
+    return totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+  };
+
+  // Проверка обязательных полей для каждого шага
+  const getStepMissingRequiredFields = (stepNumber: number): boolean => {
+    switch (stepNumber) {
+      case 1: {
+        const requiredFields = ['fullName', 'birthDate', 'age', 'classNumber', 'parentName', 'parentPhone', 'whobrought', 'educationalOrganization'];
+        return requiredFields.some(field => {
+          const value = formData.childData[field as keyof ChildData];
+          return !value || value === '';
+        });
+      }
+      case 2: {
+        return !formData.reason || !formData.consultationDate || !formData.sessionTopic;
+      }
+      case 3: {
+        const requiredDocs = formData.documents.filter(doc => doc.required);
+        return requiredDocs.some(doc => !doc.present);
+      }
+      case 4: {
+        // Проверяем, есть ли незаполненные обязательные элементы чек-листа
+        let hasIncomplete = false;
+        checklistBlocks.forEach(block => {
+          block.topics.forEach((topic: any) => {
+            topic.subtopics.forEach((subtopic: any) => {
+              subtopic.items.forEach((item: any) => {
+                if (item.score === undefined || item.score === null) {
+                  hasIncomplete = true;
+                }
+              });
+            });
+          });
+        });
+        return hasIncomplete;
+      }
+      case 5: {
+        return !formData.parentConsent || !formData.parentConsentAcknowledged;
+      }
+      default:
+        return false;
+    }
   };
 
   // Если доступ истек и это не редактирование существующего протокола
@@ -582,31 +642,36 @@ export const ProtocolForm = ({
       number: 1, 
       title: "Данные об обучающемся", 
       icon: User,
-      isComplete: () => !!formData.childData.fullName && !!selectedLevel && !!formData.childData.parentName
+      isComplete: () => !getStepMissingRequiredFields(1),
+      hasMissingRequired: () => getStepMissingRequiredFields(1)
     },
     { 
       number: 2, 
       title: "Данные протокола", 
       icon: FileText,
-      isComplete: () => !!formData.consultationType && !!formData.consultationDate
+      isComplete: () => !getStepMissingRequiredFields(2),
+      hasMissingRequired: () => getStepMissingRequiredFields(2)
     },
     { 
       number: 3, 
       title: "Документы обучающегося", 
       icon: FileText,
-      isComplete: () => formData.documents.filter(d => d.required).every(d => d.present)
+      isComplete: () => !getStepMissingRequiredFields(3),
+      hasMissingRequired: () => getStepMissingRequiredFields(3)
     },
     { 
       number: 4, 
       title: "Чек-лист обследования", 
       icon: ClipboardList,
-      isComplete: () => checklistBlocks.length > 0
+      isComplete: () => !getStepMissingRequiredFields(4),
+      hasMissingRequired: () => getStepMissingRequiredFields(4)
     },
     { 
       number: 5, 
       title: "Результаты и заключение", 
       icon: CheckCircle,
-      isComplete: () => !!formData.parentConsent
+      isComplete: () => !getStepMissingRequiredFields(5),
+      hasMissingRequired: () => getStepMissingRequiredFields(5)
     },
   ];
 
@@ -715,6 +780,7 @@ export const ProtocolForm = ({
             const Icon = step.icon;
             const isActive = currentStep === step.number;
             const isCompleted = step.isComplete();
+            const hasMissing = step.hasMissingRequired();
             
             return (
               <div key={step.number} className="flex items-center flex-1">
@@ -725,17 +791,20 @@ export const ProtocolForm = ({
                       flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all
                       ${isActive ? 'border-primary bg-primary text-primary-foreground' : ''}
                       ${isCompleted && !isActive ? 'border-primary bg-primary/10 text-primary' : ''}
-                      ${!isActive && !isCompleted ? 'border-muted-foreground/30 text-muted-foreground' : ''}
+                      ${!isActive && !isCompleted && hasMissing ? 'border-destructive text-destructive bg-destructive/10' : ''}
+                      ${!isActive && !isCompleted && !hasMissing ? 'border-muted-foreground/30 text-muted-foreground' : ''}
                       hover:scale-105
                     `}
                   >
                     {isCompleted && !isActive ? (
                       <CheckCircle2 className="h-5 w-5" />
+                    ) : hasMissing && !isActive ? (
+                      <AlertCircle className="h-5 w-5" />
                     ) : (
                       <Icon className="h-5 w-5" />
                     )}
                   </button>
-                  <span className={`text-xs mt-1 text-center max-w-[120px] ${isActive ? 'font-semibold' : ''}`}>
+                  <span className={`text-xs mt-1 text-center max-w-[120px] ${isActive ? 'font-semibold' : ''} ${hasMissing && !isActive && !isCompleted ? 'text-destructive' : ''}`}>
                     {step.title}
                   </span>
                 </div>
