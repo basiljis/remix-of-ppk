@@ -90,7 +90,7 @@ export const Footer = ({
               <div className="text-center text-sm text-muted-foreground space-y-1">
                 <p>ИП Загладин В.С.</p>
                 <p>ИНН 770702169499 | ОГРНИП 323774600132891</p>
-                <p>© 2025 Все права защищены</p>
+                <p>© 2025-26 Все права защищены</p>
               </div>
             </div>
           </div>
