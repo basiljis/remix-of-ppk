@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar, Briefcase } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
@@ -17,6 +17,7 @@ import { PaymentLogsPanel } from "@/components/PaymentLogsPanel";
 import { SubscriptionsDashboard } from "@/components/SubscriptionsDashboard";
 import { ErrorLogsPanel } from "@/components/ErrorLogsPanel";
 import { ScheduleSettingsPanel } from "@/components/ScheduleSettingsPanel";
+import { PositionsRolesPanel } from "@/components/PositionsRolesPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -415,6 +416,25 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
             </CardContent>
           </Card>
           <ScheduleSettingsPanel />
+        </div>
+      )}
+
+      {activeSubTab === "positions-roles" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Должности и типы пользователей
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Управление должностями специалистов и просмотр типов пользователей (ролей)
+              </p>
+            </CardContent>
+          </Card>
+          <PositionsRolesPanel />
         </div>
       )}
     </div>
