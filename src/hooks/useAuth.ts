@@ -28,7 +28,7 @@ export interface UserProfile {
 }
 
 export interface UserRole {
-  role: "admin" | "regional_operator" | "user";
+  role: "admin" | "regional_operator" | "user" | "organization_admin";
 }
 
 export const useAuth = () => {
