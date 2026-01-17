@@ -51,6 +51,7 @@ const menuItems = [
       { id: "administration-access-requests", label: "Заявки" },
       { id: "administration-commercial-offers", label: "КП заявки" },
       { id: "administration-users", label: "Пользователи" },
+      { id: "administration-positions-roles", label: "Должности и роли" },
       { id: "administration-organizations", label: "Организации" },
       { id: "administration-schedule", label: "Расписание" },
       { id: "administration-subscriptions", label: "Подписки" },
