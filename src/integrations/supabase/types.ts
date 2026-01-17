@@ -253,6 +253,62 @@ export type Database = {
           },
         ]
       }
+      children: {
+        Row: {
+          birth_date: string | null
+          created_at: string
+          education_level: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          organization_id: string | null
+          parent_email: string | null
+          parent_name: string | null
+          parent_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string
+          education_level?: string | null
+          full_name: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          parent_email?: string | null
+          parent_name?: string | null
+          parent_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string
+          education_level?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          parent_email?: string | null
+          parent_name?: string | null
+          parent_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commercial_offer_requests: {
         Row: {
           admin_notes: string | null
@@ -1137,6 +1193,106 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sessions: {
+        Row: {
+          actual_duration_minutes: number | null
+          child_id: string
+          created_at: string
+          created_by: string | null
+          end_time: string
+          id: string
+          notes: string | null
+          organization_id: string | null
+          protocol_id: string | null
+          scheduled_date: string
+          session_status_id: string
+          session_type_id: string
+          specialist_id: string
+          start_time: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_duration_minutes?: number | null
+          child_id: string
+          created_at?: string
+          created_by?: string | null
+          end_time: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          protocol_id?: string | null
+          scheduled_date: string
+          session_status_id: string
+          session_type_id: string
+          specialist_id: string
+          start_time: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_duration_minutes?: number | null
+          child_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_time?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          protocol_id?: string | null
+          scheduled_date?: string
+          session_status_id?: string
+          session_type_id?: string
+          specialist_id?: string
+          start_time?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "protocols"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_session_status_id_fkey"
+            columns: ["session_status_id"]
+            isOneToOne: false
+            referencedRelation: "session_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_session_type_id_fkey"
+            columns: ["session_type_id"]
+            isOneToOne: false
+            referencedRelation: "session_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_specialist_id_fkey"
+            columns: ["specialist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       specialist_workload_settings: {
         Row: {
