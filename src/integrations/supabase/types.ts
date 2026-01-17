@@ -1039,6 +1039,83 @@ export type Database = {
         }
         Relationships: []
       }
+      session_duration_settings: {
+        Row: {
+          age_from: number
+          age_label: string
+          age_to: number
+          created_at: string
+          id: string
+          max_sessions_per_day: number
+          max_sessions_per_week: number
+          session_duration_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          age_from: number
+          age_label: string
+          age_to: number
+          created_at?: string
+          id?: string
+          max_sessions_per_day?: number
+          max_sessions_per_week?: number
+          session_duration_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          age_from?: number
+          age_label?: string
+          age_to?: number
+          created_at?: string
+          id?: string
+          max_sessions_per_day?: number
+          max_sessions_per_week?: number
+          session_duration_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      specialist_workload_settings: {
+        Row: {
+          created_at: string
+          hours_per_rate: number
+          id: string
+          max_hours_per_day: number
+          max_hours_per_week: number
+          max_hours_per_year: number
+          position_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hours_per_rate?: number
+          id?: string
+          max_hours_per_day?: number
+          max_hours_per_week?: number
+          max_hours_per_year?: number
+          position_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hours_per_rate?: number
+          id?: string
+          max_hours_per_day?: number
+          max_hours_per_week?: number
+          max_hours_per_year?: number
+          position_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialist_workload_settings_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: true
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_requests: {
         Row: {
           admin_notes: string | null

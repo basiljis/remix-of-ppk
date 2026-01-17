@@ -52,6 +52,7 @@ const menuItems = [
       { id: "administration-commercial-offers", label: "КП заявки" },
       { id: "administration-users", label: "Пользователи" },
       { id: "administration-organizations", label: "Организации" },
+      { id: "administration-schedule", label: "Расписание" },
       { id: "administration-subscriptions", label: "Подписки" },
       { id: "administration-analytics", label: "Аналитика" },
       { id: "administration-payment-logs", label: "Логи платежей" },
