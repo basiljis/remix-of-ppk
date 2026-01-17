@@ -1294,6 +1294,47 @@ export type Database = {
           },
         ]
       }
+      specialist_rates: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          rate: number
+          set_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          rate?: number
+          set_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          rate?: number
+          set_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialist_rates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       specialist_workload_settings: {
         Row: {
           created_at: string
@@ -1490,7 +1531,7 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
-      app_role: "admin" | "regional_operator" | "user"
+      app_role: "admin" | "regional_operator" | "user" | "organization_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1618,7 +1659,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "regional_operator", "user"],
+      app_role: ["admin", "regional_operator", "user", "organization_admin"],
     },
   },
 } as const

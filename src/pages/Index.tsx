@@ -25,6 +25,7 @@ const ProtocolForm = lazy(() => import("@/components/ProtocolForm").then(m => ({
 const PPKList = lazy(() => import("@/components/PPKList").then(m => ({ default: m.PPKList })));
 const Dashboard = lazy(() => import("@/components/Dashboard").then(m => ({ default: m.Dashboard })));
 const Administration = lazy(() => import("@/components/Administration").then(m => ({ default: m.Administration })));
+const ScheduleModule = lazy(() => import("@/components/ScheduleModule").then(m => ({ default: m.ScheduleModule })));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -208,6 +209,12 @@ const Index = () => {
           <div className="text-center p-8">
             <p className="text-muted-foreground">У вас нет доступа к этому разделу</p>
           </div>
+        );
+      case "schedule-module":
+        return (
+          <Suspense fallback={loadingFallback}>
+            <ScheduleModule />
+          </Suspense>
         );
       default:
         return null;
