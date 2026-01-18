@@ -65,7 +65,9 @@ import {
   X,
   Loader2,
   Wand2,
-  KeyRound
+  KeyRound,
+  Ban,
+  UserCheck
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -138,6 +140,8 @@ export function OrganizationEmployees() {
   const [isParsing, setIsParsing] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     full_name: "",
     email: "",
@@ -798,6 +802,59 @@ export function OrganizationEmployees() {
     setIsResetPasswordDialogOpen(true);
   };
 
+  const openBlockDialog = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsBlockDialogOpen(true);
+  };
+
+  // Block/Unblock employee
+  const handleToggleBlock = async () => {
+    if (!selectedEmployee) return;
+    
+    setIsBlocking(true);
+    try {
+      const newBlockedStatus = !selectedEmployee.is_blocked;
+      
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_blocked: newBlockedStatus })
+        .eq("id", selectedEmployee.id);
+
+      if (error) throw error;
+
+      // Log change to history
+      await supabase.from("change_history").insert([{
+        table_name: "profiles",
+        record_id: selectedEmployee.id,
+        action: "update",
+        changed_by: profile?.id,
+        old_data: { is_blocked: selectedEmployee.is_blocked } as any,
+        new_data: { is_blocked: newBlockedStatus } as any,
+        changes_summary: newBlockedStatus 
+          ? `Сотрудник ${selectedEmployee.full_name} заблокирован`
+          : `Сотрудник ${selectedEmployee.full_name} разблокирован`,
+      }]);
+
+      toast({
+        title: newBlockedStatus ? "Сотрудник заблокирован" : "Сотрудник разблокирован",
+        description: newBlockedStatus 
+          ? `${selectedEmployee.full_name} больше не может войти в систему`
+          : `${selectedEmployee.full_name} снова может войти в систему`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["organization-employees"] });
+      setIsBlockDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось изменить статус сотрудника",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -1036,6 +1093,22 @@ export function OrganizationEmployees() {
                             >
                               <KeyRound className="h-4 w-4 mr-2" />
                               Сбросить пароль
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => openBlockDialog(employee)}
+                              className={employee.is_blocked ? "text-green-600" : "text-destructive"}
+                            >
+                              {employee.is_blocked ? (
+                                <>
+                                  <UserCheck className="h-4 w-4 mr-2" />
+                                  Разблокировать
+                                </>
+                              ) : (
+                                <>
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Заблокировать
+                                </>
+                              )}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1528,6 +1601,85 @@ export function OrganizationEmployees() {
                   <>
                     <KeyRound className="h-4 w-4 mr-2" />
                     Сбросить пароль
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Block/Unblock Confirmation Dialog */}
+        <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {selectedEmployee?.is_blocked ? (
+                  <>
+                    <UserCheck className="h-5 w-5 text-green-600" />
+                    Разблокировать сотрудника
+                  </>
+                ) : (
+                  <>
+                    <Ban className="h-5 w-5 text-destructive" />
+                    Заблокировать сотрудника
+                  </>
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedEmployee?.is_blocked 
+                  ? "Сотрудник снова сможет войти в систему."
+                  : "Сотрудник не сможет войти в систему до разблокировки."
+                }
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="font-medium">{selectedEmployee?.full_name}</p>
+                <p className="text-sm text-muted-foreground">{selectedEmployee?.email}</p>
+              </div>
+              
+              {!selectedEmployee?.is_blocked && (
+                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg">
+                  <p className="text-sm text-destructive">
+                    <AlertCircle className="h-4 w-4 inline mr-2" />
+                    После блокировки сотрудник не сможет войти в систему и выполнять какие-либо действия.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsBlockDialogOpen(false)}
+                disabled={isBlocking}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant={selectedEmployee?.is_blocked ? "default" : "destructive"}
+                onClick={handleToggleBlock}
+                disabled={isBlocking}
+              >
+                {isBlocking ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {selectedEmployee?.is_blocked ? "Разблокировка..." : "Блокировка..."}
+                  </>
+                ) : (
+                  <>
+                    {selectedEmployee?.is_blocked ? (
+                      <>
+                        <UserCheck className="h-4 w-4 mr-2" />
+                        Разблокировать
+                      </>
+                    ) : (
+                      <>
+                        <Ban className="h-4 w-4 mr-2" />
+                        Заблокировать
+                      </>
+                    )}
                   </>
                 )}
               </Button>

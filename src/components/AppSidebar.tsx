@@ -30,6 +30,7 @@ interface AppSidebarProps {
   isAdmin?: boolean;
   isOrgAdmin?: boolean;
   isDirector?: boolean;
+  hasOrganizationAccess?: boolean;
 }
 
 const menuItems = [
@@ -121,9 +122,9 @@ const adminItems = [
   },
 ];
 
-export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false, hasOrganizationAccess = false }: AppSidebarProps) {
   const { state } = useSidebar();
-  const canSeeOrganization = isOrgAdmin || isDirector || isAdmin;
+  const canSeeOrganization = isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess;
 
   const renderMenuItem = (item: typeof menuItems[0], isActive: boolean) => {
     const Icon = item.icon;
