@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import {
   Calculator,
   TrendingUp,
@@ -26,7 +27,11 @@ import {
   User,
   Calendar,
   FileText,
+  Users,
+  Clock,
+  ClipboardCheck,
 } from "lucide-react";
+import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import {
@@ -327,7 +332,7 @@ export function ProtocolResultsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -384,8 +389,8 @@ export function ProtocolResultsModal({
                 <TabsTrigger value="directions">Направления помощи</TabsTrigger>
               </TabsList>
 
-              <ScrollArea className="flex-1 mt-4">
-                <TabsContent value="results" className="space-y-4 mt-0">
+              <ScrollArea className="flex-1 mt-4 h-[calc(90vh-280px)]">
+                <TabsContent value="results" className="space-y-4 mt-0 pr-4">
                   {totalStats && (
                     <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
                       <CardHeader>
@@ -490,7 +495,7 @@ export function ProtocolResultsModal({
                   )}
                 </TabsContent>
 
-                <TabsContent value="blocks" className="space-y-4 mt-0">
+                <TabsContent value="blocks" className="space-y-4 mt-0 pr-4">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
@@ -577,124 +582,225 @@ export function ProtocolResultsModal({
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="directions" className="space-y-4 mt-0">
+              <TabsContent value="directions" className="space-y-4 mt-0 pr-4">
                   {analysis && (
                     <div className="space-y-6">
-                      <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2 text-lg">
-                            <Target className="h-5 w-5" />
-                            Направления коррекционно-развивающей помощи
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <Alert
-                            className={`border-l-4 ${
-                              analysis.overallGroup.color === "success"
-                                ? "border-l-green-500 bg-green-50"
-                                : analysis.overallGroup.color === "warning"
-                                ? "border-l-yellow-500 bg-yellow-50"
-                                : "border-l-red-500 bg-red-50"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              {getGroupIcon(analysis.overallGroup.group)}
-                              <Badge
-                                variant={
-                                  analysis.overallGroup.color === "success"
-                                    ? "default"
-                                    : analysis.overallGroup.color === "warning"
-                                    ? "secondary"
-                                    : "destructive"
-                                }
-                              >
-                                Группа {analysis.overallGroup.group}
-                              </Badge>
-                            </div>
-                            <AlertDescription className="font-medium">
-                              {analysis.overallGroup.description}
-                            </AlertDescription>
-                          </Alert>
-
-                          <div className="space-y-3">
-                            <h4 className="font-semibold text-sm">
-                              Рекомендации:
-                            </h4>
-                            <ul className="space-y-1 text-sm">
-                              {analysis.recommendations.map(
-                                (recommendation, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-start gap-2"
-                                  >
-                                    <span className="text-muted-foreground mt-1">
-                                      •
-                                    </span>
-                                    <span
-                                      className={
-                                        recommendation.includes("ОБЯЗАТЕЛЬНО")
-                                          ? "font-semibold text-destructive"
-                                          : ""
-                                      }
-                                    >
-                                      {recommendation}
-                                    </span>
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">
-                            Анализ по блокам
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          {analysis.blockAssessments.map(
-                            (assessment, index) => (
-                              <div
-                                key={index}
-                                className="p-3 border rounded-lg"
-                              >
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="font-medium">
-                                    {assessment.blockTitle}
-                                  </span>
-                                  {assessment.group && (
+                      {/* Protocol Conclusion Section */}
+                      {(() => {
+                        const conclusion = generateProtocolConclusion(
+                          analysis,
+                          protocol?.child_name || "",
+                          protocol?.education_level || ""
+                        );
+                        
+                        return (
+                          <>
+                            {/* Overall Group & Status */}
+                            <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                  <ClipboardCheck className="h-5 w-5" />
+                                  Заключение протокола ППК
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <Alert
+                                  className={`border-l-4 ${
+                                    analysis.overallGroup.color === "success"
+                                      ? "border-l-green-500 bg-green-50 dark:bg-green-950/20"
+                                      : analysis.overallGroup.color === "warning"
+                                      ? "border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20"
+                                      : "border-l-red-500 bg-red-50 dark:bg-red-950/20"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 mb-2">
+                                    {getGroupIcon(analysis.overallGroup.group)}
                                     <Badge
                                       variant={
-                                        assessment.group.color === "success"
+                                        analysis.overallGroup.color === "success"
                                           ? "default"
-                                          : assessment.group.color === "warning"
+                                          : analysis.overallGroup.color === "warning"
                                           ? "secondary"
                                           : "destructive"
                                       }
                                     >
-                                      Группа {assessment.group.group}
+                                      Группа {analysis.overallGroup.group}
                                     </Badge>
-                                  )}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  Процент: {assessment.percentage.toFixed(1)}% |
-                                  Существенные критерии:{" "}
-                                  {assessment.hasEssentialCriteria
-                                    ? "Да"
-                                    : "Нет"}
-                                </div>
-                                {assessment.group && (
-                                  <div className="text-sm mt-1">
-                                    {assessment.group.description}
                                   </div>
+                                  <AlertDescription className="font-medium">
+                                    {conclusion.finalStatus}
+                                  </AlertDescription>
+                                </Alert>
+                              </CardContent>
+                            </Card>
+
+                            {/* Recommended Specialists */}
+                            <Card>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                  <Users className="h-5 w-5" />
+                                  Рекомендуемые специалисты
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                  <div className={`p-3 rounded-lg border ${conclusion.specialistAssignments.teacher ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-muted/30'}`}>
+                                    <div className="text-sm font-medium">Педагог</div>
+                                    <Badge variant={conclusion.specialistAssignments.teacher ? "default" : "secondary"} className="mt-1">
+                                      {conclusion.specialistAssignments.teacher ? "Да" : "Нет"}
+                                    </Badge>
+                                  </div>
+                                  <div className={`p-3 rounded-lg border ${conclusion.specialistAssignments.speechTherapist ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-muted/30'}`}>
+                                    <div className="text-sm font-medium">Учитель-логопед</div>
+                                    <Badge variant={conclusion.specialistAssignments.speechTherapist ? "default" : "secondary"} className="mt-1">
+                                      {conclusion.specialistAssignments.speechTherapist ? "Да" : "Нет"}
+                                    </Badge>
+                                  </div>
+                                  <div className={`p-3 rounded-lg border ${conclusion.specialistAssignments.psychologist ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-muted/30'}`}>
+                                    <div className="text-sm font-medium">Педагог-психолог</div>
+                                    <Badge variant={conclusion.specialistAssignments.psychologist ? "default" : "secondary"} className="mt-1">
+                                      {conclusion.specialistAssignments.psychologist ? "Да" : "Нет"}
+                                    </Badge>
+                                  </div>
+                                  <div className={`p-3 rounded-lg border ${conclusion.specialistAssignments.socialWorker ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-muted/30'}`}>
+                                    <div className="text-sm font-medium">Социальный педагог</div>
+                                    <Badge variant={conclusion.specialistAssignments.socialWorker ? "default" : "secondary"} className="mt-1">
+                                      {conclusion.specialistAssignments.socialWorker ? "Да" : "Нет"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                
+                                {conclusion.specialistAssignments.needsCPMPK && (
+                                  <Alert variant="destructive" className="mt-4">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertDescription>
+                                      Рекомендовано направление на ЦПМПК
+                                    </AlertDescription>
+                                  </Alert>
                                 )}
-                              </div>
-                            )
-                          )}
-                        </CardContent>
-                      </Card>
+                              </CardContent>
+                            </Card>
+
+                            {/* Work Forms */}
+                            <Card>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                  <Target className="h-5 w-5" />
+                                  Рекомендуемые формы работы
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <ul className="space-y-2">
+                                  {conclusion.workFormRecommendations.map((rec, idx) => (
+                                    <li key={idx} className="flex items-start gap-2 text-sm">
+                                      <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                      <span>{rec}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </CardContent>
+                            </Card>
+
+                            {/* Timeframe */}
+                            <Card>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                  <Clock className="h-5 w-5" />
+                                  Сроки предоставления помощи
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm">{conclusion.timeframeRecommendations}</p>
+                              </CardContent>
+                            </Card>
+
+                            {/* CPMK Recommendation */}
+                            {conclusion.cpmkRecommendation && (
+                              <Card className="border-destructive/50">
+                                <CardHeader>
+                                  <CardTitle className="flex items-center gap-2 text-lg text-destructive">
+                                    <AlertTriangle className="h-5 w-5" />
+                                    Рекомендации по ЦПМПК
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <p className="text-sm">{conclusion.cpmkRecommendation}</p>
+                                </CardContent>
+                              </Card>
+                            )}
+
+                            {/* Full Conclusion Text */}
+                            <Card>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                  <FileText className="h-5 w-5" />
+                                  Текст заключения
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="bg-muted/30 p-4 rounded-lg">
+                                  <pre className="whitespace-pre-wrap text-sm font-sans leading-relaxed">
+                                    {conclusion.conclusionText}
+                                  </pre>
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <Separator />
+
+                            {/* Block Analysis */}
+                            <Card>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                  <TrendingUp className="h-5 w-5" />
+                                  Анализ по блокам
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                {analysis.blockAssessments.map(
+                                  (assessment, index) => (
+                                    <div
+                                      key={index}
+                                      className="p-3 border rounded-lg"
+                                    >
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="font-medium">
+                                          {assessment.blockTitle}
+                                        </span>
+                                        {assessment.group && (
+                                          <Badge
+                                            variant={
+                                              assessment.group.color === "success"
+                                                ? "default"
+                                                : assessment.group.color === "warning"
+                                                ? "secondary"
+                                                : "destructive"
+                                            }
+                                          >
+                                            Группа {assessment.group.group}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <div className="text-sm text-muted-foreground">
+                                        Процент: {assessment.percentage.toFixed(1)}% |
+                                        Существенные критерии:{" "}
+                                        {assessment.hasEssentialCriteria
+                                          ? "Да"
+                                          : "Нет"}
+                                      </div>
+                                      {assessment.group && (
+                                        <div className="text-sm mt-1">
+                                          {assessment.group.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                )}
+                              </CardContent>
+                            </Card>
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
                 </TabsContent>
