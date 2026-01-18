@@ -1365,6 +1365,68 @@ export type Database = {
           },
         ]
       }
+      specialist_goals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          current_value: number
+          goal_name: string
+          goal_type: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          organization_id: string | null
+          period_end: string
+          period_start: string
+          period_type: string
+          target_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          current_value?: number
+          goal_name: string
+          goal_type: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          period_end: string
+          period_start: string
+          period_type?: string
+          target_value?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          current_value?: number
+          goal_name?: string
+          goal_type?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          target_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialist_goals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       specialist_rates: {
         Row: {
           created_at: string
