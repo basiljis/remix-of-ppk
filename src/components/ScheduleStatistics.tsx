@@ -46,11 +46,12 @@ import {
   differenceInDays
 } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Calendar, BarChart3, Users, Clock, CalendarDays, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus, GitCompare } from "lucide-react";
+import { Calendar, BarChart3, Users, Clock, CalendarDays, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus, GitCompare, CalendarRange } from "lucide-react";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 type PeriodType = "week" | "month" | "quarter" | "year" | "custom";
+type ComparisonType = "previous" | "year_ago";
 
 interface SessionWithDetails {
   id: string;
@@ -86,6 +87,7 @@ export function ScheduleStatistics() {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [showComparison, setShowComparison] = useState(false);
+  const [comparisonType, setComparisonType] = useState<ComparisonType>("previous");
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
   const isRegionalOperator = roles.some((r) => r.role === "regional_operator");
@@ -115,10 +117,19 @@ export function ScheduleStatistics() {
     }
   }, [periodType, customStartDate, customEndDate]);
 
-  // Calculate previous period dates
+  // Calculate previous period dates (either previous period or same period last year)
   const { prevStartDate, prevEndDate } = useMemo(() => {
     const periodDays = differenceInDays(endDate, startDate);
     
+    // Same period last year
+    if (comparisonType === "year_ago") {
+      return {
+        prevStartDate: subYears(startDate, 1),
+        prevEndDate: subYears(endDate, 1),
+      };
+    }
+    
+    // Previous period (sequential)
     switch (periodType) {
       case "week":
         return {
@@ -151,7 +162,7 @@ export function ScheduleStatistics() {
           prevEndDate: endOfMonth(subMonths(startDate, 1)),
         };
     }
-  }, [startDate, endDate, periodType]);
+  }, [startDate, endDate, periodType, comparisonType]);
 
   // Fetch session types
   const { data: sessionTypes = [] } = useQuery({
@@ -499,7 +510,11 @@ export function ScheduleStatistics() {
     );
   };
 
-  const getPeriodLabel = () => {
+  const getComparisonLabel = () => {
+    if (comparisonType === "year_ago") {
+      return "аналогичным периодом прошлого года";
+    }
+    
     switch (periodType) {
       case "week": return "прошлой неделей";
       case "month": return "прошлым месяцем";
@@ -513,12 +528,47 @@ export function ScheduleStatistics() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Статистика занятий
-          </CardTitle>
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Статистика занятий
+            </CardTitle>
+            <div className="flex flex-wrap items-center gap-3">
+              <Select value={periodType} onValueChange={(v) => setPeriodType(v as PeriodType)}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">За неделю</SelectItem>
+                  <SelectItem value="month">За месяц</SelectItem>
+                  <SelectItem value="quarter">За квартал</SelectItem>
+                  <SelectItem value="year">За год</SelectItem>
+                  <SelectItem value="custom">Произвольный период</SelectItem>
+                </SelectContent>
+              </Select>
+              {periodType === "custom" && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="px-3 py-2 border rounded-md text-sm bg-background"
+                  />
+                  <span>—</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="px-3 py-2 border rounded-md text-sm bg-background"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Comparison controls */}
+          <div className="flex flex-wrap items-center gap-4 p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-2">
               <Switch
                 id="comparison-mode"
@@ -527,47 +577,32 @@ export function ScheduleStatistics() {
               />
               <Label htmlFor="comparison-mode" className="text-sm cursor-pointer flex items-center gap-1">
                 <GitCompare className="h-4 w-4" />
-                Сравнение с {getPeriodLabel()}
+                Сравнение периодов
               </Label>
             </div>
-            <Select value={periodType} onValueChange={(v) => setPeriodType(v as PeriodType)}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">За неделю</SelectItem>
-                <SelectItem value="month">За месяц</SelectItem>
-                <SelectItem value="quarter">За квартал</SelectItem>
-                <SelectItem value="year">За год</SelectItem>
-                <SelectItem value="custom">Произвольный период</SelectItem>
-              </SelectContent>
-            </Select>
-            {periodType === "custom" && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm bg-background"
-                />
-                <span>—</span>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm bg-background"
-                />
-              </div>
+            
+            {showComparison && (
+              <Select value={comparisonType} onValueChange={(v) => setComparisonType(v as ComparisonType)}>
+                <SelectTrigger className="w-[280px]">
+                  <CalendarRange className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="previous">С предыдущим периодом</SelectItem>
+                  <SelectItem value="year_ago">С аналогичным периодом прошлого года</SelectItem>
+                </SelectContent>
+              </Select>
             )}
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 text-sm text-muted-foreground">
+        
+        <div className="flex flex-col sm:flex-row gap-2 text-sm text-muted-foreground mt-2">
           <span>
             Текущий период: {format(startDate, "d MMMM yyyy", { locale: ru })} — {format(endDate, "d MMMM yyyy", { locale: ru })}
           </span>
           {showComparison && (
             <span className="text-chart-2">
-              • Сравнение: {format(prevStartDate, "d MMMM yyyy", { locale: ru })} — {format(prevEndDate, "d MMMM yyyy", { locale: ru })}
+              • Сравнение с {getComparisonLabel()}: {format(prevStartDate, "d MMMM yyyy", { locale: ru })} — {format(prevEndDate, "d MMMM yyyy", { locale: ru })}
             </span>
           )}
         </div>
