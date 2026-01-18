@@ -63,7 +63,8 @@ import {
   AlertCircle,
   CheckCircle2,
   X,
-  Loader2
+  Loader2,
+  Wand2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -282,10 +283,18 @@ export function OrganizationEmployees() {
     enabled: !!organizationId,
   });
 
-  // Save permissions mutation
+  // Save permissions mutation with history logging
   const savePermissionsMutation = useMutation({
     mutationFn: async (perms: EmployeePermissions) => {
       if (!selectedEmployee || !organizationId) throw new Error("No employee selected");
+
+      // Get current permissions for change history
+      const { data: oldPerms } = await supabase
+        .from("employee_permissions")
+        .select("*")
+        .eq("user_id", selectedEmployee.id)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
 
       const { error } = await supabase
         .from("employee_permissions")
@@ -299,6 +308,39 @@ export function OrganizationEmployees() {
         });
       
       if (error) throw error;
+
+      // Log change to history
+      const permissionLabels: Record<string, string> = {
+        ppk_view: 'ППк (просмотр)',
+        ppk_edit: 'ППк (редактирование)',
+        ppk_create: 'ППк (создание)',
+        org_view: 'Организация (просмотр)',
+        org_edit: 'Организация (редактирование)',
+        schedule_personal: 'Расписание (личное)',
+        schedule_organization: 'Расписание (организации)',
+        statistics_view: 'Статистика (просмотр)',
+      };
+
+      const changes: string[] = [];
+      Object.keys(perms).forEach((key) => {
+        const oldValue = oldPerms ? (oldPerms as any)[key] : false;
+        const newValue = (perms as any)[key];
+        if (oldValue !== newValue) {
+          changes.push(`${permissionLabels[key]}: ${oldValue ? 'Да' : 'Нет'} → ${newValue ? 'Да' : 'Нет'}`);
+        }
+      });
+
+      if (changes.length > 0) {
+        await supabase.from("change_history").insert([{
+          table_name: "employee_permissions",
+          record_id: selectedEmployee.id,
+          action: oldPerms ? "update" : "create",
+          changed_by: profile?.id,
+          old_data: oldPerms as any || null,
+          new_data: perms as any,
+          changes_summary: `Изменены права доступа сотрудника ${selectedEmployee.full_name}: ${changes.join('; ')}`,
+        }]);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employee-permissions"] });
@@ -464,6 +506,32 @@ export function OrganizationEmployees() {
     link.click();
     URL.revokeObjectURL(url);
     toast({ title: "Экспорт выполнен" });
+  };
+
+  // Generate random password
+  const generatePassword = (): string => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    const specialChars = '!@#$%&*';
+    let password = '';
+    for (let i = 0; i < 10; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    // Add one special char and one number for security
+    password += specialChars.charAt(Math.floor(Math.random() * specialChars.length));
+    password += Math.floor(Math.random() * 10);
+    return password;
+  };
+
+  // Generate passwords for all selected employees
+  const generateAllPasswords = () => {
+    setParsedEmployees(prev => 
+      prev.map((emp, index) => 
+        selectedImportEmployees.has(index) 
+          ? { ...emp, password: generatePassword() }
+          : emp
+      )
+    );
+    toast({ title: "Пароли сгенерированы", description: `Для ${selectedImportEmployees.size} сотрудников` });
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1153,7 +1221,7 @@ export function OrganizationEmployees() {
             </DialogHeader>
             
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     checked={selectedImportEmployees.size === parsedEmployees.length && parsedEmployees.length > 0}
@@ -1164,12 +1232,23 @@ export function OrganizationEmployees() {
                     Выбрать всех ({selectedImportEmployees.size} из {parsedEmployees.length})
                   </span>
                 </div>
-                {importErrors.size > 0 && (
-                  <Badge variant="destructive">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {importErrors.size} ошибок
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={generateAllPasswords}
+                    disabled={isImporting || selectedImportEmployees.size === 0}
+                  >
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Сгенерировать пароли
+                  </Button>
+                  {importErrors.size > 0 && (
+                    <Badge variant="destructive">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {importErrors.size} ошибок
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <ScrollArea className="h-[400px] border rounded-lg">
