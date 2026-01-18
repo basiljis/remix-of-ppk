@@ -64,7 +64,8 @@ import {
   CheckCircle2,
   X,
   Loader2,
-  Wand2
+  Wand2,
+  KeyRound
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -135,6 +136,8 @@ export function OrganizationEmployees() {
   const [importErrors, setImportErrors] = useState<Map<number, string>>(new Map());
   const [isImporting, setIsImporting] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     full_name: "",
     email: "",
@@ -758,6 +761,43 @@ export function OrganizationEmployees() {
     }
   };
 
+  // Reset password for employee
+  const handleResetPassword = async () => {
+    if (!selectedEmployee) return;
+    
+    setIsResettingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset-employee-password", {
+        body: {
+          employeeId: selectedEmployee.id,
+          employeeEmail: selectedEmployee.email,
+          employeeName: selectedEmployee.full_name,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Пароль сброшен",
+        description: `Новый пароль отправлен на ${selectedEmployee.email}`,
+      });
+      setIsResetPasswordDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось сбросить пароль",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const openResetPasswordDialog = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsResetPasswordDialogOpen(true);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -988,6 +1028,14 @@ export function OrganizationEmployees() {
                             <DropdownMenuItem onClick={() => openScheduleDialog(employee)}>
                               <Clock className="h-4 w-4 mr-2" />
                               Рабочее время
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => openResetPasswordDialog(employee)}
+                              className="text-amber-600"
+                            >
+                              <KeyRound className="h-4 w-4 mr-2" />
+                              Сбросить пароль
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1423,6 +1471,63 @@ export function OrganizationEmployees() {
                   <>
                     <Upload className="h-4 w-4 mr-2" />
                     Импортировать ({selectedImportEmployees.size})
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reset Password Confirmation Dialog */}
+        <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-amber-600" />
+                Сбросить пароль
+              </DialogTitle>
+              <DialogDescription>
+                Новый пароль будет сгенерирован и отправлен на email сотрудника.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="font-medium">{selectedEmployee?.full_name}</p>
+                <p className="text-sm text-muted-foreground">{selectedEmployee?.email}</p>
+              </div>
+              
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <AlertCircle className="h-4 w-4 inline mr-2" />
+                  После сброса сотрудник получит письмо с новым паролем и не сможет войти по старому паролю.
+                </p>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsResetPasswordDialogOpen(false)}
+                disabled={isResettingPassword}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant="default"
+                onClick={handleResetPassword}
+                disabled={isResettingPassword}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
+                {isResettingPassword ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Сброс...
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="h-4 w-4 mr-2" />
+                    Сбросить пароль
                   </>
                 )}
               </Button>
