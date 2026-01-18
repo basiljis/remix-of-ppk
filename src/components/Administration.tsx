@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar, Briefcase } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar, Briefcase, Shield, ClipboardList } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
@@ -18,6 +18,9 @@ import { SubscriptionsDashboard } from "@/components/SubscriptionsDashboard";
 import { ErrorLogsPanel } from "@/components/ErrorLogsPanel";
 import { ScheduleSettingsPanel } from "@/components/ScheduleSettingsPanel";
 import { PositionsRolesPanel } from "@/components/PositionsRolesPanel";
+import { OrganizationAdminManagement } from "@/components/OrganizationAdminManagement";
+import { SpecialistWorkloadReport } from "@/components/SpecialistWorkloadReport";
+import { SessionNotificationsPanel } from "@/components/SessionNotificationsPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -435,6 +438,63 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
             </CardContent>
           </Card>
           <PositionsRolesPanel />
+        </div>
+      )}
+
+      {activeSubTab === "org-admins" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Администраторы организаций
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Назначение роли "Администратор организации" пользователям для управления детьми и ставками
+              </p>
+            </CardContent>
+          </Card>
+          <OrganizationAdminManagement />
+        </div>
+      )}
+
+      {activeSubTab === "workload-report" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Отчёт по загрузке специалистов
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Анализ нагрузки специалистов с учётом ставок и проведённых занятий
+              </p>
+            </CardContent>
+          </Card>
+          <SpecialistWorkloadReport />
+        </div>
+      )}
+
+      {activeSubTab === "session-notifications" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Уведомления о занятиях
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Отправка email-уведомлений родителям о предстоящих занятиях
+              </p>
+            </CardContent>
+          </Card>
+          <SessionNotificationsPanel />
         </div>
       )}
     </div>
