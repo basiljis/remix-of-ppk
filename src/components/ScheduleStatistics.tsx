@@ -46,7 +46,7 @@ import {
   differenceInDays
 } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Calendar, BarChart3, Users, Clock, CalendarDays, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus, GitCompare, CalendarRange, User, Building2 } from "lucide-react";
+import { Calendar, BarChart3, Users, Clock, CalendarDays, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus, GitCompare, CalendarRange } from "lucide-react";
 import { SpecialistKPIPanel } from "./SpecialistKPIPanel";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
@@ -82,22 +82,15 @@ interface SessionWithDetails {
   } | null;
 }
 
-type ViewMode = "personal" | "organization";
-
 export function ScheduleStatistics() {
-  const { isAdmin, roles, profile, user } = useAuth();
+  const { profile, user } = useAuth();
   const [periodType, setPeriodType] = useState<PeriodType>("month");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonType, setComparisonType] = useState<ComparisonType>("previous");
-  const [viewMode, setViewMode] = useState<ViewMode>("personal");
   
-  const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
-  const isRegionalOperator = roles.some((r) => r.role === "regional_operator");
-  const isDirector = roles.some((r) => r.role === "director");
   const organizationId = profile?.organization_id;
-  const canViewOrgStats = isAdmin || isOrgAdmin || isRegionalOperator || isDirector;
 
   // Calculate date range for current period
   const { startDate, endDate } = useMemo(() => {
@@ -211,11 +204,11 @@ export function ScheduleStatistics() {
     },
   });
 
-  // Fetch sessions for current period
+  // Fetch sessions for current period - only for current user
   const { data: sessions = [], isLoading } = useQuery({
-    queryKey: ["schedule-statistics", organizationId, startDate.toISOString(), endDate.toISOString(), isAdmin, isOrgAdmin, isRegionalOperator, viewMode, user?.id],
+    queryKey: ["schedule-statistics-personal", startDate.toISOString(), endDate.toISOString(), user?.id],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("sessions")
         .select(`
           id,
@@ -244,31 +237,22 @@ export function ScheduleStatistics() {
             )
           )
         `)
+        .eq("specialist_id", user?.id)
         .gte("scheduled_date", format(startDate, "yyyy-MM-dd"))
-        .lte("scheduled_date", format(endDate, "yyyy-MM-dd"));
+        .lte("scheduled_date", format(endDate, "yyyy-MM-dd"))
+        .order("scheduled_date");
 
-      // Filter by specialist (current user) for personal view
-      if (viewMode === "personal" && user?.id) {
-        query = query.eq("specialist_id", user.id);
-      } else {
-        // Filter by organization for non-admins in organization view
-        if (!isAdmin && organizationId) {
-          query = query.eq("organization_id", organizationId);
-        }
-      }
-
-      const { data, error } = await query.order("scheduled_date");
       if (error) throw error;
       return (data || []) as SessionWithDetails[];
     },
-    enabled: !!user?.id && (!!organizationId || isAdmin),
+    enabled: !!user?.id,
   });
 
-  // Fetch sessions for previous period (only when comparison is enabled)
+  // Fetch sessions for previous period (only when comparison is enabled) - only for current user
   const { data: prevSessions = [], isLoading: isPrevLoading } = useQuery({
-    queryKey: ["schedule-statistics-prev", organizationId, prevStartDate.toISOString(), prevEndDate.toISOString(), isAdmin, isOrgAdmin, isRegionalOperator, viewMode, user?.id],
+    queryKey: ["schedule-statistics-prev-personal", prevStartDate.toISOString(), prevEndDate.toISOString(), user?.id],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("sessions")
         .select(`
           id,
@@ -297,24 +281,15 @@ export function ScheduleStatistics() {
             )
           )
         `)
+        .eq("specialist_id", user?.id)
         .gte("scheduled_date", format(prevStartDate, "yyyy-MM-dd"))
-        .lte("scheduled_date", format(prevEndDate, "yyyy-MM-dd"));
+        .lte("scheduled_date", format(prevEndDate, "yyyy-MM-dd"))
+        .order("scheduled_date");
 
-      // Filter by specialist (current user) for personal view
-      if (viewMode === "personal" && user?.id) {
-        query = query.eq("specialist_id", user.id);
-      } else {
-        // Filter by organization for non-admins in organization view
-        if (!isAdmin && organizationId) {
-          query = query.eq("organization_id", organizationId);
-        }
-      }
-
-      const { data, error } = await query.order("scheduled_date");
       if (error) throw error;
       return (data || []) as SessionWithDetails[];
     },
-    enabled: showComparison && !!user?.id && (!!organizationId || isAdmin),
+    enabled: showComparison && !!user?.id,
   });
 
   // Calculate statistics for a given session array
@@ -584,35 +559,8 @@ export function ScheduleStatistics() {
             </div>
           </div>
           
-          {/* View mode and Comparison controls */}
+          {/* Comparison controls */}
           <div className="flex flex-wrap items-center gap-4 p-3 bg-muted/50 rounded-lg">
-            {/* View mode toggle */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === "personal" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("personal")}
-                className="gap-1"
-              >
-                <User className="h-4 w-4" />
-                Моя статистика
-              </Button>
-              {canViewOrgStats && (
-                <Button
-                  variant={viewMode === "organization" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("organization")}
-                  className="gap-1"
-                >
-                  <Building2 className="h-4 w-4" />
-                  Организация
-                </Button>
-              )}
-            </div>
-
-            <div className="h-6 w-px bg-border hidden sm:block" />
-
-            {/* Comparison controls */}
             <div className="flex items-center gap-2">
               <Switch
                 id="comparison-mode"
@@ -642,7 +590,7 @@ export function ScheduleStatistics() {
         
         <div className="flex flex-col sm:flex-row gap-2 text-sm text-muted-foreground mt-2">
           <Badge variant="outline" className="w-fit">
-            {viewMode === "personal" ? "Личная статистика" : "Статистика организации"}
+            Личная статистика
           </Badge>
           <span>
             Период: {format(startDate, "d MMMM yyyy", { locale: ru })} — {format(endDate, "d MMMM yyyy", { locale: ru })}
@@ -977,10 +925,8 @@ export function ScheduleStatistics() {
               </Card>
             )}
 
-            {/* KPI Panel - show only in personal mode */}
-            {viewMode === "personal" && (
-              <SpecialistKPIPanel />
-            )}
+            {/* KPI Panel - always show in personal statistics */}
+            <SpecialistKPIPanel />
           </>
         )}
       </CardContent>
