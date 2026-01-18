@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -28,9 +29,24 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { format, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subMonths, parseISO, differenceInYears } from "date-fns";
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfQuarter, 
+  endOfQuarter, 
+  startOfYear, 
+  endOfYear, 
+  subMonths, 
+  parseISO, 
+  differenceInYears,
+  subDays,
+  subQuarters,
+  subYears,
+  differenceInDays
+} from "date-fns";
 import { ru } from "date-fns/locale";
-import { Calendar, BarChart3, Users, Clock, CalendarDays, TrendingUp } from "lucide-react";
+import { Calendar, BarChart3, Users, Clock, CalendarDays, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus, GitCompare } from "lucide-react";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -69,12 +85,13 @@ export function ScheduleStatistics() {
   const [periodType, setPeriodType] = useState<PeriodType>("month");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
+  const [showComparison, setShowComparison] = useState(false);
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
   const isRegionalOperator = roles.some((r) => r.role === "regional_operator");
   const organizationId = profile?.organization_id;
 
-  // Calculate date range
+  // Calculate date range for current period
   const { startDate, endDate } = useMemo(() => {
     const now = new Date();
     switch (periodType) {
@@ -97,6 +114,44 @@ export function ScheduleStatistics() {
         return { startDate: startOfMonth(now), endDate: endOfMonth(now) };
     }
   }, [periodType, customStartDate, customEndDate]);
+
+  // Calculate previous period dates
+  const { prevStartDate, prevEndDate } = useMemo(() => {
+    const periodDays = differenceInDays(endDate, startDate);
+    
+    switch (periodType) {
+      case "week":
+        return {
+          prevStartDate: subDays(startDate, 7),
+          prevEndDate: subDays(endDate, 7),
+        };
+      case "month":
+        return {
+          prevStartDate: startOfMonth(subMonths(startDate, 1)),
+          prevEndDate: endOfMonth(subMonths(startDate, 1)),
+        };
+      case "quarter":
+        return {
+          prevStartDate: startOfQuarter(subQuarters(startDate, 1)),
+          prevEndDate: endOfQuarter(subQuarters(startDate, 1)),
+        };
+      case "year":
+        return {
+          prevStartDate: startOfYear(subYears(startDate, 1)),
+          prevEndDate: endOfYear(subYears(startDate, 1)),
+        };
+      case "custom":
+        return {
+          prevStartDate: subDays(startDate, periodDays + 1),
+          prevEndDate: subDays(startDate, 1),
+        };
+      default:
+        return {
+          prevStartDate: startOfMonth(subMonths(startDate, 1)),
+          prevEndDate: endOfMonth(subMonths(startDate, 1)),
+        };
+    }
+  }, [startDate, endDate, periodType]);
 
   // Fetch session types
   const { data: sessionTypes = [] } = useQuery({
@@ -139,7 +194,7 @@ export function ScheduleStatistics() {
     },
   });
 
-  // Fetch sessions with all related data
+  // Fetch sessions for current period
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ["schedule-statistics", organizationId, startDate.toISOString(), endDate.toISOString(), isAdmin, isOrgAdmin, isRegionalOperator],
     queryFn: async () => {
@@ -187,29 +242,76 @@ export function ScheduleStatistics() {
     enabled: !!organizationId || isAdmin,
   });
 
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const totalSessions = sessions.length;
-    const uniqueChildren = new Set(sessions.map(s => s.child_id)).size;
-    const uniqueSpecialists = new Set(sessions.map(s => s.specialist_id)).size;
+  // Fetch sessions for previous period (only when comparison is enabled)
+  const { data: prevSessions = [], isLoading: isPrevLoading } = useQuery({
+    queryKey: ["schedule-statistics-prev", organizationId, prevStartDate.toISOString(), prevEndDate.toISOString(), isAdmin, isOrgAdmin, isRegionalOperator],
+    queryFn: async () => {
+      let query = supabase
+        .from("sessions")
+        .select(`
+          id,
+          scheduled_date,
+          session_status_id,
+          session_type_id,
+          child_id,
+          specialist_id,
+          organization_id,
+          children (
+            birth_date,
+            education_level
+          ),
+          session_types (
+            name
+          ),
+          session_statuses (
+            name,
+            color
+          ),
+          profiles:specialist_id (
+            full_name,
+            position_id,
+            positions (
+              name
+            )
+          )
+        `)
+        .gte("scheduled_date", format(prevStartDate, "yyyy-MM-dd"))
+        .lte("scheduled_date", format(prevEndDate, "yyyy-MM-dd"));
+
+      if (!isAdmin && organizationId) {
+        query = query.eq("organization_id", organizationId);
+      }
+
+      const { data, error } = await query.order("scheduled_date");
+      if (error) throw error;
+      return (data || []) as SessionWithDetails[];
+    },
+    enabled: showComparison && (!!organizationId || isAdmin),
+  });
+
+  // Calculate statistics for a given session array
+  const calculateStats = (sessionsData: SessionWithDetails[]) => {
+    const totalSessions = sessionsData.length;
+    const uniqueChildren = new Set(sessionsData.map(s => s.child_id)).size;
+    const uniqueSpecialists = new Set(sessionsData.map(s => s.specialist_id)).size;
 
     // By status
     const byStatus: Record<string, number> = {};
-    sessions.forEach(s => {
+    sessionsData.forEach(s => {
       const statusName = s.session_statuses?.name || "Неизвестно";
       byStatus[statusName] = (byStatus[statusName] || 0) + 1;
     });
 
     // By type
     const byType: Record<string, number> = {};
-    sessions.forEach(s => {
+    sessionsData.forEach(s => {
       const typeName = s.session_types?.name || "Неизвестно";
       byType[typeName] = (byType[typeName] || 0) + 1;
     });
 
     // By age group
     const byAgeGroup: Record<string, number> = {};
-    sessions.forEach(s => {
+    sessionsData.forEach(s => {
       if (s.children?.birth_date) {
         const age = differenceInYears(new Date(), parseISO(s.children.birth_date));
         const ageGroup = ageGroups.find(g => age >= g.age_from && age <= g.age_to);
@@ -228,7 +330,7 @@ export function ScheduleStatistics() {
       oo: "ОО",
       soo: "СОО",
     };
-    sessions.forEach(s => {
+    sessionsData.forEach(s => {
       const level = s.children?.education_level || "Не указан";
       const label = levelLabels[level] || level;
       byEducationLevel[label] = (byEducationLevel[label] || 0) + 1;
@@ -236,7 +338,7 @@ export function ScheduleStatistics() {
 
     // By specialist position
     const byPosition: Record<string, number> = {};
-    sessions.forEach(s => {
+    sessionsData.forEach(s => {
       const position = s.profiles?.positions?.name || "Не указана";
       byPosition[position] = (byPosition[position] || 0) + 1;
     });
@@ -246,14 +348,14 @@ export function ScheduleStatistics() {
       "Пн": 0, "Вт": 0, "Ср": 0, "Чт": 0, "Пт": 0, "Сб": 0, "Вс": 0
     };
     const dayLabels = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
-    sessions.forEach(s => {
+    sessionsData.forEach(s => {
       const day = parseISO(s.scheduled_date).getDay();
       byDayOfWeek[dayLabels[day]]++;
     });
 
     // Daily trend
     const dailyTrend: Record<string, number> = {};
-    sessions.forEach(s => {
+    sessionsData.forEach(s => {
       const date = s.scheduled_date;
       dailyTrend[date] = (dailyTrend[date] || 0) + 1;
     });
@@ -270,7 +372,32 @@ export function ScheduleStatistics() {
       byDayOfWeek,
       dailyTrend,
     };
-  }, [sessions, ageGroups]);
+  };
+
+  // Calculate statistics for current period
+  const stats = useMemo(() => calculateStats(sessions), [sessions, ageGroups]);
+
+  // Calculate statistics for previous period
+  const prevStats = useMemo(() => calculateStats(prevSessions), [prevSessions, ageGroups]);
+
+  // Calculate percentage change
+  const calculateChange = (current: number, previous: number): { value: number; percent: number; direction: 'up' | 'down' | 'same' } => {
+    if (previous === 0 && current === 0) return { value: 0, percent: 0, direction: 'same' };
+    if (previous === 0) return { value: current, percent: 100, direction: 'up' };
+    
+    const diff = current - previous;
+    const percent = Math.round((diff / previous) * 100);
+    
+    return {
+      value: diff,
+      percent: Math.abs(percent),
+      direction: diff > 0 ? 'up' : diff < 0 ? 'down' : 'same'
+    };
+  };
+
+  const sessionsChange = calculateChange(stats.totalSessions, prevStats.totalSessions);
+  const childrenChange = calculateChange(stats.uniqueChildren, prevStats.uniqueChildren);
+  const specialistsChange = calculateChange(stats.uniqueSpecialists, prevStats.uniqueSpecialists);
 
   // Convert to chart data
   const statusChartData = Object.entries(stats.byStatus).map(([name, value]) => ({
@@ -315,6 +442,74 @@ export function ScheduleStatistics() {
       sessions: value,
     }));
 
+  // Comparison chart data (by type)
+  const comparisonByTypeData = useMemo(() => {
+    if (!showComparison) return [];
+    
+    const allTypes = new Set([
+      ...Object.keys(stats.byType),
+      ...Object.keys(prevStats.byType)
+    ]);
+
+    return Array.from(allTypes).map(type => ({
+      name: type,
+      current: stats.byType[type] || 0,
+      previous: prevStats.byType[type] || 0,
+    }));
+  }, [stats.byType, prevStats.byType, showComparison]);
+
+  // Comparison chart data (by status)
+  const comparisonByStatusData = useMemo(() => {
+    if (!showComparison) return [];
+    
+    const allStatuses = new Set([
+      ...Object.keys(stats.byStatus),
+      ...Object.keys(prevStats.byStatus)
+    ]);
+
+    return Array.from(allStatuses).map(status => ({
+      name: status,
+      current: stats.byStatus[status] || 0,
+      previous: prevStats.byStatus[status] || 0,
+    }));
+  }, [stats.byStatus, prevStats.byStatus, showComparison]);
+
+  // Render change indicator
+  const ChangeIndicator = ({ change }: { change: { value: number; percent: number; direction: 'up' | 'down' | 'same' } }) => {
+    if (change.direction === 'same') {
+      return (
+        <span className="flex items-center gap-1 text-muted-foreground text-xs">
+          <Minus className="h-3 w-3" />
+          без изменений
+        </span>
+      );
+    }
+
+    const isPositive = change.direction === 'up';
+    
+    return (
+      <span className={`flex items-center gap-1 text-xs ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        {isPositive ? (
+          <ArrowUpRight className="h-3 w-3" />
+        ) : (
+          <ArrowDownRight className="h-3 w-3" />
+        )}
+        {isPositive ? '+' : ''}{change.value} ({change.percent}%)
+      </span>
+    );
+  };
+
+  const getPeriodLabel = () => {
+    switch (periodType) {
+      case "week": return "прошлой неделей";
+      case "month": return "прошлым месяцем";
+      case "quarter": return "прошлым кварталом";
+      case "year": return "прошлым годом";
+      case "custom": return "предыдущим периодом";
+      default: return "прошлым периодом";
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -323,7 +518,18 @@ export function ScheduleStatistics() {
             <BarChart3 className="h-5 w-5" />
             Статистика занятий
           </CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="comparison-mode"
+                checked={showComparison}
+                onCheckedChange={setShowComparison}
+              />
+              <Label htmlFor="comparison-mode" className="text-sm cursor-pointer flex items-center gap-1">
+                <GitCompare className="h-4 w-4" />
+                Сравнение с {getPeriodLabel()}
+              </Label>
+            </div>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as PeriodType)}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue />
@@ -342,31 +548,38 @@ export function ScheduleStatistics() {
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm"
+                  className="px-3 py-2 border rounded-md text-sm bg-background"
                 />
                 <span>—</span>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm"
+                  className="px-3 py-2 border rounded-md text-sm bg-background"
                 />
               </div>
             )}
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Период: {format(startDate, "d MMMM yyyy", { locale: ru })} — {format(endDate, "d MMMM yyyy", { locale: ru })}
-        </p>
+        <div className="flex flex-col sm:flex-row gap-2 text-sm text-muted-foreground">
+          <span>
+            Текущий период: {format(startDate, "d MMMM yyyy", { locale: ru })} — {format(endDate, "d MMMM yyyy", { locale: ru })}
+          </span>
+          {showComparison && (
+            <span className="text-chart-2">
+              • Сравнение: {format(prevStartDate, "d MMMM yyyy", { locale: ru })} — {format(prevEndDate, "d MMMM yyyy", { locale: ru })}
+            </span>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {isLoading ? (
+        {isLoading || (showComparison && isPrevLoading) ? (
           <div className="text-center py-8 text-muted-foreground">
             Загрузка статистики...
           </div>
         ) : (
           <>
-            {/* Summary cards */}
+            {/* Summary cards with comparison */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardContent className="pt-6">
@@ -374,9 +587,17 @@ export function ScheduleStatistics() {
                     <div className="p-3 bg-primary/10 rounded-full">
                       <Calendar className="h-6 w-6 text-primary" />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats.totalSessions}</p>
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold">{stats.totalSessions}</p>
+                        {showComparison && (
+                          <span className="text-sm text-muted-foreground">
+                            (было {prevStats.totalSessions})
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">Всего занятий</p>
+                      {showComparison && <ChangeIndicator change={sessionsChange} />}
                     </div>
                   </div>
                 </CardContent>
@@ -387,9 +608,17 @@ export function ScheduleStatistics() {
                     <div className="p-3 bg-chart-2/10 rounded-full">
                       <Users className="h-6 w-6 text-chart-2" />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats.uniqueChildren}</p>
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold">{stats.uniqueChildren}</p>
+                        {showComparison && (
+                          <span className="text-sm text-muted-foreground">
+                            (было {prevStats.uniqueChildren})
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">Уникальных детей</p>
+                      {showComparison && <ChangeIndicator change={childrenChange} />}
                     </div>
                   </div>
                 </CardContent>
@@ -400,14 +629,79 @@ export function ScheduleStatistics() {
                     <div className="p-3 bg-chart-3/10 rounded-full">
                       <Clock className="h-6 w-6 text-chart-3" />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats.uniqueSpecialists}</p>
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold">{stats.uniqueSpecialists}</p>
+                        {showComparison && (
+                          <span className="text-sm text-muted-foreground">
+                            (было {prevStats.uniqueSpecialists})
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">Специалистов</p>
+                      {showComparison && <ChangeIndicator change={specialistsChange} />}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Comparison charts */}
+            {showComparison && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="border-chart-2/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <GitCompare className="h-4 w-4 text-chart-2" />
+                      Сравнение по типам занятий
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {comparisonByTypeData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={comparisonByTypeData} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="current" name="Текущий период" fill="hsl(var(--primary))" />
+                          <Bar dataKey="previous" name="Предыдущий период" fill="hsl(var(--chart-2))" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">Нет данных для сравнения</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="border-chart-2/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <GitCompare className="h-4 w-4 text-chart-2" />
+                      Сравнение по статусам
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {comparisonByStatusData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={comparisonByStatusData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="current" name="Текущий период" fill="hsl(var(--primary))" />
+                          <Bar dataKey="previous" name="Предыдущий период" fill="hsl(var(--chart-2))" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">Нет данных для сравнения</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
