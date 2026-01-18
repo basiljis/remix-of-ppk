@@ -332,3 +332,127 @@ export const importProtocolChecklistFromXLS = async (file: File): Promise<number
     reader.readAsArrayBuffer(file);
   });
 };
+
+// Export employees template
+export const exportEmployeesTemplate = () => {
+  const templateData = [
+    {
+      'ФИО': 'Пример: Иванов Иван Иванович',
+      'Email': 'Пример: ivanov@example.com',
+      'Телефон': 'Пример: +7 (999) 123-45-67',
+      'Должность': 'Пример: Педагог-психолог',
+      'Пароль': 'Пример: SecurePass123',
+      'Ставка': 'Пример: 1.0',
+      'ППк (просмотр)': 'Да/Нет',
+      'ППк (редактирование)': 'Да/Нет',
+      'ППк (создание)': 'Да/Нет',
+      'Организация (просмотр)': 'Да/Нет',
+      'Организация (редактирование)': 'Да/Нет',
+      'Расписание (личное)': 'Да/Нет',
+      'Расписание (организации)': 'Да/Нет',
+      'Статистика (просмотр)': 'Да/Нет'
+    }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(templateData);
+
+  ws['!cols'] = [
+    { wch: 35 }, // ФИО
+    { wch: 30 }, // Email
+    { wch: 25 }, // Телефон
+    { wch: 25 }, // Должность
+    { wch: 20 }, // Пароль
+    { wch: 10 }, // Ставка
+    { wch: 15 }, // ППк (просмотр)
+    { wch: 20 }, // ППк (редактирование)
+    { wch: 15 }, // ППк (создание)
+    { wch: 22 }, // Организация (просмотр)
+    { wch: 25 }, // Организация (редактирование)
+    { wch: 20 }, // Расписание (личное)
+    { wch: 25 }, // Расписание (организации)
+    { wch: 20 }  // Статистика (просмотр)
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Шаблон сотрудников');
+  const fileName = `employees_template_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+  return fileName;
+};
+
+// Parse employees from XLS file (returns parsed data for preview)
+export interface ParsedEmployee {
+  full_name: string;
+  email: string;
+  phone: string;
+  position_name: string;
+  password: string;
+  rate: number;
+  permissions: {
+    ppk_view: boolean;
+    ppk_edit: boolean;
+    ppk_create: boolean;
+    org_view: boolean;
+    org_edit: boolean;
+    schedule_personal: boolean;
+    schedule_organization: boolean;
+    statistics_view: boolean;
+  };
+}
+
+export const parseEmployeesFromXLS = async (file: File): Promise<ParsedEmployee[]> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const fileData = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(fileData, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        const parseBoolean = (value: string | undefined): boolean => {
+          if (!value) return false;
+          const lower = value.toString().toLowerCase().trim();
+          return lower === 'да' || lower === 'yes' || lower === '1' || lower === 'true';
+        };
+
+        const employees: ParsedEmployee[] = jsonData
+          .map((row: any) => ({
+            full_name: (row['ФИО'] || '').toString().trim(),
+            email: (row['Email'] || '').toString().trim(),
+            phone: (row['Телефон'] || '').toString().trim(),
+            position_name: (row['Должность'] || '').toString().trim(),
+            password: (row['Пароль'] || '').toString().trim(),
+            rate: parseFloat(row['Ставка']) || 1.0,
+            permissions: {
+              ppk_view: parseBoolean(row['ППк (просмотр)']),
+              ppk_edit: parseBoolean(row['ППк (редактирование)']),
+              ppk_create: parseBoolean(row['ППк (создание)']),
+              org_view: parseBoolean(row['Организация (просмотр)']),
+              org_edit: parseBoolean(row['Организация (редактирование)']),
+              schedule_personal: parseBoolean(row['Расписание (личное)']),
+              schedule_organization: parseBoolean(row['Расписание (организации)']),
+              statistics_view: parseBoolean(row['Статистика (просмотр)']),
+            }
+          }))
+          .filter((emp: ParsedEmployee) => 
+            emp.full_name && 
+            !emp.full_name.startsWith('Пример:') &&
+            emp.email && 
+            !emp.email.startsWith('Пример:')
+          );
+
+        if (employees.length === 0) {
+          throw new Error('Файл не содержит данных сотрудников или данные некорректны');
+        }
+
+        resolve(employees);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+    reader.readAsArrayBuffer(file);
+  });
+};
