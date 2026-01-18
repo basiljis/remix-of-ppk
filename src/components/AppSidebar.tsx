@@ -1,4 +1,4 @@
-import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText } from "lucide-react";
+import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText, Building } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +29,7 @@ interface AppSidebarProps {
   onTabChange: (tab: string) => void;
   isAdmin?: boolean;
   isOrgAdmin?: boolean;
+  isDirector?: boolean;
 }
 
 const menuItems = [
@@ -53,6 +54,13 @@ const scheduleItem = {
   label: "Расписание", 
   icon: Calendar,
   isPremium: true,
+};
+
+// Organization module - for org admins and directors
+const organizationItem = { 
+  id: "organization-module", 
+  label: "Организация", 
+  icon: Building,
 };
 
 const adminItems = [
@@ -113,8 +121,9 @@ const adminItems = [
   },
 ];
 
-export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false }: AppSidebarProps) {
   const { state } = useSidebar();
+  const canSeeOrganization = isOrgAdmin || isDirector || isAdmin;
 
   const renderMenuItem = (item: typeof menuItems[0], isActive: boolean) => {
     const Icon = item.icon;
@@ -255,6 +264,28 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                   </TooltipContent>
                 </Tooltip>
               </SidebarMenuItem>
+              {canSeeOrganization && (
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton
+                        onClick={() => onTabChange(organizationItem.id)}
+                        className={`w-full justify-start gap-3 ${
+                          activeTab === organizationItem.id 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                      >
+                        <organizationItem.icon className="h-4 w-4" />
+                        {state !== "collapsed" && <span>{organizationItem.label}</span>}
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>{organizationItem.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

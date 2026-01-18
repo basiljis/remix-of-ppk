@@ -399,6 +399,65 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_permissions: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          org_edit: boolean
+          org_view: boolean
+          organization_id: string
+          ppk_create: boolean
+          ppk_edit: boolean
+          ppk_view: boolean
+          schedule_organization: boolean
+          schedule_personal: boolean
+          statistics_view: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          org_edit?: boolean
+          org_view?: boolean
+          organization_id: string
+          ppk_create?: boolean
+          ppk_edit?: boolean
+          ppk_view?: boolean
+          schedule_organization?: boolean
+          schedule_personal?: boolean
+          statistics_view?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          org_edit?: boolean
+          org_view?: boolean
+          organization_id?: string
+          ppk_create?: boolean
+          ppk_edit?: boolean
+          ppk_view?: boolean
+          schedule_organization?: boolean
+          schedule_personal?: boolean
+          statistics_view?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_permissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           browser_info: Json | null
@@ -1523,6 +1582,83 @@ export type Database = {
         }
         Relationships: []
       }
+      work_schedules: {
+        Row: {
+          created_at: string
+          friday_end: string | null
+          friday_start: string | null
+          id: string
+          monday_end: string | null
+          monday_start: string | null
+          notes: string | null
+          organization_id: string
+          saturday_end: string | null
+          saturday_start: string | null
+          sunday_end: string | null
+          sunday_start: string | null
+          thursday_end: string | null
+          thursday_start: string | null
+          tuesday_end: string | null
+          tuesday_start: string | null
+          updated_at: string
+          user_id: string
+          wednesday_end: string | null
+          wednesday_start: string | null
+        }
+        Insert: {
+          created_at?: string
+          friday_end?: string | null
+          friday_start?: string | null
+          id?: string
+          monday_end?: string | null
+          monday_start?: string | null
+          notes?: string | null
+          organization_id: string
+          saturday_end?: string | null
+          saturday_start?: string | null
+          sunday_end?: string | null
+          sunday_start?: string | null
+          thursday_end?: string | null
+          thursday_start?: string | null
+          tuesday_end?: string | null
+          tuesday_start?: string | null
+          updated_at?: string
+          user_id: string
+          wednesday_end?: string | null
+          wednesday_start?: string | null
+        }
+        Update: {
+          created_at?: string
+          friday_end?: string | null
+          friday_start?: string | null
+          id?: string
+          monday_end?: string | null
+          monday_start?: string | null
+          notes?: string | null
+          organization_id?: string
+          saturday_end?: string | null
+          saturday_start?: string | null
+          sunday_end?: string | null
+          sunday_start?: string | null
+          thursday_end?: string | null
+          thursday_start?: string | null
+          tuesday_end?: string | null
+          tuesday_start?: string | null
+          updated_at?: string
+          user_id?: string
+          wednesday_end?: string | null
+          wednesday_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_schedules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1543,7 +1679,12 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
-      app_role: "admin" | "regional_operator" | "user" | "organization_admin"
+      app_role:
+        | "admin"
+        | "regional_operator"
+        | "user"
+        | "organization_admin"
+        | "director"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1671,7 +1812,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "regional_operator", "user", "organization_admin"],
+      app_role: [
+        "admin",
+        "regional_operator",
+        "user",
+        "organization_admin",
+        "director",
+      ],
     },
   },
 } as const
