@@ -26,6 +26,7 @@ const PPKList = lazy(() => import("@/components/PPKList").then(m => ({ default: 
 const Dashboard = lazy(() => import("@/components/Dashboard").then(m => ({ default: m.Dashboard })));
 const Administration = lazy(() => import("@/components/Administration").then(m => ({ default: m.Administration })));
 const ScheduleModule = lazy(() => import("@/components/ScheduleModule").then(m => ({ default: m.ScheduleModule })));
+const OrganizationModule = lazy(() => import("@/components/OrganizationModule").then(m => ({ default: m.OrganizationModule })));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -34,7 +35,9 @@ const Index = () => {
   const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
   const [editingProtocol, setEditingProtocol] = useState<any>(null);
   const { toast } = useToast();
-  const { user, loading, isAdmin, signOut, profile, hasAccessRequest } = useAuth();
+  const { user, loading, isAdmin, signOut, profile, hasAccessRequest, roles } = useAuth();
+  const isDirector = roles.some(r => r.role === "director");
+  const isOrgAdmin = roles.some(r => r.role === "organization_admin");
   const { checklists, loading: checklistLoading, error } = useChecklistData();
   const subscriptionAccess = useSubscriptionAccess();
   
@@ -216,6 +219,16 @@ const Index = () => {
             <ScheduleModule />
           </Suspense>
         );
+      case "organization-module":
+        return (isOrgAdmin || isDirector || isAdmin) ? (
+          <Suspense fallback={loadingFallback}>
+            <OrganizationModule />
+          </Suspense>
+        ) : (
+          <div className="text-center p-8">
+            <p className="text-muted-foreground">У вас нет доступа к этому разделу</p>
+          </div>
+        );
       default:
         return null;
     }
@@ -272,6 +285,8 @@ const Index = () => {
             activeTab={activeTab} 
             onTabChange={setActiveTab} 
             isAdmin={isAdmin}
+            isOrgAdmin={isOrgAdmin}
+            isDirector={isDirector}
           />
         </div>
         
