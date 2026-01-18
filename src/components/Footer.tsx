@@ -46,8 +46,8 @@ export const Footer = ({
       <footer className="bg-background border-t mt-12">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col gap-6">
-            {/* Navigation Menu */}
-            <nav className="flex flex-wrap justify-center gap-6">
+            {/* Navigation Menu - hidden on desktop */}
+            <nav className="flex flex-wrap justify-center gap-6 md:hidden">
               {menuItems.map(item => (
                 <button 
                   key={item.id} 
