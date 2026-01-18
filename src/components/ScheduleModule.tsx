@@ -5,7 +5,8 @@ import { SessionCalendar } from "./SessionCalendar";
 import { OrganizationCalendar } from "./OrganizationCalendar";
 import { ChildrenManagement } from "./ChildrenManagement";
 import { SpecialistRatesPanel } from "./SpecialistRatesPanel";
-import { Calendar, Users, UserCog, Lock, Building } from "lucide-react";
+import { ScheduleStatistics } from "./ScheduleStatistics";
+import { Calendar, Users, UserCog, Lock, Building, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
@@ -94,6 +95,10 @@ export function ScheduleModule() {
               </TabsTrigger>
             </>
           )}
+          <TabsTrigger value="statistics" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Статистика
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="calendar" className="mt-6">
@@ -116,6 +121,10 @@ export function ScheduleModule() {
             </TabsContent>
           </>
         )}
+
+        <TabsContent value="statistics" className="mt-6">
+          <ScheduleStatistics />
+        </TabsContent>
       </Tabs>
     </div>
   );
