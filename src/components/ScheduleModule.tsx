@@ -2,11 +2,9 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionCalendar } from "./SessionCalendar";
-import { OrganizationCalendar } from "./OrganizationCalendar";
 import { ChildrenManagement } from "./ChildrenManagement";
-import { SpecialistRatesPanel } from "./SpecialistRatesPanel";
 import { ScheduleStatistics } from "./ScheduleStatistics";
-import { Calendar, Users, UserCog, Lock, Building, BarChart3 } from "lucide-react";
+import { Calendar, Users, Lock, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
@@ -77,24 +75,10 @@ export function ScheduleModule() {
             <Calendar className="h-4 w-4" />
             Моё расписание
           </TabsTrigger>
-          {canViewOrgCalendar && (
-            <TabsTrigger value="org-calendar" className="gap-2">
-              <Building className="h-4 w-4" />
-              Расписание организации
-            </TabsTrigger>
-          )}
-          {(isAdmin || isOrgAdmin) && (
-            <>
-              <TabsTrigger value="children" className="gap-2">
-                <Users className="h-4 w-4" />
-                Дети
-              </TabsTrigger>
-              <TabsTrigger value="rates" className="gap-2">
-                <UserCog className="h-4 w-4" />
-                Ставки специалистов
-              </TabsTrigger>
-            </>
-          )}
+          <TabsTrigger value="children" className="gap-2">
+            <Users className="h-4 w-4" />
+            Дети
+          </TabsTrigger>
           <TabsTrigger value="statistics" className="gap-2">
             <BarChart3 className="h-4 w-4" />
             Статистика
@@ -105,22 +89,9 @@ export function ScheduleModule() {
           <SessionCalendar />
         </TabsContent>
 
-        {canViewOrgCalendar && (
-          <TabsContent value="org-calendar" className="mt-6">
-            <OrganizationCalendar />
-          </TabsContent>
-        )}
-
-        {(isAdmin || isOrgAdmin) && (
-          <>
-            <TabsContent value="children" className="mt-6">
-              <ChildrenManagement />
-            </TabsContent>
-            <TabsContent value="rates" className="mt-6">
-              <SpecialistRatesPanel />
-            </TabsContent>
-          </>
-        )}
+        <TabsContent value="children" className="mt-6">
+          <ChildrenManagement />
+        </TabsContent>
 
         <TabsContent value="statistics" className="mt-6">
           <ScheduleStatistics />
