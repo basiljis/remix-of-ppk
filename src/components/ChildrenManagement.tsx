@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -47,6 +48,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { ProtocolResultsModal } from "@/components/ProtocolResultsModal";
 
 interface Child {
   id: string;
@@ -110,6 +112,8 @@ export function ChildrenManagement() {
   const [showDialog, setShowDialog] = useState(false);
   const [showProtocolsDialog, setShowProtocolsDialog] = useState(false);
   const [selectedChildName, setSelectedChildName] = useState<string | null>(null);
+  const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState(false);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -851,6 +855,9 @@ export function ChildrenManagement() {
               <ClipboardList className="h-5 w-5" />
               Протоколы: {selectedChildName}
             </DialogTitle>
+            <DialogDescription>
+              Список всех протоколов ППК для данного ребёнка
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {isLoadingChildProtocols ? (
@@ -901,9 +908,8 @@ export function ChildrenManagement() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              // Navigate to protocol view/edit
-                              navigate(`/app?tab=ppk&protocol=${protocol.id}`);
-                              setShowProtocolsDialog(false);
+                              setSelectedProtocolId(protocol.id);
+                              setShowResultsModal(true);
                             }}
                           >
                             <Eye className="h-4 w-4 mr-1" />
@@ -937,6 +943,15 @@ export function ChildrenManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Protocol Results Modal */}
+      {selectedProtocolId && (
+        <ProtocolResultsModal
+          open={showResultsModal}
+          onOpenChange={setShowResultsModal}
+          protocolId={selectedProtocolId}
+        />
+      )}
     </Card>
   );
 }
