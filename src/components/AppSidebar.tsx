@@ -1,4 +1,4 @@
-import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar } from "lucide-react";
+import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -57,33 +57,62 @@ const scheduleItem = {
 
 const adminItems = [
   { 
-    id: "administration", 
-    label: "Администрирование", 
-    icon: Settings,
+    id: "admin-users", 
+    label: "Пользователи", 
+    icon: Users,
     subItems: [
       { id: "administration-access-requests", label: "Заявки" },
-      { id: "administration-commercial-offers", label: "КП заявки" },
       { id: "administration-users", label: "Пользователи" },
       { id: "administration-org-admins", label: "Админы организаций" },
+    ]
+  },
+  { 
+    id: "admin-finance", 
+    label: "Финансы", 
+    icon: Wallet,
+    subItems: [
+      { id: "administration-commercial-offers", label: "КП заявки" },
+      { id: "administration-subscriptions", label: "Подписки" },
+      { id: "administration-payment-logs", label: "Логи платежей" },
+    ]
+  },
+  { 
+    id: "admin-settings", 
+    label: "Настройки", 
+    icon: Cog,
+    subItems: [
       { id: "administration-positions-roles", label: "Должности и роли" },
       { id: "administration-organizations", label: "Организации" },
+      { id: "administration-checklist", label: "Чек-листы" },
       { id: "administration-schedule", label: "Настройки расписания" },
+      { id: "administration-school-years", label: "Учебные годы" },
       { id: "administration-workload-report", label: "Загрузка специалистов" },
       { id: "administration-session-notifications", label: "Уведомления" },
-      { id: "administration-subscriptions", label: "Подписки" },
-      { id: "administration-analytics", label: "Аналитика" },
-      { id: "administration-payment-logs", label: "Логи платежей" },
-      { id: "administration-checklist", label: "Чеклист" },
       { id: "administration-instructions", label: "Инструкции" },
+    ]
+  },
+  { 
+    id: "admin-info", 
+    label: "Инфо", 
+    icon: Info,
+    subItems: [
       { id: "administration-statistics", label: "Статистика" },
-      { id: "administration-school-years", label: "Учебные годы" },
-      { id: "administration-email-logs", label: "Логи Email" },
+      { id: "administration-analytics", label: "Аналитика" },
+    ]
+  },
+  { 
+    id: "admin-logs", 
+    label: "Логи", 
+    icon: FileText,
+    subItems: [
       { id: "administration-auth-logs", label: "Логи авторизации" },
       { id: "administration-error-logs", label: "Логи ошибок" },
       { id: "administration-change-history", label: "История изменений" },
+      { id: "administration-email-logs", label: "Логи Email" },
     ]
   },
 ];
+
 export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false }: AppSidebarProps) {
   const { state } = useSidebar();
 
@@ -236,8 +265,11 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
             <SidebarGroupLabel>Управление</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminItems.map((item) => {
-                  const isActive = activeTab === item.id || activeTab.startsWith(item.id + "-");
+              {adminItems.map((item) => {
+                  const hasSubItems = 'subItems' in item && item.subItems;
+                  const isActive = hasSubItems 
+                    ? item.subItems.some(sub => activeTab === sub.id)
+                    : activeTab === item.id;
                   return renderMenuItem(item, isActive);
                 })}
               </SidebarMenu>
