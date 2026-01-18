@@ -43,7 +43,7 @@ interface Position {
 }
 
 interface UserRole {
-  role: "admin" | "regional_operator" | "user";
+  role: "admin" | "regional_operator" | "user" | "organization_admin" | "director";
   label: string;
   description: string;
   color: string;
@@ -55,6 +55,18 @@ const AVAILABLE_ROLES: UserRole[] = [
     label: "Администратор", 
     description: "Полный доступ ко всем функциям системы",
     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  },
+  { 
+    role: "director", 
+    label: "Руководитель организации", 
+    description: "Управление организацией, сотрудниками и доступ к отчётам",
+    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+  },
+  { 
+    role: "organization_admin", 
+    label: "Администратор организации", 
+    description: "Управление сотрудниками, детьми и ставками организации",
+    color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
   },
   { 
     role: "regional_operator", 
