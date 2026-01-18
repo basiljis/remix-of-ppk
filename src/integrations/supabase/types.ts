@@ -1197,6 +1197,10 @@ export type Database = {
       sessions: {
         Row: {
           actual_duration_minutes: number | null
+          cancellation_reason: string | null
+          cancellation_token: string | null
+          cancelled_at: string | null
+          cancelled_by_parent: boolean | null
           child_id: string
           created_at: string
           created_by: string | null
@@ -1215,6 +1219,10 @@ export type Database = {
         }
         Insert: {
           actual_duration_minutes?: number | null
+          cancellation_reason?: string | null
+          cancellation_token?: string | null
+          cancelled_at?: string | null
+          cancelled_by_parent?: boolean | null
           child_id: string
           created_at?: string
           created_by?: string | null
@@ -1233,6 +1241,10 @@ export type Database = {
         }
         Update: {
           actual_duration_minutes?: number | null
+          cancellation_reason?: string | null
+          cancellation_token?: string | null
+          cancelled_at?: string | null
+          cancelled_by_parent?: boolean | null
           child_id?: string
           created_at?: string
           created_by?: string | null
