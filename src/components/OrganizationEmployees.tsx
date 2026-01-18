@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -55,10 +57,17 @@ import {
   Phone,
   Calendar,
   Edit,
-  Eye
+  Eye,
+  Upload,
+  FileSpreadsheet,
+  AlertCircle,
+  CheckCircle2,
+  X,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { exportEmployeesTemplate, parseEmployeesFromXLS, ParsedEmployee } from "@/utils/xlsUtils";
 
 interface Employee {
   id: string;
@@ -113,11 +122,18 @@ const dayLabels = {
 export function OrganizationEmployees() {
   const { profile, isAdmin } = useAuth();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [parsedEmployees, setParsedEmployees] = useState<ParsedEmployee[]>([]);
+  const [selectedImportEmployees, setSelectedImportEmployees] = useState<Set<number>>(new Set());
+  const [importErrors, setImportErrors] = useState<Map<number, string>>(new Map());
+  const [isImporting, setIsImporting] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     full_name: "",
     email: "",
@@ -434,6 +450,152 @@ export function OrganizationEmployees() {
     toast({ title: "Экспорт выполнен" });
   };
 
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsParsing(true);
+    setParsedEmployees([]);
+    setSelectedImportEmployees(new Set());
+    setImportErrors(new Map());
+
+    try {
+      const parsed = await parseEmployeesFromXLS(file);
+      setParsedEmployees(parsed);
+      setSelectedImportEmployees(new Set(parsed.map((_, i) => i)));
+      setIsImportDialogOpen(true);
+    } catch (error: any) {
+      toast({
+        title: "Ошибка чтения файла",
+        description: error.message || "Не удалось прочитать файл Excel",
+        variant: "destructive",
+      });
+    } finally {
+      setIsParsing(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const toggleEmployeeSelection = (index: number) => {
+    const newSelected = new Set(selectedImportEmployees);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedImportEmployees(newSelected);
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedImportEmployees.size === parsedEmployees.length) {
+      setSelectedImportEmployees(new Set());
+    } else {
+      setSelectedImportEmployees(new Set(parsedEmployees.map((_, i) => i)));
+    }
+  };
+
+  const handleImportEmployees = async () => {
+    if (selectedImportEmployees.size === 0) {
+      toast({ title: "Выберите сотрудников для импорта", variant: "destructive" });
+      return;
+    }
+
+    setIsImporting(true);
+    const errors = new Map<number, string>();
+    let successCount = 0;
+
+    for (const index of Array.from(selectedImportEmployees)) {
+      const emp = parsedEmployees[index];
+      
+      // Find position ID by name
+      const position = positions.find(
+        (p) => p.name.toLowerCase().trim() === emp.position_name.toLowerCase().trim()
+      );
+      
+      if (!position) {
+        errors.set(index, `Должность "${emp.position_name}" не найдена`);
+        continue;
+      }
+
+      if (emp.password.length < 6) {
+        errors.set(index, "Пароль должен быть минимум 6 символов");
+        continue;
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke("sync-auth-users", {
+          body: {
+            action: "create_user",
+            email: emp.email,
+            password: emp.password,
+            full_name: emp.full_name,
+            phone: emp.phone,
+            position_id: position.id,
+            organization_id: organizationId,
+            region_id: profile?.region_id,
+          },
+        });
+
+        if (error) throw error;
+
+        // Get the created user ID from response
+        const userId = data?.user?.id;
+        
+        if (userId) {
+          // Set permissions
+          await supabase.from("employee_permissions").upsert({
+            user_id: userId,
+            organization_id: organizationId,
+            ...emp.permissions,
+            granted_by: profile?.id,
+          }, { onConflict: 'user_id,organization_id' });
+
+          // Set rate if different from 1
+          if (emp.rate !== 1) {
+            await supabase.from("specialist_rates").upsert({
+              user_id: userId,
+              organization_id: organizationId,
+              rate: emp.rate,
+              set_by: profile?.id,
+            }, { onConflict: 'user_id,organization_id' });
+          }
+        }
+
+        successCount++;
+      } catch (error: any) {
+        errors.set(index, error.message || "Ошибка создания пользователя");
+      }
+    }
+
+    setImportErrors(errors);
+
+    if (successCount > 0) {
+      queryClient.invalidateQueries({ queryKey: ["organization-employees"] });
+      toast({
+        title: "Импорт завершён",
+        description: `Успешно добавлено ${successCount} из ${selectedImportEmployees.size} сотрудников`,
+      });
+    }
+
+    if (errors.size > 0) {
+      toast({
+        title: "Некоторые сотрудники не были добавлены",
+        description: `${errors.size} ошибок при импорте`,
+        variant: "destructive",
+      });
+    }
+
+    if (errors.size === 0) {
+      setIsImportDialogOpen(false);
+      setParsedEmployees([]);
+      setSelectedImportEmployees(new Set());
+    }
+
+    setIsImporting(false);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -447,7 +609,42 @@ export function OrganizationEmployees() {
               Управление сотрудниками, ставками, рабочим временем и правами доступа
             </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Hidden file input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept=".xlsx,.xls"
+              className="hidden"
+            />
+            
+            {/* Import dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={isParsing}>
+                  {isParsing ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  Импорт
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Импорт сотрудников</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => exportEmployeesTemplate()}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Скачать шаблон Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Загрузить файл Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button variant="outline" size="sm" onClick={exportEmployees}>
               <Download className="h-4 w-4 mr-2" />
               Экспорт
@@ -456,7 +653,7 @@ export function OrganizationEmployees() {
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  Добавить сотрудника
+                  Добавить
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
@@ -834,6 +1031,159 @@ export function OrganizationEmployees() {
                 disabled={saveScheduleMutation.isPending}
               >
                 {saveScheduleMutation.isPending ? "Сохранение..." : "Сохранить"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Import Dialog */}
+        <Dialog open={isImportDialogOpen} onOpenChange={(open) => {
+          if (!isImporting) {
+            setIsImportDialogOpen(open);
+            if (!open) {
+              setParsedEmployees([]);
+              setSelectedImportEmployees(new Set());
+              setImportErrors(new Map());
+            }
+          }
+        }}>
+          <DialogContent className="max-w-4xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5" />
+                Импорт сотрудников из Excel
+              </DialogTitle>
+              <DialogDescription>
+                Проверьте данные перед импортом. Выберите сотрудников для добавления.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={selectedImportEmployees.size === parsedEmployees.length && parsedEmployees.length > 0}
+                    onCheckedChange={toggleAllSelection}
+                    disabled={isImporting}
+                  />
+                  <span className="text-sm font-medium">
+                    Выбрать всех ({selectedImportEmployees.size} из {parsedEmployees.length})
+                  </span>
+                </div>
+                {importErrors.size > 0 && (
+                  <Badge variant="destructive">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {importErrors.size} ошибок
+                  </Badge>
+                )}
+              </div>
+
+              <ScrollArea className="h-[400px] border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead>ФИО</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Телефон</TableHead>
+                      <TableHead>Должность</TableHead>
+                      <TableHead>Ставка</TableHead>
+                      <TableHead>Права</TableHead>
+                      <TableHead>Статус</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parsedEmployees.map((emp, index) => {
+                      const error = importErrors.get(index);
+                      const isSelected = selectedImportEmployees.has(index);
+                      const positionExists = positions.some(
+                        (p) => p.name.toLowerCase().trim() === emp.position_name.toLowerCase().trim()
+                      );
+
+                      return (
+                        <TableRow 
+                          key={index}
+                          className={error ? "bg-destructive/10" : ""}
+                        >
+                          <TableCell>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleEmployeeSelection(index)}
+                              disabled={isImporting}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{emp.full_name}</TableCell>
+                          <TableCell>{emp.email}</TableCell>
+                          <TableCell>{emp.phone}</TableCell>
+                          <TableCell>
+                            <span className={!positionExists ? "text-destructive" : ""}>
+                              {emp.position_name}
+                              {!positionExists && (
+                                <AlertCircle className="h-3 w-3 inline ml-1" />
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>{emp.rate}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {emp.permissions.ppk_view && <Badge variant="secondary" className="text-xs">ППк</Badge>}
+                              {emp.permissions.org_view && <Badge variant="secondary" className="text-xs">Орг</Badge>}
+                              {emp.permissions.schedule_personal && <Badge variant="secondary" className="text-xs">Расп</Badge>}
+                              {emp.permissions.statistics_view && <Badge variant="secondary" className="text-xs">Стат</Badge>}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {error ? (
+                              <div className="flex items-center gap-1 text-destructive text-xs">
+                                <X className="h-3 w-3" />
+                                {error}
+                              </div>
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+
+              <div className="bg-muted/50 p-3 rounded-lg text-sm text-muted-foreground">
+                <div className="font-medium mb-1">Доступные должности:</div>
+                <div className="flex flex-wrap gap-1">
+                  {positions.map((p) => (
+                    <Badge key={p.id} variant="outline" className="text-xs">
+                      {p.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsImportDialogOpen(false)}
+                disabled={isImporting}
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleImportEmployees}
+                disabled={isImporting || selectedImportEmployees.size === 0}
+              >
+                {isImporting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Импорт...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Импортировать ({selectedImportEmployees.size})
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
