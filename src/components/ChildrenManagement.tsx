@@ -68,6 +68,10 @@ interface ProtocolChild {
   protocol_count: number;
   latest_status: string | null;
   latest_ppk_number: string | null;
+  // Data from protocol_data.childData
+  parent_name: string | null;
+  parent_phone: string | null;
+  address: string | null;
 }
 
 const educationLevels = [
@@ -121,7 +125,7 @@ export function ChildrenManagement() {
       enabled: !!organizationId,
     });
 
-  // Fetch children from protocols (PPK list) with full data
+  // Fetch children from protocols (PPK list) with full data including protocol_data
   const { data: childrenFromProtocols = [], isLoading: isLoadingProtocols } =
     useQuery({
       queryKey: ["children-from-protocols", organizationId],
@@ -129,7 +133,7 @@ export function ChildrenManagement() {
         if (!organizationId) return [];
         const { data, error } = await supabase
           .from("protocols")
-          .select("child_name, child_birth_date, education_level, status, ppk_number, created_at")
+          .select("child_name, child_birth_date, education_level, status, ppk_number, created_at, protocol_data")
           .eq("organization_id", organizationId)
           .order("created_at", { ascending: false });
         if (error) throw error;
@@ -140,10 +144,14 @@ export function ChildrenManagement() {
           const key = p.child_name?.toLowerCase();
           if (!key) return;
 
+          // Extract childData from protocol_data
+          const protocolData = p.protocol_data as { childData?: { parentName?: string; parentPhone?: string; address?: string } } | null;
+          const childData = protocolData?.childData;
+
           if (childrenMap.has(key)) {
             const existing = childrenMap.get(key)!;
             existing.protocol_count += 1;
-            // Keep the most recent data
+            // Keep the most recent data (first in the list since ordered by created_at desc)
           } else {
             childrenMap.set(key, {
               child_name: p.child_name,
@@ -152,6 +160,9 @@ export function ChildrenManagement() {
               protocol_count: 1,
               latest_status: p.status,
               latest_ppk_number: p.ppk_number,
+              parent_name: childData?.parentName || null,
+              parent_phone: childData?.parentPhone || null,
+              address: childData?.address || null,
             });
           }
         });
@@ -166,6 +177,9 @@ export function ChildrenManagement() {
       _fromProtocol?: boolean;
       protocol_count?: number;
       latest_ppk_number?: string | null;
+      _protocolParentName?: string | null;
+      _protocolParentPhone?: string | null;
+      _protocolAddress?: string | null;
     })[] = [];
     const processedNames = new Set<string>();
 
@@ -197,16 +211,19 @@ export function ChildrenManagement() {
           birth_date: pc.child_birth_date,
           gender: null,
           education_level: pc.education_level,
-          parent_name: null,
-          parent_phone: null,
+          parent_name: pc.parent_name,
+          parent_phone: pc.parent_phone,
           parent_email: null,
-          notes: null,
+          notes: pc.address ? `Адрес: ${pc.address}` : null,
           is_active: true,
           organization_id: organizationId || null,
           created_at: new Date().toISOString(),
           _fromProtocol: true,
           protocol_count: pc.protocol_count,
           latest_ppk_number: pc.latest_ppk_number,
+          _protocolParentName: pc.parent_name,
+          _protocolParentPhone: pc.parent_phone,
+          _protocolAddress: pc.address,
         });
         processedNames.add(key);
       }
@@ -552,15 +569,21 @@ export function ChildrenManagement() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
+                                // Use data from protocol
+                                const extChild = child as typeof child & {
+                                  _protocolParentName?: string | null;
+                                  _protocolParentPhone?: string | null;
+                                  _protocolAddress?: string | null;
+                                };
                                 setFormData({
                                   full_name: child.full_name,
                                   birth_date: child.birth_date || "",
-                                  gender: "",
+                                  gender: child.gender || "",
                                   education_level: child.education_level || "",
-                                  parent_name: "",
-                                  parent_phone: "",
-                                  parent_email: "",
-                                  notes: "",
+                                  parent_name: child.parent_name || extChild._protocolParentName || "",
+                                  parent_phone: child.parent_phone || extChild._protocolParentPhone || "",
+                                  parent_email: child.parent_email || "",
+                                  notes: child.notes || (extChild._protocolAddress ? `Адрес: ${extChild._protocolAddress}` : ""),
                                   is_active: true,
                                 });
                                 setEditingChild(null);
