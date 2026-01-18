@@ -125,6 +125,7 @@ export function OrganizationKPIManagement() {
   const [editingGoal, setEditingGoal] = useState<SpecialistGoal | null>(null);
   const [filterSpecialist, setFilterSpecialist] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     user_id: "",
     goal_type: "sessions_count" as GoalType,
@@ -133,6 +134,7 @@ export function OrganizationKPIManagement() {
     period_type: "month" as PeriodType,
     notes: "",
   });
+  const [isBulkMode, setIsBulkMode] = useState(false);
 
   const organizationId = profile?.organization_id;
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
@@ -289,7 +291,7 @@ export function OrganizationKPIManagement() {
     });
   }, [goalsWithProgress, filterSpecialist, filterStatus]);
 
-  // Create goal mutation
+  // Create goal mutation (single)
   const createGoalMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { start, end } = getPeriodDates(data.period_type);
@@ -321,6 +323,46 @@ export function OrganizationKPIManagement() {
     },
     onError: (error: any) => {
       toast.error("Ошибка при создании цели: " + error.message);
+    },
+  });
+
+  // Bulk create goals mutation
+  const bulkCreateGoalsMutation = useMutation({
+    mutationFn: async (data: { userIds: string[]; formData: typeof formData }) => {
+      const { start, end } = getPeriodDates(data.formData.period_type);
+      
+      const goalsToInsert = data.userIds.map(userId => ({
+        user_id: userId,
+        organization_id: organizationId,
+        goal_type: data.formData.goal_type,
+        goal_name: data.formData.goal_name || goalTypeLabels[data.formData.goal_type],
+        target_value: parseFloat(data.formData.target_value) || 0,
+        current_value: 0,
+        period_type: data.formData.period_type,
+        period_start: format(start, "yyyy-MM-dd"),
+        period_end: format(end, "yyyy-MM-dd"),
+        notes: data.formData.notes || null,
+        created_by: user?.id,
+      }));
+      
+      const { error } = await supabase
+        .from("specialist_goals")
+        .insert(goalsToInsert);
+      
+      if (error) throw error;
+      return data.userIds.length;
+    },
+    onSuccess: (count) => {
+      toast.success(`Цели успешно назначены ${count} сотрудникам`);
+      queryClient.invalidateQueries({ queryKey: ["organization-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["specialist-goals"] });
+      setIsDialogOpen(false);
+      resetForm();
+      setSelectedEmployees([]);
+      setIsBulkMode(false);
+    },
+    onError: (error: any) => {
+      toast.error("Ошибка при создании целей: " + error.message);
     },
   });
 
@@ -376,13 +418,27 @@ export function OrganizationKPIManagement() {
       period_type: "month",
       notes: "",
     });
+    setSelectedEmployees([]);
+    setIsBulkMode(false);
+  };
+
+  const toggleEmployeeSelection = (empId: string) => {
+    setSelectedEmployees(prev => 
+      prev.includes(empId) 
+        ? prev.filter(id => id !== empId)
+        : [...prev, empId]
+    );
+  };
+
+  const selectAllEmployees = () => {
+    if (selectedEmployees.length === employees.length) {
+      setSelectedEmployees([]);
+    } else {
+      setSelectedEmployees(employees.map(e => e.id));
+    }
   };
 
   const handleSubmit = () => {
-    if (!formData.user_id) {
-      toast.error("Выберите сотрудника");
-      return;
-    }
     if (!formData.target_value) {
       toast.error("Укажите целевое значение");
       return;
@@ -398,7 +454,17 @@ export function OrganizationKPIManagement() {
           notes: formData.notes || null,
         },
       });
+    } else if (isBulkMode) {
+      if (selectedEmployees.length === 0) {
+        toast.error("Выберите хотя бы одного сотрудника");
+        return;
+      }
+      bulkCreateGoalsMutation.mutate({ userIds: selectedEmployees, formData });
     } else {
+      if (!formData.user_id) {
+        toast.error("Выберите сотрудника");
+        return;
+      }
       createGoalMutation.mutate(formData);
     }
   };
@@ -578,38 +644,131 @@ export function OrganizationKPIManagement() {
                   Назначить цель
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>{editingGoal ? "Редактировать цель" : "Назначить цель сотруднику"}</DialogTitle>
+                  <DialogTitle>
+                    {editingGoal ? "Редактировать цель" : "Назначить цель сотрудникам"}
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Сотрудник *</Label>
-                    <Select
-                      value={formData.user_id}
-                      onValueChange={(value) => setFormData({ ...formData, user_id: value })}
-                      disabled={!!editingGoal}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите сотрудника" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employees.map((emp) => (
-                          <SelectItem key={emp.id} value={emp.id}>
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              {emp.full_name}
-                              {(emp.positions as any)?.name && (
-                                <span className="text-muted-foreground text-xs">
-                                  — {(emp.positions as any).name}
-                                </span>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Mode toggle for bulk/single */}
+                  {!editingGoal && (
+                    <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                      <Button
+                        variant={!isBulkMode ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setIsBulkMode(false);
+                          setSelectedEmployees([]);
+                        }}
+                      >
+                        <User className="h-4 w-4 mr-1" />
+                        Одному сотруднику
+                      </Button>
+                      <Button
+                        variant={isBulkMode ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setIsBulkMode(true);
+                          setFormData({ ...formData, user_id: "" });
+                        }}
+                      >
+                        <Users className="h-4 w-4 mr-1" />
+                        Нескольким сотрудникам
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Single employee selector */}
+                  {!isBulkMode && !editingGoal && (
+                    <div className="space-y-2">
+                      <Label>Сотрудник *</Label>
+                      <Select
+                        value={formData.user_id}
+                        onValueChange={(value) => setFormData({ ...formData, user_id: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Выберите сотрудника" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees.map((emp) => (
+                            <SelectItem key={emp.id} value={emp.id}>
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                {emp.full_name}
+                                {(emp.positions as any)?.name && (
+                                  <span className="text-muted-foreground text-xs">
+                                    — {(emp.positions as any).name}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Editing mode - show current employee */}
+                  {editingGoal && (
+                    <div className="space-y-2">
+                      <Label>Сотрудник</Label>
+                      <div className="p-2 border rounded-md bg-muted/50 text-sm">
+                        {employees.find(e => e.id === editingGoal.user_id)?.full_name || "—"}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bulk employee selector */}
+                  {isBulkMode && !editingGoal && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Сотрудники * ({selectedEmployees.length} выбрано)</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={selectAllEmployees}
+                        >
+                          {selectedEmployees.length === employees.length ? "Снять все" : "Выбрать всех"}
+                        </Button>
+                      </div>
+                      <ScrollArea className="h-[200px] border rounded-md p-2">
+                        <div className="space-y-1">
+                          {employees.map((emp) => {
+                            const isSelected = selectedEmployees.includes(emp.id);
+                            return (
+                              <div
+                                key={emp.id}
+                                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors ${
+                                  isSelected 
+                                    ? "bg-primary/10 border border-primary/30" 
+                                    : "hover:bg-muted"
+                                }`}
+                                onClick={() => toggleEmployeeSelection(emp.id)}
+                              >
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${
+                                  isSelected 
+                                    ? "bg-primary border-primary text-primary-foreground" 
+                                    : "border-muted-foreground/30"
+                                }`}>
+                                  {isSelected && <CheckCircle2 className="h-3 w-3" />}
+                                </div>
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">{emp.full_name}</div>
+                                  {(emp.positions as any)?.name && (
+                                    <div className="text-xs text-muted-foreground">
+                                      {(emp.positions as any).name}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label>Тип цели</Label>
@@ -683,8 +842,16 @@ export function OrganizationKPIManagement() {
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Отмена
                   </Button>
-                  <Button onClick={handleSubmit} disabled={createGoalMutation.isPending || updateGoalMutation.isPending}>
-                    {editingGoal ? "Сохранить" : "Назначить"}
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={createGoalMutation.isPending || updateGoalMutation.isPending || bulkCreateGoalsMutation.isPending}
+                  >
+                    {editingGoal 
+                      ? "Сохранить" 
+                      : isBulkMode 
+                        ? `Назначить ${selectedEmployees.length} сотрудникам`
+                        : "Назначить"
+                    }
                   </Button>
                 </DialogFooter>
               </DialogContent>
