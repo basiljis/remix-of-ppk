@@ -42,6 +42,8 @@ import {
   Mail,
   FileText,
   Eye,
+  User,
+  ClipboardList,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -74,11 +76,24 @@ interface ProtocolChild {
   address: string | null;
 }
 
+interface ProtocolPreview {
+  id: string;
+  ppk_number: string | null;
+  created_at: string;
+  status: string | null;
+  education_level: string;
+  consultation_type: string;
+}
+
 const educationLevels = [
   { value: "do", label: "Дошкольное образование" },
+  { value: "preschool", label: "Дошкольное образование" },
   { value: "noo", label: "Начальное общее образование" },
+  { value: "elementary", label: "Начальное общее образование" },
   { value: "oo", label: "Основное общее образование" },
+  { value: "middle", label: "Основное общее образование" },
   { value: "soo", label: "Среднее общее образование" },
+  { value: "high", label: "Среднее общее образование" },
 ];
 
 const genderOptions = [
@@ -93,6 +108,8 @@ export function ChildrenManagement() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [showProtocolsDialog, setShowProtocolsDialog] = useState(false);
+  const [selectedChildName, setSelectedChildName] = useState<string | null>(null);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -171,6 +188,24 @@ export function ChildrenManagement() {
       enabled: !!organizationId,
     });
 
+  // Fetch protocols for selected child
+  const { data: childProtocols = [], isLoading: isLoadingChildProtocols } =
+    useQuery({
+      queryKey: ["child-protocols", organizationId, selectedChildName],
+      queryFn: async () => {
+        if (!organizationId || !selectedChildName) return [];
+        const { data, error } = await supabase
+          .from("protocols")
+          .select("id, ppk_number, created_at, status, education_level, consultation_type")
+          .eq("organization_id", organizationId)
+          .eq("child_name", selectedChildName)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data as ProtocolPreview[];
+      },
+      enabled: !!organizationId && !!selectedChildName && showProtocolsDialog,
+    });
+
   // Combine and deduplicate children
   const children = useMemo(() => {
     const combinedChildren: (Child & {
@@ -197,6 +232,12 @@ export function ChildrenManagement() {
         latest_ppk_number: protocolData?.latest_ppk_number || null,
         // If child in table doesn't have education_level, use from protocol
         education_level: child.education_level || protocolData?.education_level || null,
+        // Merge parent data from protocol if not in children table
+        parent_name: child.parent_name || protocolData?.parent_name || null,
+        parent_phone: child.parent_phone || protocolData?.parent_phone || null,
+        _protocolParentName: protocolData?.parent_name || null,
+        _protocolParentPhone: protocolData?.parent_phone || null,
+        _protocolAddress: protocolData?.address || null,
       });
       processedNames.add(key);
     });
@@ -345,6 +386,11 @@ export function ChildrenManagement() {
     navigate(`/child-profile?${params.toString()}`);
   };
 
+  const handleViewProtocols = (childName: string) => {
+    setSelectedChildName(childName);
+    setShowProtocolsDialog(true);
+  };
+
   const filteredChildren = children.filter((child) =>
     child.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -364,6 +410,22 @@ export function ChildrenManagement() {
   const getGenderLabel = (gender: string | null) => {
     if (!gender) return null;
     return genderOptions.find((g) => g.value === gender)?.label || gender;
+  };
+
+  const getEducationLevelLabel = (level: string | null) => {
+    if (!level) return null;
+    return educationLevels.find((l) => l.value === level)?.label || level;
+  };
+
+  const getStatusBadge = (status: string | null) => {
+    switch (status) {
+      case "completed":
+        return <Badge className="bg-green-100 text-green-800">Завершён</Badge>;
+      case "draft":
+        return <Badge variant="secondary">Черновик</Badge>;
+      default:
+        return <Badge variant="outline">{status || "—"}</Badge>;
+    }
   };
 
   return (
@@ -414,7 +476,7 @@ export function ChildrenManagement() {
                 <TableHead>Родитель / Контакт</TableHead>
                 <TableHead>Протоколов</TableHead>
                 <TableHead>Статус</TableHead>
-                <TableHead className="w-[150px]">Действия</TableHead>
+                <TableHead className="w-[180px]">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -438,9 +500,7 @@ export function ChildrenManagement() {
               ) : (
                 filteredChildren.map((child) => {
                   const age = calculateAge(child.birth_date);
-                  const level = educationLevels.find(
-                    (l) => l.value === child.education_level
-                  );
+                  const levelLabel = getEducationLevelLabel(child.education_level);
                   const isFromProtocol = child._fromProtocol;
                   const protocolCount = child.protocol_count || 0;
 
@@ -494,8 +554,10 @@ export function ChildrenManagement() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {level ? (
-                          <Badge variant="secondary">{level.label}</Badge>
+                        {levelLabel ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {levelLabel}
+                          </Badge>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -527,7 +589,8 @@ export function ChildrenManagement() {
                         {protocolCount > 0 ? (
                           <Badge
                             variant="outline"
-                            className="bg-primary/10 text-primary border-primary/30"
+                            className="bg-primary/10 text-primary border-primary/30 cursor-pointer hover:bg-primary/20"
+                            onClick={() => handleViewProtocols(child.full_name)}
                           >
                             <FileText className="h-3 w-3 mr-1" />
                             {protocolCount}
@@ -545,16 +608,29 @@ export function ChildrenManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
+                          {/* View Protocols Button */}
+                          {protocolCount > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleViewProtocols(child.full_name)}
+                              title="Список протоколов"
+                            >
+                              <ClipboardList className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {/* Profile Button */}
                           {protocolCount > 0 && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleViewProfile(child.full_name)}
-                              title="Просмотр результатов"
+                              title="Профиль ребёнка"
                             >
-                              <Eye className="h-4 w-4 text-primary" />
+                              <User className="h-4 w-4 text-primary" />
                             </Button>
                           )}
+                          {/* Edit/Add to DB Button */}
                           {!isFromProtocol ? (
                             <Button
                               variant="ghost"
@@ -607,6 +683,7 @@ export function ChildrenManagement() {
         </div>
       </CardContent>
 
+      {/* Add/Edit Child Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -673,11 +750,10 @@ export function ChildrenManagement() {
                   <SelectValue placeholder="Выберите уровень" />
                 </SelectTrigger>
                 <SelectContent>
-                  {educationLevels.map((l) => (
-                    <SelectItem key={l.value} value={l.value}>
-                      {l.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="do">Дошкольное образование</SelectItem>
+                  <SelectItem value="noo">Начальное общее образование</SelectItem>
+                  <SelectItem value="oo">Основное общее образование</SelectItem>
+                  <SelectItem value="soo">Среднее общее образование</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -762,6 +838,101 @@ export function ChildrenManagement() {
             </Button>
             <Button onClick={handleSave} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? "Сохранение..." : "Сохранить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Protocols List Dialog */}
+      <Dialog open={showProtocolsDialog} onOpenChange={setShowProtocolsDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5" />
+              Протоколы: {selectedChildName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {isLoadingChildProtocols ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Загрузка протоколов...
+              </div>
+            ) : childProtocols.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Протоколы не найдены
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>№ ППК</TableHead>
+                      <TableHead>Дата</TableHead>
+                      <TableHead>Тип</TableHead>
+                      <TableHead>Уровень</TableHead>
+                      <TableHead>Статус</TableHead>
+                      <TableHead className="w-[100px]">Действия</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {childProtocols.map((protocol) => (
+                      <TableRow key={protocol.id}>
+                        <TableCell className="font-medium">
+                          {protocol.ppk_number || "—"}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(protocol.created_at), "dd.MM.yyyy", {
+                            locale: ru,
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          {protocol.consultation_type === "primary"
+                            ? "Первичная"
+                            : "Повторная"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {getEducationLevelLabel(protocol.education_level) || protocol.education_level}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(protocol.status)}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              // Navigate to protocol view/edit
+                              navigate(`/app?tab=ppk&protocol=${protocol.id}`);
+                              setShowProtocolsDialog(false);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Открыть
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex justify-between">
+            {selectedChildName && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  handleViewProfile(selectedChildName);
+                  setShowProtocolsDialog(false);
+                }}
+                className="gap-2"
+              >
+                <User className="h-4 w-4" />
+                Профиль ребёнка
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setShowProtocolsDialog(false)}>
+              Закрыть
             </Button>
           </DialogFooter>
         </DialogContent>

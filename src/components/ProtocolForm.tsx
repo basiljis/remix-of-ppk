@@ -35,6 +35,8 @@ import { analyzeProtocolResults } from "@/utils/assistanceDirections";
 import { generateProtocolConclusion } from "@/utils/protocolRecommendations";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { ChildSelector } from "@/components/ChildSelector";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Интерфейсы для данных протокола и документов
 interface ChildData {
@@ -114,6 +116,7 @@ export const ProtocolForm = ({
   const { saveProtocol, updateProtocol } = useProtocols();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const subscriptionStatus = useSubscriptionStatus();
   const { getChecklistByLevelAndType, loading: checklistLoading } = useChecklistData();
   const {
@@ -390,6 +393,66 @@ export const ProtocolForm = ({
     setShowSaveDialog(false);
   };
 
+  // Function to sync child data to children table (auto-update)
+  const syncChildDataToChildrenTable = async (
+    childData: ChildData,
+    educationLevel: string,
+    organizationId: string
+  ) => {
+    if (!childData.fullName || !organizationId) return;
+
+    // Check if child exists in children table
+    const { data: existingChild, error: checkError } = await supabase
+      .from("children")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .ilike("full_name", childData.fullName)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking existing child:', checkError);
+      return;
+    }
+
+    const childRecord = {
+      full_name: childData.fullName,
+      birth_date: childData.birthDate || null,
+      education_level: educationLevel || null,
+      parent_name: childData.parentName || null,
+      parent_phone: childData.parentPhone || null,
+      notes: childData.address ? `Адрес: ${childData.address}` : null,
+      organization_id: organizationId,
+      is_active: true,
+    };
+
+    if (existingChild) {
+      // Update existing child
+      const { error: updateError } = await supabase
+        .from("children")
+        .update({
+          birth_date: childRecord.birth_date,
+          education_level: childRecord.education_level,
+          parent_name: childRecord.parent_name,
+          parent_phone: childRecord.parent_phone,
+          // Only update notes if they contain address and current notes are empty
+        })
+        .eq("id", existingChild.id);
+
+      if (updateError) {
+        console.error('Error updating child:', updateError);
+      }
+    } else {
+      // Insert new child
+      const { error: insertError } = await supabase
+        .from("children")
+        .insert(childRecord);
+
+      if (insertError) {
+        console.error('Error inserting child:', insertError);
+      }
+    }
+  };
+
   const saveProtocolData = async (isDraft: boolean = false) => {
     // Предотвращаем дублирование сохранения
     if (isSaving) {
@@ -492,6 +555,19 @@ export const ProtocolForm = ({
           title: isDraft ? "Черновик сохранен" : "Протокол сохранен",
           description: isDraft ? "Изменения сохранены" : "Протокол успешно создан"
         });
+      }
+
+      // Auto-update child data in children table
+      if (!isDraft && formData.childData.fullName && formData.childData.educationalOrganization) {
+        try {
+          await syncChildDataToChildrenTable(formData.childData, selectedLevel, formData.childData.educationalOrganization);
+          // Invalidate children queries to refresh the list
+          queryClient.invalidateQueries({ queryKey: ["children"] });
+          queryClient.invalidateQueries({ queryKey: ["children-from-protocols"] });
+        } catch (syncError) {
+          console.error('Error syncing child data:', syncError);
+          // Don't show error toast, this is a background sync
+        }
       }
 
       initialFormDataRef.current = JSON.stringify(formData);
@@ -870,7 +946,24 @@ export const ProtocolForm = ({
             )}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <Label htmlFor="fullName">ФИО обучающегося *</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="fullName">ФИО обучающегося *</Label>
+                  <ChildSelector
+                    onSelect={(child) => {
+                      updateChildData("fullName", child.fullName);
+                      updateChildData("birthDate", child.birthDate);
+                      updateChildData("parentName", child.parentName);
+                      updateChildData("parentPhone", child.parentPhone);
+                      if (child.birthDate) {
+                        const birthDate = parseISO(child.birthDate);
+                        const today = new Date();
+                        const years = differenceInYears(today, birthDate);
+                        const months = differenceInMonths(today, birthDate) % 12;
+                        updateChildData("age", `${years} лет ${months} мес.`);
+                      }
+                    }}
+                  />
+                </div>
                 <Input
                   id="fullName"
                   value={formData.childData.fullName}
