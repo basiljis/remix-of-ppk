@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +33,16 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Search, UserCircle, Phone, Mail } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Search,
+  UserCircle,
+  Phone,
+  Mail,
+  FileText,
+  Eye,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -51,6 +61,15 @@ interface Child {
   created_at: string;
 }
 
+interface ProtocolChild {
+  child_name: string;
+  child_birth_date: string | null;
+  education_level: string | null;
+  protocol_count: number;
+  latest_status: string | null;
+  latest_ppk_number: string | null;
+}
+
 const educationLevels = [
   { value: "do", label: "Дошкольное образование" },
   { value: "noo", label: "Начальное общее образование" },
@@ -66,6 +85,7 @@ const genderOptions = [
 export function ChildrenManagement() {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [showDialog, setShowDialog] = useState(false);
@@ -85,82 +105,123 @@ export function ChildrenManagement() {
   const organizationId = profile?.organization_id;
 
   // Fetch children from children table
-  const { data: childrenFromTable = [], isLoading: isLoadingChildren } = useQuery({
-    queryKey: ["children", organizationId],
-    queryFn: async () => {
-      if (!organizationId) return [];
-      const { data, error } = await supabase
-        .from("children")
-        .select("*")
-        .eq("organization_id", organizationId)
-        .order("full_name");
-      if (error) throw error;
-      return data as Child[];
-    },
-    enabled: !!organizationId,
-  });
+  const { data: childrenFromTable = [], isLoading: isLoadingChildren } =
+    useQuery({
+      queryKey: ["children", organizationId],
+      queryFn: async () => {
+        if (!organizationId) return [];
+        const { data, error } = await supabase
+          .from("children")
+          .select("*")
+          .eq("organization_id", organizationId)
+          .order("full_name");
+        if (error) throw error;
+        return data as Child[];
+      },
+      enabled: !!organizationId,
+    });
 
-  // Fetch children from protocols (PPK list) for the organization
-  const { data: childrenFromProtocols = [], isLoading: isLoadingProtocols } = useQuery({
-    queryKey: ["children-from-protocols", organizationId],
-    queryFn: async () => {
-      if (!organizationId) return [];
-      const { data, error } = await supabase
-        .from("protocols")
-        .select("child_name, child_birth_date")
-        .eq("organization_id", organizationId)
-        .order("child_name");
-      if (error) throw error;
-      
-      // Get unique children names from protocols
-      const uniqueChildren = new Map<string, { name: string; birthDate: string | null }>();
-      data?.forEach(p => {
-        if (p.child_name && !uniqueChildren.has(p.child_name.toLowerCase())) {
-          uniqueChildren.set(p.child_name.toLowerCase(), {
-            name: p.child_name,
-            birthDate: p.child_birth_date,
-          });
-        }
-      });
-      return Array.from(uniqueChildren.values());
-    },
-    enabled: !!organizationId,
-  });
+  // Fetch children from protocols (PPK list) with full data
+  const { data: childrenFromProtocols = [], isLoading: isLoadingProtocols } =
+    useQuery({
+      queryKey: ["children-from-protocols", organizationId],
+      queryFn: async () => {
+        if (!organizationId) return [];
+        const { data, error } = await supabase
+          .from("protocols")
+          .select("child_name, child_birth_date, education_level, status, ppk_number, created_at")
+          .eq("organization_id", organizationId)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+
+        // Aggregate children data from protocols
+        const childrenMap = new Map<string, ProtocolChild>();
+        data?.forEach((p) => {
+          const key = p.child_name?.toLowerCase();
+          if (!key) return;
+
+          if (childrenMap.has(key)) {
+            const existing = childrenMap.get(key)!;
+            existing.protocol_count += 1;
+            // Keep the most recent data
+          } else {
+            childrenMap.set(key, {
+              child_name: p.child_name,
+              child_birth_date: p.child_birth_date,
+              education_level: p.education_level,
+              protocol_count: 1,
+              latest_status: p.status,
+              latest_ppk_number: p.ppk_number,
+            });
+          }
+        });
+        return Array.from(childrenMap.values());
+      },
+      enabled: !!organizationId,
+    });
 
   // Combine and deduplicate children
   const children = useMemo(() => {
-    const allChildren = [...childrenFromTable];
-    const existingNames = new Set(childrenFromTable.map(c => c.full_name.toLowerCase()));
-    
-    // Add children from protocols that aren't already in the children table
-    childrenFromProtocols.forEach(pc => {
-      if (!existingNames.has(pc.name.toLowerCase())) {
-        allChildren.push({
-          id: `protocol-${pc.name}`, // Temporary ID for display
-          full_name: pc.name,
-          birth_date: pc.birthDate,
+    const combinedChildren: (Child & {
+      _fromProtocol?: boolean;
+      protocol_count?: number;
+      latest_ppk_number?: string | null;
+    })[] = [];
+    const processedNames = new Set<string>();
+
+    // First, add children from the children table
+    childrenFromTable.forEach((child) => {
+      const key = child.full_name.toLowerCase();
+      const protocolData = childrenFromProtocols.find(
+        (pc) => pc.child_name.toLowerCase() === key
+      );
+
+      combinedChildren.push({
+        ...child,
+        _fromProtocol: false,
+        protocol_count: protocolData?.protocol_count || 0,
+        latest_ppk_number: protocolData?.latest_ppk_number || null,
+        // If child in table doesn't have education_level, use from protocol
+        education_level: child.education_level || protocolData?.education_level || null,
+      });
+      processedNames.add(key);
+    });
+
+    // Then, add children only from protocols that aren't in the children table
+    childrenFromProtocols.forEach((pc) => {
+      const key = pc.child_name.toLowerCase();
+      if (!processedNames.has(key)) {
+        combinedChildren.push({
+          id: `protocol-${pc.child_name}`,
+          full_name: pc.child_name,
+          birth_date: pc.child_birth_date,
           gender: null,
-          education_level: null,
+          education_level: pc.education_level,
           parent_name: null,
           parent_phone: null,
           parent_email: null,
           notes: null,
           is_active: true,
-          organization_id: organizationId,
+          organization_id: organizationId || null,
           created_at: new Date().toISOString(),
-          _fromProtocol: true, // Mark as from protocol
-        } as Child & { _fromProtocol?: boolean });
+          _fromProtocol: true,
+          protocol_count: pc.protocol_count,
+          latest_ppk_number: pc.latest_ppk_number,
+        });
+        processedNames.add(key);
       }
     });
-    
-    return allChildren.sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+    return combinedChildren.sort((a, b) =>
+      a.full_name.localeCompare(b.full_name)
+    );
   }, [childrenFromTable, childrenFromProtocols, organizationId]);
 
   const isLoading = isLoadingChildren || isLoadingProtocols;
 
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData & { id?: string }) => {
-      if (data.id) {
+      if (data.id && !data.id.startsWith("protocol-")) {
         const { error } = await supabase
           .from("children")
           .update({
@@ -194,6 +255,7 @@ export function ChildrenManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["children"] });
+      queryClient.invalidateQueries({ queryKey: ["children-from-protocols"] });
       setShowDialog(false);
       resetForm();
       toast({
@@ -250,7 +312,20 @@ export function ChildrenManagement() {
       });
       return;
     }
-    saveMutation.mutate({ ...formData, id: editingChild?.id });
+    saveMutation.mutate({
+      ...formData,
+      id: editingChild?.id.startsWith("protocol-") ? undefined : editingChild?.id,
+    });
+  };
+
+  const handleViewProfile = (childName: string) => {
+    if (!organizationId) return;
+    const params = new URLSearchParams({
+      name: childName,
+      org: organizationId,
+      returnUrl: "/app",
+    });
+    navigate(`/child-profile?${params.toString()}`);
   };
 
   const filteredChildren = children.filter((child) =>
@@ -269,24 +344,34 @@ export function ChildrenManagement() {
     return age;
   };
 
+  const getGenderLabel = (gender: string | null) => {
+    if (!gender) return null;
+    return genderOptions.find((g) => g.value === gender)?.label || gender;
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <CardTitle className="flex items-center gap-2">
             <UserCircle className="h-5 w-5" />
-            Управление детьми
+            Дети организации
           </CardTitle>
-          <Button
-            onClick={() => {
-              resetForm();
-              setShowDialog(true);
-            }}
-            className="gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Добавить ребёнка
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-sm">
+              Всего: {children.length}
+            </Badge>
+            <Button
+              onClick={() => {
+                resetForm();
+                setShowDialog(true);
+              }}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Добавить ребёнка
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -300,51 +385,93 @@ export function ChildrenManagement() {
           />
         </div>
 
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ФИО ребёнка</TableHead>
+                <TableHead>Дата рождения</TableHead>
                 <TableHead>Возраст</TableHead>
+                <TableHead>Пол</TableHead>
                 <TableHead>Уровень образования</TableHead>
-                <TableHead>Родитель</TableHead>
+                <TableHead>Родитель / Контакт</TableHead>
+                <TableHead>Протоколов</TableHead>
                 <TableHead>Статус</TableHead>
-                <TableHead className="w-[100px]">Действия</TableHead>
+                <TableHead className="w-[150px]">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : filteredChildren.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    {searchQuery ? "Ничего не найдено" : "Нет добавленных детей"}
+                  <TableCell
+                    colSpan={9}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    {searchQuery
+                      ? "Ничего не найдено"
+                      : "Нет добавленных детей. Добавьте ребёнка или создайте протокол ППК."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredChildren.map((child) => {
                   const age = calculateAge(child.birth_date);
-                  const level = educationLevels.find((l) => l.value === child.education_level);
-                  const isFromProtocol = (child as Child & { _fromProtocol?: boolean })._fromProtocol;
+                  const level = educationLevels.find(
+                    (l) => l.value === child.education_level
+                  );
+                  const isFromProtocol = child._fromProtocol;
+                  const protocolCount = child.protocol_count || 0;
+
                   return (
                     <TableRow key={child.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          {child.full_name}
+                          <span>{child.full_name}</span>
                           {isFromProtocol && (
-                            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                            <Badge
+                              variant="outline"
+                              className="text-xs bg-amber-50 text-amber-700 border-amber-200"
+                            >
                               из ППК
                             </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
+                        {child.birth_date ? (
+                          <span>
+                            {format(new Date(child.birth_date), "dd.MM.yyyy", {
+                              locale: ru,
+                            })}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         {age !== null ? (
                           <span>{age} лет</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {child.gender ? (
+                          <Badge
+                            variant="outline"
+                            className={
+                              child.gender === "male"
+                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                : "bg-pink-50 text-pink-700 border-pink-200"
+                            }
+                          >
+                            {getGenderLabel(child.gender)}
+                          </Badge>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -359,11 +486,19 @@ export function ChildrenManagement() {
                       <TableCell>
                         {child.parent_name ? (
                           <div className="space-y-1">
-                            <div className="text-sm">{child.parent_name}</div>
+                            <div className="text-sm font-medium">
+                              {child.parent_name}
+                            </div>
                             {child.parent_phone && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Phone className="h-3 w-3" />
                                 {child.parent_phone}
+                              </div>
+                            )}
+                            {child.parent_email && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                {child.parent_email}
                               </div>
                             )}
                           </div>
@@ -372,44 +507,73 @@ export function ChildrenManagement() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={child.is_active ? "default" : "secondary"}>
+                        {protocolCount > 0 ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-primary/10 text-primary border-primary/30"
+                          >
+                            <FileText className="h-3 w-3 mr-1" />
+                            {protocolCount}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={child.is_active ? "default" : "secondary"}
+                        >
                           {child.is_active ? "Активен" : "Неактивен"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {!isFromProtocol ? (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(child)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setFormData({
-                                full_name: child.full_name,
-                                birth_date: child.birth_date || "",
-                                gender: "",
-                                education_level: "",
-                                parent_name: "",
-                                parent_phone: "",
-                                parent_email: "",
-                                notes: "",
-                                is_active: true,
-                              });
-                              setEditingChild(null);
-                              setShowDialog(true);
-                            }}
-                            className="text-xs"
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Добавить
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {protocolCount > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleViewProfile(child.full_name)}
+                              title="Просмотр результатов"
+                            >
+                              <Eye className="h-4 w-4 text-primary" />
+                            </Button>
+                          )}
+                          {!isFromProtocol ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(child)}
+                              title="Редактировать"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setFormData({
+                                  full_name: child.full_name,
+                                  birth_date: child.birth_date || "",
+                                  gender: "",
+                                  education_level: child.education_level || "",
+                                  parent_name: "",
+                                  parent_phone: "",
+                                  parent_email: "",
+                                  notes: "",
+                                  is_active: true,
+                                });
+                                setEditingChild(null);
+                                setShowDialog(true);
+                              }}
+                              className="text-xs h-8"
+                              title="Добавить в базу"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              В базу
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -424,7 +588,9 @@ export function ChildrenManagement() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingChild ? "Редактирование ребёнка" : "Добавление ребёнка"}
+              {editingChild
+                ? "Редактирование ребёнка"
+                : "Добавление ребёнка"}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -494,7 +660,9 @@ export function ChildrenManagement() {
             </div>
 
             <div className="border-t pt-4">
-              <h4 className="font-medium mb-3">Данные родителя (законного представителя)</h4>
+              <h4 className="font-medium mb-3">
+                Данные родителя (законного представителя)
+              </h4>
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="parent_name">ФИО родителя</Label>
@@ -514,7 +682,10 @@ export function ChildrenManagement() {
                       id="parent_phone"
                       value={formData.parent_phone}
                       onChange={(e) =>
-                        setFormData({ ...formData, parent_phone: e.target.value })
+                        setFormData({
+                          ...formData,
+                          parent_phone: e.target.value,
+                        })
                       }
                       placeholder="+7 (999) 123-45-67"
                     />
@@ -526,7 +697,10 @@ export function ChildrenManagement() {
                       type="email"
                       value={formData.parent_email}
                       onChange={(e) =>
-                        setFormData({ ...formData, parent_email: e.target.value })
+                        setFormData({
+                          ...formData,
+                          parent_email: e.target.value,
+                        })
                       }
                       placeholder="parent@example.com"
                     />
@@ -540,7 +714,9 @@ export function ChildrenManagement() {
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 placeholder="Дополнительная информация..."
                 rows={3}
               />
