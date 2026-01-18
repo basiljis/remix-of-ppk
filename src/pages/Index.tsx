@@ -228,6 +228,11 @@ const Index = () => {
       case "administration-payment-logs":
       case "administration-commercial-offers":
       case "administration-analytics":
+      case "administration-positions-roles":
+      case "administration-schedule":
+      case "administration-workload-report":
+      case "administration-session-notifications":
+      case "administration-org-admins":
         return isAdmin ? (
           <Suspense fallback={loadingFallback}>
             <Administration activeSubTab={activeTab.replace("administration-", "")} />
