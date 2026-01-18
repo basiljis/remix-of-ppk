@@ -48,6 +48,8 @@ export function SessionNotificationsPanel() {
           start_time,
           end_time,
           topic,
+          cancellation_token,
+          cancelled_by_parent,
           children(id, full_name, parent_email, parent_name),
           profiles!sessions_specialist_id_fkey(id, full_name),
           session_types(name),
@@ -55,6 +57,7 @@ export function SessionNotificationsPanel() {
           organizations(id, name, short_name)
         `)
         .eq("scheduled_date", targetDate)
+        .eq("cancelled_by_parent", false)
         .order("start_time");
       if (error) throw error;
       return data;
@@ -96,6 +99,7 @@ export function SessionNotificationsPanel() {
           topic: session.topic || "",
           organizationName: (session.organizations as any)?.short_name || 
                            (session.organizations as any)?.name || "",
+          cancellationToken: (session as any).cancellation_token || "",
         };
       }).filter(Boolean);
 

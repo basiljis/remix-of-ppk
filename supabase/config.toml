@@ -86,3 +86,6 @@ verify_jwt = true
 
 [functions.auto-session-reminders]
 verify_jwt = false
+
+[functions.cancel-session]
+verify_jwt = false

@@ -8,6 +8,8 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const CANCEL_URL_BASE = "https://oxyjmeslnmhewlpgzlmf.supabase.co/functions/v1/cancel-session";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -26,6 +28,7 @@ interface SessionReminder {
   sessionType: string;
   topic?: string;
   organizationName?: string;
+  cancellationToken?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -53,6 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
         sessionType,
         topic,
         organizationName,
+        cancellationToken,
       } = reminder;
 
       const formattedDate = new Date(scheduledDate).toLocaleDateString("ru-RU", {
@@ -61,6 +65,10 @@ const handler = async (req: Request): Promise<Response> => {
         month: "long",
         day: "numeric",
       });
+
+      const cancelUrl = cancellationToken 
+        ? `${CANCEL_URL_BASE}?token=${cancellationToken}` 
+        : null;
 
       const emailSubject = `Напоминание о занятии для ${childName}`;
       
@@ -108,9 +116,23 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
             <p style="margin: 0; color: #92400e;">
               <strong>Важно:</strong> Пожалуйста, убедитесь, что ваш ребёнок готов к занятию вовремя.
-              При невозможности посещения просим заранее уведомить специалиста.
             </p>
           </div>
+
+          ${cancelUrl ? `
+          <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
+            <p style="margin: 0 0 12px; color: #991b1b; font-weight: 500;">
+              Не можете присутствовать на занятии?
+            </p>
+            <a href="${cancelUrl}" 
+               style="display: inline-block; background-color: #ef4444; color: white; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Отменить занятие
+            </a>
+            <p style="margin: 12px 0 0; color: #7f1d1d; font-size: 12px;">
+              Просим уведомить об отмене заранее
+            </p>
+          </div>
+          ` : ''}
           
           <p style="color: #666; font-size: 14px; margin-top: 40px;">
             Это автоматическое уведомление. При возникновении вопросов обратитесь к специалисту или администратору учреждения.
@@ -142,6 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
             scheduledDate,
             startTime,
             specialistName,
+            hasCancelLink: !!cancelUrl,
           },
         });
 

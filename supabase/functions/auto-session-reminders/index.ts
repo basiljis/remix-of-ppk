@@ -8,6 +8,8 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const CANCEL_URL_BASE = "https://oxyjmeslnmhewlpgzlmf.supabase.co/functions/v1/cancel-session";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -29,7 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Looking for sessions on: ${tomorrowStr}`);
 
-    // Fetch sessions for tomorrow with child and specialist info
+    // Fetch sessions for tomorrow with child, specialist info and cancellation token
     const { data: sessions, error: sessionsError } = await supabase
       .from("sessions")
       .select(`
@@ -38,12 +40,15 @@ const handler = async (req: Request): Promise<Response> => {
         start_time,
         end_time,
         topic,
+        cancellation_token,
+        cancelled_by_parent,
         children(id, full_name, parent_email, parent_name),
         profiles!sessions_specialist_id_fkey(id, full_name),
         session_types(name),
         organizations(id, name, short_name)
       `)
-      .eq("scheduled_date", tomorrowStr);
+      .eq("scheduled_date", tomorrowStr)
+      .eq("cancelled_by_parent", false);
 
     if (sessionsError) {
       console.error("Error fetching sessions:", sessionsError);
@@ -88,6 +93,10 @@ const handler = async (req: Request): Promise<Response> => {
         month: "long",
         day: "numeric",
       });
+
+      const cancelUrl = session.cancellation_token 
+        ? `${CANCEL_URL_BASE}?token=${session.cancellation_token}` 
+        : null;
 
       const emailSubject = `Напоминание: занятие для ${child.full_name} завтра`;
 
@@ -135,9 +144,23 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
             <p style="margin: 0; color: #92400e;">
               <strong>Важно:</strong> Пожалуйста, убедитесь, что ваш ребёнок готов к занятию вовремя.
-              При невозможности посещения просим заранее уведомить специалиста.
             </p>
           </div>
+
+          ${cancelUrl ? `
+          <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
+            <p style="margin: 0 0 12px; color: #991b1b; font-weight: 500;">
+              Не можете присутствовать на занятии?
+            </p>
+            <a href="${cancelUrl}" 
+               style="display: inline-block; background-color: #ef4444; color: white; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Отменить занятие
+            </a>
+            <p style="margin: 12px 0 0; color: #7f1d1d; font-size: 12px;">
+              Просим уведомить об отмене заранее
+            </p>
+          </div>
+          ` : ""}
           
           <p style="color: #666; font-size: 14px; margin-top: 40px;">
             Это автоматическое уведомление системы ППК. При возникновении вопросов обратитесь к специалисту или администратору.
@@ -169,6 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
             startTime: session.start_time,
             specialistName: specialist?.full_name,
             automated: true,
+            hasCancelLink: !!cancelUrl,
           },
         });
 
