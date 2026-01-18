@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,7 +84,8 @@ export function ChildrenManagement() {
 
   const organizationId = profile?.organization_id;
 
-  const { data: children = [], isLoading } = useQuery({
+  // Fetch children from children table
+  const { data: childrenFromTable = [], isLoading: isLoadingChildren } = useQuery({
     queryKey: ["children", organizationId],
     queryFn: async () => {
       if (!organizationId) return [];
@@ -98,6 +99,64 @@ export function ChildrenManagement() {
     },
     enabled: !!organizationId,
   });
+
+  // Fetch children from protocols (PPK list) for the organization
+  const { data: childrenFromProtocols = [], isLoading: isLoadingProtocols } = useQuery({
+    queryKey: ["children-from-protocols", organizationId],
+    queryFn: async () => {
+      if (!organizationId) return [];
+      const { data, error } = await supabase
+        .from("protocols")
+        .select("child_name, child_birth_date")
+        .eq("organization_id", organizationId)
+        .order("child_name");
+      if (error) throw error;
+      
+      // Get unique children names from protocols
+      const uniqueChildren = new Map<string, { name: string; birthDate: string | null }>();
+      data?.forEach(p => {
+        if (p.child_name && !uniqueChildren.has(p.child_name.toLowerCase())) {
+          uniqueChildren.set(p.child_name.toLowerCase(), {
+            name: p.child_name,
+            birthDate: p.child_birth_date,
+          });
+        }
+      });
+      return Array.from(uniqueChildren.values());
+    },
+    enabled: !!organizationId,
+  });
+
+  // Combine and deduplicate children
+  const children = useMemo(() => {
+    const allChildren = [...childrenFromTable];
+    const existingNames = new Set(childrenFromTable.map(c => c.full_name.toLowerCase()));
+    
+    // Add children from protocols that aren't already in the children table
+    childrenFromProtocols.forEach(pc => {
+      if (!existingNames.has(pc.name.toLowerCase())) {
+        allChildren.push({
+          id: `protocol-${pc.name}`, // Temporary ID for display
+          full_name: pc.name,
+          birth_date: pc.birthDate,
+          gender: null,
+          education_level: null,
+          parent_name: null,
+          parent_phone: null,
+          parent_email: null,
+          notes: null,
+          is_active: true,
+          organization_id: organizationId,
+          created_at: new Date().toISOString(),
+          _fromProtocol: true, // Mark as from protocol
+        } as Child & { _fromProtocol?: boolean });
+      }
+    });
+    
+    return allChildren.sort((a, b) => a.full_name.localeCompare(b.full_name));
+  }, [childrenFromTable, childrenFromProtocols, organizationId]);
+
+  const isLoading = isLoadingChildren || isLoadingProtocols;
 
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData & { id?: string }) => {
@@ -270,9 +329,19 @@ export function ChildrenManagement() {
                 filteredChildren.map((child) => {
                   const age = calculateAge(child.birth_date);
                   const level = educationLevels.find((l) => l.value === child.education_level);
+                  const isFromProtocol = (child as Child & { _fromProtocol?: boolean })._fromProtocol;
                   return (
                     <TableRow key={child.id}>
-                      <TableCell className="font-medium">{child.full_name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {child.full_name}
+                          {isFromProtocol && (
+                            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                              из ППК
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         {age !== null ? (
                           <span>{age} лет</span>
@@ -308,13 +377,39 @@ export function ChildrenManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(child)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        {!isFromProtocol ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(child)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setFormData({
+                                full_name: child.full_name,
+                                birth_date: child.birth_date || "",
+                                gender: "",
+                                education_level: "",
+                                parent_name: "",
+                                parent_phone: "",
+                                parent_email: "",
+                                notes: "",
+                                is_active: true,
+                              });
+                              setEditingChild(null);
+                              setShowDialog(true);
+                            }}
+                            className="text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Добавить
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
