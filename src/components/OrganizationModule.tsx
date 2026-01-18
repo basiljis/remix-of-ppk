@@ -3,12 +3,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationSubscription } from "@/hooks/useOrganizationSubscription";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Calendar, UserCog, BarChart3, Building, Loader2, Lock } from "lucide-react";
+import { Users, Calendar, UserCog, BarChart3, Building, Loader2, Lock, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrganizationCalendar } from "./OrganizationCalendar";
 import { SpecialistRatesPanel } from "./SpecialistRatesPanel";
 import { OrganizationEmployees } from "./OrganizationEmployees";
 import { OrganizationStatistics } from "./OrganizationStatistics";
+import { OrganizationKPIManagement } from "./OrganizationKPIManagement";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -135,6 +136,10 @@ export function OrganizationModule() {
             <BarChart3 className="h-4 w-4" />
             Статистика
           </TabsTrigger>
+          <TabsTrigger value="kpi" className="gap-2">
+            <Target className="h-4 w-4" />
+            KPI сотрудников
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="mt-6">
@@ -151,6 +156,10 @@ export function OrganizationModule() {
 
         <TabsContent value="statistics" className="mt-6">
           <OrganizationStatistics />
+        </TabsContent>
+
+        <TabsContent value="kpi" className="mt-6">
+          <OrganizationKPIManagement />
         </TabsContent>
       </Tabs>
     </div>
