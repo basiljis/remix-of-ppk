@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { CheckCircle2, XCircle, Calendar, FileText, Download, Filter, Search, RotateCcw } from "lucide-react";
+import { CheckCircle2, XCircle, Calendar, FileText, Download, Filter, Search, RotateCcw, Building } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,6 +56,8 @@ export const SubscriptionsManagement = () => {
     "start_date",
     "end_date",
   ]);
+  const [selectedOrgForSubscription, setSelectedOrgForSubscription] = useState<any>(null);
+  const [orgSubscriptionMonths, setOrgSubscriptionMonths] = useState<number>(12);
 
   // Загрузка всех пользователей с их подписками
   const { data: usersWithSubscriptions, isLoading: loadingSubscriptions, error: subscriptionsError } = useQuery({
@@ -140,6 +142,152 @@ export const SubscriptionsManagement = () => {
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Загрузка организаций с подписками
+  const { data: organizationsWithSubscriptions, isLoading: loadingOrgSubscriptions } = useQuery({
+    queryKey: ["organization-subscriptions"],
+    queryFn: async () => {
+      // Get all organizations
+      const { data: orgsData, error: orgsError } = await supabase
+        .from("organizations")
+        .select("id, name, short_name, email, phone, district")
+        .eq("is_archived", false)
+        .order("name");
+
+      if (orgsError) throw orgsError;
+
+      // Get organization subscriptions
+      const { data: subsData, error: subsError } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .not("organization_id", "is", null)
+        .order("created_at", { ascending: false });
+
+      if (subsError) throw subsError;
+
+      // Get user counts per organization
+      const { data: userCounts, error: countError } = await supabase
+        .from("profiles")
+        .select("organization_id");
+
+      if (countError) throw countError;
+
+      const orgUserCounts = userCounts?.reduce((acc: Record<string, number>, profile) => {
+        if (profile.organization_id) {
+          acc[profile.organization_id] = (acc[profile.organization_id] || 0) + 1;
+        }
+        return acc;
+      }, {}) || {};
+
+      // Combine data
+      return orgsData?.map(org => {
+        const activeSub = subsData?.find(
+          sub => sub.organization_id === org.id && 
+          sub.status === 'active' && 
+          sub.end_date && 
+          new Date(sub.end_date) > new Date()
+        );
+        const lastSub = subsData?.find(sub => sub.organization_id === org.id);
+        const subscription = activeSub || lastSub;
+
+        return {
+          ...org,
+          subscription: subscription,
+          subscription_status: activeSub ? 'active' : (lastSub ? 'expired' : 'none'),
+          user_count: orgUserCounts[org.id] || 0,
+        };
+      }) || [];
+    },
+  });
+
+  // Фильтрация организаций
+  const filteredOrganizations = useMemo(() => {
+    if (!organizationsWithSubscriptions) return [];
+    
+    return organizationsWithSubscriptions.filter((org: any) => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          org.name?.toLowerCase().includes(query) ||
+          org.short_name?.toLowerCase().includes(query) ||
+          org.district?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+
+      if (statusFilter !== "all" && org.subscription_status !== statusFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [organizationsWithSubscriptions, statusFilter, searchQuery]);
+
+  // Активация подписки для организации
+  const activateOrgSubscription = useMutation({
+    mutationFn: async ({ organizationId, months, amount }: { 
+      organizationId: string; 
+      months: number;
+      amount: number;
+    }) => {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + months);
+
+      // Check for existing org subscription
+      const { data: existingSub } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+
+      if (existingSub) {
+        // Update existing
+        const { error } = await supabase
+          .from("subscriptions")
+          .update({
+            status: "active",
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            subscription_type: months >= 12 ? "yearly" : "monthly",
+            amount: amount,
+            admin_notes: adminNotes,
+          })
+          .eq("id", existingSub.id);
+
+        if (error) throw error;
+      } else {
+        // Create new
+        const { error } = await supabase
+          .from("subscriptions")
+          .insert({
+            organization_id: organizationId,
+            user_id: (await supabase.auth.getUser()).data.user?.id || "",
+            subscription_type: months >= 12 ? "yearly" : "monthly",
+            amount: amount,
+            payment_type: "invoice",
+            status: "active",
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            admin_notes: adminNotes,
+          });
+
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organization-subscriptions"] });
+      toast({ title: "Подписка на организацию активирована" });
+      setAdminNotes("");
+      setSelectedOrgForSubscription(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -540,8 +688,12 @@ export const SubscriptionsManagement = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="subscriptions">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="subscriptions">Подписки</TabsTrigger>
+            <TabsTrigger value="organization-subscriptions">
+              <Building className="h-4 w-4 mr-2" />
+              На организацию
+            </TabsTrigger>
             <TabsTrigger value="requests">Запросы от юр. лиц</TabsTrigger>
           </TabsList>
 
@@ -803,6 +955,207 @@ export const SubscriptionsManagement = () => {
                 ))}
               </TableBody>
             </Table>
+              </>
+            )}
+          </TabsContent>
+
+          {/* Organization Subscriptions Tab */}
+          <TabsContent value="organization-subscriptions" className="space-y-4">
+            {loadingOrgSubscriptions ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Загрузка организаций...</p>
+              </div>
+            ) : (
+              <>
+                {/* Filters */}
+                <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+                  <div className="flex gap-2">
+                    <div className="flex-1 space-y-2">
+                      <Label>
+                        <Search className="inline h-3 w-3 mr-1" />
+                        Поиск организации
+                      </Label>
+                      <Input
+                        type="text"
+                        placeholder="Поиск по названию, району..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>
+                        <Filter className="inline h-3 w-3 mr-1" />
+                        Статус
+                      </Label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Все" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Все</SelectItem>
+                          <SelectItem value="active">С подпиской</SelectItem>
+                          <SelectItem value="expired">Истекла</SelectItem>
+                          <SelectItem value="none">Без подписки</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end">
+                      <Button variant="outline" onClick={clearAllFilters}>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Сбросить
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Counter */}
+                <div className="text-sm text-muted-foreground">
+                  Найдено организаций: <span className="font-medium">{filteredOrganizations.length}</span>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Организация</TableHead>
+                      <TableHead>Район</TableHead>
+                      <TableHead>Пользователей</TableHead>
+                      <TableHead>Статус подписки</TableHead>
+                      <TableHead>Период</TableHead>
+                      <TableHead>Действия</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrganizations.map((org: any) => (
+                      <TableRow key={org.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{org.short_name || org.name}</p>
+                            {org.short_name && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">{org.name}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{org.district || "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{org.user_count} чел.</Badge>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(org.subscription_status)}</TableCell>
+                        <TableCell>
+                          {org.subscription?.start_date && org.subscription?.end_date ? (
+                            <div className="text-sm">
+                              <p>{format(new Date(org.subscription.start_date), "dd.MM.yyyy", { locale: ru })}</p>
+                              <p className="text-muted-foreground">
+                                до {format(new Date(org.subscription.end_date), "dd.MM.yyyy", { locale: ru })}
+                              </p>
+                            </div>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Dialog 
+                            open={selectedOrgForSubscription?.id === org.id} 
+                            onOpenChange={(open) => {
+                              if (!open) setSelectedOrgForSubscription(null);
+                            }}
+                          >
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant={org.subscription_status === "none" ? "default" : "outline"}
+                                onClick={() => setSelectedOrgForSubscription(org)}
+                              >
+                                <Building className="h-4 w-4 mr-2" />
+                                {org.subscription_status === "none" ? "Выдать" : "Управление"}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  <Building className="h-5 w-5 inline mr-2" />
+                                  Подписка на организацию
+                                </DialogTitle>
+                                <DialogDescription>
+                                  Подписка распространяется на всех сотрудников организации
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="bg-muted p-4 rounded-lg">
+                                  <p className="font-medium">{org.name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Сотрудников: {org.user_count}
+                                  </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label>Срок подписки</Label>
+                                  <Select 
+                                    value={orgSubscriptionMonths.toString()}
+                                    onValueChange={(v) => setOrgSubscriptionMonths(parseInt(v))}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="1">1 месяц</SelectItem>
+                                      <SelectItem value="3">3 месяца</SelectItem>
+                                      <SelectItem value="6">6 месяцев</SelectItem>
+                                      <SelectItem value="12">12 месяцев (год)</SelectItem>
+                                      <SelectItem value="24">24 месяца (2 года)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="org-sub-amount">Сумма (₽)</Label>
+                                  <Input
+                                    id="org-sub-amount"
+                                    type="number"
+                                    defaultValue={org.user_count * 1000 * orgSubscriptionMonths}
+                                    min={0}
+                                  />
+                                  <p className="text-xs text-muted-foreground">
+                                    Рекомендуемая: {org.user_count} × 1000 × {orgSubscriptionMonths} = {(org.user_count * 1000 * orgSubscriptionMonths).toLocaleString()} ₽
+                                  </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label>Примечания</Label>
+                                  <Textarea
+                                    value={adminNotes}
+                                    onChange={(e) => setAdminNotes(e.target.value)}
+                                    placeholder="Комментарий администратора..."
+                                    rows={3}
+                                  />
+                                </div>
+
+                                <Button
+                                  onClick={() => {
+                                    const amountEl = document.getElementById("org-sub-amount") as HTMLInputElement;
+                                    const amount = amountEl?.value ? parseFloat(amountEl.value) : 0;
+                                    
+                                    activateOrgSubscription.mutate({
+                                      organizationId: org.id,
+                                      months: orgSubscriptionMonths,
+                                      amount: amount,
+                                    });
+                                  }}
+                                  disabled={activateOrgSubscription.isPending}
+                                  className="w-full"
+                                >
+                                  <Calendar className="mr-2 h-4 w-4" />
+                                  {org.subscription_status === "none" 
+                                    ? "Активировать подписку" 
+                                    : "Продлить подписку"}
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </>
             )}
           </TabsContent>

@@ -1515,6 +1515,7 @@ export type Database = {
           end_date: string | null
           id: string
           legal_entity_data: Json | null
+          organization_id: string | null
           payment_id: string | null
           payment_type: string
           reminder_1day_sent: boolean | null
@@ -1533,6 +1534,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           legal_entity_data?: Json | null
+          organization_id?: string | null
           payment_id?: string | null
           payment_type: string
           reminder_1day_sent?: boolean | null
@@ -1551,6 +1553,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           legal_entity_data?: Json | null
+          organization_id?: string | null
           payment_id?: string | null
           payment_type?: string
           reminder_1day_sent?: boolean | null
@@ -1562,7 +1565,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1665,9 +1676,17 @@ export type Database = {
     }
     Functions: {
       generate_protocol_number: { Args: never; Returns: string }
+      get_organization_subscription_end_date: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       get_user_organization: { Args: { _user_id: string }; Returns: string }
       get_user_region: { Args: { _user_id: string }; Returns: string }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
+      has_organization_subscription: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

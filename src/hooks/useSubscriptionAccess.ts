@@ -37,8 +37,7 @@ export const useSubscriptionAccess = (): SubscriptionAccess => {
       }
 
       try {
-        // Сначала проверяем активную подписку через серверную функцию,
-        // которая учитывает все сценарии активации (оплата, активация администратором и т.п.)
+        // Check active subscription via RPC (includes organization-level subscriptions)
         const { data: hasActiveSubscription, error: hasActiveSubscriptionError } = await supabase
           .rpc('has_active_subscription', { _user_id: user.id });
 
@@ -47,6 +46,10 @@ export const useSubscriptionAccess = (): SubscriptionAccess => {
         }
 
         if (hasActiveSubscription) {
+          // Check if it's an organization subscription
+          const { data: hasOrgSub } = await supabase
+            .rpc('has_organization_subscription', { _user_id: user.id });
+
           setAccess({
             hasActiveSubscription: true,
             isTrialActive: false,

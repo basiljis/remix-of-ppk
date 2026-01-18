@@ -18,7 +18,9 @@ import { TestModeDialog } from "@/components/TestModeDialog";
 import { TrialPeriodIndicator } from "@/components/TrialPeriodIndicator";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useSubscriptionAccess } from "@/hooks/useSubscriptionAccess";
-
+import { useOrganizationSubscription } from "@/hooks/useOrganizationSubscription";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 // Lazy load heavy components for better FCP
 const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
 const ProtocolForm = lazy(() => import("@/components/ProtocolForm").then(m => ({ default: m.ProtocolForm })));
@@ -40,6 +42,28 @@ const Index = () => {
   const isOrgAdmin = roles.some(r => r.role === "organization_admin");
   const { checklists, loading: checklistLoading, error } = useChecklistData();
   const subscriptionAccess = useSubscriptionAccess();
+  const { hasOrganizationSubscription } = useOrganizationSubscription();
+  
+  // Check if user has org_view permission
+  const { data: employeePermissions } = useQuery({
+    queryKey: ["my-org-permissions", user?.id, profile?.organization_id],
+    queryFn: async () => {
+      if (!user || !profile?.organization_id) return null;
+      
+      const { data, error } = await supabase
+        .from("employee_permissions")
+        .select("org_view")
+        .eq("user_id", user.id)
+        .eq("organization_id", profile.organization_id)
+        .maybeSingle();
+      
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user && !!profile?.organization_id,
+  });
+  
+  const hasOrganizationAccess = hasOrganizationSubscription || employeePermissions?.org_view || false;
   
   // Автоматический таймаут сессии 15 минут
   useSessionTimeout();
@@ -287,6 +311,7 @@ const Index = () => {
             isAdmin={isAdmin}
             isOrgAdmin={isOrgAdmin}
             isDirector={isDirector}
+            hasOrganizationAccess={hasOrganizationAccess}
           />
         </div>
         
