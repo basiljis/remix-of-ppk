@@ -198,6 +198,22 @@ export function OrganizationEmployees() {
     enabled: !!organizationId,
   });
 
+  // Fetch organization for email notifications
+  const { data: organization } = useQuery({
+    queryKey: ["organization", organizationId],
+    queryFn: async () => {
+      if (!organizationId) return null;
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("name")
+        .eq("id", organizationId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!organizationId,
+  });
+
   // Fetch positions
   const { data: positions = [] } = useQuery({
     queryKey: ["positions"],
@@ -506,8 +522,41 @@ export function OrganizationEmployees() {
     const errors = new Map<number, string>();
     let successCount = 0;
 
+    // First, check all emails for uniqueness
+    const emailsToCheck = Array.from(selectedImportEmployees).map(i => parsedEmployees[i].email.toLowerCase());
+    
+    // Check against existing employees in DB
+    const { data: existingProfiles } = await supabase
+      .from("profiles")
+      .select("email")
+      .in("email", emailsToCheck);
+    
+    const existingEmails = new Set((existingProfiles || []).map(p => p.email.toLowerCase()));
+    
+    // Also check duplicates within import
+    const emailCounts = new Map<string, number[]>();
+    emailsToCheck.forEach((email, i) => {
+      const indices = emailCounts.get(email) || [];
+      indices.push(Array.from(selectedImportEmployees)[i]);
+      emailCounts.set(email, indices);
+    });
+
     for (const index of Array.from(selectedImportEmployees)) {
       const emp = parsedEmployees[index];
+      const emailLower = emp.email.toLowerCase();
+      
+      // Check if email exists in DB
+      if (existingEmails.has(emailLower)) {
+        errors.set(index, "Email уже используется");
+        continue;
+      }
+      
+      // Check for duplicate emails in import
+      const sameEmailIndices = emailCounts.get(emailLower) || [];
+      if (sameEmailIndices.length > 1 && sameEmailIndices[0] !== index) {
+        errors.set(index, "Дублирующийся email в файле");
+        continue;
+      }
       
       // Find position ID by name
       const position = positions.find(
@@ -521,6 +570,13 @@ export function OrganizationEmployees() {
 
       if (emp.password.length < 6) {
         errors.set(index, "Пароль должен быть минимум 6 символов");
+        continue;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emp.email)) {
+        errors.set(index, "Некорректный формат email");
         continue;
       }
 
@@ -561,8 +617,25 @@ export function OrganizationEmployees() {
               set_by: profile?.id,
             }, { onConflict: 'user_id,organization_id' });
           }
+
+          // Send email notification with credentials
+          try {
+            await supabase.functions.invoke("send-employee-credentials", {
+              body: {
+                email: emp.email,
+                fullName: emp.full_name,
+                password: emp.password,
+                organizationName: organization?.name,
+                positionName: position.name,
+              },
+            });
+          } catch (emailError) {
+            console.warn("Failed to send credentials email:", emailError);
+          }
         }
 
+        // Add to existing emails to prevent duplicates in same batch
+        existingEmails.add(emailLower);
         successCount++;
       } catch (error: any) {
         errors.set(index, error.message || "Ошибка создания пользователя");
@@ -575,7 +648,7 @@ export function OrganizationEmployees() {
       queryClient.invalidateQueries({ queryKey: ["organization-employees"] });
       toast({
         title: "Импорт завершён",
-        description: `Успешно добавлено ${successCount} из ${selectedImportEmployees.size} сотрудников`,
+        description: `Успешно добавлено ${successCount} из ${selectedImportEmployees.size} сотрудников. Уведомления отправлены на email.`,
       });
     }
 
@@ -594,6 +667,27 @@ export function OrganizationEmployees() {
     }
 
     setIsImporting(false);
+  };
+
+  // Update parsed employee data (for inline editing)
+  const updateParsedEmployee = (index: number, field: keyof ParsedEmployee, value: any) => {
+    setParsedEmployees(prev => {
+      const updated = [...prev];
+      if (field === 'permissions') {
+        updated[index] = { ...updated[index], permissions: value };
+      } else {
+        updated[index] = { ...updated[index], [field]: value };
+      }
+      return updated;
+    });
+    // Clear error when editing
+    if (importErrors.has(index)) {
+      setImportErrors(prev => {
+        const updated = new Map(prev);
+        updated.delete(index);
+        return updated;
+      });
+    }
   };
 
   return (
@@ -1083,13 +1177,13 @@ export function OrganizationEmployees() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead>ФИО</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Телефон</TableHead>
-                      <TableHead>Должность</TableHead>
-                      <TableHead>Ставка</TableHead>
-                      <TableHead>Права</TableHead>
-                      <TableHead>Статус</TableHead>
+                      <TableHead className="min-w-[180px]">ФИО</TableHead>
+                      <TableHead className="min-w-[200px]">Email</TableHead>
+                      <TableHead className="min-w-[150px]">Телефон</TableHead>
+                      <TableHead className="min-w-[180px]">Должность</TableHead>
+                      <TableHead className="min-w-[100px]">Пароль</TableHead>
+                      <TableHead className="w-20">Ставка</TableHead>
+                      <TableHead className="min-w-[150px]">Статус</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1099,6 +1193,9 @@ export function OrganizationEmployees() {
                       const positionExists = positions.some(
                         (p) => p.name.toLowerCase().trim() === emp.position_name.toLowerCase().trim()
                       );
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      const isEmailValid = emailRegex.test(emp.email);
+                      const isPasswordValid = emp.password.length >= 6;
 
                       return (
                         <TableRow 
@@ -1112,34 +1209,99 @@ export function OrganizationEmployees() {
                               disabled={isImporting}
                             />
                           </TableCell>
-                          <TableCell className="font-medium">{emp.full_name}</TableCell>
-                          <TableCell>{emp.email}</TableCell>
-                          <TableCell>{emp.phone}</TableCell>
                           <TableCell>
-                            <span className={!positionExists ? "text-destructive" : ""}>
-                              {emp.position_name}
-                              {!positionExists && (
-                                <AlertCircle className="h-3 w-3 inline ml-1" />
-                              )}
-                            </span>
+                            <Input
+                              value={emp.full_name}
+                              onChange={(e) => updateParsedEmployee(index, 'full_name', e.target.value)}
+                              disabled={isImporting}
+                              className="h-8 text-sm"
+                              placeholder="ФИО"
+                            />
                           </TableCell>
-                          <TableCell>{emp.rate}</TableCell>
                           <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {emp.permissions.ppk_view && <Badge variant="secondary" className="text-xs">ППк</Badge>}
-                              {emp.permissions.org_view && <Badge variant="secondary" className="text-xs">Орг</Badge>}
-                              {emp.permissions.schedule_personal && <Badge variant="secondary" className="text-xs">Расп</Badge>}
-                              {emp.permissions.statistics_view && <Badge variant="secondary" className="text-xs">Стат</Badge>}
-                            </div>
+                            <Input
+                              value={emp.email}
+                              onChange={(e) => updateParsedEmployee(index, 'email', e.target.value)}
+                              disabled={isImporting}
+                              className={`h-8 text-sm ${!isEmailValid ? 'border-destructive' : ''}`}
+                              placeholder="email@example.com"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={emp.phone}
+                              onChange={(e) => updateParsedEmployee(index, 'phone', e.target.value)}
+                              disabled={isImporting}
+                              className="h-8 text-sm"
+                              placeholder="+7..."
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={positions.find(p => p.name.toLowerCase().trim() === emp.position_name.toLowerCase().trim())?.id || ""}
+                              onValueChange={(v) => {
+                                const pos = positions.find(p => p.id === v);
+                                if (pos) updateParsedEmployee(index, 'position_name', pos.name);
+                              }}
+                              disabled={isImporting}
+                            >
+                              <SelectTrigger className={`h-8 text-sm ${!positionExists ? 'border-destructive' : ''}`}>
+                                <SelectValue placeholder={emp.position_name || "Выберите"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {positions.map((pos) => (
+                                  <SelectItem key={pos.id} value={pos.id}>
+                                    {pos.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="password"
+                              value={emp.password}
+                              onChange={(e) => updateParsedEmployee(index, 'password', e.target.value)}
+                              disabled={isImporting}
+                              className={`h-8 text-sm w-24 ${!isPasswordValid ? 'border-destructive' : ''}`}
+                              placeholder="Пароль"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              min="0.1"
+                              max="2"
+                              value={emp.rate}
+                              onChange={(e) => updateParsedEmployee(index, 'rate', parseFloat(e.target.value) || 1)}
+                              disabled={isImporting}
+                              className="h-8 text-sm w-16"
+                            />
                           </TableCell>
                           <TableCell>
                             {error ? (
-                              <div className="flex items-center gap-1 text-destructive text-xs">
-                                <X className="h-3 w-3" />
-                                {error}
+                              <div className="flex items-center gap-1 text-destructive text-xs max-w-[140px]">
+                                <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate" title={error}>{error}</span>
+                              </div>
+                            ) : !isEmailValid ? (
+                              <div className="flex items-center gap-1 text-amber-600 text-xs">
+                                <AlertCircle className="h-3 w-3" />
+                                Email
+                              </div>
+                            ) : !positionExists ? (
+                              <div className="flex items-center gap-1 text-amber-600 text-xs">
+                                <AlertCircle className="h-3 w-3" />
+                                Должность
+                              </div>
+                            ) : !isPasswordValid ? (
+                              <div className="flex items-center gap-1 text-amber-600 text-xs">
+                                <AlertCircle className="h-3 w-3" />
+                                Пароль
                               </div>
                             ) : (
-                              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
                             )}
                           </TableCell>
                         </TableRow>
