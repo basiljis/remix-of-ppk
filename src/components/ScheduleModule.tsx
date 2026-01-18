@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionCalendar } from "./SessionCalendar";
+import { OrganizationCalendar } from "./OrganizationCalendar";
 import { ChildrenManagement } from "./ChildrenManagement";
 import { SpecialistRatesPanel } from "./SpecialistRatesPanel";
-import { Calendar, Users, UserCog, Lock } from "lucide-react";
+import { Calendar, Users, UserCog, Lock, Building } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
@@ -16,6 +16,8 @@ export function ScheduleModule() {
   const [activeTab, setActiveTab] = useState("calendar");
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
+  const isRegionalOperator = roles.some((r) => r.role === "regional_operator");
+  const canViewOrgCalendar = isAdmin || isOrgAdmin || isRegionalOperator;
   const canAccessSchedule = hasActiveSubscription || isTrialActive || isAdmin;
 
   if (!canAccessSchedule) {
@@ -69,11 +71,17 @@ export function ScheduleModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="calendar" className="gap-2">
             <Calendar className="h-4 w-4" />
             Моё расписание
           </TabsTrigger>
+          {canViewOrgCalendar && (
+            <TabsTrigger value="org-calendar" className="gap-2">
+              <Building className="h-4 w-4" />
+              Расписание организации
+            </TabsTrigger>
+          )}
           {(isAdmin || isOrgAdmin) && (
             <>
               <TabsTrigger value="children" className="gap-2">
@@ -91,6 +99,12 @@ export function ScheduleModule() {
         <TabsContent value="calendar" className="mt-6">
           <SessionCalendar />
         </TabsContent>
+
+        {canViewOrgCalendar && (
+          <TabsContent value="org-calendar" className="mt-6">
+            <OrganizationCalendar />
+          </TabsContent>
+        )}
 
         {(isAdmin || isOrgAdmin) && (
           <>
