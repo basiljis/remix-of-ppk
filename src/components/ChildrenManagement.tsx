@@ -655,11 +655,26 @@ export function ChildrenManagement() {
                                   _protocolParentPhone?: string | null;
                                   _protocolAddress?: string | null;
                                 };
+                                // Normalize education_level from protocol format to database format
+                                const normalizeEducationLevel = (level: string | null): string => {
+                                  if (!level) return "";
+                                  const mapping: Record<string, string> = {
+                                    preschool: "do",
+                                    elementary: "noo",
+                                    middle: "oo",
+                                    high: "soo",
+                                    do: "do",
+                                    noo: "noo",
+                                    oo: "oo",
+                                    soo: "soo",
+                                  };
+                                  return mapping[level] || level;
+                                };
                                 setFormData({
                                   full_name: child.full_name,
                                   birth_date: child.birth_date || "",
                                   gender: child.gender || "",
-                                  education_level: child.education_level || "",
+                                  education_level: normalizeEducationLevel(child.education_level),
                                   parent_name: child.parent_name || extChild._protocolParentName || "",
                                   parent_phone: child.parent_phone || extChild._protocolParentPhone || "",
                                   parent_email: child.parent_email || "",
@@ -710,7 +725,7 @@ export function ChildrenManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="birth_date">Дата рождения</Label>
                 <Input
@@ -721,6 +736,27 @@ export function ChildrenManagement() {
                     setFormData({ ...formData, birth_date: e.target.value })
                   }
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label>Возраст</Label>
+                <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50 text-muted-foreground">
+                  {formData.birth_date ? (
+                    <>
+                      {calculateAge(formData.birth_date)} {(() => {
+                        const age = calculateAge(formData.birth_date);
+                        if (!age) return "лет";
+                        const lastDigit = age % 10;
+                        const lastTwoDigits = age % 100;
+                        if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return "лет";
+                        if (lastDigit === 1) return "год";
+                        if (lastDigit >= 2 && lastDigit <= 4) return "года";
+                        return "лет";
+                      })()}
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label>Пол</Label>
