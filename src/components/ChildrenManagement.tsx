@@ -624,92 +624,110 @@ export function ChildrenManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <MoreHorizontal className="h-4 w-4" />
+                        <div className="flex items-center gap-1">
+                          {/* Быстрые действия */}
+                          {protocolCount > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleViewProtocols(child.full_name)}
+                                >
+                                  <ClipboardList className="h-4 w-4" />
                                 </Button>
-                              </DropdownMenuTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Действия</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          <DropdownMenuContent align="end" className="w-56">
-                            {protocolCount > 0 && (
-                              <DropdownMenuItem onClick={() => handleViewProtocols(child.full_name)}>
-                                <ClipboardList className="h-4 w-4 mr-2" />
-                                <div className="flex flex-col">
-                                  <span>Список протоколов</span>
-                                  <span className="text-xs text-muted-foreground">Просмотр всех ППк ребёнка</span>
-                                </div>
-                              </DropdownMenuItem>
-                            )}
-                            {protocolCount > 0 && (
-                              <DropdownMenuItem onClick={() => handleViewProfile(child.full_name)}>
-                                <User className="h-4 w-4 mr-2" />
-                                <div className="flex flex-col">
-                                  <span>Профиль ребёнка</span>
-                                  <span className="text-xs text-muted-foreground">Динамика развития и результаты</span>
-                                </div>
-                              </DropdownMenuItem>
-                            )}
-                            {!isFromProtocol ? (
-                              <DropdownMenuItem onClick={() => handleEdit(child)}>
-                                <Pencil className="h-4 w-4 mr-2" />
-                                <div className="flex flex-col">
-                                  <span>Редактировать</span>
-                                  <span className="text-xs text-muted-foreground">Изменить данные ребёнка</span>
-                                </div>
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  const extChild = child as typeof child & {
-                                    _protocolParentName?: string | null;
-                                    _protocolParentPhone?: string | null;
-                                    _protocolAddress?: string | null;
-                                  };
-                                  const normalizeEducationLevel = (level: string | null): string => {
-                                    if (!level) return "";
-                                    const mapping: Record<string, string> = {
-                                      preschool: "do",
-                                      elementary: "noo",
-                                      middle: "oo",
-                                      high: "soo",
-                                      do: "do",
-                                      noo: "noo",
-                                      oo: "oo",
-                                      soo: "soo",
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Список протоколов</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {protocolCount > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleViewProfile(child.full_name)}
+                                >
+                                  <User className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Профиль ребёнка</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {isFromProtocol && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => {
+                                    const extChild = child as typeof child & {
+                                      _protocolParentName?: string | null;
+                                      _protocolParentPhone?: string | null;
+                                      _protocolAddress?: string | null;
                                     };
-                                    return mapping[level] || level;
-                                  };
-                                  setFormData({
-                                    full_name: child.full_name,
-                                    birth_date: child.birth_date || "",
-                                    gender: child.gender || "",
-                                    education_level: normalizeEducationLevel(child.education_level),
-                                    parent_name: child.parent_name || extChild._protocolParentName || "",
-                                    parent_phone: child.parent_phone || extChild._protocolParentPhone || "",
-                                    parent_email: child.parent_email || "",
-                                    notes: child.notes || (extChild._protocolAddress ? `Адрес: ${extChild._protocolAddress}` : ""),
-                                    is_active: true,
-                                  });
-                                  setEditingChild(null);
-                                  setShowDialog(true);
-                                }}
-                              >
-                                <Database className="h-4 w-4 mr-2" />
-                                <div className="flex flex-col">
-                                  <span>Добавить в базу</span>
-                                  <span className="text-xs text-muted-foreground">Сохранить в базу детей организации</span>
-                                </div>
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                                    const normalizeEducationLevel = (level: string | null): string => {
+                                      if (!level) return "";
+                                      const mapping: Record<string, string> = {
+                                        preschool: "do",
+                                        elementary: "noo",
+                                        middle: "oo",
+                                        high: "soo",
+                                        do: "do",
+                                        noo: "noo",
+                                        oo: "oo",
+                                        soo: "soo",
+                                      };
+                                      return mapping[level] || level;
+                                    };
+                                    setFormData({
+                                      full_name: child.full_name,
+                                      birth_date: child.birth_date || "",
+                                      gender: child.gender || "",
+                                      education_level: normalizeEducationLevel(child.education_level),
+                                      parent_name: child.parent_name || extChild._protocolParentName || "",
+                                      parent_phone: child.parent_phone || extChild._protocolParentPhone || "",
+                                      parent_email: child.parent_email || "",
+                                      notes: child.notes || (extChild._protocolAddress ? `Адрес: ${extChild._protocolAddress}` : ""),
+                                      is_active: true,
+                                    });
+                                    setEditingChild(null);
+                                    setShowDialog(true);
+                                  }}
+                                >
+                                  <Database className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Добавить в базу</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {!isFromProtocol && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleEdit(child)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Редактировать</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
