@@ -1,0 +1,520 @@
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar, Clock, Save, Plus, Trash2, CalendarDays, RepeatIcon } from "lucide-react";
+import { format, addDays, startOfWeek, addWeeks } from "date-fns";
+import { ru } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+interface RecurringSessionFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  childId?: string;
+}
+
+interface WeeklySlot {
+  id: string;
+  dayOfWeek: number; // 0 = Monday, 6 = Sunday
+  startTime: string;
+  endTime: string;
+}
+
+const WEEKDAYS = [
+  { value: 0, label: "Понедельник", short: "Пн" },
+  { value: 1, label: "Вторник", short: "Вт" },
+  { value: 2, label: "Среда", short: "Ср" },
+  { value: 3, label: "Четверг", short: "Чт" },
+  { value: 4, label: "Пятница", short: "Пт" },
+  { value: 5, label: "Суббота", short: "Сб" },
+  { value: 6, label: "Воскресенье", short: "Вс" },
+];
+
+function addMinutesToTime(time: string, minutes: number): string {
+  const [hours, mins] = time.split(":").map(Number);
+  const totalMins = hours * 60 + mins + minutes;
+  const newHours = Math.floor(totalMins / 60) % 24;
+  const newMins = totalMins % 60;
+  return `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
+}
+
+export function RecurringSessionForm({
+  open,
+  onOpenChange,
+  childId,
+}: RecurringSessionFormProps) {
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const [formData, setFormData] = useState({
+    child_id: childId || "",
+    session_type_id: "",
+    topic: "",
+    notes: "",
+  });
+
+  const [weeklySlots, setWeeklySlots] = useState<WeeklySlot[]>([]);
+  const [totalSessions, setTotalSessions] = useState(10);
+  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+
+  const organizationId = profile?.organization_id;
+
+  // Load children for this organization
+  const { data: children = [] } = useQuery({
+    queryKey: ["children-active", organizationId],
+    queryFn: async () => {
+      if (!organizationId) return [];
+      const { data, error } = await supabase
+        .from("children")
+        .select("id, full_name")
+        .eq("organization_id", organizationId)
+        .eq("is_active", true)
+        .order("full_name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!organizationId,
+  });
+
+  // Load session types
+  const { data: sessionTypes = [] } = useQuery({
+    queryKey: ["session-types"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("session_types")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("sort_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Load session statuses
+  const { data: sessionStatuses = [] } = useQuery({
+    queryKey: ["session-statuses"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("session_statuses")
+        .select("id, name, color")
+        .eq("is_active", true)
+        .order("sort_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Set defaults when types load
+  useEffect(() => {
+    if (sessionTypes.length > 0 && !formData.session_type_id) {
+      const individualType = sessionTypes.find((t) =>
+        t.name.toLowerCase().includes("индив")
+      );
+      setFormData((prev) => ({
+        ...prev,
+        session_type_id: individualType?.id || sessionTypes[0]?.id || "",
+      }));
+    }
+  }, [sessionTypes, formData.session_type_id]);
+
+  useEffect(() => {
+    if (childId) {
+      setFormData((prev) => ({ ...prev, child_id: childId }));
+    }
+  }, [childId]);
+
+  // Calculate number of weeks needed
+  const weeksNeeded = useMemo(() => {
+    if (weeklySlots.length === 0) return 0;
+    return Math.ceil(totalSessions / weeklySlots.length);
+  }, [totalSessions, weeklySlots.length]);
+
+  // Generate preview of scheduled sessions
+  const scheduledSessions = useMemo(() => {
+    if (weeklySlots.length === 0) return [];
+
+    const sessions: Array<{ date: Date; slot: WeeklySlot }> = [];
+    const start = new Date(startDate);
+    const weekStart = startOfWeek(start, { weekStartsOn: 1 });
+
+    let weekOffset = 0;
+    let sessionCount = 0;
+
+    while (sessionCount < totalSessions) {
+      const currentWeekStart = addWeeks(weekStart, weekOffset);
+
+      // Sort slots by day of week
+      const sortedSlots = [...weeklySlots].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+
+      for (const slot of sortedSlots) {
+        if (sessionCount >= totalSessions) break;
+
+        const sessionDate = addDays(currentWeekStart, slot.dayOfWeek);
+
+        // Skip if session date is before start date
+        if (sessionDate < start) continue;
+
+        sessions.push({ date: sessionDate, slot });
+        sessionCount++;
+      }
+
+      weekOffset++;
+      if (weekOffset > 52) break; // Safety limit
+    }
+
+    return sessions;
+  }, [weeklySlots, totalSessions, startDate]);
+
+  const addWeeklySlot = () => {
+    const newSlot: WeeklySlot = {
+      id: crypto.randomUUID(),
+      dayOfWeek: 0,
+      startTime: "09:00",
+      endTime: "09:30",
+    };
+    setWeeklySlots([...weeklySlots, newSlot]);
+  };
+
+  const updateSlot = (id: string, updates: Partial<WeeklySlot>) => {
+    setWeeklySlots((slots) =>
+      slots.map((slot) => {
+        if (slot.id === id) {
+          const updated = { ...slot, ...updates };
+          // Auto-update end time if start time changed
+          if (updates.startTime && !updates.endTime) {
+            updated.endTime = addMinutesToTime(updates.startTime, 30);
+          }
+          return updated;
+        }
+        return slot;
+      })
+    );
+  };
+
+  const removeSlot = (id: string) => {
+    setWeeklySlots((slots) => slots.filter((slot) => slot.id !== id));
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const plannedStatus = sessionStatuses.find((s) =>
+        s.name.toLowerCase().includes("заплан")
+      );
+
+      const sessionsToCreate = scheduledSessions.map(({ date, slot }) => ({
+        child_id: formData.child_id,
+        specialist_id: user?.id,
+        session_type_id: formData.session_type_id,
+        session_status_id: plannedStatus?.id || sessionStatuses[0]?.id,
+        scheduled_date: format(date, "yyyy-MM-dd"),
+        start_time: slot.startTime,
+        end_time: slot.endTime,
+        topic: formData.topic || null,
+        notes: formData.notes || null,
+        organization_id: organizationId,
+        created_by: user?.id,
+      }));
+
+      const { error } = await supabase.from("sessions").insert(sessionsToCreate);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      onOpenChange(false);
+      toast({
+        title: "Успешно",
+        description: `Создано ${scheduledSessions.length} занятий`,
+      });
+      // Reset form
+      setWeeklySlots([]);
+      setTotalSessions(10);
+    },
+    onError: (error) => {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSave = () => {
+    if (!formData.child_id) {
+      toast({
+        title: "Ошибка",
+        description: "Выберите ребёнка",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (weeklySlots.length === 0) {
+      toast({
+        title: "Ошибка",
+        description: "Добавьте хотя бы один слот в неделю",
+        variant: "destructive",
+      });
+      return;
+    }
+    saveMutation.mutate();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <RepeatIcon className="h-5 w-5" />
+            Серия занятий
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-4">
+          {/* Child selector */}
+          <div className="grid gap-2">
+            <Label>Ребёнок *</Label>
+            <Select
+              value={formData.child_id}
+              onValueChange={(v) => setFormData({ ...formData, child_id: v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите ребёнка" />
+              </SelectTrigger>
+              <SelectContent>
+                {children.map((child) => (
+                  <SelectItem key={child.id} value={child.id}>
+                    {child.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Session type */}
+          <div className="grid gap-2">
+            <Label>Тип занятия</Label>
+            <Select
+              value={formData.session_type_id}
+              onValueChange={(v) =>
+                setFormData({ ...formData, session_type_id: v })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Тип" />
+              </SelectTrigger>
+              <SelectContent>
+                {sessionTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Start date */}
+          <div className="grid gap-2">
+            <Label>Дата начала серии</Label>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+
+          {/* Weekly slots */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                Расписание на неделю ({weeklySlots.length} занятий/нед)
+              </Label>
+              <Button type="button" variant="outline" size="sm" onClick={addWeeklySlot}>
+                <Plus className="h-4 w-4 mr-1" />
+                Добавить слот
+              </Button>
+            </div>
+
+            {weeklySlots.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground border border-dashed rounded-lg">
+                Добавьте слоты занятий на неделю
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {weeklySlots.map((slot, index) => (
+                  <div
+                    key={slot.id}
+                    className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30"
+                  >
+                    <Badge variant="outline" className="shrink-0">
+                      {index + 1}
+                    </Badge>
+                    <Select
+                      value={String(slot.dayOfWeek)}
+                      onValueChange={(v) =>
+                        updateSlot(slot.id, { dayOfWeek: parseInt(v) })
+                      }
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {WEEKDAYS.map((day) => (
+                          <SelectItem key={day.value} value={String(day.value)}>
+                            {day.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="time"
+                        value={slot.startTime}
+                        onChange={(e) =>
+                          updateSlot(slot.id, { startTime: e.target.value })
+                        }
+                        className="w-[110px]"
+                      />
+                      <span className="text-muted-foreground">–</span>
+                      <Input
+                        type="time"
+                        value={slot.endTime}
+                        onChange={(e) =>
+                          updateSlot(slot.id, { endTime: e.target.value })
+                        }
+                        className="w-[110px]"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSlot(slot.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Total sessions */}
+          <div className="grid gap-2">
+            <Label>Общее количество занятий</Label>
+            <div className="flex items-center gap-4">
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={totalSessions}
+                onChange={(e) => setTotalSessions(parseInt(e.target.value) || 1)}
+                className="w-[100px]"
+              />
+              {weeklySlots.length > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  ≈ {weeksNeeded} недель
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Topic */}
+          <div className="grid gap-2">
+            <Label>Тема занятий</Label>
+            <Input
+              value={formData.topic}
+              onChange={(e) =>
+                setFormData({ ...formData, topic: e.target.value })
+              }
+              placeholder="Развитие мелкой моторики..."
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="grid gap-2">
+            <Label>Примечания</Label>
+            <Textarea
+              value={formData.notes}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
+              placeholder="Дополнительная информация..."
+              rows={2}
+            />
+          </div>
+
+          {/* Preview */}
+          {scheduledSessions.length > 0 && (
+            <div className="space-y-2">
+              <Label>Предпросмотр ({scheduledSessions.length} занятий)</Label>
+              <div className="max-h-[150px] overflow-y-auto border rounded-lg p-2 bg-muted/20">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
+                  {scheduledSessions.slice(0, 20).map(({ date, slot }, i) => (
+                    <div
+                      key={i}
+                      className="text-xs px-2 py-1 rounded bg-background border"
+                    >
+                      <span className="font-medium">
+                        {format(date, "d MMM", { locale: ru })}
+                      </span>
+                      <span className="text-muted-foreground ml-1">
+                        {WEEKDAYS[slot.dayOfWeek].short}
+                      </span>
+                      <span className="text-muted-foreground block">
+                        {slot.startTime}
+                      </span>
+                    </div>
+                  ))}
+                  {scheduledSessions.length > 20 && (
+                    <div className="text-xs px-2 py-1 text-muted-foreground">
+                      +{scheduledSessions.length - 20} ещё...
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Отмена
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saveMutation.isPending || scheduledSessions.length === 0}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {saveMutation.isPending
+              ? "Создание..."
+              : `Создать ${scheduledSessions.length} занятий`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
