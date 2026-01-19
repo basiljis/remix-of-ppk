@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganizationHolidays } from "@/hooks/useOrganizationHolidays";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -21,8 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, Save } from "lucide-react";
-
+import { Calendar, Clock, Save, AlertTriangle } from "lucide-react";
 interface SessionFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -65,6 +66,7 @@ export function SessionForm({
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isHoliday, getHolidayInfo } = useOrganizationHolidays();
 
   const [formData, setFormData] = useState({
     child_id: "",
@@ -241,6 +243,11 @@ export function SessionForm({
     },
   });
 
+  // Check if selected date is a holiday
+  const selectedDate = formData.scheduled_date ? new Date(formData.scheduled_date) : null;
+  const holidayInfo = selectedDate ? getHolidayInfo(selectedDate) : undefined;
+  const isSelectedDateHoliday = selectedDate ? isHoliday(selectedDate) : false;
+
   const handleSave = () => {
     if (!formData.child_id) {
       toast({
@@ -254,6 +261,15 @@ export function SessionForm({
       toast({
         title: "Ошибка",
         description: "Заполните дату и время занятия",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Block saving on holidays without confirmation
+    if (isSelectedDateHoliday) {
+      toast({
+        title: "Нерабочий день",
+        description: `${holidayInfo?.name || "Выбранная дата"} — нерабочий день. Для планирования занятия в этот день требуется согласование с администрацией организации.`,
         variant: "destructive",
       });
       return;
@@ -351,6 +367,15 @@ export function SessionForm({
                 setFormData({ ...formData, scheduled_date: e.target.value })
               }
             />
+            {isSelectedDateHoliday && holidayInfo && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <span className="font-medium">{holidayInfo.name}</span> — нерабочий день.
+                  Планирование занятий в этот день запрещено без согласования с администрацией.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

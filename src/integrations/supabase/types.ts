@@ -692,6 +692,50 @@ export type Database = {
           },
         ]
       }
+      organization_holidays: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          holiday_date: string
+          id: string
+          is_recurring: boolean | null
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          holiday_date: string
+          id?: string
+          is_recurring?: boolean | null
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          holiday_date?: string
+          id?: string
+          is_recurring?: boolean | null
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_holidays_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_reorganizations: {
         Row: {
           created_at: string

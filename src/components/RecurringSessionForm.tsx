@@ -2,12 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganizationHolidays } from "@/hooks/useOrganizationHolidays";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, Save, Plus, Trash2, CalendarDays, RepeatIcon } from "lucide-react";
+import { Calendar, Clock, Save, Plus, Trash2, CalendarDays, RepeatIcon, AlertTriangle, CalendarOff } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ export function RecurringSessionForm({
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isHoliday, getHolidayInfo } = useOrganizationHolidays();
 
   const [formData, setFormData] = useState({
     child_id: childId || "",
@@ -151,11 +153,12 @@ export function RecurringSessionForm({
     return Math.ceil(totalSessions / weeklySlots.length);
   }, [totalSessions, weeklySlots.length]);
 
-  // Generate preview of scheduled sessions
-  const scheduledSessions = useMemo(() => {
-    if (weeklySlots.length === 0) return [];
+  // Generate preview of scheduled sessions (excluding holidays)
+  const { scheduledSessions, holidayConflicts } = useMemo(() => {
+    if (weeklySlots.length === 0) return { scheduledSessions: [], holidayConflicts: [] };
 
     const sessions: Array<{ date: Date; slot: WeeklySlot }> = [];
+    const conflicts: Array<{ date: Date; holidayName: string }> = [];
     const start = new Date(startDate);
     const weekStart = startOfWeek(start, { weekStartsOn: 1 });
 
@@ -176,16 +179,26 @@ export function RecurringSessionForm({
         // Skip if session date is before start date
         if (sessionDate < start) continue;
 
+        // Check if date is a holiday
+        if (isHoliday(sessionDate)) {
+          const holidayInfo = getHolidayInfo(sessionDate);
+          conflicts.push({ 
+            date: sessionDate, 
+            holidayName: holidayInfo?.name || "Нерабочий день" 
+          });
+          continue; // Skip this date, don't count as a session
+        }
+
         sessions.push({ date: sessionDate, slot });
         sessionCount++;
       }
 
       weekOffset++;
-      if (weekOffset > 52) break; // Safety limit
+      if (weekOffset > 104) break; // Safety limit - 2 years
     }
 
-    return sessions;
-  }, [weeklySlots, totalSessions, startDate]);
+    return { scheduledSessions: sessions, holidayConflicts: conflicts };
+  }, [weeklySlots, totalSessions, startDate, isHoliday, getHolidayInfo]);
 
   const addWeeklySlot = () => {
     const newSlot: WeeklySlot = {
@@ -466,6 +479,25 @@ export function RecurringSessionForm({
               rows={2}
             />
           </div>
+
+          {/* Holiday conflicts warning */}
+          {holidayConflicts.length > 0 && (
+            <Alert variant="destructive">
+              <CalendarOff className="h-4 w-4" />
+              <AlertDescription>
+                <span className="font-medium">{holidayConflicts.length} дат пропущено</span> (нерабочие дни):
+                <span className="ml-1 text-sm">
+                  {holidayConflicts.slice(0, 5).map((c, i) => (
+                    <span key={i}>
+                      {format(c.date, "d MMM", { locale: ru })} ({c.holidayName})
+                      {i < Math.min(holidayConflicts.length - 1, 4) ? ", " : ""}
+                    </span>
+                  ))}
+                  {holidayConflicts.length > 5 && ` и ещё ${holidayConflicts.length - 5}...`}
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Preview */}
           {scheduledSessions.length > 0 && (
