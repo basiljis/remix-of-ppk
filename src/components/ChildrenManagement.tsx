@@ -45,7 +45,20 @@ import {
   Eye,
   User,
   ClipboardList,
+  MoreHorizontal,
+  Database,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ProtocolResultsModal } from "@/components/ProtocolResultsModal";
@@ -611,87 +624,80 @@ export function ChildrenManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          {/* View Protocols Button */}
-                          {protocolCount > 0 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewProtocols(child.full_name)}
-                              title="Список протоколов"
-                            >
-                              <ClipboardList className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {/* Profile Button */}
-                          {protocolCount > 0 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewProfile(child.full_name)}
-                              title="Профиль ребёнка"
-                            >
-                              <User className="h-4 w-4 text-primary" />
-                            </Button>
-                          )}
-                          {/* Edit/Add to DB Button */}
-                          {!isFromProtocol ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEdit(child)}
-                              title="Редактировать"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                // Use data from protocol
-                                const extChild = child as typeof child & {
-                                  _protocolParentName?: string | null;
-                                  _protocolParentPhone?: string | null;
-                                  _protocolAddress?: string | null;
-                                };
-                                // Normalize education_level from protocol format to database format
-                                const normalizeEducationLevel = (level: string | null): string => {
-                                  if (!level) return "";
-                                  const mapping: Record<string, string> = {
-                                    preschool: "do",
-                                    elementary: "noo",
-                                    middle: "oo",
-                                    high: "soo",
-                                    do: "do",
-                                    noo: "noo",
-                                    oo: "oo",
-                                    soo: "soo",
+                        <DropdownMenu>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Действия</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <DropdownMenuContent align="end">
+                            {protocolCount > 0 && (
+                              <DropdownMenuItem onClick={() => handleViewProtocols(child.full_name)}>
+                                <ClipboardList className="h-4 w-4 mr-2" />
+                                Список протоколов
+                              </DropdownMenuItem>
+                            )}
+                            {protocolCount > 0 && (
+                              <DropdownMenuItem onClick={() => handleViewProfile(child.full_name)}>
+                                <User className="h-4 w-4 mr-2" />
+                                Профиль ребёнка
+                              </DropdownMenuItem>
+                            )}
+                            {!isFromProtocol ? (
+                              <DropdownMenuItem onClick={() => handleEdit(child)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Редактировать
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const extChild = child as typeof child & {
+                                    _protocolParentName?: string | null;
+                                    _protocolParentPhone?: string | null;
+                                    _protocolAddress?: string | null;
                                   };
-                                  return mapping[level] || level;
-                                };
-                                setFormData({
-                                  full_name: child.full_name,
-                                  birth_date: child.birth_date || "",
-                                  gender: child.gender || "",
-                                  education_level: normalizeEducationLevel(child.education_level),
-                                  parent_name: child.parent_name || extChild._protocolParentName || "",
-                                  parent_phone: child.parent_phone || extChild._protocolParentPhone || "",
-                                  parent_email: child.parent_email || "",
-                                  notes: child.notes || (extChild._protocolAddress ? `Адрес: ${extChild._protocolAddress}` : ""),
-                                  is_active: true,
-                                });
-                                setEditingChild(null);
-                                setShowDialog(true);
-                              }}
-                              className="text-xs h-8"
-                              title="Добавить в базу"
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              В базу
-                            </Button>
-                          )}
-                        </div>
+                                  const normalizeEducationLevel = (level: string | null): string => {
+                                    if (!level) return "";
+                                    const mapping: Record<string, string> = {
+                                      preschool: "do",
+                                      elementary: "noo",
+                                      middle: "oo",
+                                      high: "soo",
+                                      do: "do",
+                                      noo: "noo",
+                                      oo: "oo",
+                                      soo: "soo",
+                                    };
+                                    return mapping[level] || level;
+                                  };
+                                  setFormData({
+                                    full_name: child.full_name,
+                                    birth_date: child.birth_date || "",
+                                    gender: child.gender || "",
+                                    education_level: normalizeEducationLevel(child.education_level),
+                                    parent_name: child.parent_name || extChild._protocolParentName || "",
+                                    parent_phone: child.parent_phone || extChild._protocolParentPhone || "",
+                                    parent_email: child.parent_email || "",
+                                    notes: child.notes || (extChild._protocolAddress ? `Адрес: ${extChild._protocolAddress}` : ""),
+                                    is_active: true,
+                                  });
+                                  setEditingChild(null);
+                                  setShowDialog(true);
+                                }}
+                              >
+                                <Database className="h-4 w-4 mr-2" />
+                                Добавить в базу
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );
