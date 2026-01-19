@@ -5,6 +5,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChevronLeft,
@@ -13,6 +19,8 @@ import {
   Calendar as CalendarIcon,
   Clock,
   GripVertical,
+  RepeatIcon,
+  ChevronDown,
 } from "lucide-react";
 import {
   format,
@@ -25,6 +33,8 @@ import {
 } from "date-fns";
 import { ru } from "date-fns/locale";
 import { SessionForm } from "./SessionForm";
+import { RecurringSessionForm } from "./RecurringSessionForm";
+import { RescheduleSessionDialog } from "./RescheduleSessionDialog";
 import { cn } from "@/lib/utils";
 
 interface Session {
@@ -56,7 +66,22 @@ export function SessionCalendar() {
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
   const [showSessionForm, setShowSessionForm] = useState(false);
+  const [showRecurringForm, setShowRecurringForm] = useState(false);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [cancelledSession, setCancelledSession] = useState<{
+    id: string;
+    child_id: string;
+    child_name: string;
+    scheduled_date: string;
+    start_time: string;
+    end_time: string;
+    session_type_id: string;
+    specialist_id: string;
+    organization_id: string | null;
+    topic: string | null;
+    notes: string | null;
+  } | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<{
     date: string;
     time: string;
@@ -218,17 +243,37 @@ export function SessionCalendar() {
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-            <Button
-              onClick={() => {
-                setSelectedSession(null);
-                setSelectedSlot({ date: format(new Date(), "yyyy-MM-dd"), time: "09:00" });
-                setShowSessionForm(true);
-              }}
-              className="ml-4 gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Добавить занятие
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="ml-4 gap-2">
+                  <Plus className="h-4 w-4" />
+                  Добавить занятие
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedSession(null);
+                    setSelectedSlot({ date: format(new Date(), "yyyy-MM-dd"), time: "09:00" });
+                    setShowSessionForm(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  <div className="flex flex-col">
+                    <span>Одно занятие</span>
+                    <span className="text-xs text-muted-foreground">Создать одно занятие</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowRecurringForm(true)}>
+                  <RepeatIcon className="h-4 w-4 mr-2" />
+                  <div className="flex flex-col">
+                    <span>Серия занятий</span>
+                    <span className="text-xs text-muted-foreground">Регулярное расписание</span>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
@@ -362,6 +407,21 @@ export function SessionCalendar() {
         session={selectedSession}
         defaultDate={selectedSlot?.date}
         defaultStartTime={selectedSlot?.time}
+        onSessionCancelled={(session) => {
+          setCancelledSession(session);
+          setShowRescheduleDialog(true);
+        }}
+      />
+
+      <RecurringSessionForm
+        open={showRecurringForm}
+        onOpenChange={setShowRecurringForm}
+      />
+
+      <RescheduleSessionDialog
+        open={showRescheduleDialog}
+        onOpenChange={setShowRescheduleDialog}
+        cancelledSession={cancelledSession}
       />
     </Card>
   );

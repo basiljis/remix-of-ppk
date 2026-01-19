@@ -39,6 +39,19 @@ interface SessionFormProps {
   } | null;
   defaultDate?: string;
   defaultStartTime?: string;
+  onSessionCancelled?: (session: {
+    id: string;
+    child_id: string;
+    child_name: string;
+    scheduled_date: string;
+    start_time: string;
+    end_time: string;
+    session_type_id: string;
+    specialist_id: string;
+    organization_id: string | null;
+    topic: string | null;
+    notes: string | null;
+  }) => void;
 }
 
 export function SessionForm({
@@ -47,6 +60,7 @@ export function SessionForm({
   session,
   defaultDate,
   defaultStartTime,
+  onSessionCancelled,
 }: SessionFormProps) {
   const { user, profile } = useAuth();
   const { toast } = useToast();
@@ -147,6 +161,15 @@ export function SessionForm({
     }
   }, [session, sessionTypes, sessionStatuses, defaultDate, defaultStartTime]);
 
+  // Track previous status to detect cancellation
+  const [previousStatusId, setPreviousStatusId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session) {
+      setPreviousStatusId(session.session_status_id);
+    }
+  }, [session]);
+
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData & { id?: string }) => {
       const sessionData = {
@@ -173,14 +196,41 @@ export function SessionForm({
         const { error } = await supabase.from("sessions").insert(sessionData);
         if (error) throw error;
       }
+
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       onOpenChange(false);
       toast({
         title: "Успешно",
         description: session ? "Занятие обновлено" : "Занятие создано",
       });
+
+      // Check if session was cancelled (status changed to cancelled)
+      if (session && previousStatusId && data.session_status_id !== previousStatusId) {
+        const cancelledStatus = sessionStatuses.find(
+          (s) => s.name.toLowerCase().includes("отмен")
+        );
+        if (cancelledStatus && data.session_status_id === cancelledStatus.id) {
+          // Find child name
+          const childName = children.find((c) => c.id === data.child_id)?.full_name || "";
+          
+          onSessionCancelled?.({
+            id: session.id,
+            child_id: data.child_id,
+            child_name: childName,
+            scheduled_date: data.scheduled_date,
+            start_time: data.start_time,
+            end_time: data.end_time,
+            session_type_id: data.session_type_id,
+            specialist_id: user?.id || "",
+            organization_id: organizationId || null,
+            topic: data.topic || null,
+            notes: data.notes || null,
+          });
+        }
+      }
     },
     onError: (error) => {
       toast({
