@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, Save, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, Save, AlertTriangle, Send } from "lucide-react";
+import { HolidayApprovalRequestDialog } from "./HolidayApprovalRequestDialog";
 interface SessionFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -165,6 +166,7 @@ export function SessionForm({
 
   // Track previous status to detect cancellation
   const [previousStatusId, setPreviousStatusId] = useState<string | null>(null);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -370,9 +372,21 @@ export function SessionForm({
             {isSelectedDateHoliday && holidayInfo && (
               <Alert variant="destructive" className="mt-2">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <span className="font-medium">{holidayInfo.name}</span> — нерабочий день.
-                  Планирование занятий в этот день запрещено без согласования с администрацией.
+                <AlertDescription className="flex flex-col gap-2">
+                  <span>
+                    <span className="font-medium">{holidayInfo.name}</span> — нерабочий день.
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="w-fit"
+                    onClick={() => setShowApprovalDialog(true)}
+                    disabled={!formData.child_id}
+                  >
+                    <Send className="h-3 w-3 mr-2" />
+                    Запросить разрешение
+                  </Button>
                 </AlertDescription>
               </Alert>
             )}
@@ -437,6 +451,27 @@ export function SessionForm({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <HolidayApprovalRequestDialog
+        open={showApprovalDialog}
+        onOpenChange={setShowApprovalDialog}
+        sessionData={
+          formData.child_id
+            ? {
+                child_id: formData.child_id,
+                child_name: children.find((c) => c.id === formData.child_id)?.full_name || "",
+                session_type_id: formData.session_type_id,
+                scheduled_date: formData.scheduled_date,
+                start_time: formData.start_time,
+                end_time: formData.end_time,
+                topic: formData.topic,
+                notes: formData.notes,
+              }
+            : null
+        }
+        holidayInfo={holidayInfo ? { id: holidayInfo.id, name: holidayInfo.name } : null}
+        onSuccess={() => onOpenChange(false)}
+      />
     </Dialog>
   );
 }

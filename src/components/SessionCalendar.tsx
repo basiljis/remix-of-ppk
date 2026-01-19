@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganizationHolidays } from "@/hooks/useOrganizationHolidays";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChevronLeft,
@@ -21,6 +28,7 @@ import {
   GripVertical,
   RepeatIcon,
   ChevronDown,
+  CalendarOff,
 } from "lucide-react";
 import {
   format,
@@ -62,6 +70,7 @@ export function SessionCalendar() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isHoliday, getHolidayInfo } = useOrganizationHolidays();
   const [currentWeekStart, setCurrentWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
@@ -291,27 +300,56 @@ export function SessionCalendar() {
               </div>
               {weekDays.map((day) => {
                 const isToday = isSameDay(day, new Date());
-                return (
+                const dayHolidayInfo = getHolidayInfo(day);
+                const isDayHoliday = isHoliday(day);
+
+                const dayHeader = (
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      "p-2 text-center rounded-lg",
-                      isToday && "bg-primary/10"
+                      "p-2 text-center rounded-lg relative",
+                      isToday && "bg-primary/10",
+                      isDayHoliday && "bg-destructive/10 border border-destructive/30"
                     )}
                   >
-                    <div className="text-xs text-muted-foreground">
+                    <div className={cn(
+                      "text-xs",
+                      isDayHoliday ? "text-destructive" : "text-muted-foreground"
+                    )}>
                       {format(day, "EEE", { locale: ru })}
                     </div>
                     <div
                       className={cn(
-                        "text-lg font-semibold",
-                        isToday && "text-primary"
+                        "text-lg font-semibold flex items-center justify-center gap-1",
+                        isToday && "text-primary",
+                        isDayHoliday && "text-destructive"
                       )}
                     >
                       {format(day, "d")}
+                      {isDayHoliday && (
+                        <CalendarOff className="h-3 w-3" />
+                      )}
                     </div>
                   </div>
                 );
+
+                if (isDayHoliday && dayHolidayInfo) {
+                  return (
+                    <TooltipProvider key={day.toISOString()}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {dayHeader}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-medium">{dayHolidayInfo.name}</p>
+                          <p className="text-xs text-muted-foreground">Нерабочий день</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                }
+
+                return dayHeader;
               })}
             </div>
 
@@ -328,6 +366,7 @@ export function SessionCalendar() {
                   {weekDays.map((day) => {
                     const slotSessions = getSessionsForSlot(day, time);
                     const isToday = isSameDay(day, new Date());
+                    const isDayHoliday = isHoliday(day);
 
                     return (
                       <div
@@ -335,6 +374,7 @@ export function SessionCalendar() {
                         className={cn(
                           "p-1 min-h-[60px] border-r last:border-r-0 cursor-pointer transition-colors",
                           isToday && "bg-primary/5",
+                          isDayHoliday && "bg-destructive/5",
                           draggedSession && "hover:bg-accent"
                         )}
                         onClick={() => handleSlotClick(day, time)}

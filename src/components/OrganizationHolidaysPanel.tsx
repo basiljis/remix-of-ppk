@@ -11,13 +11,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { format, isSameYear, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Plus, CalendarDays, Trash2, Pencil, Loader2, CalendarOff, RefreshCw } from "lucide-react";
+import { Plus, CalendarDays, Trash2, Pencil, Loader2, CalendarOff, RefreshCw, Download, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RUSSIAN_HOLIDAYS } from "@/data/russianHolidays";
 
 interface Holiday {
   id: string;
@@ -144,6 +145,67 @@ export function OrganizationHolidaysPanel() {
     },
   });
 
+  // Import Russian holidays mutation
+  const importRussianHolidaysMutation = useMutation({
+    mutationFn: async () => {
+      if (!organizationId) throw new Error("Организация не найдена");
+
+      // Get existing holiday dates to avoid duplicates
+      const existingDates = holidays
+        .filter((h) => h.is_recurring)
+        .map((h) => {
+          const date = parseISO(h.holiday_date);
+          return `${date.getMonth() + 1}-${date.getDate()}`;
+        });
+
+      // Filter out already existing holidays
+      const holidaysToImport = RUSSIAN_HOLIDAYS.filter((rh) => {
+        const key = `${rh.month}-${rh.day}`;
+        return !existingDates.includes(key);
+      });
+
+      if (holidaysToImport.length === 0) {
+        throw new Error("Все государственные праздники уже добавлены");
+      }
+
+      // Create holiday records
+      const currentYear = new Date().getFullYear();
+      const holidayRecords = holidaysToImport.map((rh) => ({
+        organization_id: organizationId,
+        holiday_date: `${currentYear}-${String(rh.month).padStart(2, "0")}-${String(rh.day).padStart(2, "0")}`,
+        name: rh.name,
+        description: rh.description || null,
+        is_recurring: true,
+        created_by: user?.id,
+      }));
+
+      const { error } = await supabase
+        .from("organization_holidays")
+        .insert(holidayRecords);
+
+      if (error) throw error;
+
+      return holidaysToImport.length;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ["organization-holidays"] });
+      setImportDialogOpen(false);
+      toast({
+        title: "Праздники импортированы",
+        description: `Добавлено ${count} государственных праздников РФ`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
   const handleOpenDialog = (holiday?: Holiday) => {
     if (holiday) {
       setEditingHoliday(holiday);
@@ -201,13 +263,18 @@ export function OrganizationHolidaysPanel() {
             <CalendarOff className="h-5 w-5 text-muted-foreground" />
             <CardTitle>Праздники и нерабочие дни</CardTitle>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Добавить
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Flag className="h-4 w-4 mr-2" />
+              Импорт праздников РФ
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => handleOpenDialog()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Добавить
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
@@ -299,6 +366,7 @@ export function OrganizationHolidaysPanel() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -363,6 +431,55 @@ export function OrganizationHolidaysPanel() {
           </div>
         )}
       </CardContent>
+
+      {/* Import Russian Holidays Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Flag className="h-5 w-5" />
+              Импорт государственных праздников РФ
+            </DialogTitle>
+            <DialogDescription>
+              Автоматически добавить все официальные праздничные дни Российской Федерации как ежегодные нерабочие дни.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="bg-muted rounded-lg p-4 space-y-2 max-h-[300px] overflow-y-auto">
+              <p className="text-sm font-medium mb-3">Будут добавлены:</p>
+              {RUSSIAN_HOLIDAYS.map((holiday, index) => (
+                <div key={index} className="flex items-center gap-2 text-sm">
+                  <Badge variant="outline" className="font-mono">
+                    {String(holiday.day).padStart(2, "0")}.{String(holiday.month).padStart(2, "0")}
+                  </Badge>
+                  <span>{holiday.name}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Уже существующие праздники будут пропущены.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImportDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button 
+              onClick={() => importRussianHolidaysMutation.mutate()}
+              disabled={importRussianHolidaysMutation.isPending}
+            >
+              {importRussianHolidaysMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              Импортировать
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
