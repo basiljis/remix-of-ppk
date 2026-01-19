@@ -21,9 +21,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { AccessRequestStatus } from "@/components/AccessRequestStatus";
 import { getCurrentSchoolYear, getAvailableSchoolYears, isDateInSchoolYear, SchoolYear } from "@/utils/schoolYear";
 import { useSchoolYears } from "@/hooks/useSchoolYears";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+
 export const Dashboard = () => {
-  const { hasAccessRequest, profile, isAdmin, isRegionalOperator } = useAuth();
+  const { hasAccessRequest, profile, isAdmin, isRegionalOperator, roles } = useAuth();
   const {
     protocols,
     loading
@@ -32,16 +36,41 @@ export const Dashboard = () => {
     organizations
   } = useOrganizations();
 
-  // Filter organizations based on user role
+  // Check if user is organization admin or director
+  const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
+  const isDirector = roles.some((r) => r.role === "director");
+  const isOrgLevel = isOrgAdmin || isDirector || (!isAdmin && !isRegionalOperator);
+
+  // Fetch regions for admin filter
+  const { data: regions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('regions')
+        .select('id, name')
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: isAdmin
+  });
+
+  // Region filter state (only for admin)
+  const [regionFilter, setRegionFilter] = useState("all");
+
+  // Filter organizations based on user role and region filter
   const filteredOrganizations = organizations.filter(org => {
     if (isAdmin) {
-      // Admins see all organizations
+      // Admin can filter by region
+      if (regionFilter && regionFilter !== "all") {
+        return org.region_id === regionFilter;
+      }
       return true;
     } else if (isRegionalOperator && profile?.region_id) {
       // Regional operators see only organizations in their region
       return org.region_id === profile.region_id;
     } else if (profile?.organization_id) {
-      // Regular users see only their organization
+      // Organization-level users see only their organization
       return org.id === profile.organization_id;
     }
     return false;
@@ -75,11 +104,30 @@ export const Dashboard = () => {
 
   // Данные из организаций (используем отфильтрованные организации)
   const districts = [...new Set(filteredOrganizations.map(org => org.district).filter(Boolean))] as string[];
+  
   useEffect(() => {
     applyFilters();
-  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations]);
+  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations, regionFilter]);
   const applyFilters = () => {
     let filtered = [...protocols];
+
+    // Базовая фильтрация по уровню доступа пользователя
+    if (isOrgLevel && profile?.organization_id) {
+      // Пользователи уровня организации видят только свою организацию
+      filtered = filtered.filter(p => p.organizations?.id === profile.organization_id);
+    } else if (isRegionalOperator && profile?.region_id) {
+      // Региональные операторы видят только свой регион
+      filtered = filtered.filter(p => {
+        const org = organizations.find(o => o.id === p.organizations?.id);
+        return org?.region_id === profile.region_id;
+      });
+    } else if (isAdmin && regionFilter && regionFilter !== "all") {
+      // Админ с выбранным регионом
+      filtered = filtered.filter(p => {
+        const org = organizations.find(o => o.id === p.organizations?.id);
+        return org?.region_id === regionFilter;
+      });
+    }
     
     // Фильтр по учебному году (используем дату проведения ППК)
     if (schoolYearFilter && schoolYearFilter !== "all") {
@@ -96,14 +144,16 @@ export const Dashboard = () => {
       }
     }
     
-    if (eduOrgFilter) {
+    // Фильтр по организации (только для админа/рег. оператора)
+    if (!isOrgLevel && eduOrgFilter) {
       // Find organization by ID and filter protocols
       const selectedOrg = organizations.find(org => org.id === eduOrgFilter);
       if (selectedOrg) {
         filtered = filtered.filter(p => p.organizations?.id === selectedOrg.id || p.organizations?.name === selectedOrg.name);
       }
     }
-    if (districtFilter && districtFilter !== "all") {
+    // Фильтр по округу (только для админа/рег. оператора)
+    if (!isOrgLevel && districtFilter && districtFilter !== "all") {
       filtered = filtered.filter(p => p.organizations?.district === districtFilter);
     }
     if (levelFilter && levelFilter !== "all") {
@@ -164,6 +214,9 @@ export const Dashboard = () => {
     setSchoolYearFilter(getCurrentSchoolYear().value);
     setDateFrom(undefined);
     setDateTo(undefined);
+    if (isAdmin) {
+      setRegionFilter("all");
+    }
   };
 
   // Подготовка данных для диаграмм
@@ -354,29 +407,53 @@ export const Dashboard = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Фильтр по региону - только для администраторов */}
+            {isAdmin && (
+              <div>
+                <Label>Регион</Label>
+                <Select value={regionFilter} onValueChange={setRegionFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите регион" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все регионы</SelectItem>
+                    {regions.map(region => (
+                      <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           
-            <div>
-              <Label></Label>
-              <OrganizationSelector 
-                value={eduOrgFilter} 
-                onChange={setEduOrgFilter} 
-                placeholder="Поиск и выбор организации..." 
-                organizations={filteredOrganizations}
-              />
-            </div>
+            {/* Фильтр по организации - только для админов и рег. операторов */}
+            {!isOrgLevel && (
+              <div>
+                <Label>Образовательная организация</Label>
+                <OrganizationSelector 
+                  value={eduOrgFilter} 
+                  onChange={setEduOrgFilter} 
+                  placeholder="Поиск и выбор организации..." 
+                  organizations={filteredOrganizations}
+                />
+              </div>
+            )}
             
-            <div>
-              <Label>Округ</Label>
-              <Select value={districtFilter} onValueChange={setDistrictFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите округ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Все округа</SelectItem>
-                  {districts.map(district => <SelectItem key={district} value={district}>{district}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Фильтр по округу - только для админов и рег. операторов */}
+            {!isOrgLevel && (
+              <div>
+                <Label>Округ</Label>
+                <Select value={districtFilter} onValueChange={setDistrictFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите округ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все округа</SelectItem>
+                    {districts.map(district => <SelectItem key={district} value={district}>{district}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <Label>Уровень образования</Label>
