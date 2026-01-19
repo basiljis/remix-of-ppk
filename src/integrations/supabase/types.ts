@@ -512,6 +512,66 @@ export type Database = {
         }
         Relationships: []
       }
+      holiday_session_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          holiday_id: string | null
+          id: string
+          organization_id: string
+          requested_by: string
+          requested_date: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_data: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          holiday_id?: string | null
+          id?: string
+          organization_id: string
+          requested_by: string
+          requested_date: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_data: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          holiday_id?: string | null
+          id?: string
+          organization_id?: string
+          requested_by?: string
+          requested_date?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_data?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "holiday_session_requests_holiday_id_fkey"
+            columns: ["holiday_id"]
+            isOneToOne: false
+            referencedRelation: "organization_holidays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "holiday_session_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instruction_files: {
         Row: {
           created_at: string
