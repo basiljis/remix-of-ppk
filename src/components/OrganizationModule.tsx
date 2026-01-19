@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationSubscription } from "@/hooks/useOrganizationSubscription";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Calendar, UserCog, BarChart3, Building, Loader2, Lock, Target, CalendarOff } from "lucide-react";
+import { Users, Calendar, UserCog, BarChart3, Building, Loader2, Lock, Target, CalendarOff, ClipboardCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrganizationCalendar } from "./OrganizationCalendar";
 import { SpecialistRatesPanel } from "./SpecialistRatesPanel";
@@ -11,6 +11,7 @@ import { OrganizationEmployees } from "./OrganizationEmployees";
 import { OrganizationStatistics } from "./OrganizationStatistics";
 import { OrganizationKPIManagement } from "./OrganizationKPIManagement";
 import { OrganizationHolidaysPanel } from "./OrganizationHolidaysPanel";
+import { HolidaySessionRequestsPanel } from "./HolidaySessionRequestsPanel";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -145,6 +146,10 @@ export function OrganizationModule() {
             <CalendarOff className="h-4 w-4" />
             Нерабочие дни
           </TabsTrigger>
+          <TabsTrigger value="holiday-requests" className="gap-2">
+            <ClipboardCheck className="h-4 w-4" />
+            Запросы на согласование
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="mt-6">
@@ -169,6 +174,10 @@ export function OrganizationModule() {
 
         <TabsContent value="holidays" className="mt-6">
           <OrganizationHolidaysPanel />
+        </TabsContent>
+
+        <TabsContent value="holiday-requests" className="mt-6">
+          <HolidaySessionRequestsPanel />
         </TabsContent>
       </Tabs>
     </div>
