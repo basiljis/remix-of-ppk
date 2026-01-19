@@ -637,23 +637,32 @@ export function ChildrenManagement() {
                               <p>Действия</p>
                             </TooltipContent>
                           </Tooltip>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="w-56">
                             {protocolCount > 0 && (
                               <DropdownMenuItem onClick={() => handleViewProtocols(child.full_name)}>
                                 <ClipboardList className="h-4 w-4 mr-2" />
-                                Список протоколов
+                                <div className="flex flex-col">
+                                  <span>Список протоколов</span>
+                                  <span className="text-xs text-muted-foreground">Просмотр всех ППк ребёнка</span>
+                                </div>
                               </DropdownMenuItem>
                             )}
                             {protocolCount > 0 && (
                               <DropdownMenuItem onClick={() => handleViewProfile(child.full_name)}>
                                 <User className="h-4 w-4 mr-2" />
-                                Профиль ребёнка
+                                <div className="flex flex-col">
+                                  <span>Профиль ребёнка</span>
+                                  <span className="text-xs text-muted-foreground">Динамика развития и результаты</span>
+                                </div>
                               </DropdownMenuItem>
                             )}
                             {!isFromProtocol ? (
                               <DropdownMenuItem onClick={() => handleEdit(child)}>
                                 <Pencil className="h-4 w-4 mr-2" />
-                                Редактировать
+                                <div className="flex flex-col">
+                                  <span>Редактировать</span>
+                                  <span className="text-xs text-muted-foreground">Изменить данные ребёнка</span>
+                                </div>
                               </DropdownMenuItem>
                             ) : (
                               <DropdownMenuItem
@@ -693,7 +702,10 @@ export function ChildrenManagement() {
                                 }}
                               >
                                 <Database className="h-4 w-4 mr-2" />
-                                Добавить в базу
+                                <div className="flex flex-col">
+                                  <span>Добавить в базу</span>
+                                  <span className="text-xs text-muted-foreground">Сохранить в базу детей организации</span>
+                                </div>
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
