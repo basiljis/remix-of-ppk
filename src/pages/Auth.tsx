@@ -357,8 +357,8 @@ const Auth = () => {
         {/* Left side - Form */}
         <div className="p-8 md:p-12 flex flex-col justify-center">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Система управления протоколами ППК</h1>
-            <p className="text-muted-foreground">Цифровое решение для работы психолого-педагогических консилиумов</p>
+            <h1 className="text-3xl font-bold mb-2">universum.</h1>
+            <p className="text-muted-foreground">Инновационная платформа для комплексной поддержки и развития детей. Технологии, которые работают на благо каждого ребенка.</p>
           </div>
           
           <Tabs defaultValue="login" className="w-full">
@@ -656,12 +656,44 @@ const Auth = () => {
           </Tabs>
         </div>
 
-        {/* Right side - Image */}
-        <div className="hidden md:block relative bg-gradient-to-br from-primary to-primary/80">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center text-white p-8">
-              <h2 className="text-3xl font-bold mb-4">Добро пожаловать</h2>
-              <p className="text-lg opacity-90">Профессиональный инструмент для эффективной работы ППК</p>
+        {/* Right side - Feature blocks */}
+        <div className="hidden md:flex flex-col relative bg-gradient-to-br from-primary to-primary/80 p-8 justify-center">
+          <div className="space-y-6">
+            {/* Protocol PPK Block */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-white">Протокол ППк</h3>
+              </div>
+              <p className="text-white/80 text-sm leading-relaxed">
+                Система управления протоколами психолого-педагогического консилиума. Автоматизированное формирование заключений, рекомендаций и отчетов.
+              </p>
+            </div>
+
+            {/* Time Tracking Block */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-white">Журнал учёта рабочего времени</h3>
+              </div>
+              <p className="text-white/80 text-sm leading-relaxed">
+                Планирование занятий, учёт рабочего времени специалистов. Календарь сессий, контроль нагрузки и статистика эффективности.
+              </p>
+            </div>
+
+            {/* Tagline */}
+            <div className="pt-4 text-center">
+              <p className="text-white/60 text-xs">
+                © universum. Все права защищены.
+              </p>
             </div>
           </div>
         </div>
@@ -720,7 +752,7 @@ const Auth = () => {
             {welcomeUserName}
           </DialogDescription>
           <p className="text-center text-muted-foreground text-base pt-2">
-            Вы успешно вошли в систему управления протоколами ППК
+            Вы успешно вошли в систему universum
           </p>
         </DialogHeader>
         <div className="flex justify-center pt-6 pb-4">
