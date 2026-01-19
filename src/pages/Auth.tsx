@@ -689,12 +689,6 @@ const Auth = () => {
               </p>
             </div>
 
-            {/* Tagline */}
-            <div className="pt-4 text-center">
-              <p className="text-white/60 text-xs">
-                © universum. Все права защищены.
-              </p>
-            </div>
           </div>
         </div>
       </div>

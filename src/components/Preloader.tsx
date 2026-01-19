@@ -40,7 +40,7 @@ const Preloader = () => {
             letterSpacing: '0.25em'
           }}
         >
-          СИСТЕМА ППК
+          universum.
         </h1>
       </div>
 
