@@ -23,6 +23,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
 
 interface AppSidebarProps {
   activeTab: string;
@@ -138,7 +143,60 @@ const adminItems = [
 
 export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false, hasOrganizationAccess = false }: AppSidebarProps) {
   const { state } = useSidebar();
+  const { user, profile } = useAuth();
   const canSeeOrganization = isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess;
+
+  // Fetch session counts for sidebar badges
+  const today = new Date();
+  const todayStart = startOfDay(today).toISOString().split('T')[0];
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
+  const weekEnd = endOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
+
+  const { data: sessionCounts } = useQuery({
+    queryKey: ["sidebar-session-counts", user?.id, todayStart],
+    queryFn: async () => {
+      if (!user?.id) return { today: 0, week: 0 };
+      
+      // Get today's sessions count (planned status)
+      const { count: todayCount } = await supabase
+        .from("sessions")
+        .select("*", { count: "exact", head: true })
+        .eq("specialist_id", user.id)
+        .eq("scheduled_date", todayStart);
+
+      // Get this week's sessions count
+      const { count: weekCount } = await supabase
+        .from("sessions")
+        .select("*", { count: "exact", head: true })
+        .eq("specialist_id", user.id)
+        .gte("scheduled_date", weekStart)
+        .lte("scheduled_date", weekEnd);
+
+      return { 
+        today: todayCount || 0, 
+        week: weekCount || 0
+      };
+    },
+    enabled: !!user?.id,
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Fetch children count
+  const { data: childrenCount } = useQuery({
+    queryKey: ["sidebar-children-count", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return 0;
+      
+      const { count } = await supabase
+        .from("children")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", profile.organization_id)
+        .eq("is_active", true);
+
+      return count || 0;
+    },
+    enabled: !!profile?.organization_id,
+  });
 
   const renderMenuItem = (item: typeof menuItems[0], isActive: boolean) => {
     const Icon = item.icon;
@@ -311,15 +369,28 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                           <SidebarMenuSub>
                             {scheduleItem.subItems?.map((subItem) => {
                               const isSubActive = activeTab === subItem.id;
+                              const badge = subItem.id === "schedule-calendar" 
+                                ? sessionCounts?.today 
+                                : subItem.id === "schedule-children" 
+                                  ? childrenCount 
+                                  : null;
                               return (
                                 <SidebarMenuSubItem key={subItem.id}>
                                   <SidebarMenuSubButton
                                     onClick={() => onTabChange(subItem.id)}
-                                    className={
+                                    className={`justify-between ${
                                       isSubActive ? "bg-primary/10 text-primary font-medium" : ""
-                                    }
+                                    }`}
                                   >
                                     <span>{subItem.label}</span>
+                                    {badge !== null && badge > 0 && (
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-medium"
+                                      >
+                                        {badge}
+                                      </Badge>
+                                    )}
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                               );
