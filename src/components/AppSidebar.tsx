@@ -62,6 +62,15 @@ const organizationItem = {
   id: "organization-module", 
   label: "Организация", 
   icon: Building,
+  subItems: [
+    { id: "organization-employees", label: "Сотрудники" },
+    { id: "organization-schedule", label: "Расписание организации" },
+    { id: "organization-rates", label: "Ставки специалистов" },
+    { id: "organization-statistics", label: "Статистика" },
+    { id: "organization-kpi", label: "KPI сотрудников" },
+    { id: "organization-holidays", label: "Нерабочие дни" },
+    { id: "organization-requests", label: "Запросы на согласование" },
+  ]
 };
 
 const adminItems = [
@@ -265,28 +274,101 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                   </TooltipContent>
                 </Tooltip>
               </SidebarMenuItem>
-              {canSeeOrganization && (
-                <SidebarMenuItem>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton
-                        onClick={() => onTabChange(organizationItem.id)}
-                        className={`w-full justify-start gap-3 ${
-                          activeTab === organizationItem.id 
-                            ? "bg-primary text-primary-foreground" 
-                            : "hover:bg-accent hover:text-accent-foreground"
-                        }`}
-                      >
-                        <organizationItem.icon className="h-4 w-4" />
-                        {state !== "collapsed" && <span>{organizationItem.label}</span>}
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p>{organizationItem.label}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </SidebarMenuItem>
-              )}
+              {canSeeOrganization && (() => {
+                const hasSubItems = 'subItems' in organizationItem && organizationItem.subItems;
+                const isActive = hasSubItems 
+                  ? organizationItem.subItems.some(sub => activeTab === sub.id)
+                  : activeTab === organizationItem.id;
+                
+                if (hasSubItems) {
+                  return (
+                    <Collapsible
+                      key={organizationItem.id}
+                      asChild
+                      defaultOpen={isActive}
+                      className="group/collapsible"
+                    >
+                      <SidebarMenuItem>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <CollapsibleTrigger asChild>
+                              <SidebarMenuButton
+                                className={`w-full justify-start gap-3 ${
+                                  isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                                }`}
+                              >
+                                <organizationItem.icon className="h-4 w-4" />
+                                {state !== "collapsed" && (
+                                  <>
+                                    <span>{organizationItem.label}</span>
+                                    <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                  </>
+                                )}
+                              </SidebarMenuButton>
+                            </CollapsibleTrigger>
+                          </TooltipTrigger>
+                          {state === "collapsed" && (
+                            <TooltipContent side="right" className="flex flex-col gap-1">
+                              <p className="font-medium">{organizationItem.label}</p>
+                              {organizationItem.subItems?.map((subItem) => (
+                                <button
+                                  key={subItem.id}
+                                  onClick={() => onTabChange(subItem.id)}
+                                  className="text-left text-sm hover:text-primary transition-colors"
+                                >
+                                  • {subItem.label}
+                                </button>
+                              ))}
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {organizationItem.subItems?.map((subItem) => {
+                              const isSubActive = activeTab === subItem.id;
+                              return (
+                                <SidebarMenuSubItem key={subItem.id}>
+                                  <SidebarMenuSubButton
+                                    onClick={() => onTabChange(subItem.id)}
+                                    className={
+                                      isSubActive ? "bg-primary/10 text-primary font-medium" : ""
+                                    }
+                                  >
+                                    <span>{subItem.label}</span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              );
+                            })}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  );
+                }
+                
+                return (
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          onClick={() => onTabChange(organizationItem.id)}
+                          className={`w-full justify-start gap-3 ${
+                            activeTab === organizationItem.id 
+                              ? "bg-primary text-primary-foreground" 
+                              : "hover:bg-accent hover:text-accent-foreground"
+                          }`}
+                        >
+                          <organizationItem.icon className="h-4 w-4" />
+                          {state !== "collapsed" && <span>{organizationItem.label}</span>}
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{organizationItem.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </SidebarMenuItem>
+                );
+              })()}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

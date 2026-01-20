@@ -366,7 +366,7 @@ export function SessionForm({
               if (setting) {
                 return (
                   <p className="text-xs text-muted-foreground">
-                    Рекомендуемая длительность: {setting.session_duration_minutes} мин ({setting.age_label})
+                    Рекомендуемая длительность: {setting.session_duration_minutes} мин • Макс. в день: {setting.max_sessions_per_day} • Макс. в неделю: {setting.max_sessions_per_week} ({setting.age_label})
                   </p>
                 );
               }

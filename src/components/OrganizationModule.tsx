@@ -1,10 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationSubscription } from "@/hooks/useOrganizationSubscription";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Calendar, UserCog, BarChart3, Building, Loader2, Lock, Target, CalendarOff, ClipboardCheck } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Building, Loader2, Lock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { OrganizationCalendar } from "./OrganizationCalendar";
 import { SpecialistRatesPanel } from "./SpecialistRatesPanel";
 import { OrganizationEmployees } from "./OrganizationEmployees";
@@ -12,15 +11,17 @@ import { OrganizationStatistics } from "./OrganizationStatistics";
 import { OrganizationKPIManagement } from "./OrganizationKPIManagement";
 import { OrganizationHolidaysPanel } from "./OrganizationHolidaysPanel";
 import { HolidaySessionRequestsPanel } from "./HolidaySessionRequestsPanel";
-import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Badge } from "./ui/badge";
 
-export function OrganizationModule() {
+interface OrganizationModuleProps {
+  activeSubTab?: string;
+}
+
+export function OrganizationModule({ activeSubTab = "employees" }: OrganizationModuleProps) {
   const { roles, profile, isAdmin, user } = useAuth();
   const { hasOrganizationSubscription, organizationSubscriptionEndDate, loading: subscriptionLoading } = useOrganizationSubscription();
-  const [activeTab, setActiveTab] = useState("employees");
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
   const isDirector = roles.some((r) => r.role === "director");
@@ -103,6 +104,28 @@ export function OrganizationModule() {
     );
   }
 
+  const renderContent = () => {
+    switch (activeSubTab) {
+      case "employees":
+      case "module":
+        return <OrganizationEmployees />;
+      case "schedule":
+        return <OrganizationCalendar />;
+      case "rates":
+        return <SpecialistRatesPanel />;
+      case "statistics":
+        return <OrganizationStatistics />;
+      case "kpi":
+        return <OrganizationKPIManagement />;
+      case "holidays":
+        return <OrganizationHolidaysPanel />;
+      case "requests":
+        return <HolidaySessionRequestsPanel />;
+      default:
+        return <OrganizationEmployees />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -120,66 +143,7 @@ export function OrganizationModule() {
         )}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="employees" className="gap-2">
-            <Users className="h-4 w-4" />
-            Сотрудники
-          </TabsTrigger>
-          <TabsTrigger value="schedule" className="gap-2">
-            <Calendar className="h-4 w-4" />
-            Расписание организации
-          </TabsTrigger>
-          <TabsTrigger value="rates" className="gap-2">
-            <UserCog className="h-4 w-4" />
-            Ставки специалистов
-          </TabsTrigger>
-          <TabsTrigger value="statistics" className="gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Статистика
-          </TabsTrigger>
-          <TabsTrigger value="kpi" className="gap-2">
-            <Target className="h-4 w-4" />
-            KPI сотрудников
-          </TabsTrigger>
-          <TabsTrigger value="holidays" className="gap-2">
-            <CalendarOff className="h-4 w-4" />
-            Нерабочие дни
-          </TabsTrigger>
-          <TabsTrigger value="holiday-requests" className="gap-2">
-            <ClipboardCheck className="h-4 w-4" />
-            Запросы на согласование
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="employees" className="mt-6">
-          <OrganizationEmployees />
-        </TabsContent>
-
-        <TabsContent value="schedule" className="mt-6">
-          <OrganizationCalendar />
-        </TabsContent>
-
-        <TabsContent value="rates" className="mt-6">
-          <SpecialistRatesPanel />
-        </TabsContent>
-
-        <TabsContent value="statistics" className="mt-6">
-          <OrganizationStatistics />
-        </TabsContent>
-
-        <TabsContent value="kpi" className="mt-6">
-          <OrganizationKPIManagement />
-        </TabsContent>
-
-        <TabsContent value="holidays" className="mt-6">
-          <OrganizationHolidaysPanel />
-        </TabsContent>
-
-        <TabsContent value="holiday-requests" className="mt-6">
-          <HolidaySessionRequestsPanel />
-        </TabsContent>
-      </Tabs>
+      {renderContent()}
     </div>
   );
 }
