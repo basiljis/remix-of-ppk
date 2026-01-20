@@ -384,47 +384,72 @@ export function SessionCalendar() {
                           handleDrop(day, time);
                         }}
                       >
-                        {slotSessions.map((session) => (
-                          <div
-                            key={session.id}
-                            draggable
-                            onDragStart={() => handleDragStart(session)}
-                            onDragEnd={handleDragEnd}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSessionClick(session);
-                            }}
-                            className={cn(
-                              "p-1.5 rounded text-xs mb-1 cursor-grab active:cursor-grabbing",
-                              "border-l-4 bg-card shadow-sm hover:shadow-md transition-shadow"
-                            )}
-                            style={{
-                              borderLeftColor:
-                                session.session_statuses?.color || "hsl(var(--primary))",
-                            }}
-                          >
-                            <div className="flex items-start gap-1">
-                              <GripVertical className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5" />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium truncate">
-                                  {session.children?.full_name}
+                        {slotSessions.map((session) => {
+                          const statusColor = session.session_statuses?.color || "hsl(var(--primary))";
+                          const statusName = session.session_statuses?.name?.toLowerCase() || "";
+                          
+                          // Determine background style based on status
+                          const isPlanned = statusName.includes("заплан");
+                          const isConducted = statusName.includes("провед") || statusName.includes("выполн");
+                          const isCancelled = statusName.includes("отмен");
+                          
+                          const getSessionStyles = () => {
+                            if (isToday) {
+                              if (isConducted) {
+                                return "bg-emerald-50 dark:bg-emerald-950/30 border-l-emerald-500";
+                              }
+                              if (isCancelled) {
+                                return "bg-red-50 dark:bg-red-950/30 border-l-red-500 opacity-60";
+                              }
+                              if (isPlanned) {
+                                return "bg-blue-50 dark:bg-blue-950/30 border-l-blue-500 ring-2 ring-blue-200 dark:ring-blue-800";
+                              }
+                            }
+                            return "bg-card";
+                          };
+
+                          return (
+                            <div
+                              key={session.id}
+                              draggable
+                              onDragStart={() => handleDragStart(session)}
+                              onDragEnd={handleDragEnd}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSessionClick(session);
+                              }}
+                              className={cn(
+                                "p-1.5 rounded text-xs mb-1 cursor-grab active:cursor-grabbing",
+                                "border-l-4 shadow-sm hover:shadow-md transition-all",
+                                getSessionStyles()
+                              )}
+                              style={{
+                                borderLeftColor: isToday ? undefined : statusColor,
+                              }}
+                            >
+                              <div className="flex items-start gap-1">
+                                <GripVertical className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium truncate">
+                                    {session.children?.full_name}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {session.start_time.slice(0, 5)} –{" "}
+                                    {session.end_time.slice(0, 5)}
+                                  </div>
+                                  {session.session_types?.name && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="mt-1 text-[10px] px-1 py-0"
+                                    >
+                                      {session.session_types.name}
+                                    </Badge>
+                                  )}
                                 </div>
-                                <div className="text-muted-foreground">
-                                  {session.start_time.slice(0, 5)} –{" "}
-                                  {session.end_time.slice(0, 5)}
-                                </div>
-                                {session.session_types?.name && (
-                                  <Badge
-                                    variant="secondary"
-                                    className="mt-1 text-[10px] px-1 py-0"
-                                  >
-                                    {session.session_types.name}
-                                  </Badge>
-                                )}
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     );
                   })}
