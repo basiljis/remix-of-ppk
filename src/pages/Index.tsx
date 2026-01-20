@@ -249,9 +249,16 @@ const Index = () => {
           </Suspense>
         );
       case "organization-module":
-        return (isOrgAdmin || isDirector || isAdmin) ? (
+      case "organization-employees":
+      case "organization-schedule":
+      case "organization-rates":
+      case "organization-statistics":
+      case "organization-kpi":
+      case "organization-holidays":
+      case "organization-requests":
+        return (isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess) ? (
           <Suspense fallback={loadingFallback}>
-            <OrganizationModule />
+            <OrganizationModule activeSubTab={activeTab.startsWith("organization-") ? activeTab.replace("organization-", "") : "employees"} />
           </Suspense>
         ) : (
           <div className="text-center p-8">
