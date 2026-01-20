@@ -243,9 +243,12 @@ const Index = () => {
           </div>
         );
       case "schedule-module":
+      case "schedule-calendar":
+      case "schedule-children":
+      case "schedule-statistics":
         return (
           <Suspense fallback={loadingFallback}>
-            <ScheduleModule />
+            <ScheduleModule activeSubTab={activeTab.startsWith("schedule-") ? activeTab.replace("schedule-", "") : "calendar"} />
           </Suspense>
         );
       case "organization-module":
