@@ -99,6 +99,7 @@ export function SessionCalendar() {
   } | null>(null);
   const [draggedSession, setDraggedSession] = useState<Session | null>(null);
   const [activeStatusFilters, setActiveStatusFilters] = useState<Set<string>>(new Set());
+  const [activeTypeFilters, setActiveTypeFilters] = useState<Set<string>>(new Set());
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
@@ -138,6 +139,20 @@ export function SessionCalendar() {
       const { data, error } = await supabase
         .from("session_statuses")
         .select("id, name, color")
+        .eq("is_active", true)
+        .order("sort_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch all session types for filter
+  const { data: sessionTypes = [] } = useQuery({
+    queryKey: ["session-types-filter"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("session_types")
+        .select("id, name")
         .eq("is_active", true)
         .order("sort_order");
       if (error) throw error;
@@ -237,8 +252,12 @@ export function SessionCalendar() {
       if (startH !== slotHour) return false;
       
       // Apply status filter if any filters are active
-      if (activeStatusFilters.size > 0) {
-        return activeStatusFilters.has(session.session_status_id);
+      if (activeStatusFilters.size > 0 && !activeStatusFilters.has(session.session_status_id)) {
+        return false;
+      }
+      // Apply type filter if any filters are active
+      if (activeTypeFilters.size > 0 && !activeTypeFilters.has(session.session_type_id)) {
+        return false;
       }
       return true;
     });
@@ -256,9 +275,24 @@ export function SessionCalendar() {
     });
   };
 
+  const toggleTypeFilter = (typeId: string) => {
+    setActiveTypeFilters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(typeId)) {
+        newSet.delete(typeId);
+      } else {
+        newSet.add(typeId);
+      }
+      return newSet;
+    });
+  };
+
   const clearFilters = () => {
     setActiveStatusFilters(new Set());
+    setActiveTypeFilters(new Set());
   };
+
+  const hasActiveFilters = activeStatusFilters.size > 0 || activeTypeFilters.size > 0;
 
   return (
     <Card>
@@ -329,46 +363,79 @@ export function SessionCalendar() {
           {format(addDays(currentWeekStart, 6), "d MMMM yyyy", { locale: ru })}
         </p>
         
-        {/* Status Legend & Filter */}
-        <div className="flex flex-wrap items-center gap-2 mt-3">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Filter className="h-3 w-3" />
-            <span>Фильтр:</span>
+        {/* Status & Type Filters */}
+        <div className="flex flex-col gap-2 mt-3">
+          {/* Status filter row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-[70px]">
+              <Filter className="h-3 w-3" />
+              <span>Статус:</span>
+            </div>
+            {sessionStatuses.map((status) => {
+              const isActive = activeStatusFilters.has(status.id);
+              return (
+                <button
+                  key={status.id}
+                  onClick={() => toggleStatusFilter(status.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
+                    "border hover:shadow-sm",
+                    isActive 
+                      ? "bg-primary/10 border-primary text-primary font-medium" 
+                      : "bg-background border-border text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: status.color || "hsl(var(--primary))" }}
+                  />
+                  <span>{status.name}</span>
+                </button>
+              );
+            })}
           </div>
-          {sessionStatuses.map((status) => {
-            const isActive = activeStatusFilters.has(status.id);
-            return (
-              <button
-                key={status.id}
-                onClick={() => toggleStatusFilter(status.id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
-                  "border hover:shadow-sm",
-                  isActive 
-                    ? "bg-primary/10 border-primary text-primary font-medium" 
-                    : "bg-background border-border text-muted-foreground hover:bg-muted"
-                )}
-              >
-                <div 
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: status.color || "hsl(var(--primary))" }}
-                />
-                <span>{status.name}</span>
-              </button>
-            );
-          })}
-          {activeStatusFilters.size > 0 && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <X className="h-3 w-3" />
-              <span>Сбросить</span>
-            </button>
-          )}
-          <div className="flex items-center gap-1.5 ml-auto pl-2 border-l">
-            <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-950 ring-1 ring-blue-300" />
-            <span className="text-xs text-muted-foreground">Сегодня</span>
+          
+          {/* Type filter row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-[70px]">
+              <CalendarIcon className="h-3 w-3" />
+              <span>Тип:</span>
+            </div>
+            {sessionTypes.map((type) => {
+              const isActive = activeTypeFilters.has(type.id);
+              return (
+                <button
+                  key={type.id}
+                  onClick={() => toggleTypeFilter(type.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
+                    "border hover:shadow-sm",
+                    isActive 
+                      ? "bg-primary/10 border-primary text-primary font-medium" 
+                      : "bg-background border-border text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  <span>{type.name}</span>
+                </button>
+              );
+            })}
+            
+            {/* Reset and Today indicator */}
+            <div className="flex items-center gap-2 ml-auto">
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                  <span>Сбросить</span>
+                </button>
+              )}
+              <div className="flex items-center gap-1.5 pl-2 border-l">
+                <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-950 ring-1 ring-blue-300" />
+                <span className="text-xs text-muted-foreground">Сегодня</span>
+              </div>
+            </div>
           </div>
         </div>
       </CardHeader>
