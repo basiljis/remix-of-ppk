@@ -486,6 +486,33 @@ export function SessionForm({
             </div>
           </div>
 
+          {/* Duration warning */}
+          {formData.child_id && formData.start_time && formData.end_time && (() => {
+            const child = children.find((c) => c.id === formData.child_id);
+            const age = child?.birth_date ? calculateAge(child.birth_date) : null;
+            const setting = age !== null ? durationSettings.find((s) => age >= s.age_from && age <= s.age_to) : null;
+            
+            if (setting) {
+              const [startH, startM] = formData.start_time.split(":").map(Number);
+              const [endH, endM] = formData.end_time.split(":").map(Number);
+              const actualDuration = (endH * 60 + endM) - (startH * 60 + startM);
+              
+              if (actualDuration > setting.session_duration_minutes) {
+                const exceededBy = actualDuration - setting.session_duration_minutes;
+                return (
+                  <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800 dark:text-amber-200">
+                      Длительность занятия ({actualDuration} мин) превышает рекомендуемую для возрастной категории "{setting.age_label}" на {exceededBy} мин.
+                      Рекомендуемая длительность: {setting.session_duration_minutes} мин.
+                    </AlertDescription>
+                  </Alert>
+                );
+              }
+            }
+            return null;
+          })()}
+
           <div className="grid gap-2">
             <Label>Тема занятия</Label>
             <Input
