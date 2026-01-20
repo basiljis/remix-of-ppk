@@ -82,14 +82,14 @@ export function SessionForm({
 
   const organizationId = profile?.organization_id;
 
-  // Load children for this organization
+  // Load children for this organization (include birth_date for age calculation)
   const { data: children = [] } = useQuery({
     queryKey: ["children-active", organizationId],
     queryFn: async () => {
       if (!organizationId) return [];
       const { data, error } = await supabase
         .from("children")
-        .select("id, full_name")
+        .select("id, full_name, birth_date")
         .eq("organization_id", organizationId)
         .eq("is_active", true)
         .order("full_name");
@@ -98,6 +98,46 @@ export function SessionForm({
     },
     enabled: !!organizationId,
   });
+
+  // Load session duration settings by age
+  const { data: durationSettings = [] } = useQuery({
+    queryKey: ["session-duration-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("session_duration_settings")
+        .select("*")
+        .order("age_from");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Calculate child age from birth_date
+  const calculateAge = (birthDate: string | null): number | null => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Get recommended duration based on child age
+  const getRecommendedDuration = (childId: string): number => {
+    const child = children.find((c) => c.id === childId);
+    if (!child?.birth_date) return 30; // Default 30 minutes
+    
+    const age = calculateAge(child.birth_date);
+    if (age === null) return 30;
+    
+    const setting = durationSettings.find(
+      (s) => age >= s.age_from && age <= s.age_to
+    );
+    return setting?.session_duration_minutes || 30;
+  };
 
   // Load session types
   const { data: sessionTypes = [] } = useQuery({
@@ -294,19 +334,44 @@ export function SessionForm({
             <Label>Ребёнок *</Label>
             <Select
               value={formData.child_id}
-              onValueChange={(v) => setFormData({ ...formData, child_id: v })}
+              onValueChange={(v) => {
+                const recommendedDuration = getRecommendedDuration(v);
+                const newEndTime = addMinutesToTime(formData.start_time, recommendedDuration);
+                setFormData({ ...formData, child_id: v, end_time: newEndTime });
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Выберите ребёнка" />
               </SelectTrigger>
               <SelectContent>
-                {children.map((child) => (
-                  <SelectItem key={child.id} value={child.id}>
-                    {child.full_name}
-                  </SelectItem>
-                ))}
+                {children.map((child) => {
+                  const age = calculateAge(child.birth_date);
+                  return (
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.full_name}
+                      {age !== null && (
+                        <span className="text-muted-foreground ml-2">
+                          ({age} {age === 1 ? "год" : age >= 2 && age <= 4 ? "года" : "лет"})
+                        </span>
+                      )}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
+            {formData.child_id && (() => {
+              const child = children.find((c) => c.id === formData.child_id);
+              const age = child?.birth_date ? calculateAge(child.birth_date) : null;
+              const setting = age !== null ? durationSettings.find((s) => age >= s.age_from && age <= s.age_to) : null;
+              if (setting) {
+                return (
+                  <p className="text-xs text-muted-foreground">
+                    Рекомендуемая длительность: {setting.session_duration_minutes} мин ({setting.age_label})
+                  </p>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
