@@ -128,6 +128,20 @@ export function SessionCalendar() {
     enabled: !!user?.id,
   });
 
+  // Fetch all session statuses for legend
+  const { data: sessionStatuses = [] } = useQuery({
+    queryKey: ["session-statuses-legend"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("session_statuses")
+        .select("id, name, color")
+        .eq("is_active", true)
+        .order("sort_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const updateSessionMutation = useMutation({
     mutationFn: async ({
       id,
@@ -289,6 +303,24 @@ export function SessionCalendar() {
           {format(currentWeekStart, "d MMMM", { locale: ru })} –{" "}
           {format(addDays(currentWeekStart, 6), "d MMMM yyyy", { locale: ru })}
         </p>
+        
+        {/* Status Legend */}
+        <div className="flex flex-wrap items-center gap-3 mt-2">
+          <span className="text-xs text-muted-foreground">Статусы:</span>
+          {sessionStatuses.map((status) => (
+            <div key={status.id} className="flex items-center gap-1.5">
+              <div 
+                className="w-3 h-3 rounded-full border"
+                style={{ backgroundColor: status.color || "hsl(var(--primary))" }}
+              />
+              <span className="text-xs text-muted-foreground">{status.name}</span>
+            </div>
+          ))}
+          <div className="flex items-center gap-1.5 ml-2 pl-2 border-l">
+            <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-950 ring-1 ring-blue-300" />
+            <span className="text-xs text-muted-foreground">Сегодня</span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
