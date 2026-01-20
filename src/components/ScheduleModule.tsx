@@ -1,22 +1,22 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionCalendar } from "./SessionCalendar";
 import { ChildrenManagement } from "./ChildrenManagement";
 import { ScheduleStatistics } from "./ScheduleStatistics";
-import { Calendar, Users, Lock, BarChart3 } from "lucide-react";
+import { Calendar, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
-export function ScheduleModule() {
-  const { isAdmin, roles, profile } = useAuth();
+interface ScheduleModuleProps {
+  activeSubTab?: string;
+}
+
+export function ScheduleModule({ activeSubTab = "calendar" }: ScheduleModuleProps) {
+  const { isAdmin, roles } = useAuth();
   const { hasActiveSubscription, isTrialActive } = useSubscriptionStatus();
-  const [activeTab, setActiveTab] = useState("calendar");
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
   const isRegionalOperator = roles.some((r) => r.role === "regional_operator");
-  const canViewOrgCalendar = isAdmin || isOrgAdmin || isRegionalOperator;
   const canAccessSchedule = hasActiveSubscription || isTrialActive || isAdmin;
 
   if (!canAccessSchedule) {
@@ -50,6 +50,20 @@ export function ScheduleModule() {
     );
   }
 
+  const renderContent = () => {
+    switch (activeSubTab) {
+      case "calendar":
+      case "module":
+        return <SessionCalendar />;
+      case "children":
+        return <ChildrenManagement />;
+      case "statistics":
+        return <ScheduleStatistics />;
+      default:
+        return <SessionCalendar />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -69,34 +83,7 @@ export function ScheduleModule() {
         )}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="calendar" className="gap-2">
-            <Calendar className="h-4 w-4" />
-            Моё расписание
-          </TabsTrigger>
-          <TabsTrigger value="children" className="gap-2">
-            <Users className="h-4 w-4" />
-            Дети
-          </TabsTrigger>
-          <TabsTrigger value="statistics" className="gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Статистика
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="calendar" className="mt-6">
-          <SessionCalendar />
-        </TabsContent>
-
-        <TabsContent value="children" className="mt-6">
-          <ChildrenManagement />
-        </TabsContent>
-
-        <TabsContent value="statistics" className="mt-6">
-          <ScheduleStatistics />
-        </TabsContent>
-      </Tabs>
+      {renderContent()}
     </div>
   );
 }
