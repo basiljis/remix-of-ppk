@@ -29,6 +29,8 @@ import {
   RepeatIcon,
   ChevronDown,
   CalendarOff,
+  Filter,
+  X,
 } from "lucide-react";
 import {
   format,
@@ -96,6 +98,7 @@ export function SessionCalendar() {
     time: string;
   } | null>(null);
   const [draggedSession, setDraggedSession] = useState<Session | null>(null);
+  const [activeStatusFilters, setActiveStatusFilters] = useState<Set<string>>(new Set());
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
@@ -231,8 +234,30 @@ export function SessionCalendar() {
     return sessions.filter((session) => {
       if (session.scheduled_date !== dateStr) return false;
       const [startH] = session.start_time.split(":").map(Number);
-      return startH === slotHour;
+      if (startH !== slotHour) return false;
+      
+      // Apply status filter if any filters are active
+      if (activeStatusFilters.size > 0) {
+        return activeStatusFilters.has(session.session_status_id);
+      }
+      return true;
     });
+  };
+
+  const toggleStatusFilter = (statusId: string) => {
+    setActiveStatusFilters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(statusId)) {
+        newSet.delete(statusId);
+      } else {
+        newSet.add(statusId);
+      }
+      return newSet;
+    });
+  };
+
+  const clearFilters = () => {
+    setActiveStatusFilters(new Set());
   };
 
   return (
@@ -304,19 +329,44 @@ export function SessionCalendar() {
           {format(addDays(currentWeekStart, 6), "d MMMM yyyy", { locale: ru })}
         </p>
         
-        {/* Status Legend */}
-        <div className="flex flex-wrap items-center gap-3 mt-2">
-          <span className="text-xs text-muted-foreground">Статусы:</span>
-          {sessionStatuses.map((status) => (
-            <div key={status.id} className="flex items-center gap-1.5">
-              <div 
-                className="w-3 h-3 rounded-full border"
-                style={{ backgroundColor: status.color || "hsl(var(--primary))" }}
-              />
-              <span className="text-xs text-muted-foreground">{status.name}</span>
-            </div>
-          ))}
-          <div className="flex items-center gap-1.5 ml-2 pl-2 border-l">
+        {/* Status Legend & Filter */}
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Filter className="h-3 w-3" />
+            <span>Фильтр:</span>
+          </div>
+          {sessionStatuses.map((status) => {
+            const isActive = activeStatusFilters.has(status.id);
+            return (
+              <button
+                key={status.id}
+                onClick={() => toggleStatusFilter(status.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
+                  "border hover:shadow-sm",
+                  isActive 
+                    ? "bg-primary/10 border-primary text-primary font-medium" 
+                    : "bg-background border-border text-muted-foreground hover:bg-muted"
+                )}
+              >
+                <div 
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: status.color || "hsl(var(--primary))" }}
+                />
+                <span>{status.name}</span>
+              </button>
+            );
+          })}
+          {activeStatusFilters.size > 0 && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <X className="h-3 w-3" />
+              <span>Сбросить</span>
+            </button>
+          )}
+          <div className="flex items-center gap-1.5 ml-auto pl-2 border-l">
             <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-950 ring-1 ring-blue-300" />
             <span className="text-xs text-muted-foreground">Сегодня</span>
           </div>
