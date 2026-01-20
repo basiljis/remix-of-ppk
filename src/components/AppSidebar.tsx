@@ -198,6 +198,35 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
     enabled: !!profile?.organization_id,
   });
 
+  // Fetch organization counts for sidebar badges
+  const { data: orgCounts } = useQuery({
+    queryKey: ["sidebar-org-counts", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return { employees: 0, requests: 0 };
+      
+      // Get employees count
+      const { count: employeesCount } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", profile.organization_id)
+        .eq("is_blocked", false);
+
+      // Get pending holiday requests count
+      const { count: requestsCount } = await supabase
+        .from("holiday_session_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", profile.organization_id)
+        .eq("status", "pending");
+
+      return { 
+        employees: employeesCount || 0, 
+        requests: requestsCount || 0
+      };
+    },
+    enabled: !!profile?.organization_id && canSeeOrganization,
+    refetchInterval: 60000,
+  });
+
   const renderMenuItem = (item: typeof menuItems[0], isActive: boolean) => {
     const Icon = item.icon;
     const hasSubItems = 'subItems' in item && item.subItems;
@@ -477,15 +506,29 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                           <SidebarMenuSub>
                             {organizationItem.subItems?.map((subItem) => {
                               const isSubActive = activeTab === subItem.id;
+                              const badge = subItem.id === "organization-employees" 
+                                ? orgCounts?.employees 
+                                : subItem.id === "organization-requests" 
+                                  ? orgCounts?.requests 
+                                  : null;
+                              const isUrgent = subItem.id === "organization-requests" && (orgCounts?.requests || 0) > 0;
                               return (
                                 <SidebarMenuSubItem key={subItem.id}>
                                   <SidebarMenuSubButton
                                     onClick={() => onTabChange(subItem.id)}
-                                    className={
+                                    className={`justify-between ${
                                       isSubActive ? "bg-primary/10 text-primary font-medium" : ""
-                                    }
+                                    }`}
                                   >
                                     <span>{subItem.label}</span>
+                                    {badge !== null && badge > 0 && (
+                                      <Badge 
+                                        variant={isUrgent ? "destructive" : "secondary"}
+                                        className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-medium"
+                                      >
+                                        {badge}
+                                      </Badge>
+                                    )}
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                               );
