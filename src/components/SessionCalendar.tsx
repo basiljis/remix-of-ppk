@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationHolidays } from "@/hooks/useOrganizationHolidays";
+import { useCalendarFilters } from "@/hooks/useCalendarFilters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,8 @@ import {
   CalendarOff,
   Filter,
   X,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import {
   format,
@@ -43,8 +46,10 @@ import {
 } from "date-fns";
 import { ru } from "date-fns/locale";
 import { SessionForm } from "./SessionForm";
+import { GroupSessionForm } from "./GroupSessionForm";
 import { RecurringSessionForm } from "./RecurringSessionForm";
 import { RescheduleSessionDialog } from "./RescheduleSessionDialog";
+import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
 import { cn } from "@/lib/utils";
 
 interface Session {
@@ -58,6 +63,7 @@ interface Session {
   end_time: string;
   topic: string | null;
   notes: string | null;
+  is_group?: boolean;
   children: { full_name: string } | null;
   session_types: { name: string } | null;
   session_statuses: { name: string; color: string | null } | null;
@@ -73,12 +79,23 @@ export function SessionCalendar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isHoliday, getHolidayInfo } = useOrganizationHolidays();
+  const {
+    activeStatusFilters,
+    activeTypeFilters,
+    toggleStatusFilter,
+    toggleTypeFilter,
+    clearFilters,
+    hasActiveFilters,
+  } = useCalendarFilters();
+  
   const [currentWeekStart, setCurrentWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
   const [showSessionForm, setShowSessionForm] = useState(false);
+  const [showGroupSessionForm, setShowGroupSessionForm] = useState(false);
   const [showRecurringForm, setShowRecurringForm] = useState(false);
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+  const [showAttendanceDialog, setShowAttendanceDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [cancelledSession, setCancelledSession] = useState<{
     id: string;
@@ -98,8 +115,6 @@ export function SessionCalendar() {
     time: string;
   } | null>(null);
   const [draggedSession, setDraggedSession] = useState<Session | null>(null);
-  const [activeStatusFilters, setActiveStatusFilters] = useState<Set<string>>(new Set());
-  const [activeTypeFilters, setActiveTypeFilters] = useState<Set<string>>(new Set());
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
@@ -263,36 +278,23 @@ export function SessionCalendar() {
     });
   };
 
-  const toggleStatusFilter = (statusId: string) => {
-    setActiveStatusFilters(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(statusId)) {
-        newSet.delete(statusId);
-      } else {
-        newSet.add(statusId);
-      }
-      return newSet;
+  // Calculate counts per status and type
+  const sessionCounts = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    const typeCounts: Record<string, number> = {};
+    
+    sessions.forEach(session => {
+      statusCounts[session.session_status_id] = (statusCounts[session.session_status_id] || 0) + 1;
+      typeCounts[session.session_type_id] = (typeCounts[session.session_type_id] || 0) + 1;
     });
-  };
+    
+    return { statusCounts, typeCounts };
+  }, [sessions]);
 
-  const toggleTypeFilter = (typeId: string) => {
-    setActiveTypeFilters(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(typeId)) {
-        newSet.delete(typeId);
-      } else {
-        newSet.add(typeId);
-      }
-      return newSet;
-    });
+  const handleAttendanceClick = (session: Session) => {
+    setSelectedSession(session);
+    setShowAttendanceDialog(true);
   };
-
-  const clearFilters = () => {
-    setActiveStatusFilters(new Set());
-    setActiveTypeFilters(new Set());
-  };
-
-  const hasActiveFilters = activeStatusFilters.size > 0 || activeTypeFilters.size > 0;
 
   return (
     <Card>
@@ -343,8 +345,21 @@ export function SessionCalendar() {
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   <div className="flex flex-col">
-                    <span>Одно занятие</span>
+                    <span>Индивидуальное занятие</span>
                     <span className="text-xs text-muted-foreground">Создать одно занятие</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedSession(null);
+                    setSelectedSlot({ date: format(new Date(), "yyyy-MM-dd"), time: "09:00" });
+                    setShowGroupSessionForm(true);
+                  }}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  <div className="flex flex-col">
+                    <span>Групповое занятие</span>
+                    <span className="text-xs text-muted-foreground">Несколько детей</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowRecurringForm(true)}>
@@ -390,6 +405,11 @@ export function SessionCalendar() {
                     style={{ backgroundColor: status.color || "hsl(var(--primary))" }}
                   />
                   <span>{status.name}</span>
+                  {sessionCounts.statusCounts[status.id] > 0 && (
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+                      {sessionCounts.statusCounts[status.id]}
+                    </Badge>
+                  )}
                 </button>
               );
             })}
@@ -416,6 +436,11 @@ export function SessionCalendar() {
                   )}
                 >
                   <span>{type.name}</span>
+                  {sessionCounts.typeCounts[type.id] > 0 && (
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+                      {sessionCounts.typeCounts[type.id]}
+                    </Badge>
+                  )}
                 </button>
               );
             })}
@@ -579,21 +604,37 @@ export function SessionCalendar() {
                               <div className="flex items-start gap-1">
                                 <GripVertical className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5" />
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-medium truncate">
+                                  <div className="font-medium truncate flex items-center gap-1">
                                     {session.children?.full_name}
+                                    {session.is_group && (
+                                      <Users className="h-3 w-3 text-muted-foreground" />
+                                    )}
                                   </div>
                                   <div className="text-muted-foreground">
                                     {session.start_time.slice(0, 5)} –{" "}
                                     {session.end_time.slice(0, 5)}
                                   </div>
-                                  {session.session_types?.name && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="mt-1 text-[10px] px-1 py-0"
+                                  <div className="flex items-center gap-1 mt-1">
+                                    {session.session_types?.name && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="text-[10px] px-1 py-0"
+                                      >
+                                        {session.session_types.name}
+                                      </Badge>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAttendanceClick(session);
+                                      }}
                                     >
-                                      {session.session_types.name}
-                                    </Badge>
-                                  )}
+                                      <UserCheck className="h-3 w-3" />
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -627,6 +668,14 @@ export function SessionCalendar() {
         }}
       />
 
+      <GroupSessionForm
+        open={showGroupSessionForm}
+        onOpenChange={setShowGroupSessionForm}
+        session={selectedSession?.is_group ? selectedSession : null}
+        defaultDate={selectedSlot?.date}
+        defaultStartTime={selectedSlot?.time}
+      />
+
       <RecurringSessionForm
         open={showRecurringForm}
         onOpenChange={setShowRecurringForm}
@@ -637,6 +686,17 @@ export function SessionCalendar() {
         onOpenChange={setShowRescheduleDialog}
         cancelledSession={cancelledSession}
       />
+
+      {selectedSession && (
+        <SessionAttendanceDialog
+          open={showAttendanceDialog}
+          onOpenChange={setShowAttendanceDialog}
+          sessionId={selectedSession.id}
+          sessionDate={selectedSession.scheduled_date}
+          sessionTime={selectedSession.start_time}
+          isGroupSession={selectedSession.is_group}
+        />
+      )}
     </Card>
   );
 }

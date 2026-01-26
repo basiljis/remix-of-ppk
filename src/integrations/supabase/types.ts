@@ -1258,6 +1258,51 @@ export type Database = {
         }
         Relationships: []
       }
+      session_children: {
+        Row: {
+          attendance_notes: string | null
+          attended: boolean
+          child_id: string
+          created_at: string
+          id: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_notes?: string | null
+          attended?: boolean
+          child_id: string
+          created_at?: string
+          id?: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_notes?: string | null
+          attended?: boolean
+          child_id?: string
+          created_at?: string
+          id?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_children_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_children_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_duration_settings: {
         Row: {
           age_from: number
@@ -1369,6 +1414,7 @@ export type Database = {
           created_by: string | null
           end_time: string
           id: string
+          is_group: boolean
           notes: string | null
           organization_id: string | null
           protocol_id: string | null
@@ -1391,6 +1437,7 @@ export type Database = {
           created_by?: string | null
           end_time: string
           id?: string
+          is_group?: boolean
           notes?: string | null
           organization_id?: string | null
           protocol_id?: string | null
@@ -1413,6 +1460,7 @@ export type Database = {
           created_by?: string | null
           end_time?: string
           id?: string
+          is_group?: boolean
           notes?: string | null
           organization_id?: string | null
           protocol_id?: string | null
