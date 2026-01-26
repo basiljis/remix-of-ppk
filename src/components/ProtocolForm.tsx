@@ -43,6 +43,7 @@ interface ChildData {
   fullName: string;
   birthDate: string;
   age: string;
+  gender: string;
   classNumber: string;
   classLetter: string;
   address: string;
@@ -50,6 +51,7 @@ interface ChildData {
   sameAsAddress: boolean;
   parentName: string;
   parentPhone: string;
+  parentEmail: string;
   whobrought: string;
   relationship: string;
   educationalOrganization: string;
@@ -132,6 +134,7 @@ export const ProtocolForm = ({
       fullName: "",
       birthDate: "",
       age: "",
+      gender: "",
       classNumber: "",
       classLetter: "",
       address: "",
@@ -139,6 +142,7 @@ export const ProtocolForm = ({
       sameAsAddress: false,
       parentName: "",
       parentPhone: "",
+      parentEmail: "",
       whobrought: "",
       relationship: "",
       educationalOrganization: ""
@@ -1004,6 +1008,22 @@ export const ProtocolForm = ({
                 />
               </div>
 
+              <div>
+                <Label htmlFor="gender">Пол</Label>
+                <Select
+                  value={formData.childData.gender}
+                  onValueChange={(value) => updateChildData('gender', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите пол" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Мужской</SelectItem>
+                    <SelectItem value="female">Женский</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="col-span-2 py-4">
                 <Label className="mb-3 block">Уровень образования *</Label>
                 <EducationLevelSelector
@@ -1125,6 +1145,17 @@ export const ProtocolForm = ({
                   onChange={(e) => updateChildData("parentPhone", e.target.value)}
                   className={getRequiredFieldClass(formData.childData.parentPhone)}
                   placeholder="+7 (999) 123-45-67"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="parentEmail">Email родителя</Label>
+                <Input
+                  id="parentEmail"
+                  type="email"
+                  value={formData.childData.parentEmail}
+                  onChange={(e) => updateChildData("parentEmail", e.target.value)}
+                  placeholder="parent@example.com"
                 />
               </div>
 
