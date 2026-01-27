@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, Save, Plus, Trash2, CalendarDays, RepeatIcon, AlertTriangle, CalendarOff } from "lucide-react";
+import { Calendar, Clock, Save, Plus, Trash2, CalendarDays, RepeatIcon, AlertTriangle, CalendarOff, Users, User } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -77,6 +79,10 @@ export function RecurringSessionForm({
     notes: "",
   });
 
+  // For group sessions - multiple children selection
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>(childId ? [childId] : []);
+  const [childSearchQuery, setChildSearchQuery] = useState("");
+
   const [weeklySlots, setWeeklySlots] = useState<WeeklySlot[]>([]);
   const [totalSessions, setTotalSessions] = useState(10);
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -128,6 +134,31 @@ export function RecurringSessionForm({
     },
   });
 
+  // Check if selected session type is "Group"
+  const isGroupSession = useMemo(() => {
+    const selectedType = sessionTypes.find((t) => t.id === formData.session_type_id);
+    return selectedType?.name.toLowerCase().includes("групп");
+  }, [formData.session_type_id, sessionTypes]);
+
+  // Filtered children for search
+  const filteredChildren = useMemo(() => {
+    if (!childSearchQuery) return children;
+    const query = childSearchQuery.toLowerCase();
+    return children.filter((child) => 
+      child.full_name.toLowerCase().includes(query)
+    );
+  }, [children, childSearchQuery]);
+
+  // Toggle child selection for group sessions
+  const toggleChildSelection = (childId: string) => {
+    setSelectedChildIds((prev) => {
+      if (prev.includes(childId)) {
+        return prev.filter((id) => id !== childId);
+      }
+      return [...prev, childId];
+    });
+  };
+
   // Set defaults when types load
   useEffect(() => {
     if (sessionTypes.length > 0 && !formData.session_type_id) {
@@ -144,8 +175,20 @@ export function RecurringSessionForm({
   useEffect(() => {
     if (childId) {
       setFormData((prev) => ({ ...prev, child_id: childId }));
+      setSelectedChildIds([childId]);
     }
   }, [childId]);
+
+  // Reset child selection when switching between individual and group
+  useEffect(() => {
+    if (!isGroupSession) {
+      // When switching to individual, keep only first selected child
+      if (selectedChildIds.length > 1) {
+        setSelectedChildIds([selectedChildIds[0]]);
+        setFormData((prev) => ({ ...prev, child_id: selectedChildIds[0] }));
+      }
+    }
+  }, [isGroupSession]);
 
   // Calculate number of weeks needed
   const weeksNeeded = useMemo(() => {
@@ -236,8 +279,13 @@ export function RecurringSessionForm({
         s.name.toLowerCase().includes("заплан")
       );
 
+      // Determine which children to use
+      const childIdsToUse = isGroupSession ? selectedChildIds : [formData.child_id];
+      const primaryChildId = childIdsToUse[0];
+
+      // Create sessions
       const sessionsToCreate = scheduledSessions.map(({ date, slot }) => ({
-        child_id: formData.child_id,
+        child_id: primaryChildId,
         specialist_id: user?.id,
         session_type_id: formData.session_type_id,
         session_status_id: plannedStatus?.id || sessionStatuses[0]?.id,
@@ -248,21 +296,45 @@ export function RecurringSessionForm({
         notes: formData.notes || null,
         organization_id: organizationId,
         created_by: user?.id,
+        is_group: isGroupSession,
       }));
 
-      const { error } = await supabase.from("sessions").insert(sessionsToCreate);
+      const { data: insertedSessions, error } = await supabase
+        .from("sessions")
+        .insert(sessionsToCreate)
+        .select("id");
+      
       if (error) throw error;
+
+      // If group session, add all children to session_children
+      if (isGroupSession && insertedSessions && childIdsToUse.length > 0) {
+        const sessionChildrenRecords = insertedSessions.flatMap((session) =>
+          childIdsToUse.map((cid) => ({
+            session_id: session.id,
+            child_id: cid,
+            attended: true,
+          }))
+        );
+
+        const { error: scError } = await supabase
+          .from("session_children")
+          .insert(sessionChildrenRecords);
+        
+        if (scError) throw scError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       onOpenChange(false);
       toast({
         title: "Успешно",
-        description: `Создано ${scheduledSessions.length} занятий`,
+        description: `Создано ${scheduledSessions.length} занятий${isGroupSession ? ` для ${selectedChildIds.length} детей` : ''}`,
       });
       // Reset form
       setWeeklySlots([]);
       setTotalSessions(10);
+      setSelectedChildIds([]);
+      setChildSearchQuery("");
     },
     onError: (error) => {
       toast({
@@ -274,13 +346,24 @@ export function RecurringSessionForm({
   });
 
   const handleSave = () => {
-    if (!formData.child_id) {
-      toast({
-        title: "Ошибка",
-        description: "Выберите ребёнка",
-        variant: "destructive",
-      });
-      return;
+    if (isGroupSession) {
+      if (selectedChildIds.length === 0) {
+        toast({
+          title: "Ошибка",
+          description: "Выберите хотя бы одного ребёнка",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      if (!formData.child_id) {
+        toast({
+          title: "Ошибка",
+          description: "Выберите ребёнка",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     if (weeklySlots.length === 0) {
       toast({
@@ -304,27 +387,7 @@ export function RecurringSessionForm({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {/* Child selector */}
-          <div className="grid gap-2">
-            <Label>Ребёнок *</Label>
-            <Select
-              value={formData.child_id}
-              onValueChange={(v) => setFormData({ ...formData, child_id: v })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите ребёнка" />
-              </SelectTrigger>
-              <SelectContent>
-                {children.map((child) => (
-                  <SelectItem key={child.id} value={child.id}>
-                    {child.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Session type */}
+          {/* Session type - moved before child selector */}
           <div className="grid gap-2">
             <Label>Тип занятия</Label>
             <Select
@@ -339,11 +402,110 @@ export function RecurringSessionForm({
               <SelectContent>
                 {sessionTypes.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
-                    {type.name}
+                    <span className="flex items-center gap-2">
+                      {type.name.toLowerCase().includes("групп") ? (
+                        <Users className="h-4 w-4" />
+                      ) : (
+                        <User className="h-4 w-4" />
+                      )}
+                      {type.name}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Child selector - different UI based on session type */}
+          <div className="grid gap-2">
+            <Label className="flex items-center gap-2">
+              {isGroupSession ? (
+                <>
+                  <Users className="h-4 w-4" />
+                  Дети ({selectedChildIds.length} выбрано) *
+                </>
+              ) : (
+                <>
+                  <User className="h-4 w-4" />
+                  Ребёнок *
+                </>
+              )}
+            </Label>
+            
+            {isGroupSession ? (
+              /* Multiple children selection for group sessions */
+              <div className="space-y-2">
+                <Input
+                  placeholder="Поиск по имени..."
+                  value={childSearchQuery}
+                  onChange={(e) => setChildSearchQuery(e.target.value)}
+                />
+                <ScrollArea className="h-[150px] border rounded-lg p-2">
+                  {filteredChildren.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-4">
+                      Дети не найдены
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {filteredChildren.map((child) => (
+                        <div
+                          key={child.id}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors",
+                            selectedChildIds.includes(child.id)
+                              ? "bg-primary/10 border border-primary/30"
+                              : "hover:bg-muted"
+                          )}
+                          onClick={() => toggleChildSelection(child.id)}
+                        >
+                          <Checkbox
+                            checked={selectedChildIds.includes(child.id)}
+                            onCheckedChange={() => toggleChildSelection(child.id)}
+                          />
+                          <span className="text-sm">{child.full_name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+                {selectedChildIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {selectedChildIds.map((cid) => {
+                      const child = children.find((c) => c.id === cid);
+                      return child ? (
+                        <Badge key={cid} variant="secondary" className="text-xs">
+                          {child.full_name}
+                          <button
+                            type="button"
+                            className="ml-1 hover:text-destructive"
+                            onClick={() => toggleChildSelection(cid)}
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Single child selection for individual sessions */
+              <Select
+                value={formData.child_id}
+                onValueChange={(v) => setFormData({ ...formData, child_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите ребёнка" />
+                </SelectTrigger>
+                <SelectContent>
+                  {children.map((child) => (
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Start date */}
