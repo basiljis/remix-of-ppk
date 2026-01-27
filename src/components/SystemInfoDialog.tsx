@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
+import { Info, Users, FileText, Calendar, BarChart3, ClipboardCheck, TrendingUp } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const SystemInfoDialog = () => {
   return (
@@ -41,7 +42,84 @@ export const SystemInfoDialog = () => {
                 <li>Статистика и аналитика по протоколам</li>
                 <li>Экспорт протоколов в PDF и Excel</li>
                 <li>Управление доступом для разных уровней пользователей</li>
+                <li>Ведение карточек детей с историей протоколов и динамикой развития</li>
+                <li>Планирование и учёт занятий в расписании</li>
               </ul>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">Карточка ребёнка</h3>
+              <p className="text-muted-foreground mb-3">
+                Централизованный профиль ребёнка объединяет всю информацию о его развитии, занятиях и прогрессе.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      <Users className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">Персональные данные</h4>
+                      <p className="text-xs text-muted-foreground">ФИО, дата рождения, пол, контакты родителей, уровень образования</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">История протоколов</h4>
+                      <p className="text-xs text-muted-foreground">Все протоколы ППК с заключениями и рекомендациями</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+                      <TrendingUp className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">Динамика развития</h4>
+                      <p className="text-xs text-muted-foreground">Графики и сравнение показателей по протоколам</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                      <Calendar className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">Расписание занятий</h4>
+                      <p className="text-xs text-muted-foreground">Планирование индивидуальных и групповых занятий</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                      <ClipboardCheck className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">Учёт посещаемости</h4>
+                      <p className="text-xs text-muted-foreground">Статистика присутствия на занятиях</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500">
+                      <BarChart3 className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">Рекомендации</h4>
+                      <p className="text-xs text-muted-foreground">Персонализированные рекомендации на основе оценок</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </section>
 
             <section>
