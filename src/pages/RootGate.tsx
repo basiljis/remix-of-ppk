@@ -12,8 +12,18 @@ const RootGate = () => {
     console.log("[RootGate] Проверка авторизации...");
     let mounted = true;
     
+    // Таймаут на случай если getUser зависнет
+    const timeout = setTimeout(() => {
+      if (mounted && !checked) {
+        console.warn("[RootGate] Таймаут проверки авторизации, редирект на auth");
+        setIsAuthed(false);
+        setChecked(true);
+      }
+    }, 5000);
+    
     supabase.auth.getUser().then(({ data, error }) => {
       if (!mounted) return;
+      clearTimeout(timeout);
       
       if (error) {
         // AuthSessionMissingError is expected for unauthenticated users - don't log as error
@@ -24,13 +34,14 @@ const RootGate = () => {
         }
       }
       
-      const isAuthenticated = !!data.user;
+      const isAuthenticated = !!data?.user;
       console.log("[RootGate] Пользователь", isAuthenticated ? "авторизован" : "не авторизован");
       
       setIsAuthed(isAuthenticated);
       setChecked(true);
     }).catch(error => {
       console.error("[RootGate] Критическая ошибка при проверке авторизации:", error);
+      clearTimeout(timeout);
       if (mounted) {
         setIsAuthed(false);
         setChecked(true);
@@ -39,6 +50,7 @@ const RootGate = () => {
     
     return () => {
       mounted = false;
+      clearTimeout(timeout);
     };
   }, []);
 
