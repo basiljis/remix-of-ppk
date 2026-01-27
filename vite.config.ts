@@ -82,37 +82,38 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Optimize chunk splitting to reduce unused JS
+    // Optimize chunk splitting - use function to avoid React duplication
     rollupOptions: {
       output: {
-        manualChunks: {
-          // React MUST be in a single vendor chunk to ensure it loads first
-          'vendor': [
-            'react',
-            'react-dom',
-            'react-router-dom',
-          ],
-          // Supabase - loaded on demand
-          'supabase': ['@supabase/supabase-js'],
-          // TanStack Query
-          'query': ['@tanstack/react-query'],
-          // Radix UI components
-          'ui-dialogs': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-alert-dialog'
-          ],
-          'ui-selects': [
-            '@radix-ui/react-select',
-            '@radix-ui/react-dropdown-menu'
-          ],
-          // Form libraries
-          'form': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          // Charts - heavy, load on demand
-          'charts': ['recharts'],
-          // PDF/Export - heavy, load on demand
-          'export': ['jspdf', 'html2canvas', 'xlsx'],
-          // Date utilities
-          'date-utils': ['date-fns'],
+        manualChunks(id) {
+          // CRITICAL: All React-related modules MUST be in the same chunk
+          // to avoid "dispatcher.useEffect" errors from multiple React instances
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('scheduler') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor';
+            }
+            if (id.includes('@supabase')) {
+              return 'supabase';
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'query';
+            }
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'charts';
+            }
+            if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('xlsx')) {
+              return 'export';
+            }
+            if (id.includes('date-fns')) {
+              return 'date-utils';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui';
+            }
+            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+              return 'form';
+            }
+          }
         },
       },
     },
