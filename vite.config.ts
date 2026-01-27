@@ -79,6 +79,8 @@ export default defineConfig(({ mode }) => ({
   // CRITICAL: Force Vite to pre-bundle React dependencies together
   // This prevents multiple React instances causing "dispatcher.useEffect" errors
   optimizeDeps: {
+    // Force re-optimization to clear corrupted cache
+    force: true,
     include: [
       'react',
       'react-dom',
@@ -87,10 +89,9 @@ export default defineConfig(({ mode }) => ({
       'react/jsx-dev-runtime',
       '@tanstack/react-query',
       'react-router-dom',
+      'scheduler',
     ],
-    // Force re-optimization when these change
     esbuildOptions: {
-      // Ensure consistent JSX runtime
       jsx: 'automatic',
     },
   },
