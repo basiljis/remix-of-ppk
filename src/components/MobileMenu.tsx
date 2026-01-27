@@ -3,6 +3,7 @@ import { Menu, ClipboardList, Database, BarChart3, BookOpen, Settings, ChevronDo
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 
 interface MobileMenuProps {
   activeTab: string;
@@ -10,11 +11,13 @@ interface MobileMenuProps {
   isAdmin?: boolean;
 }
 
+// Core feature - separate highlighted item
+const childCardItem = { id: "child-card", label: "Карточка ребенка", icon: Users };
+
 const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
-  { id: "child-card", label: "Карточка ребенка", icon: Users },
   { 
     id: "instructions", 
     label: "Инструкции", 
@@ -69,6 +72,31 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMen
           <SheetTitle>Меню</SheetTitle>
         </SheetHeader>
         <div className="mt-6 space-y-2">
+          {/* Core Feature - Child Card - Highlighted separately */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground px-3 flex items-center gap-2">
+              Ядро системы
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-600">
+                Core
+              </span>
+            </p>
+            <Button
+              variant={activeTab === childCardItem.id ? "default" : "outline"}
+              className={`w-full justify-start gap-3 ${
+                activeTab === childCardItem.id 
+                  ? "bg-orange-500 text-white hover:bg-orange-600" 
+                  : "border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+              }`}
+              onClick={() => handleTabClick(childCardItem.id)}
+            >
+              <childCardItem.icon className="h-4 w-4" />
+              {childCardItem.label}
+            </Button>
+          </div>
+
+          <Separator className="my-3" />
+
+          <p className="text-xs font-medium text-muted-foreground px-3">Система ППК</p>
           {menuItems.map((item) => {
             if (item.id === "administration" && !isAdmin) return null;
             
