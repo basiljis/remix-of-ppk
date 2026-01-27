@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { differenceInYears, differenceInMonths } from "date-fns";
 
 const educationLevels = [
   { value: "do", label: "Дошкольное образование" },
@@ -35,6 +37,15 @@ const educationLevels = [
 const genderOptions = [
   { value: "male", label: "Мужской" },
   { value: "female", label: "Женский" },
+];
+
+const whobroughtOptions = [
+  { value: "mother", label: "Мать" },
+  { value: "father", label: "Отец" },
+  { value: "grandmother", label: "Бабушка" },
+  { value: "grandfather", label: "Дедушка" },
+  { value: "guardian", label: "Опекун" },
+  { value: "other", label: "Другое" },
 ];
 
 interface AddChildDialogProps {
@@ -50,26 +61,60 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
   const [formData, setFormData] = useState({
     full_name: "",
     birth_date: "",
+    age: "",
     gender: "",
+    class_number: "",
+    class_letter: "",
     education_level: "",
+    address: "",
+    registration_address: "",
+    same_as_address: false,
     parent_name: "",
     parent_phone: "",
     parent_email: "",
+    whobrought: "",
+    relationship: "",
     notes: "",
     is_active: true,
   });
 
   const organizationId = profile?.organization_id;
 
+  // Calculate age automatically when birth date changes
+  useEffect(() => {
+    if (formData.birth_date) {
+      const birthDate = new Date(formData.birth_date);
+      const years = differenceInYears(new Date(), birthDate);
+      const months = differenceInMonths(new Date(), birthDate) % 12;
+      const ageString = months > 0 ? `${years} лет ${months} мес.` : `${years} лет`;
+      setFormData(prev => ({ ...prev, age: ageString }));
+    }
+  }, [formData.birth_date]);
+
+  // Sync registration address when same_as_address is checked
+  useEffect(() => {
+    if (formData.same_as_address) {
+      setFormData(prev => ({ ...prev, registration_address: prev.address }));
+    }
+  }, [formData.same_as_address, formData.address]);
+
   const resetForm = () => {
     setFormData({
       full_name: "",
       birth_date: "",
+      age: "",
       gender: "",
+      class_number: "",
+      class_letter: "",
       education_level: "",
+      address: "",
+      registration_address: "",
+      same_as_address: false,
       parent_name: "",
       parent_phone: "",
       parent_email: "",
+      whobrought: "",
+      relationship: "",
       notes: "",
       is_active: true,
     });
@@ -77,6 +122,28 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
 
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // Build notes with additional data
+      const notesArray = [];
+      if (data.class_number || data.class_letter) {
+        notesArray.push(`Класс: ${data.class_number || ""}${data.class_letter || ""}`);
+      }
+      if (data.address) {
+        notesArray.push(`Адрес проживания: ${data.address}`);
+      }
+      if (data.registration_address && data.registration_address !== data.address) {
+        notesArray.push(`Адрес регистрации: ${data.registration_address}`);
+      }
+      if (data.whobrought) {
+        const whobroughtLabel = whobroughtOptions.find(o => o.value === data.whobrought)?.label || data.whobrought;
+        notesArray.push(`Кто привёл: ${whobroughtLabel}`);
+      }
+      if (data.relationship) {
+        notesArray.push(`Отношение к ребёнку: ${data.relationship}`);
+      }
+      if (data.notes) {
+        notesArray.push(data.notes);
+      }
+
       const { error } = await supabase.from("children").insert({
         full_name: data.full_name,
         birth_date: data.birth_date || null,
@@ -85,7 +152,7 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
         parent_name: data.parent_name || null,
         parent_phone: data.parent_phone || null,
         parent_email: data.parent_email || null,
-        notes: data.notes || null,
+        notes: notesArray.length > 0 ? notesArray.join("\n") : null,
         is_active: data.is_active,
         organization_id: organizationId,
       });
@@ -138,145 +205,275 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
         <DialogHeader>
           <DialogTitle>Добавить ребёнка</DialogTitle>
           <DialogDescription>
-            Заполните информацию о ребёнке для добавления в базу данных
+            Заполните данные об обучающемся для добавления в базу данных
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="full_name">ФИО ребёнка *</Label>
-            <Input
-              id="full_name"
-              value={formData.full_name}
-              onChange={(e) =>
-                setFormData({ ...formData, full_name: e.target.value })
-              }
-              placeholder="Иванов Иван Иванович"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Основные данные */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+              Основные данные
+            </h4>
+            
             <div className="grid gap-2">
-              <Label htmlFor="birth_date">Дата рождения</Label>
+              <Label htmlFor="full_name">ФИО ребёнка *</Label>
               <Input
-                id="birth_date"
-                type="date"
-                value={formData.birth_date}
+                id="full_name"
+                value={formData.full_name}
                 onChange={(e) =>
-                  setFormData({ ...formData, birth_date: e.target.value })
+                  setFormData({ ...formData, full_name: e.target.value })
                 }
+                placeholder="Иванов Иван Иванович"
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="gender">Пол</Label>
-              <Select
-                value={formData.gender}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, gender: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите пол" />
-                </SelectTrigger>
-                <SelectContent>
-                  {genderOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="education_level">Уровень образования</Label>
-            <Select
-              value={formData.education_level}
-              onValueChange={(value) =>
-                setFormData({ ...formData, education_level: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите уровень образования" />
-              </SelectTrigger>
-              <SelectContent>
-                {educationLevels.map((level) => (
-                  <SelectItem key={level.value} value={level.value}>
-                    {level.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="border-t pt-4 mt-2">
-            <h4 className="font-medium mb-3">Информация о родителе / представителе</h4>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="parent_name">ФИО родителя / представителя</Label>
+                <Label htmlFor="birth_date">Дата рождения</Label>
                 <Input
-                  id="parent_name"
-                  value={formData.parent_name}
+                  id="birth_date"
+                  type="date"
+                  value={formData.birth_date}
                   onChange={(e) =>
-                    setFormData({ ...formData, parent_name: e.target.value })
+                    setFormData({ ...formData, birth_date: e.target.value })
                   }
-                  placeholder="Иванова Мария Петровна"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="parent_phone">Телефон</Label>
-                  <Input
-                    id="parent_phone"
-                    value={formData.parent_phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, parent_phone: e.target.value })
-                    }
-                    placeholder="+7 (999) 123-45-67"
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="age">Возраст</Label>
+                <Input
+                  id="age"
+                  value={formData.age}
+                  readOnly
+                  placeholder="Рассчитывается автоматически"
+                  className="bg-muted"
+                />
+              </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="parent_email">Email</Label>
-                  <Input
-                    id="parent_email"
-                    type="email"
-                    value={formData.parent_email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, parent_email: e.target.value })
-                    }
-                    placeholder="email@example.com"
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="gender">Пол</Label>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, gender: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите пол" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {genderOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="class_number">Номер класса/группы</Label>
+                <Input
+                  id="class_number"
+                  value={formData.class_number}
+                  onChange={(e) =>
+                    setFormData({ ...formData, class_number: e.target.value })
+                  }
+                  placeholder="1"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="class_letter">Литера класса</Label>
+                <Input
+                  id="class_letter"
+                  value={formData.class_letter}
+                  onChange={(e) =>
+                    setFormData({ ...formData, class_letter: e.target.value })
+                  }
+                  placeholder="А"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="education_level">Уровень образования</Label>
+                <Select
+                  value={formData.education_level}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, education_level: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите уровень" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {educationLevels.map((level) => (
+                      <SelectItem key={level.value} value={level.value}>
+                        {level.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="notes">Примечания</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-              placeholder="Дополнительная информация о ребёнке..."
-              rows={3}
-            />
+          {/* Адресные данные */}
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+              Адресные данные
+            </h4>
+
+            <div className="grid gap-2">
+              <Label htmlFor="address">Адрес проживания</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                placeholder="г. Москва, ул. Примерная, д. 1, кв. 1"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="same_as_address"
+                checked={formData.same_as_address}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, same_as_address: checked === true })
+                }
+              />
+              <Label htmlFor="same_as_address" className="text-sm font-normal">
+                Адрес регистрации совпадает с адресом проживания
+              </Label>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="registration_address">Адрес регистрации</Label>
+              <Input
+                id="registration_address"
+                value={formData.registration_address}
+                onChange={(e) =>
+                  setFormData({ ...formData, registration_address: e.target.value })
+                }
+                placeholder="г. Москва, ул. Примерная, д. 1, кв. 1"
+                disabled={formData.same_as_address}
+                className={formData.same_as_address ? "bg-muted" : ""}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Switch
-              id="is_active"
-              checked={formData.is_active}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, is_active: checked })
-              }
-            />
-            <Label htmlFor="is_active">Активен</Label>
+          {/* Данные родителя/представителя */}
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+              Информация о родителе / представителе
+            </h4>
+
+            <div className="grid gap-2">
+              <Label htmlFor="parent_name">ФИО родителя / представителя</Label>
+              <Input
+                id="parent_name"
+                value={formData.parent_name}
+                onChange={(e) =>
+                  setFormData({ ...formData, parent_name: e.target.value })
+                }
+                placeholder="Иванова Мария Петровна"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="parent_phone">Телефон</Label>
+                <Input
+                  id="parent_phone"
+                  value={formData.parent_phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parent_phone: e.target.value })
+                  }
+                  placeholder="+7 (999) 123-45-67"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="parent_email">Email</Label>
+                <Input
+                  id="parent_email"
+                  type="email"
+                  value={formData.parent_email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parent_email: e.target.value })
+                  }
+                  placeholder="email@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="whobrought">Кто привёл на обследование</Label>
+                <Select
+                  value={formData.whobrought}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, whobrought: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {whobroughtOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="relationship">Степень родства</Label>
+                <Input
+                  id="relationship"
+                  value={formData.relationship}
+                  onChange={(e) =>
+                    setFormData({ ...formData, relationship: e.target.value })
+                  }
+                  placeholder="Мать, отец, опекун..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Примечания */}
+          <div className="border-t pt-4 space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Дополнительные примечания</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+                placeholder="Дополнительная информация о ребёнке..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id="is_active"
+                checked={formData.is_active}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_active: checked })
+                }
+              />
+              <Label htmlFor="is_active">Активен</Label>
+            </div>
           </div>
         </div>
 
