@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, ClipboardList, Database, BarChart3, BookOpen, Settings, ChevronDown } from "lucide-react";
+import { Menu, ClipboardList, Database, BarChart3, BookOpen, Settings, ChevronDown, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -14,6 +14,7 @@ const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
+  { id: "child-card", label: "Карточка ребенка", icon: Users },
   { 
     id: "instructions", 
     label: "Инструкции", 
