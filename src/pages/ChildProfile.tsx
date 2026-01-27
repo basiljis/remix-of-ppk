@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, School, User, CalendarIcon, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Calendar, School, User, CalendarIcon } from "lucide-react";
 import { ChildProfileRadarChart } from "@/components/ChildProfileRadarChart";
 import { ChildProfileBarChart } from "@/components/ChildProfileBarChart";
 import { ChildProfileTable } from "@/components/ChildProfileTable";
 import { ChildProfileRecommendations } from "@/components/ChildProfileRecommendations";
 import { ChildProfileComparison } from "@/components/ChildProfileComparison";
+import { ChildSessionsStatistics } from "@/components/ChildSessionsStatistics";
 import Preloader from "@/components/Preloader";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -32,6 +33,21 @@ interface Protocol {
   };
 }
 
+interface SessionChildRecord {
+  attended: boolean;
+  session: {
+    id: string;
+    scheduled_date: string;
+    start_time: string;
+    end_time: string;
+    actual_duration_minutes?: number;
+    topic?: string;
+    session_types: { id: string; name: string };
+    session_statuses: { id: string; name: string; color?: string };
+    profiles?: { id: string; full_name: string };
+  };
+}
+
 export default function ChildProfile() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -46,11 +62,8 @@ export default function ChildProfile() {
   } | null>(null);
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
-  const [attendanceStats, setAttendanceStats] = useState<{
-    total: number;
-    attended: number;
-    missed: number;
-  } | null>(null);
+  const [sessionData, setSessionData] = useState<SessionChildRecord[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
 
   const childName = searchParams.get("name");
   const organizationId = searchParams.get("org");
@@ -89,7 +102,7 @@ export default function ChildProfile() {
           });
         }
 
-        // Load attendance stats
+        // Load session data for the child
         const { data: childData } = await supabase
           .from("children")
           .select("id")
@@ -98,20 +111,35 @@ export default function ChildProfile() {
           .maybeSingle();
 
         if (childData) {
-          const { data: attendanceData } = await supabase
+          setSessionsLoading(true);
+          const { data: sessionChildrenData } = await supabase
             .from("session_children")
-            .select("attended")
+            .select(`
+              attended,
+              sessions:session_id (
+                id,
+                scheduled_date,
+                start_time,
+                end_time,
+                actual_duration_minutes,
+                topic,
+                session_types (id, name),
+                session_statuses (id, name, color),
+                profiles:specialist_id (id, full_name)
+              )
+            `)
             .eq("child_id", childData.id);
 
-          if (attendanceData) {
-            const total = attendanceData.length;
-            const attended = attendanceData.filter(a => a.attended).length;
-            setAttendanceStats({
-              total,
-              attended,
-              missed: total - attended,
-            });
+          if (sessionChildrenData) {
+            const formattedData = sessionChildrenData
+              .filter((item: any) => item.sessions)
+              .map((item: any) => ({
+                attended: item.attended,
+                session: item.sessions
+              }));
+            setSessionData(formattedData);
           }
+          setSessionsLoading(false);
         }
       } catch (error) {
         console.error("Error loading protocols:", error);
@@ -283,51 +311,8 @@ export default function ChildProfile() {
           </CardContent>
         </Card>
 
-        {/* Attendance Stats */}
-        {attendanceStats && attendanceStats.total > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Посещаемость занятий</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <CalendarIcon className="h-8 w-8 text-muted-foreground" />
-                  <div>
-                    <p className="text-2xl font-bold">{attendanceStats.total}</p>
-                    <p className="text-sm text-muted-foreground">Всего занятий</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                  <div>
-                    <p className="text-2xl font-bold text-green-700">{attendanceStats.attended}</p>
-                    <p className="text-sm text-muted-foreground">Присутствовал</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
-                  <XCircle className="h-8 w-8 text-red-600" />
-                  <div>
-                    <p className="text-2xl font-bold text-red-700">{attendanceStats.missed}</p>
-                    <p className="text-sm text-muted-foreground">Пропустил</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Посещаемость</span>
-                  <span>{Math.round((attendanceStats.attended / attendanceStats.total) * 100)}%</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-green-500 rounded-full transition-all"
-                    style={{ width: `${(attendanceStats.attended / attendanceStats.total) * 100}%` }}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Sessions Statistics from Schedule */}
+        <ChildSessionsStatistics sessions={sessionData} loading={sessionsLoading} />
 
         {/* Dynamics Table */}
         <ChildProfileTable protocols={protocols} />
