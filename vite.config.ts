@@ -85,53 +85,34 @@ export default defineConfig(({ mode }) => ({
     // Optimize chunk splitting to reduce unused JS
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // React core - smallest possible chunk
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react-vendor';
-          }
-          // React Router - separate for route-based splitting
-          if (id.includes('react-router')) {
-            return 'router';
-          }
+        manualChunks: {
+          // React MUST be in a single vendor chunk to ensure it loads first
+          'vendor': [
+            'react',
+            'react-dom',
+            'react-router-dom',
+          ],
           // Supabase - loaded on demand
-          if (id.includes('@supabase')) {
-            return 'supabase';
-          }
+          'supabase': ['@supabase/supabase-js'],
           // TanStack Query
-          if (id.includes('@tanstack/react-query')) {
-            return 'query';
-          }
-          // Radix UI components - split into smaller chunks
-          if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
-            return 'ui-dialogs';
-          }
-          if (id.includes('@radix-ui/react-select') || id.includes('@radix-ui/react-dropdown')) {
-            return 'ui-selects';
-          }
-          if (id.includes('@radix-ui')) {
-            return 'ui-primitives';
-          }
+          'query': ['@tanstack/react-query'],
+          // Radix UI components
+          'ui-dialogs': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-alert-dialog'
+          ],
+          'ui-selects': [
+            '@radix-ui/react-select',
+            '@radix-ui/react-dropdown-menu'
+          ],
           // Form libraries
-          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
-            return 'form';
-          }
+          'form': ['react-hook-form', '@hookform/resolvers', 'zod'],
           // Charts - heavy, load on demand
-          if (id.includes('recharts') || id.includes('d3-')) {
-            return 'charts';
-          }
+          'charts': ['recharts'],
           // PDF/Export - heavy, load on demand
-          if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('xlsx')) {
-            return 'export';
-          }
+          'export': ['jspdf', 'html2canvas', 'xlsx'],
           // Date utilities
-          if (id.includes('date-fns')) {
-            return 'date-utils';
-          }
-          // Lucide icons - split separately
-          if (id.includes('lucide-react')) {
-            return 'icons';
-          }
+          'date-utils': ['date-fns'],
         },
       },
     },
