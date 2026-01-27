@@ -16,9 +16,9 @@ export const SystemInfoDialog = () => {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>О системе управления протоколами ППК</DialogTitle>
-          <DialogDescription>
-            Цифровое решение для психолого-педагогических консилиумов
+          <DialogTitle className="text-xl">universum.</DialogTitle>
+          <DialogDescription className="text-sm">
+            Инновационная платформа для комплексной поддержки и развития детей. Технологии, которые работают на благо каждого ребенка.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[60vh] pr-4">
