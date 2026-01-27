@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, School, User, CalendarIcon } from "lucide-react";
+import { ArrowLeft, Calendar, School, User, CalendarIcon, ExternalLink } from "lucide-react";
 import { ChildProfileRadarChart } from "@/components/ChildProfileRadarChart";
 import { ChildProfileBarChart } from "@/components/ChildProfileBarChart";
 import { ChildProfileTable } from "@/components/ChildProfileTable";
 import { ChildProfileRecommendations } from "@/components/ChildProfileRecommendations";
 import { ChildProfileComparison } from "@/components/ChildProfileComparison";
 import { ChildSessionsStatistics } from "@/components/ChildSessionsStatistics";
+import { ChildInfoDetailsDialog } from "@/components/ChildInfoDetailsDialog";
+import { ProtocolDynamicsDetailsDialog } from "@/components/ProtocolDynamicsDetailsDialog";
 import Preloader from "@/components/Preloader";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -18,7 +20,6 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigationHistory } from "@/hooks/useNavigationHistory";
-
 interface Protocol {
   id: string;
   child_name: string;
@@ -48,6 +49,22 @@ interface SessionChildRecord {
   };
 }
 
+interface ChildData {
+  id: string;
+  full_name: string;
+  birth_date?: string;
+  gender?: string;
+  education_level?: string;
+  parent_name?: string;
+  parent_phone?: string;
+  parent_email?: string;
+  notes?: string;
+  organization?: {
+    name?: string;
+    address?: string;
+  };
+}
+
 export default function ChildProfile() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -64,6 +81,9 @@ export default function ChildProfile() {
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [sessionData, setSessionData] = useState<SessionChildRecord[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [childData, setChildData] = useState<ChildData | null>(null);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [showDynamicsDialog, setShowDynamicsDialog] = useState(false);
 
   const childName = searchParams.get("name");
   const organizationId = searchParams.get("org");
@@ -103,14 +123,41 @@ export default function ChildProfile() {
         }
 
         // Load session data for the child
-        const { data: childData } = await supabase
+        const { data: childDbData } = await supabase
           .from("children")
-          .select("id")
+          .select(`
+            id,
+            full_name,
+            birth_date,
+            gender,
+            education_level,
+            parent_name,
+            parent_phone,
+            parent_email,
+            notes,
+            organizations:organization_id (
+              name,
+              address
+            )
+          `)
           .eq("organization_id", organizationId)
           .ilike("full_name", childName)
           .maybeSingle();
 
-        if (childData) {
+        if (childDbData) {
+          setChildData({
+            id: childDbData.id,
+            full_name: childDbData.full_name,
+            birth_date: childDbData.birth_date,
+            gender: childDbData.gender,
+            education_level: childDbData.education_level,
+            parent_name: childDbData.parent_name,
+            parent_phone: childDbData.parent_phone,
+            parent_email: childDbData.parent_email,
+            notes: childDbData.notes,
+            organization: childDbData.organizations as any
+          });
+
           setSessionsLoading(true);
           const { data: sessionChildrenData } = await supabase
             .from("session_children")
@@ -128,7 +175,7 @@ export default function ChildProfile() {
                 profiles:specialist_id (id, full_name)
               )
             `)
-            .eq("child_id", childData.id);
+            .eq("child_id", childDbData.id);
 
           if (sessionChildrenData) {
             const formattedData = sessionChildrenData
@@ -271,8 +318,17 @@ export default function ChildProfile() {
 
         {/* Child Info Card */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Профиль ребёнка</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-2xl">Информация о ребёнке</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowInfoDialog(true)}
+              className="gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Подробнее
+            </Button>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
             <div className="flex items-center gap-3">
@@ -315,7 +371,10 @@ export default function ChildProfile() {
         <ChildSessionsStatistics sessions={sessionData} loading={sessionsLoading} />
 
         {/* Dynamics Table */}
-        <ChildProfileTable protocols={protocols} />
+        <ChildProfileTable 
+          protocols={protocols} 
+          onShowDetails={() => setShowDynamicsDialog(true)}
+        />
 
         {/* Charts Row */}
         <div className="grid gap-6 md:grid-cols-2">
@@ -335,6 +394,21 @@ export default function ChildProfile() {
         {/* Recommendations */}
         <ChildProfileRecommendations protocols={protocols} />
       </div>
+
+      {/* Dialogs */}
+      <ChildInfoDetailsDialog
+        open={showInfoDialog}
+        onOpenChange={setShowInfoDialog}
+        protocols={protocols}
+        childData={childData}
+        childInfo={childInfo}
+      />
+
+      <ProtocolDynamicsDetailsDialog
+        open={showDynamicsDialog}
+        onOpenChange={setShowDynamicsDialog}
+        protocols={protocols}
+      />
     </div>
   );
 }
