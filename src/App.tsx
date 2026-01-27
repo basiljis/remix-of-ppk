@@ -32,20 +32,22 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Suspense fallback={<Preloader />}>
-                <Routes>
-                  <Route path="/" element={<RootGate />} />
-                  <Route path="/app" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/child-profile" element={<ChildProfile />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/install" element={<Install />} />
-                  <Route path="/access-status" element={<AccessRequestStatus />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+              <main className="flex-1">
+                <Suspense fallback={<Preloader />}>
+                  <Routes>
+                    <Route path="/" element={<RootGate />} />
+                    <Route path="/app" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/child-profile" element={<ChildProfile />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/install" element={<Install />} />
+                    <Route path="/access-status" element={<AccessRequestStatus />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </main>
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>
