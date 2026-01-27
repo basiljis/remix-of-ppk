@@ -25,11 +25,23 @@ export const SystemInfoDialog = () => {
           <div className="space-y-4 text-sm">
             <section>
               <h3 className="font-semibold text-base mb-2">Назначение системы</h3>
-              <p className="text-muted-foreground">
-                Система управления протоколами ППК предназначена для автоматизации работы психолого-педагогических консилиумов 
-                образовательных организаций города Москвы. Она обеспечивает структурированный подход к ведению протоколов, 
-                оценке развития обучающихся и формированию рекомендаций.
+              <p className="text-muted-foreground mb-3">
+                Платформа universum. объединяет все инструменты для комплексной поддержки развития детей в единую экосистему.
               </p>
+              <div className="space-y-2 text-muted-foreground">
+                <div className="border-l-2 border-orange-500 pl-3">
+                  <strong className="text-foreground">Карточка ребёнка — ядро системы</strong>
+                  <p className="mt-1">Централизованный профиль, объединяющий все данные о развитии ребёнка: результаты протоколов, динамику показателей, историю занятий и персонализированные рекомендации.</p>
+                </div>
+                <div className="border-l-2 border-primary pl-3">
+                  <strong className="text-foreground">Протоколы ППК</strong>
+                  <p className="mt-1">Автоматизация работы психолого-педагогических консилиумов: структурированная оценка по чек-листам, формирование заключений и рекомендаций.</p>
+                </div>
+                <div className="border-l-2 border-primary pl-3">
+                  <strong className="text-foreground">Журнал рабочего времени</strong>
+                  <p className="mt-1">Планирование и учёт индивидуальных и групповых занятий, контроль посещаемости, статистика нагрузки специалистов.</p>
+                </div>
+              </div>
             </section>
 
             <section>
