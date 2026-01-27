@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -279,8 +280,9 @@ export function HolidaySessionRequestsPanel() {
 
                 {selectedRequest.status === "pending" && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Комментарий администратора</label>
+                    <Label htmlFor="holiday-admin-notes">Комментарий администратора</Label>
                     <Textarea
+                      id="holiday-admin-notes"
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
                       placeholder="Необязательный комментарий..."

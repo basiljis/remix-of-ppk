@@ -572,10 +572,11 @@ export const CommercialOfferRequestsManagement = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">
+              <Label htmlFor="commercial-offer-admin-notes" className="mb-2 block">
                 Примечания администратора
-              </label>
+              </Label>
               <Textarea
+                id="commercial-offer-admin-notes"
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder="Добавьте примечания к заявке..."

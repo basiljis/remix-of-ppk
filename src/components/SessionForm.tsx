@@ -523,8 +523,9 @@ export function SessionForm({
           </div>
 
           <div className="grid gap-2">
-            <Label>Примечания</Label>
+            <Label htmlFor="session-notes">Примечания</Label>
             <Textarea
+              id="session-notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Дополнительная информация..."

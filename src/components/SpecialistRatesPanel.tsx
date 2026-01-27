@@ -213,6 +213,7 @@ export function SpecialistRatesPanel() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(specialist)}
+                        aria-label="Редактировать ставку специалиста"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>

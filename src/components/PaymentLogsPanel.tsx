@@ -166,6 +166,7 @@ export const PaymentLogsPanel = () => {
                           size="sm"
                           variant="ghost"
                           onClick={() => setSelectedLog(log)}
+                          aria-label="Просмотреть детали платежа"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

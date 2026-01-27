@@ -581,6 +581,7 @@ export const OrganizationsManagement = () => {
                       size="icon"
                       className="mt-1 h-8 w-8"
                       onClick={() => toggleSelectOrg(org.id)}
+                      aria-label={selectedOrgs.has(org.id) ? "Снять выделение организации" : "Выделить организацию"}
                     >
                       {selectedOrgs.has(org.id) ? (
                         <CheckSquare className="h-4 w-4" />

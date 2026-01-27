@@ -484,8 +484,9 @@ export function SpecialistKPIPanel() {
               )}
 
               <div className="space-y-2">
-                <Label>Заметки</Label>
+                <Label htmlFor="kpi-notes">Заметки</Label>
                 <Textarea
+                  id="kpi-notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Дополнительная информация..."
@@ -565,6 +566,7 @@ export function SpecialistKPIPanel() {
                         size="icon" 
                         className="h-8 w-8"
                         onClick={() => handleEdit(goal)}
+                        aria-label="Редактировать цель"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -573,6 +575,7 @@ export function SpecialistKPIPanel() {
                         size="icon" 
                         className="h-8 w-8 text-destructive hover:text-destructive"
                         onClick={() => deleteGoalMutation.mutate(goal.id)}
+                        aria-label="Удалить цель"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

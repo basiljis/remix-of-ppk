@@ -282,6 +282,8 @@ export const ProtocolConclusionPanel = ({
           {isEditing ? (
             <div className="space-y-3">
               <Textarea
+                id="protocol-conclusion-text"
+                aria-label="Текст заключения протокола"
                 value={editableConclusion}
                 onChange={(e) => setEditableConclusion(e.target.value)}
                 className="min-h-[400px] font-mono text-sm"
