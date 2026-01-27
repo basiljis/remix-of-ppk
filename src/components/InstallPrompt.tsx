@@ -106,7 +106,7 @@ export const InstallPrompt = () => {
               <p className="text-xs text-muted-foreground mt-1">
                 {isIOS 
                   ? "Нажмите «Поделиться» → «На экран Домой» для быстрого доступа"
-                  : "Добавьте universum. на главный экран для быстрого доступа без браузера"
+                  : "Добавьте universum на главный экран для быстрого доступа"
                 }
               </p>
               <div className="flex items-center gap-2 mt-3">

@@ -18,7 +18,7 @@ export const SystemInfoDialog = () => {
         <DialogHeader>
           <DialogTitle className="text-xl">universum.</DialogTitle>
           <DialogDescription className="text-sm">
-            Инновационная платформа для комплексной поддержки и развития детей. Технологии, которые работают на благо каждого ребенка.
+            Развитие. Для каждого
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[60vh] pr-4">
@@ -26,7 +26,7 @@ export const SystemInfoDialog = () => {
             <section>
               <h3 className="font-semibold text-base mb-2">Назначение системы</h3>
               <p className="text-muted-foreground mb-3">
-                Платформа universum. объединяет все инструменты для комплексной поддержки развития детей в единую экосистему.
+                universum. — платформа комплексной поддержки развития детей.
               </p>
               <div className="space-y-2 text-muted-foreground">
                 <div className="border-l-2 border-orange-500 pl-3">

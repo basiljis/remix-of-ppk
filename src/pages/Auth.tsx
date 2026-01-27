@@ -358,7 +358,7 @@ const Auth = () => {
         <div className="p-8 md:p-12 flex flex-col justify-center">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold mb-2">universum.</h1>
-            <p className="text-muted-foreground">Инновационная платформа для комплексной поддержки и развития детей. Технологии, которые работают на благо каждого ребенка.</p>
+            <p className="text-muted-foreground text-lg">Развитие. Для каждого</p>
           </div>
           
           <Tabs defaultValue="login" className="w-full">
