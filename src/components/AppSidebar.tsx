@@ -42,7 +42,6 @@ const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
-  { id: "child-card", label: "Карточка ребенка", icon: Users },
   { 
     id: "instructions", 
     label: "Инструкции", 
@@ -54,6 +53,9 @@ const menuItems = [
     ]
   },
 ];
+
+// Separate child card item - highlighted as core feature
+const childCardItem = { id: "child-card", label: "Карточка ребенка", icon: Users };
 
 // Separate schedule module - available with subscription
 const scheduleItem = { 
@@ -324,6 +326,42 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
     <TooltipProvider>
       <Sidebar className={`${state === "collapsed" ? "w-14" : "w-60"} pt-16`} collapsible="icon">
       <SidebarContent>
+        {/* Child Card - Core Feature - Separate highlighted section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center gap-2">
+            Ядро системы
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-600 dark:text-orange-400">
+              Core
+            </span>
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton
+                      onClick={() => onTabChange(childCardItem.id)}
+                      className={`w-full justify-start gap-3 ${
+                        activeTab === childCardItem.id 
+                          ? "bg-orange-500 text-white" 
+                          : "hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950 dark:hover:text-orange-300 border border-orange-200 dark:border-orange-800"
+                      }`}
+                    >
+                      <childCardItem.icon className="h-4 w-4" />
+                      {state !== "collapsed" && <span>{childCardItem.label}</span>}
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>{childCardItem.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <Separator className="my-2" />
+
         {/* Main menu items */}
         <SidebarGroup>
           <SidebarGroupLabel>Система ППК</SidebarGroupLabel>
