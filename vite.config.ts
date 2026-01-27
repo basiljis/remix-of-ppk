@@ -76,10 +76,30 @@ export default defineConfig(({ mode }) => ({
       }
     }),
   ].filter(Boolean),
+  // CRITICAL: Force Vite to pre-bundle React dependencies together
+  // This prevents multiple React instances causing "dispatcher.useEffect" errors
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      '@tanstack/react-query',
+      'react-router-dom',
+    ],
+    // Force re-optimization when these change
+    esbuildOptions: {
+      // Ensure consistent JSX runtime
+      jsx: 'automatic',
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Dedupe React to prevent multiple instances
+    dedupe: ['react', 'react-dom'],
   },
   build: {
     // Optimize chunk splitting - use function to avoid React duplication
