@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineProvider } from "@/contexts/OfflineContext";
+// Preloader MUST be imported synchronously to avoid infinite loading state
+import Preloader from "@/components/Preloader";
 
 // Lazy load UI components to reduce initial bundle
 const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
@@ -20,7 +22,6 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Install = lazy(() => import("./pages/Install"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
 const RootGate = lazy(() => import("./pages/RootGate").then(m => ({ default: m.default })));
-const Preloader = lazy(() => import("@/components/Preloader"));
 const OfflineIndicator = lazy(() => import("@/components/OfflineIndicator"));
 
 const queryClient = new QueryClient();
