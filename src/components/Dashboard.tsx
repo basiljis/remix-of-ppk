@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter, FileText, Users, Target } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, AreaChart, Area } from "recharts";
+import { BarChart3, PieChart as PieIcon, CalendarIcon, Filter, FileText, Users, Target, TrendingUp } from "lucide-react";
 import { useProtocols, Protocol } from "@/hooks/useProtocols";
 import { useOrganizations, Organization } from "@/hooks/useOrganizations";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
@@ -334,6 +334,39 @@ export const Dashboard = () => {
     name: district,
     count
   }));
+
+  // Данные по динамике протоколов по месяцам
+  const monthlyData = (() => {
+    const monthCounts: Record<string, { total: number; completed: number; draft: number }> = {};
+    
+    filteredProtocols.forEach(protocol => {
+      const date = new Date(protocol.created_at);
+      const monthKey = format(date, 'yyyy-MM');
+      const monthLabel = format(date, 'MMM yyyy', { locale: ru });
+      
+      if (!monthCounts[monthKey]) {
+        monthCounts[monthKey] = { total: 0, completed: 0, draft: 0 };
+      }
+      monthCounts[monthKey].total += 1;
+      if (protocol.status === 'completed') {
+        monthCounts[monthKey].completed += 1;
+      } else {
+        monthCounts[monthKey].draft += 1;
+      }
+    });
+
+    // Sort by date and get last 12 months
+    return Object.entries(monthCounts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-12)
+      .map(([key, counts]) => ({
+        month: format(new Date(key + '-01'), 'MMM yy', { locale: ru }),
+        fullMonth: format(new Date(key + '-01'), 'LLLL yyyy', { locale: ru }),
+        total: counts.total,
+        completed: counts.completed,
+        draft: counts.draft
+      }));
+  })();
 
   // Получение чеклист данных для анализа заключений и рекомендаций
   const { getBlocksForEducationLevel, calculateBlockScore } = useProtocolChecklistData();
@@ -705,6 +738,86 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* График динамики протоколов по месяцам */}
+      {monthlyData.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Динамика протоколов по месяцам
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={350}>
+              <AreaChart data={monthlyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00C49F" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#00C49F" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-popover border rounded-lg shadow-lg p-3">
+                          <p className="font-medium mb-2 capitalize">{data.fullMonth}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Всего: <span className="font-medium text-foreground">{data.total}</span>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Завершённые: <span className="font-medium text-green-600">{data.completed}</span>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Черновики: <span className="font-medium text-orange-500">{data.draft}</span>
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend />
+                <Area 
+                  type="monotone" 
+                  dataKey="total" 
+                  name="Всего протоколов"
+                  stroke="#8884d8" 
+                  fillOpacity={1} 
+                  fill="url(#colorTotal)" 
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="completed" 
+                  name="Завершённые"
+                  stroke="#00C49F" 
+                  fillOpacity={1} 
+                  fill="url(#colorCompleted)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Круговые диаграммы */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
