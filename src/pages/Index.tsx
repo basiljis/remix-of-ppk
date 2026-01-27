@@ -29,6 +29,7 @@ const Dashboard = lazy(() => import("@/components/Dashboard").then(m => ({ defau
 const Administration = lazy(() => import("@/components/Administration").then(m => ({ default: m.Administration })));
 const ScheduleModule = lazy(() => import("@/components/ScheduleModule").then(m => ({ default: m.ScheduleModule })));
 const OrganizationModule = lazy(() => import("@/components/OrganizationModule").then(m => ({ default: m.OrganizationModule })));
+const ChildCardSection = lazy(() => import("@/components/ChildCardSection").then(m => ({ default: m.ChildCardSection })));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -203,6 +204,12 @@ const Index = () => {
         return (
           <Suspense fallback={loadingFallback}>
             <Dashboard />
+          </Suspense>
+        );
+      case "child-card":
+        return (
+          <Suspense fallback={loadingFallback}>
+            <ChildCardSection />
           </Suspense>
         );
       case "instructions-work":

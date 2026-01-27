@@ -42,6 +42,7 @@ const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
+  { id: "child-card", label: "Карточка ребенка", icon: Users },
   { 
     id: "instructions", 
     label: "Инструкции", 
