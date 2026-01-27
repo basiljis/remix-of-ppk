@@ -62,18 +62,29 @@
     </script>
     <!-- /Yandex.Metrika counter -->
     
-    <!-- Begin Talk-Me {literal} -->
+    <!-- Begin Talk-Me (lazy loaded) {literal} -->
     <script>
-        (function(){(function c(d,w,m,i) {
-            window.supportAPIMethod = m;
-            var s = d.createElement('script');
-            s.id = 'supportScript'; 
-            var id = '5407bca1779c49fb67e6e3487d5e3712';
-            s.src = (!i ? 'https://lcab.talk-me.ru/support/support.js' : 'https://static.site-chat.me/support/support.int.js') + '?h=' + id;
-            s.onerror = i ? undefined : function(){c(d,w,m,true)};
+        (function(d, w, m) {
             w[m] = w[m] ? w[m] : function(){(w[m].q = w[m].q ? w[m].q : []).push(arguments);};
-            (d.head ? d.head : d.body).appendChild(s);
-        })(document,window,'TalkMe')})();
+            
+            function loadTalkMe(i) {
+                if (d.getElementById('supportScript')) return;
+                var s = d.createElement('script');
+                s.id = 'supportScript';
+                s.async = true;
+                var id = '5407bca1779c49fb67e6e3487d5e3712';
+                s.src = (!i ? 'https://lcab.talk-me.ru/support/support.js' : 'https://static.site-chat.me/support/support.int.js') + '?h=' + id;
+                s.onerror = i ? undefined : function(){loadTalkMe(true)};
+                (d.head ? d.head : d.body).appendChild(s);
+            }
+            
+            // Defer loading until after main content
+            if ('requestIdleCallback' in w) {
+                w.requestIdleCallback(function() { loadTalkMe(false); }, { timeout: 4000 });
+            } else {
+                w.addEventListener('load', function() { loadTalkMe(false); });
+            }
+        })(document, window, 'TalkMe');
     </script>
     <!-- {/literal} End Talk-Me -->
     
