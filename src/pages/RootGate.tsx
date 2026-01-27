@@ -16,7 +16,12 @@ const RootGate = () => {
       if (!mounted) return;
       
       if (error) {
-        console.error("[RootGate] Ошибка при получении пользователя:", error);
+        // AuthSessionMissingError is expected for unauthenticated users - don't log as error
+        if (error.name === 'AuthSessionMissingError') {
+          console.log("[RootGate] Сессия отсутствует - пользователь не авторизован");
+        } else {
+          console.warn("[RootGate] Ошибка при получении пользователя:", error);
+        }
       }
       
       const isAuthenticated = !!data.user;
