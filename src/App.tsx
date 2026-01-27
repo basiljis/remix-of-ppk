@@ -16,6 +16,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const ChildProfile = lazy(() => import("./pages/ChildProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Install = lazy(() => import("./pages/Install"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
 const RootGate = lazy(() => import("./pages/RootGate").then(m => ({ default: m.default })));
 const Preloader = lazy(() => import("@/components/Preloader"));
@@ -39,6 +40,7 @@ const App = () => (
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/child-profile" element={<ChildProfile />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/install" element={<Install />} />
                   <Route path="/access-status" element={<AccessRequestStatus />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
