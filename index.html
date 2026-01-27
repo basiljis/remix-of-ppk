@@ -46,6 +46,10 @@
     <link rel="preconnect" href="https://widget.me-talk.ru" crossorigin />
     <link rel="dns-prefetch" href="https://mc.yandex.ru" />
     
+    <!-- Preload critical fonts (system fonts don't need preload, but add custom fonts here if used) -->
+    <!-- Preload hint for main entry point to start loading earlier -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    
     <!-- Yandex.Metrika counter (deferred to reduce unused JS) -->
     <script type="text/javascript">
       (function(w, d) {
