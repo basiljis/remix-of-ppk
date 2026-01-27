@@ -88,7 +88,7 @@ export const Dashboard = () => {
   const [levelFilter, setLevelFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [parallelFilter, setParallelFilter] = useState("all");
-  const [reasonFilter, setReasonFilter] = useState("");
+  const [reasonFilter, setReasonFilter] = useState("all");
   const [conclusionTypeFilter, setConclusionTypeFilter] = useState("all");
   const [schoolYearFilter, setSchoolYearFilter] = useState<string>(() => getCurrentSchoolYear().value);
   const [dateFrom, setDateFrom] = useState<Date>();
@@ -105,6 +105,8 @@ export const Dashboard = () => {
   // Данные из организаций (используем отфильтрованные организации)
   const districts = [...new Set(filteredOrganizations.map(org => org.district).filter(Boolean))] as string[];
   
+  // Уникальные причины из всех протоколов для фильтра
+  const uniqueReasons = [...new Set(protocols.map(p => p.consultation_reason).filter(Boolean))] as string[];
   useEffect(() => {
     applyFilters();
   }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations, regionFilter]);
@@ -174,8 +176,8 @@ export const Dashboard = () => {
         }
       });
     }
-    if (reasonFilter) {
-      filtered = filtered.filter(p => p.consultation_reason?.toLowerCase().includes(reasonFilter.toLowerCase()));
+    if (reasonFilter && reasonFilter !== "all") {
+      filtered = filtered.filter(p => p.consultation_reason === reasonFilter);
     }
     if (conclusionTypeFilter && conclusionTypeFilter !== "all") {
       filtered = filtered.filter(p => {
@@ -209,7 +211,7 @@ export const Dashboard = () => {
     setLevelFilter("all");
     setTypeFilter("all");
     setParallelFilter("all");
-    setReasonFilter("");
+    setReasonFilter("all");
     setConclusionTypeFilter("all");
     setSchoolYearFilter(getCurrentSchoolYear().value);
     setDateFrom(undefined);
@@ -507,7 +509,17 @@ export const Dashboard = () => {
 
             <div>
               <Label>Причина</Label>
-              <Input placeholder="Поиск по причине..." value={reasonFilter} onChange={e => setReasonFilter(e.target.value)} />
+              <Select value={reasonFilter} onValueChange={setReasonFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите причину" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все причины</SelectItem>
+                  {uniqueReasons.map(reason => (
+                    <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
