@@ -28,11 +28,34 @@ import { Loader2 } from "lucide-react";
 import { differenceInYears, differenceInMonths } from "date-fns";
 
 const educationLevels = [
-  { value: "do", label: "Дошкольное образование" },
-  { value: "noo", label: "Начальное общее образование" },
-  { value: "oo", label: "Основное общее образование" },
-  { value: "soo", label: "Среднее общее образование" },
+  { value: "preschool", label: "Дошкольное образование" },
+  { value: "elementary", label: "Начальное общее образование (1-4)" },
+  { value: "middle", label: "Основное общее образование (5-9)" },
+  { value: "high", label: "Среднее общее образование (10-11)" },
 ];
+
+// Динамические опции для класса в зависимости от уровня образования
+const getClassOptions = (educationLevel: string) => {
+  switch (educationLevel) {
+    case "preschool":
+      return [
+        { value: "Младшая группа", label: "Младшая группа" },
+        { value: "Средняя группа", label: "Средняя группа" },
+        { value: "Старшая группа", label: "Старшая группа" },
+        { value: "Подготовительная группа", label: "Подготовительная группа" },
+      ];
+    case "elementary":
+      return [1, 2, 3, 4].map((n) => ({ value: n.toString(), label: `${n} класс` }));
+    case "middle":
+      return [5, 6, 7, 8, 9].map((n) => ({ value: n.toString(), label: `${n} класс` }));
+    case "high":
+      return [10, 11].map((n) => ({ value: n.toString(), label: `${n} класс` }));
+    default:
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) => ({ value: n.toString(), label: `${n} класс` }));
+  }
+};
+
+const classLetterOptions = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "З", "И", "К", "Л", "М"];
 
 const genderOptions = [
   { value: "male", label: "Мужской" },
@@ -276,35 +299,11 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="class_number">Номер класса/группы</Label>
-                <Input
-                  id="class_number"
-                  value={formData.class_number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, class_number: e.target.value })
-                  }
-                  placeholder="1"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="class_letter">Литера класса</Label>
-                <Input
-                  id="class_letter"
-                  value={formData.class_letter}
-                  onChange={(e) =>
-                    setFormData({ ...formData, class_letter: e.target.value })
-                  }
-                  placeholder="А"
-                />
-              </div>
-
-              <div className="grid gap-2">
                 <Label htmlFor="education_level">Уровень образования</Label>
                 <Select
                   value={formData.education_level}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, education_level: value })
+                    setFormData({ ...formData, education_level: value, class_number: "", class_letter: "" })
                   }
                 >
                   <SelectTrigger>
@@ -318,6 +317,74 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="class_number">
+                  {formData.education_level === "preschool" ? "Группа" : "Класс"}
+                </Label>
+                <Select
+                  value={formData.class_number}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, class_number: value })
+                  }
+                  disabled={!formData.education_level}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      !formData.education_level 
+                        ? "Сначала выберите уровень" 
+                        : formData.education_level === "preschool" 
+                          ? "Выберите группу" 
+                          : "Выберите класс"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getClassOptions(formData.education_level).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="class_letter">
+                  {formData.education_level === "preschool" ? "Номер группы" : "Литера класса"}
+                </Label>
+                {formData.education_level === "preschool" ? (
+                  <Input
+                    id="class_letter"
+                    value={formData.class_letter}
+                    onChange={(e) =>
+                      setFormData({ ...formData, class_letter: e.target.value })
+                    }
+                    placeholder="1, 2, 3..."
+                    disabled={!formData.education_level}
+                  />
+                ) : (
+                  <Select
+                    value={formData.class_letter}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, class_letter: value })
+                    }
+                    disabled={!formData.education_level}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={
+                        !formData.education_level ? "Сначала выберите уровень" : "Выберите литеру"
+                      } />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classLetterOptions.map((letter) => (
+                        <SelectItem key={letter} value={letter}>
+                          {letter}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
           </div>
