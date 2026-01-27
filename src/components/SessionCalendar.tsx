@@ -631,6 +631,7 @@ export function SessionCalendar() {
                                         e.stopPropagation();
                                         handleAttendanceClick(session);
                                       }}
+                                      aria-label="Отметить посещаемость"
                                     >
                                       <UserCheck className="h-3 w-3" />
                                     </Button>

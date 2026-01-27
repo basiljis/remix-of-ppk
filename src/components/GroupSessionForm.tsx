@@ -498,8 +498,9 @@ export function GroupSessionForm({
           </div>
 
           <div className="grid gap-2">
-            <Label>Примечания</Label>
+            <Label htmlFor="group-session-notes">Примечания</Label>
             <Textarea
+              id="group-session-notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Дополнительная информация..."

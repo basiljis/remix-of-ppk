@@ -324,8 +324,9 @@ export function OrganizationHolidaysPanel() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Описание</Label>
+                  <Label htmlFor="holiday-description">Описание</Label>
                   <Textarea
+                    id="holiday-description"
                     placeholder="Дополнительная информация..."
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -527,6 +528,7 @@ function HolidayTable({ holidays, onEdit, onDelete, isDeleting, compact }: Holid
                     variant="ghost"
                     size="icon"
                     onClick={() => onEdit(holiday)}
+                    aria-label="Редактировать праздник"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -535,6 +537,7 @@ function HolidayTable({ holidays, onEdit, onDelete, isDeleting, compact }: Holid
                     size="icon"
                     onClick={() => onDelete(holiday.id)}
                     disabled={isDeleting}
+                    aria-label="Удалить праздник"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>

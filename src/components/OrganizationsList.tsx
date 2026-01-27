@@ -157,7 +157,7 @@ export const OrganizationsList = () => {
               <Button onClick={clearFilters} variant="outline" className="flex-1">
                 Сбросить
               </Button>
-              <Button onClick={loadOrganizations} disabled={loading} size="icon">
+              <Button onClick={loadOrganizations} disabled={loading} size="icon" aria-label="Обновить список организаций">
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
             </div>

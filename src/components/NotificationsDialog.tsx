@@ -50,7 +50,7 @@ export function NotificationsDialog({ onNavigate }: NotificationsDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative" aria-label={`Уведомления${count > 0 ? `, ${count} новых` : ''}`}>
           <Bell className={`h-5 w-5 ${count > 0 ? 'animate-pulse text-primary' : ''}`} />
           {count > 0 && (
             <Badge 

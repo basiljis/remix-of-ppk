@@ -588,6 +588,7 @@ export function RecurringSessionForm({
                       size="icon"
                       onClick={() => removeSlot(slot.id)}
                       className="text-destructive hover:text-destructive"
+                      aria-label="Удалить слот"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -631,8 +632,9 @@ export function RecurringSessionForm({
 
           {/* Notes */}
           <div className="grid gap-2">
-            <Label>Примечания</Label>
+            <Label htmlFor="recurring-session-notes">Примечания</Label>
             <Textarea
+              id="recurring-session-notes"
               value={formData.notes}
               onChange={(e) =>
                 setFormData({ ...formData, notes: e.target.value })

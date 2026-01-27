@@ -304,6 +304,7 @@ export const PPKList: React.FC<PPKListProps> = ({ onNewProtocol, onEditProtocol 
                 variant="outline"
                 size="icon"
                 disabled={refreshing || loading}
+                aria-label="Обновить список протоколов"
               >
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               </Button>

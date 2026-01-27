@@ -829,8 +829,9 @@ export function OrganizationKPIManagement() {
                   )}
 
                   <div className="space-y-2">
-                    <Label>Заметки</Label>
+                    <Label htmlFor="org-kpi-notes">Заметки</Label>
                     <Textarea
+                      id="org-kpi-notes"
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       placeholder="Дополнительная информация..."
@@ -939,6 +940,7 @@ export function OrganizationKPIManagement() {
                               size="icon" 
                               className="h-8 w-8"
                               onClick={() => handleEdit(goal)}
+                              aria-label="Редактировать цель организации"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -947,6 +949,7 @@ export function OrganizationKPIManagement() {
                               size="icon" 
                               className="h-8 w-8 text-destructive hover:text-destructive"
                               onClick={() => deleteGoalMutation.mutate(goal.id)}
+                              aria-label="Удалить цель организации"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
