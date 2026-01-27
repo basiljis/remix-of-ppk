@@ -1,4 +1,5 @@
-import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText, Building } from "lucide-react";
+import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText, Building, Download } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -623,6 +624,32 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {/* Install App section */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton
+                      onClick={() => {
+                        window.location.href = '/install';
+                      }}
+                      className="w-full justify-start gap-3 hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <Download className="h-4 w-4" />
+                      {state !== "collapsed" && <span>Установить приложение</span>}
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Установить приложение</p>
+                  </TooltipContent>
+                </Tooltip>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       </Sidebar>
     </TooltipProvider>
