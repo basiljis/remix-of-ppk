@@ -657,8 +657,8 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Subscription info footer - only show in expanded state and for non-admins */}
-      {state !== "collapsed" && !isAdmin && (
+      {/* Subscription info footer - only show in expanded state */}
+      {state !== "collapsed" && (
         <SidebarFooter className="p-3">
           <div className="rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-4">
             {subscriptionStatus.hasActiveSubscription ? (
