@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>universum. Инновационная платформа для комплексной поддержки и развития детей. Технологии, которые работают на благо каждого ребенка.</title>
+    
+    <!-- Critical CSS inlined for faster FCP -->
+    <style>
+      /* Critical above-the-fold styles */
+      *,*::before,*::after{box-sizing:border-box;border-width:0;border-style:solid}
+      html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:system-ui,-apple-system,sans-serif}
+      body{margin:0;line-height:inherit;background-color:hsl(0 0% 100%);color:hsl(240 10% 3.9%)}
+      @media(prefers-color-scheme:dark){body{background-color:hsl(240 10% 3.9%);color:hsl(0 0% 98%)}}
+      #root{min-height:100vh;display:flex;flex-direction:column}
+      /* Preloader styles */
+      .preloader{display:flex;align-items:center;justify-content:center;min-height:100vh;background:inherit}
+      .preloader-spinner{width:40px;height:40px;border:3px solid hsl(240 5.9% 90%);border-top-color:hsl(240 5.9% 10%);border-radius:50%;animation:spin 1s linear infinite}
+      @media(prefers-color-scheme:dark){.preloader-spinner{border-color:hsl(240 3.7% 15.9%);border-top-color:hsl(0 0% 98%)}}
+      @keyframes spin{to{transform:rotate(360deg)}}
+    </style>
     <meta name="description" content="Инновационная платформа для комплексной поддержки и развития детей. Технологии, которые работают на благо каждого ребенка.
 - Протокол ППк
 - Журнал учёта рабочего времени">
@@ -131,7 +146,15 @@
 
   <body>
     <noscript><div><img src="https://mc.yandex.ru/watch/103841131" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Instant preloader shown before React hydrates -->
+      <div class="preloader" id="initial-preloader">
+        <div style="text-align:center">
+          <div style="font-size:10px;letter-spacing:0.25em;text-transform:uppercase;opacity:0.8;margin-bottom:24px">universum.</div>
+          <div class="preloader-spinner"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
