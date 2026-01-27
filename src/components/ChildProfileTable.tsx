@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, Minus, ExternalLink } from "lucide-react";
 
 interface Protocol {
   id: string;
@@ -11,9 +12,10 @@ interface Protocol {
 
 interface Props {
   protocols: Protocol[];
+  onShowDetails?: () => void;
 }
 
-export function ChildProfileTable({ protocols }: Props) {
+export function ChildProfileTable({ protocols, onShowDetails }: Props) {
   // Calculate block scores for each protocol
   const calculateBlockScores = (protocol: Protocol) => {
     if (!protocol.checklist_data?.blocks) return {};
@@ -56,11 +58,24 @@ export function ChildProfileTable({ protocols }: Props) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Таблица динамики по ППк</CardTitle>
-        <CardDescription>
-          Процентные показатели по всем блокам с индикацией изменений
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Таблица динамики по ППк</CardTitle>
+          <CardDescription>
+            Процентные показатели по всем блокам с индикацией изменений
+          </CardDescription>
+        </div>
+        {onShowDetails && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={onShowDetails}
+            className="gap-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Подробнее
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="overflow-auto">
         <Table>
