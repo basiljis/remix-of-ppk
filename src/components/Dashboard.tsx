@@ -89,10 +89,57 @@ export const Dashboard = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [parallelFilter, setParallelFilter] = useState("all");
   const [sessionTopicFilter, setSessionTopicFilter] = useState("all");
+  const [specialistFilter, setSpecialistFilter] = useState("all");
   const [conclusionTypeFilter, setConclusionTypeFilter] = useState("all");
   const [schoolYearFilter, setSchoolYearFilter] = useState<string>(() => getCurrentSchoolYear().value);
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
+
+  // Fetch specialists based on user role
+  const { data: specialists = [] } = useQuery({
+    queryKey: ['specialists', profile?.organization_id, profile?.region_id, isAdmin, isRegionalOperator],
+    queryFn: async () => {
+      let query = supabase
+        .from('profiles')
+        .select('id, full_name, organization_id, region_id')
+        .order('full_name');
+
+      // Filter based on user role
+      if (isOrgLevel && profile?.organization_id) {
+        // Organization-level users see only their organization's specialists
+        query = query.eq('organization_id', profile.organization_id);
+      } else if (isRegionalOperator && profile?.region_id) {
+        // Regional operators see specialists in their region
+        query = query.eq('region_id', profile.region_id);
+      }
+      // Admins see all specialists
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile
+  });
+
+  // Fetch sessions to link protocols with specialists
+  const { data: sessions = [] } = useQuery({
+    queryKey: ['sessions-for-dashboard', profile?.organization_id],
+    queryFn: async () => {
+      let query = supabase
+        .from('sessions')
+        .select('id, protocol_id, specialist_id')
+        .not('protocol_id', 'is', null);
+
+      if (isOrgLevel && profile?.organization_id) {
+        query = query.eq('organization_id', profile.organization_id);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile
+  });
   
   // Fetch school years from database
   const { schoolYearsFormatted, loading: yearsLoading } = useSchoolYears();
@@ -109,7 +156,7 @@ export const Dashboard = () => {
   const uniqueSessionTopics = [...new Set(protocols.map(p => p.session_topic).filter(Boolean))] as string[];
   useEffect(() => {
     applyFilters();
-  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, sessionTopicFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations, regionFilter]);
+  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, sessionTopicFilter, specialistFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations, regionFilter, sessions]);
   const applyFilters = () => {
     let filtered = [...protocols];
 
@@ -179,6 +226,13 @@ export const Dashboard = () => {
     if (sessionTopicFilter && sessionTopicFilter !== "all") {
       filtered = filtered.filter(p => p.session_topic === sessionTopicFilter);
     }
+    // Фильтр по специалисту (через связь протокол -> сессия -> специалист)
+    if (specialistFilter && specialistFilter !== "all") {
+      const protocolIdsWithSpecialist = sessions
+        .filter(s => s.specialist_id === specialistFilter && s.protocol_id)
+        .map(s => s.protocol_id);
+      filtered = filtered.filter(p => protocolIdsWithSpecialist.includes(p.id));
+    }
     if (conclusionTypeFilter && conclusionTypeFilter !== "all") {
       filtered = filtered.filter(p => {
         // Проверяем наличие сохраненного заключения в protocol_data
@@ -212,6 +266,7 @@ export const Dashboard = () => {
     setTypeFilter("all");
     setParallelFilter("all");
     setSessionTopicFilter("all");
+    setSpecialistFilter("all");
     setConclusionTypeFilter("all");
     setSchoolYearFilter(getCurrentSchoolYear().value);
     setDateFrom(undefined);
@@ -517,6 +572,23 @@ export const Dashboard = () => {
                   <SelectItem value="all">Все темы</SelectItem>
                   {uniqueSessionTopics.map(topic => (
                     <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Специалист</Label>
+              <Select value={specialistFilter} onValueChange={setSpecialistFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите специалиста" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все специалисты</SelectItem>
+                  {specialists.map(specialist => (
+                    <SelectItem key={specialist.id} value={specialist.id}>
+                      {specialist.full_name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
