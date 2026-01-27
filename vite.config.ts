@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt'],
       manifest: {
-        name: 'universum. Платформа поддержки детей',
+        name: 'universum. Развитие. Для каждого',
         short_name: 'universum',
-        description: 'Инновационная платформа для комплексной поддержки и развития детей',
+        description: 'universum. Развитие. Для каждого — платформа комплексной поддержки детей',
         theme_color: '#003366',
         background_color: '#f5f7fa',
         display: 'standalone',

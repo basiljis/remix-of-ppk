@@ -68,7 +68,7 @@ const Install = () => {
           <Smartphone className="w-16 h-16 mx-auto text-primary" />
           <h1 className="text-3xl font-bold">Установите приложение</h1>
           <p className="text-muted-foreground">
-            Добавьте universum на домашний экран для быстрого доступа и работы офлайн
+            Добавьте universum на домашний экран для быстрого доступа
           </p>
         </div>
 
