@@ -88,7 +88,7 @@ export const Dashboard = () => {
   const [levelFilter, setLevelFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [parallelFilter, setParallelFilter] = useState("all");
-  const [reasonFilter, setReasonFilter] = useState("all");
+  const [sessionTopicFilter, setSessionTopicFilter] = useState("all");
   const [conclusionTypeFilter, setConclusionTypeFilter] = useState("all");
   const [schoolYearFilter, setSchoolYearFilter] = useState<string>(() => getCurrentSchoolYear().value);
   const [dateFrom, setDateFrom] = useState<Date>();
@@ -105,11 +105,11 @@ export const Dashboard = () => {
   // Данные из организаций (используем отфильтрованные организации)
   const districts = [...new Set(filteredOrganizations.map(org => org.district).filter(Boolean))] as string[];
   
-  // Уникальные причины из всех протоколов для фильтра
-  const uniqueReasons = [...new Set(protocols.map(p => p.consultation_reason).filter(Boolean))] as string[];
+  // Уникальные темы заседаний из всех протоколов для фильтра
+  const uniqueSessionTopics = [...new Set(protocols.map(p => p.session_topic).filter(Boolean))] as string[];
   useEffect(() => {
     applyFilters();
-  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, reasonFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations, regionFilter]);
+  }, [protocols, eduOrgFilter, districtFilter, levelFilter, typeFilter, parallelFilter, sessionTopicFilter, conclusionTypeFilter, schoolYearFilter, dateFrom, dateTo, organizations, regionFilter]);
   const applyFilters = () => {
     let filtered = [...protocols];
 
@@ -176,8 +176,8 @@ export const Dashboard = () => {
         }
       });
     }
-    if (reasonFilter && reasonFilter !== "all") {
-      filtered = filtered.filter(p => p.consultation_reason === reasonFilter);
+    if (sessionTopicFilter && sessionTopicFilter !== "all") {
+      filtered = filtered.filter(p => p.session_topic === sessionTopicFilter);
     }
     if (conclusionTypeFilter && conclusionTypeFilter !== "all") {
       filtered = filtered.filter(p => {
@@ -211,7 +211,7 @@ export const Dashboard = () => {
     setLevelFilter("all");
     setTypeFilter("all");
     setParallelFilter("all");
-    setReasonFilter("all");
+    setSessionTopicFilter("all");
     setConclusionTypeFilter("all");
     setSchoolYearFilter(getCurrentSchoolYear().value);
     setDateFrom(undefined);
@@ -508,15 +508,15 @@ export const Dashboard = () => {
             </div>
 
             <div>
-              <Label>Причина</Label>
-              <Select value={reasonFilter} onValueChange={setReasonFilter}>
+              <Label>Тема заседания</Label>
+              <Select value={sessionTopicFilter} onValueChange={setSessionTopicFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите причину" />
+                  <SelectValue placeholder="Выберите тему" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все причины</SelectItem>
-                  {uniqueReasons.map(reason => (
-                    <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                  <SelectItem value="all">Все темы</SelectItem>
+                  {uniqueSessionTopics.map(topic => (
+                    <SelectItem key={topic} value={topic}>{topic}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
