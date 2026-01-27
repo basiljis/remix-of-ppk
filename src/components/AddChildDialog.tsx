@@ -94,6 +94,8 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["children"] });
       queryClient.invalidateQueries({ queryKey: ["children-from-protocols"] });
+      queryClient.invalidateQueries({ queryKey: ["child-card-children"] });
+      queryClient.invalidateQueries({ queryKey: ["child-card-protocol-children"] });
       onOpenChange(false);
       resetForm();
       toast({
