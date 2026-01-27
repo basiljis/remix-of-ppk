@@ -106,35 +106,25 @@ export default defineConfig(({ mode }) => ({
     // Optimize chunk splitting - use function to avoid React duplication
     rollupOptions: {
       output: {
-        manualChunks(id) {
+        manualChunks: {
           // CRITICAL: All React-related modules MUST be in the same chunk
-          // to avoid "dispatcher.useEffect" errors from multiple React instances
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('scheduler') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor';
-            }
-            if (id.includes('@supabase')) {
-              return 'supabase';
-            }
-            if (id.includes('@tanstack/react-query')) {
-              return 'query';
-            }
-            if (id.includes('recharts') || id.includes('d3-')) {
-              return 'charts';
-            }
-            if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('xlsx')) {
-              return 'export';
-            }
-            if (id.includes('date-fns')) {
-              return 'date-utils';
-            }
-            if (id.includes('@radix-ui')) {
-              return 'ui';
-            }
-            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
-              return 'form';
-            }
-          }
+          // to avoid "forwardRef" and "dispatcher.useEffect" errors
+          vendor: [
+            'react',
+            'react-dom',
+            'react-router-dom',
+            'scheduler',
+            'react/jsx-runtime',
+            'react/jsx-dev-runtime',
+          ],
+          supabase: ['@supabase/supabase-js'],
+          query: ['@tanstack/react-query'],
+          // Charts include recharts which uses React - must NOT be separate
+          // Moved to main bundle to avoid React version conflicts
+          'date-utils': ['date-fns'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-select', '@radix-ui/react-tooltip'],
+          form: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          export: ['jspdf', 'html2canvas', 'xlsx'],
         },
       },
     },
