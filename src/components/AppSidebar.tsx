@@ -1,4 +1,4 @@
-import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText, Building, Download } from "lucide-react";
+import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText, Building, Download, Crown, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -13,6 +13,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -25,10 +26,12 @@ import {
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, differenceInDays } from "date-fns";
 
 interface AppSidebarProps {
   activeTab: string;
@@ -147,7 +150,9 @@ const adminItems = [
 
 export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false, hasOrganizationAccess = false }: AppSidebarProps) {
   const { state } = useSidebar();
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const subscriptionStatus = useSubscriptionStatus();
   const canSeeOrganization = isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess;
 
   // Fetch session counts for sidebar badges
@@ -651,6 +656,67 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Subscription info footer - only show in expanded state and for non-admins */}
+      {state !== "collapsed" && !isAdmin && (
+        <SidebarFooter className="p-3">
+          <div className="rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-4">
+            {subscriptionStatus.hasActiveSubscription ? (
+              // Active subscription
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Подписка активна</span>
+                </div>
+                {subscriptionStatus.subscriptionInfo?.endDate && (
+                  <p className="text-xs text-muted-foreground">
+                    Действует до {new Date(subscriptionStatus.subscriptionInfo.endDate).toLocaleDateString('ru-RU')}
+                  </p>
+                )}
+              </>
+            ) : subscriptionStatus.isTrialActive ? (
+              // Trial period
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-medium">Пробный период</span>
+                </div>
+                {subscriptionStatus.trialEndDate && (
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Осталось {differenceInDays(subscriptionStatus.trialEndDate, new Date())} дн. 
+                    Оформите подписку для полного доступа.
+                  </p>
+                )}
+                <Button 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate('/profile')}
+                >
+                  Оформить подписку
+                </Button>
+              </>
+            ) : (
+              // No subscription
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Нет подписки</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Оформите подписку для доступа ко всем функциям системы.
+                </p>
+                <Button 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate('/profile')}
+                >
+                  Оформить подписку
+                </Button>
+              </>
+            )}
+          </div>
+        </SidebarFooter>
+      )}
       </Sidebar>
     </TooltipProvider>
   );
