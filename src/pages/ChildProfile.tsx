@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, School, User, CalendarIcon, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, School, User, CalendarIcon, ExternalLink, Plus } from "lucide-react";
 import { ChildProfileRadarChart } from "@/components/ChildProfileRadarChart";
 import { ChildProfileBarChart } from "@/components/ChildProfileBarChart";
 import { ChildProfileTable } from "@/components/ChildProfileTable";
@@ -13,6 +13,7 @@ import { ChildProfileComparison } from "@/components/ChildProfileComparison";
 import { ChildSessionsStatistics } from "@/components/ChildSessionsStatistics";
 import { ChildInfoDetailsDialog } from "@/components/ChildInfoDetailsDialog";
 import { ProtocolDynamicsDetailsDialog } from "@/components/ProtocolDynamicsDetailsDialog";
+import { AddChildDialog } from "@/components/AddChildDialog";
 import Preloader from "@/components/Preloader";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -84,7 +85,7 @@ export default function ChildProfile() {
   const [childData, setChildData] = useState<ChildData | null>(null);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [showDynamicsDialog, setShowDynamicsDialog] = useState(false);
-
+  const [showAddChildDialog, setShowAddChildDialog] = useState(false);
   const childName = searchParams.get("name");
   const organizationId = searchParams.get("org");
   const returnUrl = searchParams.get("returnUrl") || "/app";
@@ -243,15 +244,23 @@ export default function ChildProfile() {
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <Button
-            variant="outline"
-            onClick={() => goBack(returnUrl)}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Назад
-          </Button>
-
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => goBack(returnUrl)}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Назад
+            </Button>
+            <Button
+              onClick={() => setShowAddChildDialog(true)}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Добавить ребёнка
+            </Button>
+          </div>
           {/* Фильтрация по периодам */}
           <div className="flex items-center gap-2">
             <Popover>
@@ -408,6 +417,11 @@ export default function ChildProfile() {
         open={showDynamicsDialog}
         onOpenChange={setShowDynamicsDialog}
         protocols={protocols}
+      />
+
+      <AddChildDialog
+        open={showAddChildDialog}
+        onOpenChange={setShowAddChildDialog}
       />
     </div>
   );
