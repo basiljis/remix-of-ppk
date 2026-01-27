@@ -3,14 +3,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineProvider } from "@/contexts/OfflineContext";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 // Preloader MUST be imported synchronously to avoid infinite loading state
 import Preloader from "@/components/Preloader";
-
-// Lazy load UI components to reduce initial bundle
-const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
-const Sonner = lazy(() => import("@/components/ui/sonner").then(m => ({ default: m.Toaster })));
-const TooltipProvider = lazy(() => import("@/components/ui/tooltip").then(m => ({ default: m.TooltipProvider })));
-const ThemeProvider = lazy(() => import("@/components/ui/theme-provider").then(m => ({ default: m.ThemeProvider })));
 
 // Lazy load route components for better FCP
 const Index = lazy(() => import("./pages/Index"));
