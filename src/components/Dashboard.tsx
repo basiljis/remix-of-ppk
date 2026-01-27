@@ -429,7 +429,6 @@ export const Dashboard = () => {
             {/* Фильтр по организации - только для админов и рег. операторов */}
             {!isOrgLevel && (
               <div>
-                <Label>Образовательная организация</Label>
                 <OrganizationSelector 
                   value={eduOrgFilter} 
                   onChange={setEduOrgFilter} 
