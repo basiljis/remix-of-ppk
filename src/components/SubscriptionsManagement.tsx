@@ -880,38 +880,39 @@ export const SubscriptionsManagement = () => {
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`sub-duration-${user.id}`}>
+                                {user.subscription_status === "none" ? "Срок подписки" : "Продлить на"}
+                              </Label>
+                              <Select 
+                                defaultValue="1"
+                                onValueChange={(value) => {
+                                  const selectEl = document.getElementById(`sub-duration-value-${user.id}`) as HTMLInputElement;
+                                  if (selectEl) selectEl.value = value;
+                                }}
+                              >
+                                <SelectTrigger id={`sub-duration-${user.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="1">1 месяц</SelectItem>
+                                  <SelectItem value="3">3 месяца</SelectItem>
+                                  <SelectItem value="6">6 месяцев</SelectItem>
+                                  <SelectItem value="12">12 месяцев (1 год)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <input type="hidden" id={`sub-duration-value-${user.id}`} defaultValue="1" />
+                            </div>
                             {user.subscription_status === "none" && (
-                              <>
-                                <div className="space-y-2">
-                                  <Label htmlFor="sub-type">Тип подписки</Label>
-                                  <Select 
-                                    defaultValue="monthly"
-                                    onValueChange={(value) => {
-                                      // Store in local state if needed
-                                      const selectEl = document.getElementById("sub-type-value") as HTMLInputElement;
-                                      if (selectEl) selectEl.value = value;
-                                    }}
-                                  >
-                                    <SelectTrigger id="sub-type">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="monthly">Месячная (1 месяц)</SelectItem>
-                                      <SelectItem value="yearly">Годовая (12 месяцев)</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <input type="hidden" id="sub-type-value" defaultValue="monthly" />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="sub-amount">Сумма (₽)</Label>
-                                  <Input
-                                    id="sub-amount"
-                                    type="number"
-                                    defaultValue={1000}
-                                    min={0}
-                                  />
-                                </div>
-                              </>
+                              <div className="space-y-2">
+                                <Label htmlFor={`sub-amount-${user.id}`}>Сумма (₽)</Label>
+                                <Input
+                                  id={`sub-amount-${user.id}`}
+                                  type="number"
+                                  defaultValue={1000}
+                                  min={0}
+                                />
+                              </div>
                             )}
                             <div>
                               <label className="text-sm font-medium mb-2 block">
@@ -927,15 +928,16 @@ export const SubscriptionsManagement = () => {
                             <div className="flex gap-2">
                               <Button
                                 onClick={() => {
-                                  const subTypeEl = document.getElementById("sub-type-value") as HTMLInputElement;
-                                  const amountEl = document.getElementById("sub-amount") as HTMLInputElement;
-                                  const subType = subTypeEl?.value || user.subscription_type || "monthly";
+                                  const durationEl = document.getElementById(`sub-duration-value-${user.id}`) as HTMLInputElement;
+                                  const amountEl = document.getElementById(`sub-amount-${user.id}`) as HTMLInputElement;
+                                  const months = parseInt(durationEl?.value || "1", 10);
+                                  const subType = months >= 12 ? "yearly" : "monthly";
                                   const amount = amountEl?.value ? parseFloat(amountEl.value) : (user.amount || 1000);
                                   
                                   activateSubscription.mutate({
                                     id: user.id,
                                     userId: user.user_id,
-                                    months: subType === "monthly" ? 1 : 12,
+                                    months: months,
                                     subscriptionType: subType,
                                     amount: amount,
                                   });
