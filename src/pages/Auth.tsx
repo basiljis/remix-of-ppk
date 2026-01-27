@@ -658,34 +658,57 @@ const Auth = () => {
 
         {/* Right side - Feature blocks */}
         <div className="hidden md:flex flex-col relative bg-gradient-to-br from-primary to-primary/80 p-8 justify-center">
-          <div className="space-y-6">
-            {/* Protocol PPK Block */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="space-y-5">
+            {/* Child Card Block - Core feature */}
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white">Карточка ребёнка</h3>
+                  <span className="text-xs text-white/60 bg-white/10 px-2 py-0.5 rounded-full">Ядро системы</span>
+                </div>
+              </div>
+              <p className="text-white/80 text-sm leading-relaxed mb-3">
+                Единый профиль ребёнка: история протоколов, динамика развития, посещаемость занятий, рекомендации и сравнительный анализ.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">📊 Динамика</span>
+                <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">📈 Сравнения</span>
+                <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">📋 Рекомендации</span>
+              </div>
+            </div>
+
+            {/* Protocol PPK Block */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-white">Протокол ППк</h3>
+                <h3 className="text-lg font-semibold text-white">Протокол ППк</h3>
               </div>
               <p className="text-white/80 text-sm leading-relaxed">
-                Система управления протоколами психолого-педагогического консилиума. Автоматизированное формирование заключений, рекомендаций и отчетов.
+                Автоматизированное формирование протоколов консилиума, заключений и рекомендаций.
               </p>
             </div>
 
             {/* Time Tracking Block */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-white">Журнал учёта рабочего времени</h3>
+                <h3 className="text-lg font-semibold text-white">Журнал рабочего времени</h3>
               </div>
               <p className="text-white/80 text-sm leading-relaxed">
-                Планирование занятий, учёт рабочего времени специалистов. Календарь сессий, контроль нагрузки и статистика эффективности.
+                Календарь занятий, учёт рабочего времени, контроль нагрузки и статистика специалистов.
               </p>
             </div>
 
