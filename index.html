@@ -50,10 +50,12 @@
     <!-- Preload hint for main entry point to start loading earlier -->
     <link rel="modulepreload" href="/src/main.tsx" />
     
-    <!-- Yandex.Metrika counter (deferred to reduce unused JS) -->
+    <!-- Third-party scripts loaded only after user interaction to reduce unused JS -->
     <script type="text/javascript">
       (function(w, d) {
-        // Suppress Yandex Metrika WebSocket errors from console
+        var loaded = { ym: false, talk: false };
+        
+        // Suppress Yandex Metrika WebSocket errors
         var originalError = w.console.error;
         w.console.error = function() {
           var args = Array.prototype.slice.call(arguments);
@@ -64,48 +66,51 @@
         };
         
         w.ym = w.ym || function(){ (w.ym.a = w.ym.a || []).push(arguments) }; w.ym.l = 1*new Date();
-        function loadYandex(){
-          if (d.getElementById('ym-tag-loaded')) return;
+        
+        function loadYandex() {
+          if (loaded.ym || d.getElementById('ym-tag-loaded')) return;
+          loaded.ym = true;
           var s = d.createElement('script'); s.async = true; s.id='ym-tag-loaded';
           s.src = 'https://mc.yandex.ru/metrika/tag.js?id=103841131';
-          s.onerror = function() { /* Silently handle script load errors */ };
+          s.onerror = function() {};
           var a = d.getElementsByTagName('script')[0]; a.parentNode.insertBefore(s, a);
           w.ym(103841131, 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: 'dataLayer', accurateTrackBounce: true, trackLinks: true });
         }
-        if ('requestIdleCallback' in w) {
-          w.requestIdleCallback(loadYandex, { timeout: 5000 });
-        } else {
-          w.addEventListener('load', loadYandex);
+        
+        w.TalkMe = w.TalkMe || function(){(w.TalkMe.q = w.TalkMe.q || []).push(arguments);};
+        
+        function loadTalkMe(i) {
+          if (loaded.talk || d.getElementById('supportScript')) return;
+          loaded.talk = true;
+          var s = d.createElement('script');
+          s.id = 'supportScript'; s.async = true;
+          var id = '5407bca1779c49fb67e6e3487d5e3712';
+          s.src = (!i ? 'https://lcab.talk-me.ru/support/support.js' : 'https://static.site-chat.me/support/support.int.js') + '?h=' + id;
+          s.onerror = i ? undefined : function(){loadTalkMe(true)};
+          (d.head || d.body).appendChild(s);
         }
+        
+        function loadAll() {
+          loadYandex();
+          loadTalkMe(false);
+          removeListeners();
+        }
+        
+        function removeListeners() {
+          ['click','scroll','touchstart','keydown','mousemove'].forEach(function(e) {
+            d.removeEventListener(e, loadAll, { passive: true, capture: true });
+          });
+        }
+        
+        // Load on first user interaction OR after 8 seconds (whichever comes first)
+        ['click','scroll','touchstart','keydown','mousemove'].forEach(function(e) {
+          d.addEventListener(e, loadAll, { passive: true, capture: true, once: true });
+        });
+        
+        // Fallback: load after 8 seconds if no interaction
+        setTimeout(loadAll, 8000);
       })(window, document);
     </script>
-    <!-- /Yandex.Metrika counter -->
-    
-    <!-- Begin Talk-Me (lazy loaded) {literal} -->
-    <script>
-        (function(d, w, m) {
-            w[m] = w[m] ? w[m] : function(){(w[m].q = w[m].q ? w[m].q : []).push(arguments);};
-            
-            function loadTalkMe(i) {
-                if (d.getElementById('supportScript')) return;
-                var s = d.createElement('script');
-                s.id = 'supportScript';
-                s.async = true;
-                var id = '5407bca1779c49fb67e6e3487d5e3712';
-                s.src = (!i ? 'https://lcab.talk-me.ru/support/support.js' : 'https://static.site-chat.me/support/support.int.js') + '?h=' + id;
-                s.onerror = i ? undefined : function(){loadTalkMe(true)};
-                (d.head ? d.head : d.body).appendChild(s);
-            }
-            
-            // Defer loading until after main content
-            if ('requestIdleCallback' in w) {
-                w.requestIdleCallback(function() { loadTalkMe(false); }, { timeout: 4000 });
-            } else {
-                w.addEventListener('load', function() { loadTalkMe(false); });
-            }
-        })(document, window, 'TalkMe');
-    </script>
-    <!-- {/literal} End Talk-Me -->
     
     <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/aM3YuAo7asbqctPMLwHxfxEea642/uploads/1762158170172-unnamed-4.png">
     
