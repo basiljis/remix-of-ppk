@@ -81,5 +81,9 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 500,
     // Target modern browsers for smaller output
     target: 'es2020',
+    // Generate modulepreload links for better loading
+    modulePreload: {
+      polyfill: true,
+    },
   },
 }));
