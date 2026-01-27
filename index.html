@@ -18,13 +18,13 @@
       /* Critical above-the-fold styles */
       *,*::before,*::after{box-sizing:border-box;border-width:0;border-style:solid}
       html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:system-ui,-apple-system,sans-serif}
-      body{margin:0;line-height:inherit;background-color:hsl(0 0% 100%);color:hsl(240 10% 3.9%)}
-      @media(prefers-color-scheme:dark){body{background-color:hsl(240 10% 3.9%);color:hsl(0 0% 98%)}}
+      body{margin:0;line-height:inherit;background-color:hsl(210, 40%, 98%);color:hsl(210, 100%, 15%)}
+      @media(prefers-color-scheme:dark){body{background-color:hsl(210, 15%, 8%);color:hsl(210, 40%, 98%)}}
       #root{min-height:100vh;display:flex;flex-direction:column}
       /* Preloader styles */
       .preloader{display:flex;align-items:center;justify-content:center;min-height:100vh;background:inherit}
-      .preloader-spinner{width:40px;height:40px;border:3px solid hsl(240 5.9% 90%);border-top-color:hsl(240 5.9% 10%);border-radius:50%;animation:spin 1s linear infinite}
-      @media(prefers-color-scheme:dark){.preloader-spinner{border-color:hsl(240 3.7% 15.9%);border-top-color:hsl(0 0% 98%)}}
+      .preloader-spinner{width:40px;height:40px;border:3px solid hsl(210, 30%, 85%);border-top-color:hsl(210, 100%, 20%);border-radius:50%;animation:spin 1s linear infinite}
+      @media(prefers-color-scheme:dark){.preloader-spinner{border-color:hsl(210, 15%, 20%);border-top-color:hsl(210, 80%, 55%)}}
       @keyframes spin{to{transform:rotate(360deg)}}
       /* LCP optimization: ensure text is visible during webfont load */
       body{font-display:swap}
