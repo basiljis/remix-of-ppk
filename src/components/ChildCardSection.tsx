@@ -12,13 +12,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { 
   User, Calendar, School, Search, Filter, CalendarIcon, 
-  CheckCircle, XCircle, TrendingUp, FileText, Users
+  CheckCircle, XCircle, TrendingUp, FileText, Users, Plus, ExternalLink
 } from "lucide-react";
 import { ChildProfileRadarChart } from "@/components/ChildProfileRadarChart";
 import { ChildProfileBarChart } from "@/components/ChildProfileBarChart";
 import { ChildProfileTable } from "@/components/ChildProfileTable";
 import { ChildProfileRecommendations } from "@/components/ChildProfileRecommendations";
 import { ChildProfileComparison } from "@/components/ChildProfileComparison";
+import { ChildInfoDetailsDialog } from "@/components/ChildInfoDetailsDialog";
+import { ProtocolDynamicsDetailsDialog } from "@/components/ProtocolDynamicsDetailsDialog";
+import { AddChildDialog } from "@/components/AddChildDialog";
+import { ChildSessionsStatistics } from "@/components/ChildSessionsStatistics";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -60,6 +64,9 @@ export function ChildCardSection() {
   const [schoolYearFilter, setSchoolYearFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [showDynamicsDialog, setShowDynamicsDialog] = useState(false);
+  const [showAddChildDialog, setShowAddChildDialog] = useState(false);
   
   const isOrgLevel = roles.some(r => ["user", "organization_admin", "director"].includes(r.role));
   const isRegionalOperator = roles.some(r => r.role === "regional_operator");
@@ -169,30 +176,49 @@ export function ChildCardSection() {
     enabled: !!selectedChild,
   });
 
-  // Fetch sessions/attendance for selected child
-  const { data: attendanceStats } = useQuery({
-    queryKey: ["child-card-attendance", selectedChild?.id],
+  // Fetch sessions/attendance for selected child with detailed data
+  const { data: sessionData = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ["child-card-sessions", selectedChild?.id],
     queryFn: async () => {
-      if (!selectedChild || selectedChild.id.startsWith("protocol-")) return null;
+      if (!selectedChild || selectedChild.id.startsWith("protocol-")) return [];
 
       const { data } = await supabase
         .from("session_children")
-        .select("attended")
+        .select(`
+          attended,
+          sessions:session_id (
+            id,
+            scheduled_date,
+            start_time,
+            end_time,
+            actual_duration_minutes,
+            topic,
+            session_types (id, name),
+            session_statuses (id, name, color),
+            profiles:specialist_id (id, full_name)
+          )
+        `)
         .eq("child_id", selectedChild.id);
 
-      if (!data || data.length === 0) return null;
+      if (!data) return [];
       
-      const total = data.length;
-      const attended = data.filter(a => a.attended).length;
-      return {
-        total,
-        attended,
-        missed: total - attended,
-        percentage: Math.round((attended / total) * 100)
-      };
+      return data
+        .filter((item: any) => item.sessions)
+        .map((item: any) => ({
+          attended: item.attended,
+          session: item.sessions
+        }));
     },
     enabled: !!selectedChild && !selectedChild.id.startsWith("protocol-"),
   });
+
+  // Calculate attendance stats from session data
+  const attendanceStats = sessionData.length > 0 ? {
+    total: sessionData.length,
+    attended: sessionData.filter(s => s.attended).length,
+    missed: sessionData.filter(s => !s.attended).length,
+    percentage: Math.round((sessionData.filter(s => s.attended).length / sessionData.length) * 100)
+  } : null;
 
   // Filter protocols by date range and school year
   const filteredProtocols = protocols.filter(p => {
@@ -239,8 +265,8 @@ export function ChildCardSection() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with Add Button */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <User className="h-6 w-6" />
@@ -250,6 +276,10 @@ export function ChildCardSection() {
             Полная информация о развитии и посещаемости ребенка
           </p>
         </div>
+        <Button onClick={() => setShowAddChildDialog(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Добавить ребёнка
+        </Button>
       </div>
 
       {/* Child Selection */}
@@ -311,8 +341,17 @@ export function ChildCardSection() {
         <>
           {/* Child Info Card */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl">Информация о ребенке</CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowInfoDialog(true)}
+                className="gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Подробнее
+              </Button>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-4">
               <div className="flex items-center gap-3">
@@ -504,51 +543,8 @@ export function ChildCardSection() {
             )}
           </div>
 
-          {/* Attendance Details */}
-          {attendanceStats && attendanceStats.total > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Посещаемость занятий</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <CalendarIcon className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="text-2xl font-bold">{attendanceStats.total}</p>
-                      <p className="text-sm text-muted-foreground">Всего занятий</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-green-700">{attendanceStats.attended}</p>
-                      <p className="text-sm text-muted-foreground">Присутствовал</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
-                    <XCircle className="h-8 w-8 text-red-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-red-700">{attendanceStats.missed}</p>
-                      <p className="text-sm text-muted-foreground">Пропустил</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Посещаемость</span>
-                    <span>{attendanceStats.percentage}%</span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-green-500 rounded-full transition-all"
-                      style={{ width: `${attendanceStats.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Session Statistics from Schedule (detailed) */}
+          <ChildSessionsStatistics sessions={sessionData} loading={sessionsLoading} />
 
           {/* Protocols Table */}
           {protocolsLoading ? (
@@ -559,7 +555,7 @@ export function ChildCardSection() {
             </Card>
           ) : completedProtocols.length > 0 ? (
             <>
-              <ChildProfileTable protocols={completedProtocols} />
+              <ChildProfileTable protocols={completedProtocols} onShowDetails={() => setShowDynamicsDialog(true)} />
 
               {/* Charts */}
               <div className="grid gap-6 md:grid-cols-2">
@@ -607,6 +603,43 @@ export function ChildCardSection() {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialogs */}
+      {selectedChild && (
+        <>
+          <ChildInfoDetailsDialog
+            open={showInfoDialog}
+            onOpenChange={setShowInfoDialog}
+            protocols={completedProtocols}
+            childData={{
+              id: selectedChild.id,
+              full_name: selectedChild.full_name,
+              birth_date: selectedChild.birth_date || undefined,
+              gender: selectedChild.gender || undefined,
+              education_level: selectedChild.education_level || undefined,
+              parent_name: selectedChild.parent_name || undefined,
+              parent_phone: selectedChild.parent_phone || undefined,
+              parent_email: selectedChild.parent_email || undefined,
+            }}
+            childInfo={{
+              name: selectedChild.full_name,
+              birthDate: selectedChild.birth_date || "",
+              organization: "Текущая организация"
+            }}
+          />
+
+          <ProtocolDynamicsDetailsDialog
+            open={showDynamicsDialog}
+            onOpenChange={setShowDynamicsDialog}
+            protocols={completedProtocols}
+          />
+        </>
+      )}
+
+      <AddChildDialog
+        open={showAddChildDialog}
+        onOpenChange={setShowAddChildDialog}
+      />
     </div>
   );
 }
