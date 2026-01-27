@@ -292,8 +292,25 @@ const Index = () => {
               <SidebarTrigger />
               <div className="hidden md:block">
                 <h1 className="text-lg font-semibold">Система Протоколов ППК</h1>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.full_name} - {profile?.positions?.name}
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <span>{profile?.full_name} — {profile?.positions?.name}</span>
+                  {roles.length > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="text-muted-foreground/50">•</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        isAdmin ? "bg-destructive/10 text-destructive" :
+                        isDirector ? "bg-orange-500/10 text-orange-600 dark:text-orange-400" :
+                        isOrgAdmin ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
+                        "bg-muted text-muted-foreground"
+                      }`}>
+                        {isAdmin ? "Администратор" :
+                         isDirector ? "Руководитель" :
+                         isOrgAdmin ? "Админ организации" :
+                         roles.some(r => r.role === "regional_operator") ? "Региональный оператор" :
+                         "Специалист"}
+                      </span>
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
