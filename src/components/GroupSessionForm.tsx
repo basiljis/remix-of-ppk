@@ -370,7 +370,8 @@ export function GroupSessionForm({
                   >
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={() => toggleChild(child.id)}
+                      onCheckedChange={() => {}}
+                      onClick={(e) => e.stopPropagation()}
                     />
                     <span className="flex-1">{child.full_name}</span>
                     {age !== null && (
