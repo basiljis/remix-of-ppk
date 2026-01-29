@@ -46,17 +46,20 @@ const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
-  { 
-    id: "instructions", 
-    label: "Инструкции", 
-    icon: BookOpen,
-    subItems: [
-      { id: "instructions-work", label: "По работе" },
-      { id: "instructions-custom", label: "Пользовательские" },
-      { id: "instructions-legal", label: "НПБ" },
-    ]
-  },
 ];
+
+// Instructions module - separate highlighted section with subsections by module
+const instructionsItem = { 
+  id: "instructions-module", 
+  label: "Инструкции", 
+  icon: BookOpen,
+  subItems: [
+    { id: "instructions-ppk", label: "ППк" },
+    { id: "instructions-schedule", label: "Расписание" },
+    { id: "instructions-organization", label: "Организация" },
+    { id: "instructions-legal", label: "НПБ" },
+  ]
+};
 
 // Separate child card item - highlighted as core feature
 const childCardItem = { id: "child-card", label: "Карточка ребенка", icon: Users };
@@ -236,9 +239,16 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
     refetchInterval: 60000,
   });
 
-  const renderMenuItem = (item: typeof menuItems[0], isActive: boolean) => {
+  type MenuItem = {
+    id: string;
+    label: string;
+    icon: any;
+    subItems?: { id: string; label: string }[];
+  };
+
+  const renderMenuItem = (item: MenuItem, isActive: boolean) => {
     const Icon = item.icon;
-    const hasSubItems = 'subItems' in item && item.subItems;
+    const hasSubItems = item.subItems && item.subItems.length > 0;
     
     if (hasSubItems) {
       return (
@@ -377,6 +387,85 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                 const isActive = activeTab === item.id || activeTab.startsWith(item.id + "-");
                 return renderMenuItem(item, isActive);
               })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Instructions module - separate section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center gap-2">
+            <BookOpen className="h-3 w-3" />
+            Справка
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {(() => {
+                const isActive = instructionsItem.subItems.some(sub => activeTab === sub.id);
+                
+                return (
+                  <Collapsible
+                    key={instructionsItem.id}
+                    asChild
+                    defaultOpen={isActive}
+                    className="group/collapsible"
+                  >
+                    <SidebarMenuItem>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              className={`w-full justify-start gap-3 ${
+                                isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                              }`}
+                            >
+                              <instructionsItem.icon className="h-4 w-4" />
+                              {state !== "collapsed" && (
+                                <>
+                                  <span>{instructionsItem.label}</span>
+                                  <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                </>
+                              )}
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                        </TooltipTrigger>
+                        {state === "collapsed" && (
+                          <TooltipContent side="right" className="flex flex-col gap-1">
+                            <p className="font-medium">{instructionsItem.label}</p>
+                            {instructionsItem.subItems.map((subItem) => (
+                              <button
+                                key={subItem.id}
+                                onClick={() => onTabChange(subItem.id)}
+                                className="text-left text-sm hover:text-primary transition-colors"
+                              >
+                                • {subItem.label}
+                              </button>
+                            ))}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {instructionsItem.subItems.map((subItem) => {
+                            const isSubActive = activeTab === subItem.id;
+                            return (
+                              <SidebarMenuSubItem key={subItem.id}>
+                                <SidebarMenuSubButton
+                                  onClick={() => onTabChange(subItem.id)}
+                                  className={
+                                    isSubActive ? "bg-primary/10 text-primary font-medium" : ""
+                                  }
+                                >
+                                  <span>{subItem.label}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                );
+              })()}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
