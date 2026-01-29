@@ -18,39 +18,43 @@ const menuItems = [
   { id: "protocol", label: "Протокол ППк", icon: ClipboardList },
   { id: "list", label: "Список ППк", icon: Database },
   { id: "dashboard", label: "Дашборд", icon: BarChart3 },
-  { 
-    id: "instructions", 
-    label: "Инструкции", 
-    icon: BookOpen,
-    subItems: [
-      { id: "instructions-work", label: "По работе" },
-      { id: "instructions-custom", label: "Пользовательские" },
-      { id: "instructions-legal", label: "НПБ" },
-    ]
-  },
-  { 
-    id: "administration", 
-    label: "Администрирование", 
-    icon: Settings,
-    subItems: [
-      { id: "administration-access-requests", label: "Заявки" },
-      { id: "administration-commercial-offers", label: "КП заявки" },
-      { id: "administration-users", label: "Пользователи" },
-      { id: "administration-organizations", label: "Организации" },
-      { id: "administration-subscriptions", label: "Подписки" },
-      { id: "administration-analytics", label: "Аналитика" },
-      { id: "administration-payment-logs", label: "Логи платежей" },
-      { id: "administration-checklist", label: "Чеклист" },
-      { id: "administration-instructions", label: "Инструкции" },
-      { id: "administration-statistics", label: "Статистика" },
-      { id: "administration-school-years", label: "Учебные годы" },
-      { id: "administration-email-logs", label: "Логи Email" },
-      { id: "administration-auth-logs", label: "Логи авторизации" },
-      { id: "administration-error-logs", label: "Логи ошибок" },
-      { id: "administration-change-history", label: "История изменений" },
-    ]
-  },
 ];
+
+// Instructions module - separate section
+const instructionsItem = { 
+  id: "instructions", 
+  label: "Инструкции", 
+  icon: BookOpen,
+  subItems: [
+    { id: "instructions-ppk", label: "ППк" },
+    { id: "instructions-schedule", label: "Расписание" },
+    { id: "instructions-organization", label: "Организация" },
+    { id: "instructions-legal", label: "НПБ" },
+  ]
+};
+
+const adminItems = { 
+  id: "administration", 
+  label: "Администрирование", 
+  icon: Settings,
+  subItems: [
+    { id: "administration-access-requests", label: "Заявки" },
+    { id: "administration-commercial-offers", label: "КП заявки" },
+    { id: "administration-users", label: "Пользователи" },
+    { id: "administration-organizations", label: "Организации" },
+    { id: "administration-subscriptions", label: "Подписки" },
+    { id: "administration-analytics", label: "Аналитика" },
+    { id: "administration-payment-logs", label: "Логи платежей" },
+    { id: "administration-checklist", label: "Чеклист" },
+    { id: "administration-instructions", label: "Инструкции" },
+    { id: "administration-statistics", label: "Статистика" },
+    { id: "administration-school-years", label: "Учебные годы" },
+    { id: "administration-email-logs", label: "Логи Email" },
+    { id: "administration-auth-logs", label: "Логи авторизации" },
+    { id: "administration-error-logs", label: "Логи ошибок" },
+    { id: "administration-change-history", label: "История изменений" },
+  ]
+};
 
 export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMenuProps) => {
   const [open, setOpen] = useState(false);
@@ -98,54 +102,13 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMen
 
           <p className="text-xs font-medium text-muted-foreground px-3">Система ППК</p>
           {menuItems.map((item) => {
-            if (item.id === "administration" && !isAdmin) return null;
-            
             const Icon = item.icon;
-            const isActive = activeTab === item.id || activeTab.startsWith(item.id + "-");
-            const hasSubItems = 'subItems' in item && item.subItems;
-            
-            if (hasSubItems) {
-              return (
-                <Collapsible
-                  key={item.id}
-                  defaultOpen={isActive}
-                  className="space-y-1"
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant={isActive ? "default" : "ghost"}
-                      className="w-full justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </div>
-                      <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-1 pl-4">
-                    {item.subItems.map((subItem) => {
-                      const isSubActive = activeTab === subItem.id;
-                      return (
-                        <Button
-                          key={subItem.id}
-                          variant={isSubActive ? "secondary" : "ghost"}
-                          className="w-full justify-start text-sm"
-                          onClick={() => handleTabClick(subItem.id)}
-                        >
-                          {subItem.label}
-                        </Button>
-                      );
-                    })}
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            }
+            const isActive = activeTab === item.id;
             
             return (
               <Button
                 key={item.id}
-                variant={activeTab === item.id ? "default" : "ghost"}
+                variant={isActive ? "default" : "ghost"}
                 className="w-full justify-start gap-3"
                 onClick={() => handleTabClick(item.id)}
               >
@@ -154,6 +117,83 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMen
               </Button>
             );
           })}
+
+          <Separator className="my-3" />
+
+          {/* Instructions section */}
+          <p className="text-xs font-medium text-muted-foreground px-3">Справка</p>
+          <Collapsible
+            defaultOpen={activeTab.startsWith("instructions-")}
+            className="space-y-1"
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                variant={activeTab.startsWith("instructions-") ? "default" : "ghost"}
+                className="w-full justify-between gap-3"
+              >
+                <div className="flex items-center gap-3">
+                  <instructionsItem.icon className="h-4 w-4" />
+                  {instructionsItem.label}
+                </div>
+                <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-1 pl-4">
+              {instructionsItem.subItems.map((subItem) => {
+                const isSubActive = activeTab === subItem.id;
+                return (
+                  <Button
+                    key={subItem.id}
+                    variant={isSubActive ? "secondary" : "ghost"}
+                    className="w-full justify-start text-sm"
+                    onClick={() => handleTabClick(subItem.id)}
+                  >
+                    {subItem.label}
+                  </Button>
+                );
+              })}
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Admin section */}
+          {isAdmin && (
+            <>
+              <Separator className="my-3" />
+              <p className="text-xs font-medium text-muted-foreground px-3">Администрирование</p>
+              <Collapsible
+                defaultOpen={activeTab.startsWith("administration-")}
+                className="space-y-1"
+              >
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant={activeTab.startsWith("administration-") ? "default" : "ghost"}
+                    className="w-full justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <adminItems.icon className="h-4 w-4" />
+                      {adminItems.label}
+                    </div>
+                    <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-1 pl-4">
+                  {adminItems.subItems.map((subItem) => {
+                    const isSubActive = activeTab === subItem.id;
+                    return (
+                      <Button
+                        key={subItem.id}
+                        variant={isSubActive ? "secondary" : "ghost"}
+                        className="w-full justify-start text-sm"
+                        onClick={() => handleTabClick(subItem.id)}
+                      >
+                        {subItem.label}
+                      </Button>
+                    );
+                  })}
+                </CollapsibleContent>
+              </Collapsible>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

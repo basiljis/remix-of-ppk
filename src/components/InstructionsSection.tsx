@@ -21,7 +21,10 @@ import {
   HelpCircle,
   CreditCard,
   Building2,
-  Clock
+  Clock,
+  Calendar,
+  ClipboardList,
+  Building
 } from "lucide-react";
 import { useInstructions } from "@/hooks/useInstructions";
 import { Button } from "@/components/ui/button";
@@ -32,22 +35,21 @@ interface InstructionsSectionProps {
 
 // Типы контента для визуальных подсказок
 const contentTypes = {
-  step: { icon: Target, color: "text-blue-500", bg: "bg-blue-50 border-blue-200" },
-  tip: { icon: Lightbulb, color: "text-yellow-500", bg: "bg-yellow-50 border-yellow-200" },
-  warning: { icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50 border-red-200" },
-  success: { icon: CheckCircle, color: "text-green-500", bg: "bg-green-50 border-green-200" },
-  info: { icon: HelpCircle, color: "text-purple-500", bg: "bg-purple-50 border-purple-200" },
+  step: { icon: Target, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800" },
+  tip: { icon: Lightbulb, color: "text-yellow-500", bg: "bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800" },
+  warning: { icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800" },
+  success: { icon: CheckCircle, color: "text-green-500", bg: "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" },
+  info: { icon: HelpCircle, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800" },
 };
 
-export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSectionProps) => {
+export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectionProps) => {
   const { instructions: customInstructions, loading: customLoading } = useInstructions('custom');
-  const { instructions: workInstructions, loading: workLoading } = useInstructions('work');
   
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // Структурированные данные для инструкций
-  const workInstructionsData = [
+  // Инструкции по ППк
+  const ppkInstructionsData = [
     {
       id: "getting-started",
       category: "Начало работы",
@@ -72,7 +74,7 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
 • Проверьте все пункты диагностических процедур
 • Отметьте выполненные задачи
 • Используйте статистику для контроля прогресса`,
-          note: "Чеклисты загружаются из базы данных Supabase и адаптируются под выбранный уровень.",
+          note: "Чеклисты загружаются из базы данных и адаптируются под выбранный уровень.",
           noteType: "success"
         },
         {
@@ -111,81 +113,285 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
       ]
     },
     {
-      id: "admin-guide",
-      category: "Для администраторов",
-      icon: Shield,
+      id: "export",
+      category: "Экспорт и отчеты",
+      icon: FileText,
       items: [
         {
-          title: "Управление доступом",
+          title: "Экспорт протоколов",
           type: "step",
-          content: `В разделе "Администрирование" → "Заявки" рассматривайте заявки пользователей на доступ к системе. 
-Вы можете одобрить заявку с назначением роли (Пользователь, Региональный оператор, Администратор) 
-или отклонить с указанием причины. Используйте фильтры по ролям, статусам и организациям для быстрого поиска.`,
+          content: `Система поддерживает экспорт протоколов в различных форматах:
+• PDF - для печати и архивирования
+• XLS - для анализа данных
+• Используйте кнопку "Экспорт" в списке протоколов`,
         },
         {
-          title: "Управление пользователями",
+          title: "Формирование заключений",
           type: "step",
-          content: `В разделе "Пользователи" вы можете редактировать данные пользователей, изменять их роли, 
-блокировать и разблокировать аккаунты. Используйте фильтры по организациям, должностям и ролям 
-для удобного управления большим количеством пользователей.`,
-        },
-        {
-          title: "Мониторинг системы",
-          type: "info",
-          content: `В разделе "Панель администратора" доступна детальная статистика по авторизациям, заявкам, 
-протоколам, организациям и должностям. Используйте эти данные для анализа активности 
-и планирования развития системы.`,
-        },
-        {
-          title: "Работа с организациями",
-          type: "step",
-          content: `Управляйте списком образовательных организаций через раздел "Организации". 
-Вы можете экспортировать и импортировать данные через XLS файлы, 
-синхронизировать с ЕКИС, добавлять новые организации вручную.`,
-        },
-        {
-          title: "Управление подписками",
-          type: "step",
-          content: `В разделе "Администрирование" → "Подписки" отслеживайте активные подписки пользователей, 
-сроки их действия и историю платежей. Вы можете одобрять заявки на подписку, 
-просматривать детали платежей через ЮКасса, и отправлять уведомления о завершении подписки.`,
-        },
-      ]
-    },
-    {
-      id: "subscriptions",
-      category: "Подписки",
-      icon: CreditCard,
-      items: [
-        {
-          title: "Пробный период",
-          type: "info",
-          content: `Новые пользователи получают 7 дней бесплатного доступа к системе с момента одобрения 
-их заявки на доступ. В течение пробного периода доступны все функции системы: 
-создание протоколов, работа с чеклистами, экспорт документов.`,
-        },
-        {
-          title: "Оформление подписки",
-          type: "step",
-          content: `После окончания пробного периода для продолжения работы необходимо оформить подписку:
-• Перейдите в раздел "Профиль" → "Подписка"
-• Выберите тип подписки (месячная или годовая)
-• Заполните реквизиты организации
-• Оплатите через ЮКасса`,
-        },
-        {
-          title: "Управление подпиской",
-          type: "info",
-          content: `В личном кабинете вы можете:
-• Просмотреть статус текущей подписки
-• Продлить подписку до окончания срока действия
-• Скачать историю платежей
-• Получить закрывающие документы`,
+          content: `После заполнения чеклиста система автоматически формирует заключения и рекомендации на основе выбранных пунктов. Просмотрите и при необходимости отредактируйте текст перед финальным экспортом.`,
         },
       ]
     },
   ];
 
+  // Инструкции по Расписанию
+  const scheduleInstructionsData = [
+    {
+      id: "calendar-basics",
+      category: "Основы работы с календарем",
+      icon: Calendar,
+      items: [
+        {
+          title: "Просмотр расписания",
+          type: "step",
+          content: `Календарь занятий отображает все запланированные сессии:
+• Переключайте вид: день, неделя, месяц
+• Используйте фильтры по типу занятий и статусу
+• Кликните на занятие для просмотра деталей
+• Цветовая кодировка помогает различать типы занятий`,
+        },
+        {
+          title: "Создание занятий",
+          type: "step",
+          content: `Для создания нового занятия:
+• Нажмите на свободный слот в календаре
+• Или используйте кнопку "Новое занятие"
+• Выберите ребенка, тип занятия, время
+• Укажите тему и дополнительные заметки`,
+          note: "Система автоматически проверяет пересечения с другими занятиями.",
+          noteType: "info"
+        },
+        {
+          title: "Перенос и отмена занятий",
+          type: "step",
+          content: `Управление существующими занятиями:
+• Перетащите занятие на другой слот для переноса (drag-and-drop)
+• Используйте контекстное меню для редактирования
+• При отмене укажите причину для статистики
+• Система отправит уведомление родителям`,
+        },
+      ]
+    },
+    {
+      id: "recurring-sessions",
+      category: "Повторяющиеся занятия",
+      icon: Clock,
+      items: [
+        {
+          title: "Создание серии занятий",
+          type: "step",
+          content: `Для регулярных занятий используйте функцию повторения:
+• Выберите частоту: ежедневно, еженедельно, ежемесячно
+• Укажите дни недели для еженедельных занятий
+• Задайте период действия (начало и конец)
+• Все занятия серии создадутся автоматически`,
+        },
+        {
+          title: "Редактирование серии",
+          type: "tip",
+          content: `При изменении повторяющегося занятия вы можете:
+• Изменить только это занятие
+• Изменить все будущие занятия серии
+• Изменить всю серию целиком`,
+          note: "Будьте внимательны при массовых изменениях.",
+          noteType: "warning"
+        },
+      ]
+    },
+    {
+      id: "children-management",
+      category: "Работа с детьми",
+      icon: Users,
+      items: [
+        {
+          title: "Добавление ребенка",
+          type: "step",
+          content: `В разделе "Дети" управляйте списком подопечных:
+• Нажмите "Добавить ребенка"
+• Заполните ФИО, дату рождения, контакты родителей
+• Укажите уровень образования
+• Добавьте заметки о особенностях работы`,
+        },
+        {
+          title: "Привязка к протоколам",
+          type: "info",
+          content: `Дети из расписания автоматически связываются с протоколами ППк. Это позволяет отслеживать историю занятий и динамику развития каждого ребенка.`,
+        },
+        {
+          title: "Статистика по ребенку",
+          type: "tip",
+          content: `Для каждого ребенка доступна статистика:
+• Количество проведенных занятий
+• Процент посещаемости
+• Динамика показателей
+• История изменений`,
+        },
+      ]
+    },
+    {
+      id: "schedule-statistics",
+      category: "Статистика и отчеты",
+      icon: TrendingUp,
+      items: [
+        {
+          title: "Личная статистика",
+          type: "info",
+          content: `Отслеживайте свои показатели:
+• Количество занятий за период
+• Выполнение плана по часам
+• Распределение по типам занятий
+• Сравнение с предыдущими периодами`,
+        },
+        {
+          title: "KPI специалиста",
+          type: "step",
+          content: `Система автоматически считает ключевые показатели:
+• Загрузка относительно ставки
+• Средняя посещаемость
+• Количество отмененных занятий
+• Выполнение индивидуальных планов`,
+        },
+      ]
+    },
+  ];
+
+  // Инструкции по Организации
+  const organizationInstructionsData = [
+    {
+      id: "employees-management",
+      category: "Управление сотрудниками",
+      icon: Users,
+      items: [
+        {
+          title: "Просмотр списка сотрудников",
+          type: "step",
+          content: `В разделе "Сотрудники" отображаются все специалисты организации:
+• Фильтруйте по должностям и статусу
+• Просматривайте контактную информацию
+• Переходите к детальной карточке сотрудника
+• Отслеживайте права доступа каждого`,
+        },
+        {
+          title: "Настройка прав доступа",
+          type: "step",
+          content: `Для каждого сотрудника можно настроить права:
+• Просмотр данных организации
+• Редактирование расписания
+• Доступ к статистике
+• Управление детьми организации`,
+          note: "Права можно изменить в карточке сотрудника.",
+          noteType: "info"
+        },
+        {
+          title: "Добавление нового сотрудника",
+          type: "step",
+          content: `Чтобы добавить сотрудника:
+• Нажмите "Добавить сотрудника"
+• Введите email и данные
+• Выберите должность и роль
+• Настройте начальные права доступа
+• Сотрудник получит приглашение на email`,
+        },
+      ]
+    },
+    {
+      id: "org-schedule",
+      category: "Расписание организации",
+      icon: Calendar,
+      items: [
+        {
+          title: "Общий календарь",
+          type: "info",
+          content: `Директора и администраторы видят календарь всех сотрудников:
+• Переключайтесь между специалистами
+• Сравнивайте загрузку
+• Выявляйте пересечения и конфликты
+• Планируйте замены при необходимости`,
+        },
+        {
+          title: "Нерабочие дни организации",
+          type: "step",
+          content: `В разделе "Нерабочие дни" управляйте выходными:
+• Добавляйте праздничные дни
+• Указывайте санитарные дни
+• Отмечайте отпускные периоды
+• Система автоматически блокирует эти дни для занятий`,
+        },
+        {
+          title: "Запросы на согласование",
+          type: "step",
+          content: `Когда специалист хочет провести занятие в нерабочий день:
+• Создается запрос на согласование
+• Директор получает уведомление
+• После одобрения занятие добавляется в расписание
+• История запросов сохраняется`,
+        },
+      ]
+    },
+    {
+      id: "specialist-rates",
+      category: "Ставки специалистов",
+      icon: CreditCard,
+      items: [
+        {
+          title: "Просмотр ставок",
+          type: "info",
+          content: `В разделе "Ставки специалистов" отображаются:
+• Текущая ставка каждого сотрудника
+• Количество часов по ставке
+• Загрузка относительно ставки
+• История изменений ставок`,
+        },
+        {
+          title: "Изменение ставки",
+          type: "step",
+          content: `Для изменения ставки сотрудника:
+• Откройте карточку в разделе "Ставки"
+• Укажите новое значение (0.25, 0.5, 0.75, 1.0, 1.25 и т.д.)
+• Добавьте комментарий при необходимости
+• Сохраните изменения`,
+          note: "Изменение ставки влияет на расчет KPI и загрузки.",
+          noteType: "warning"
+        },
+      ]
+    },
+    {
+      id: "org-statistics",
+      category: "Статистика организации",
+      icon: TrendingUp,
+      items: [
+        {
+          title: "Общие показатели",
+          type: "info",
+          content: `Статистика организации включает:
+• Общее количество занятий за период
+• Средняя посещаемость
+• Загрузка по специалистам
+• Распределение по типам занятий`,
+        },
+        {
+          title: "KPI сотрудников",
+          type: "step",
+          content: `В разделе "KPI сотрудников" доступны:
+• Выполнение плана каждым специалистом
+• Сравнительный анализ
+• Динамика показателей
+• Экспорт отчетов для руководства`,
+        },
+        {
+          title: "Отчеты для руководства",
+          type: "tip",
+          content: `Формируйте отчеты для учредителя:
+• Выберите период отчета
+• Укажите нужные показатели
+• Экспортируйте в Excel или PDF
+• Добавьте комментарии и пояснения`,
+        },
+      ]
+    },
+  ];
+
+  // Нормативно-правовая база
   const legalInstructionsData = [
     {
       id: "federal-laws",
@@ -258,17 +464,33 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
     },
   ];
 
+  // Выбор данных по текущей вкладке
+  const getCurrentInstructionsData = () => {
+    switch (activeSubTab) {
+      case "ppk":
+        return ppkInstructionsData;
+      case "schedule":
+        return scheduleInstructionsData;
+      case "organization":
+        return organizationInstructionsData;
+      case "legal":
+        return legalInstructionsData;
+      default:
+        return ppkInstructionsData;
+    }
+  };
+
+  const currentData = getCurrentInstructionsData();
+
   // Фильтрация по поисковому запросу
   const filterInstructions = (data: any[]) => {
     if (!searchQuery && selectedCategory === "all") return data;
     
     return data.filter(section => {
-      // Фильтр по категории
       if (selectedCategory !== "all" && section.id !== selectedCategory) {
         return false;
       }
 
-      // Фильтр по поисковому запросу
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const categoryMatch = section.category.toLowerCase().includes(query);
@@ -283,20 +505,44 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
     });
   };
 
-  const filteredWorkInstructions = useMemo(
-    () => filterInstructions(workInstructionsData),
-    [searchQuery, selectedCategory]
+  const filteredInstructions = useMemo(
+    () => filterInstructions(currentData),
+    [searchQuery, selectedCategory, activeSubTab]
   );
 
-  const filteredLegalInstructions = useMemo(
-    () => filterInstructions(legalInstructionsData),
-    [searchQuery, selectedCategory]
-  );
+  const categories = currentData.map(section => ({ id: section.id, name: section.category }));
 
-  // Получение всех категорий для текущей вкладки
-  const categories = activeSubTab === "work" 
-    ? workInstructionsData.map(section => ({ id: section.id, name: section.category }))
-    : legalInstructionsData.map(section => ({ id: section.id, name: section.category }));
+  const getTabTitle = () => {
+    switch (activeSubTab) {
+      case "ppk":
+        return "Инструкции по работе с ППк";
+      case "schedule":
+        return "Инструкции по модулю Расписание";
+      case "organization":
+        return "Инструкции по модулю Организация";
+      case "legal":
+        return "Нормативно-правовая база";
+      default:
+        return "Инструкции";
+    }
+  };
+
+  const getTabIcon = () => {
+    switch (activeSubTab) {
+      case "ppk":
+        return ClipboardList;
+      case "schedule":
+        return Calendar;
+      case "organization":
+        return Building;
+      case "legal":
+        return Scale;
+      default:
+        return BookOpen;
+    }
+  };
+
+  const TabIcon = getTabIcon();
 
   const renderInstructionItem = (item: any) => {
     const typeConfig = contentTypes[item.type as keyof typeof contentTypes] || contentTypes.info;
@@ -313,9 +559,9 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
             </p>
             {item.note && (
               <div className={`mt-3 p-2 rounded text-sm border ${
-                item.noteType === "warning" ? "bg-red-50 border-red-200 text-red-800" :
-                item.noteType === "success" ? "bg-green-50 border-green-200 text-green-800" :
-                "bg-blue-50 border-blue-200 text-blue-800"
+                item.noteType === "warning" ? "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200" :
+                item.noteType === "success" ? "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200" :
+                "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200"
               }`}>
                 {item.note}
               </div>
@@ -340,20 +586,25 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
   return (
     <div className="space-y-6">
       {/* Заголовок */}
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-          Инструкции по работе в системе
-        </h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Полное руководство по организации и проведению психолого-педагогического консилиума
-        </p>
+      <div className="flex items-center gap-4">
+        <div className="p-3 bg-primary/10 rounded-xl">
+          <TabIcon className="h-8 w-8 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold">{getTabTitle()}</h2>
+          <p className="text-muted-foreground">
+            {activeSubTab === "ppk" && "Руководство по организации психолого-педагогического консилиума"}
+            {activeSubTab === "schedule" && "Управление занятиями, детьми и рабочим временем"}
+            {activeSubTab === "organization" && "Управление сотрудниками и показателями организации"}
+            {activeSubTab === "legal" && "Нормативные документы и правовые основы деятельности"}
+          </p>
+        </div>
       </div>
 
       {/* Поиск и фильтры */}
       <Card className="border-2">
         <CardContent className="pt-6">
           <div className="space-y-4">
-            {/* Поисковая строка */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -364,7 +615,6 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
               />
             </div>
 
-            {/* Категории */}
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={selectedCategory === "all" ? "default" : "outline"}
@@ -390,11 +640,7 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
             {(searchQuery || selectedCategory !== "all") && (
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">
-                  Найдено разделов: {
-                    activeSubTab === "work" 
-                      ? filteredWorkInstructions.length 
-                      : filteredLegalInstructions.length
-                  }
+                  Найдено разделов: {filteredInstructions.length}
                 </Badge>
                 <Button
                   variant="ghost"
@@ -412,196 +658,40 @@ export const InstructionsSection = ({ activeSubTab = "work" }: InstructionsSecti
         </CardContent>
       </Card>
 
-      {/* Инструкции по работе */}
-      {activeSubTab === "work" && (
-        <div className="space-y-6">
-          {filteredWorkInstructions.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  По вашему запросу ничего не найдено. Попробуйте изменить условия поиска.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredWorkInstructions.map((section) => {
-              const SectionIcon = section.icon;
-              return (
-                <Card key={section.id} className="overflow-hidden border-2">
-                  <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
-                    <CardTitle className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <SectionIcon className="h-6 w-6 text-primary" />
-                      </div>
-                      <span>{section.category}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      {section.items.map((item) => renderInstructionItem(item))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-
-          {/* Динамические инструкции из БД */}
-          {workInstructions && workInstructions.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookMarked className="h-5 w-5" />
-                  Дополнительные инструкции
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                  {workInstructions.map((instruction, idx) => (
-                    <AccordionItem key={instruction.id} value={`custom-${idx}`}>
-                      <AccordionTrigger className="text-left hover:no-underline">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">Дополнительно</Badge>
-                          {instruction.title}
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        {instruction.content && Array.isArray(instruction.content) && (
-                          <div className="space-y-4">
-                            {instruction.content.map((section: any, sectionIndex: number) => (
-                              <div key={section.id} className="space-y-3">
-                                <h4 className="font-semibold">{section.title}</h4>
-                                {section.content && (
-                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                    {section.content}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {/* Пользовательские инструкции */}
-      {activeSubTab === "custom" && (
-        <div className="space-y-6">
-          {customLoading ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">Загрузка инструкций...</p>
-              </CardContent>
-            </Card>
-          ) : !customInstructions || customInstructions.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Пока нет пользовательских инструкций
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Администратор может добавить инструкции в разделе Администрирование → Инструкции
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            customInstructions.map((instruction) => (
-              <Card key={instruction.id} className="overflow-hidden border-2">
+      {/* Контент */}
+      <div className="space-y-6">
+        {filteredInstructions.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">
+                По вашему запросу ничего не найдено. Попробуйте изменить условия поиска.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredInstructions.map((section) => {
+            const SectionIcon = section.icon;
+            return (
+              <Card key={section.id} className="overflow-hidden border-2">
                 <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
                   <CardTitle className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
-                      <BookMarked className="h-6 w-6 text-primary" />
+                      <SectionIcon className="h-6 w-6 text-primary" />
                     </div>
-                    <span>{instruction.title}</span>
+                    <span>{section.category}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <Accordion type="single" collapsible className="w-full">
-                    {instruction.content && Array.isArray(instruction.content) && instruction.content.map((section: any, idx: number) => (
-                      <AccordionItem key={section.id || idx} value={`section-${idx}`}>
-                        <AccordionTrigger className="text-left hover:no-underline">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                            {section.title}
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-4">
-                            {section.content && (
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                                {section.content}
-                              </p>
-                            )}
-                            {section.subsections && Array.isArray(section.subsections) && section.subsections.length > 0 && (
-                              <div className="space-y-3 pl-4 border-l-2 border-primary/20">
-                                {section.subsections.map((subsection: any, subIdx: number) => (
-                                  <div key={subsection.id || subIdx} className="space-y-2">
-                                    <h5 className="font-medium text-sm">{subsection.title}</h5>
-                                    {subsection.content && (
-                                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                        {subsection.content}
-                                      </p>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
+                  <div className="space-y-4">
+                    {section.items.map((item: any) => renderInstructionItem(item))}
+                  </div>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Нормативно-правовая база */}
-      {activeSubTab === "legal" && (
-        <div className="space-y-6">
-          {filteredLegalInstructions.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Scale className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  По вашему запросу ничего не найдено. Попробуйте изменить условия поиска.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredLegalInstructions.map((section) => {
-              const SectionIcon = section.icon;
-              return (
-                <Card key={section.id} className="overflow-hidden border-2">
-                  <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
-                    <CardTitle className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <SectionIcon className="h-6 w-6 text-primary" />
-                      </div>
-                      <span>{section.category}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      {section.items.map((item) => renderInstructionItem(item))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-        </div>
-      )}
+            );
+          })
+        )}
+      </div>
     </div>
   );
 };

@@ -213,8 +213,9 @@ const Index = () => {
             <ChildCardSection />
           </Suspense>
         );
-      case "instructions-work":
-      case "instructions-custom":
+      case "instructions-ppk":
+      case "instructions-schedule":
+      case "instructions-organization":
       case "instructions-legal":
         return (
           <Suspense fallback={loadingFallback}>
