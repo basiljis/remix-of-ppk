@@ -33,6 +33,7 @@ const menuItems = [
   { id: "children", label: "Мои дети", icon: Baby },
   { id: "tests", label: "Тесты", icon: ClipboardList },
   { id: "calendar", label: "Календарь занятий", icon: CalendarDays },
+  { id: "instructions", label: "Инструкции", icon: BookOpen },
 ];
 
 export function ParentSidebar({ activeTab, onTabChange, childrenCount = 0 }: ParentSidebarProps) {

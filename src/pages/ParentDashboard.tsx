@@ -25,6 +25,7 @@ import { ParentNotificationsDialog } from "@/components/ParentNotificationsDialo
 import { EditChildDialog } from "@/components/EditChildDialog";
 import { ChildTestResultsBadges } from "@/components/ChildTestResultsBadges";
 import { TestRecommendationsDialog } from "@/components/TestRecommendationsDialog";
+import { ParentInstructionsSection } from "@/components/ParentInstructionsSection";
 
 interface ParentProfile {
   id: string;
@@ -689,6 +690,8 @@ export default function ParentDashboard() {
             children={children.map(c => ({ id: c.id, full_name: c.full_name }))}
           />
         );
+      case "instructions":
+        return <ParentInstructionsSection />;
       case "profile":
         return (
           <div className="space-y-6">
