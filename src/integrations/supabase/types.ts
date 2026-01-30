@@ -1141,6 +1141,152 @@ export type Database = {
           },
         ]
       }
+      parent_test_questions: {
+        Row: {
+          created_at: string
+          dimension: string
+          id: string
+          is_inverted: boolean
+          question_number: number
+          question_text: string
+          test_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dimension: string
+          id?: string
+          is_inverted?: boolean
+          question_number: number
+          question_text: string
+          test_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dimension?: string
+          id?: string
+          is_inverted?: boolean
+          question_number?: number
+          question_text?: string
+          test_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_test_questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "parent_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_test_results: {
+        Row: {
+          answers: Json
+          child_id: string
+          completed_at: string
+          created_at: string
+          id: string
+          is_visible_to_specialists: boolean
+          parent_user_id: string
+          recommendations: Json | null
+          result_label: string
+          result_type: string
+          risk_level: string | null
+          scores: Json
+          test_id: string
+          updated_at: string
+        }
+        Insert: {
+          answers: Json
+          child_id: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          is_visible_to_specialists?: boolean
+          parent_user_id: string
+          recommendations?: Json | null
+          result_label: string
+          result_type: string
+          risk_level?: string | null
+          scores: Json
+          test_id: string
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          child_id?: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          is_visible_to_specialists?: boolean
+          parent_user_id?: string
+          recommendations?: Json | null
+          result_label?: string
+          result_type?: string
+          risk_level?: string | null
+          scores?: Json
+          test_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_test_results_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "parent_children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_test_results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "parent_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_tests: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          scientific_basis: string | null
+          scoring_config: Json | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          scientific_basis?: string | null
+          scoring_config?: Json | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          scientific_basis?: string | null
+          scoring_config?: Json | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_logs: {
         Row: {
           amount: number | null

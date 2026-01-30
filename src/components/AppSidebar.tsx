@@ -102,6 +102,7 @@ const adminItems = [
       { id: "administration-access-requests", label: "Заявки" },
       { id: "administration-users", label: "Пользователи" },
       { id: "administration-org-admins", label: "Админы организаций" },
+      { id: "administration-parent-children", label: "Родители и дети" },
     ]
   },
   { 
@@ -122,6 +123,7 @@ const adminItems = [
       { id: "administration-positions-roles", label: "Должности и роли" },
       { id: "administration-organizations", label: "Организации" },
       { id: "administration-checklist", label: "Чек-листы" },
+      { id: "administration-parent-tests", label: "Тесты родителей" },
       { id: "administration-schedule", label: "Настройки расписания" },
       { id: "administration-school-years", label: "Учебные годы" },
       { id: "administration-workload-report", label: "Загрузка специалистов" },
