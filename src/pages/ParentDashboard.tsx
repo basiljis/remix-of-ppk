@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield } from "lucide-react";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ParentSidebar } from "@/components/ParentSidebar";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ParentCalendar } from "@/components/ParentCalendar";
@@ -81,6 +83,7 @@ export default function ParentDashboard() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [bookDialogOpen, setBookDialogOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState("children");
 
   // New child form
   const [newChild, setNewChild] = useState({
@@ -272,399 +275,472 @@ export default function ParentDashboard() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-900 border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Baby className="h-8 w-8 text-pink-500" />
-            <div>
-              <h1 className="text-xl font-bold">universum.</h1>
-              <p className="text-xs text-muted-foreground">Кабинет родителя</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Admin cabinet switcher */}
-            {isAdmin && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
-                      <Users className="h-4 w-4 text-blue-500" />
-                      <Switch
-                        checked={false}
-                        onCheckedChange={(checked) => {
-                          if (!checked) {
-                            navigate("/app");
-                          }
-                        }}
-                        className="data-[state=unchecked]:bg-primary"
-                      />
-                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="font-medium">Переключиться на кабинет педагогов</p>
-                    <p className="text-xs text-muted-foreground">Вы просматриваете кабинет родителей</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            
-            {isAdmin && (
-              <Badge variant="outline" className="hidden sm:flex gap-1 border-amber-500/50 text-amber-600 dark:text-amber-400">
-                <Shield className="h-3 w-3" />
-                Режим просмотра
-              </Badge>
-            )}
-            
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium">{profile?.full_name}</p>
-              <p className="text-xs text-muted-foreground">{profile?.email}</p>
-            </div>
-            <Button variant="ghost" size="icon" onClick={handleSignOut}>
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
-        {/* Book Consultation Button */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Личный кабинет родителя</h2>
-            <p className="text-muted-foreground">Управляйте детьми и записывайтесь на консультации</p>
-          </div>
-          <Button 
-            onClick={() => setBookDialogOpen(true)} 
-            variant="outline"
-            className="gap-2 border-pink-300 text-pink-600 hover:bg-pink-50"
-          >
-            <Phone className="h-4 w-4" />
-            Записаться на консультацию
-          </Button>
-        </div>
-
-        <Tabs defaultValue="children" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="children" className="gap-2">
-              <Baby className="h-4 w-4" />
-              Мои дети
-            </TabsTrigger>
-            <TabsTrigger value="tests" className="gap-2">
-              <ClipboardList className="h-4 w-4" />
-              Тесты
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="gap-2">
-              <CalendarDays className="h-4 w-4" />
-              Календарь занятий
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="children">
-            <div className="flex items-center justify-between mb-6">
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "children":
+        return (
+          <div className="space-y-6">
+            {/* Header for children section */}
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
               <div>
-                <h3 className="text-xl font-semibold">Мои дети</h3>
-                <p className="text-sm text-muted-foreground">Управляйте профилями своих детей</p>
+                <h2 className="text-2xl font-bold">Мои дети</h2>
+                <p className="text-muted-foreground">Управляйте профилями своих детей</p>
               </div>
-          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-pink-600 hover:bg-pink-700 gap-2">
-                <Plus className="h-4 w-4" />
-                Добавить ребёнка
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Добавить ребёнка</DialogTitle>
-                <DialogDescription>
-                  Заполните информацию о ребёнке. Класс/группа нужны для подбора материалов по возрасту.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="child-name">ФИО ребёнка *</Label>
-                  <Input
-                    id="child-name"
-                    value={newChild.fullName}
-                    onChange={(e) => setNewChild({ ...newChild, fullName: e.target.value })}
-                    placeholder="Иванов Иван Иванович"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Пол</Label>
-                    <Select
-                      value={newChild.gender}
-                      onValueChange={(value) => setNewChild({ ...newChild, gender: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Мужской</SelectItem>
-                        <SelectItem value="female">Женский</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="birth-date">Дата рождения</Label>
-                    <Input
-                      id="birth-date"
-                      type="date"
-                      value={newChild.birthDate}
-                      onChange={(e) => setNewChild({ ...newChild, birthDate: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Уровень образования</Label>
-                  <Select
-                    value={newChild.educationLevel}
-                    onValueChange={(value) => setNewChild({ 
-                      ...newChild, 
-                      educationLevel: value,
-                      classNumber: "", // Reset class when education level changes
-                      classLetter: ""
-                    })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите уровень" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover z-50">
-                      {educationLevels.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {newChild.educationLevel && (
-                  <div className="space-y-2">
-                    <Label>
-                      {newChild.educationLevel === "DO" ? "Группа" : "Класс"}
-                    </Label>
-                    {newChild.educationLevel === "DO" ? (
-                      <Select
-                        value={newChild.classNumber}
-                        onValueChange={(value) => setNewChild({ ...newChild, classNumber: value, classLetter: "" })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Выберите группу" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover z-50">
-                          {getClassOptions("DO").map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-2">
-                        <Select
-                          value={newChild.classNumber}
-                          onValueChange={(value) => setNewChild({ ...newChild, classNumber: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Номер" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover z-50">
-                            {getClassOptions(newChild.educationLevel).map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Select
-                          value={newChild.classLetter}
-                          onValueChange={(value) => setNewChild({ ...newChild, classLetter: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Литера" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover z-50">
-                            {classLetterOptions.map((letter) => (
-                              <SelectItem key={letter} value={letter}>
-                                {letter}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Info className="h-3 w-3" />
-                      Нужно для подбора рекомендаций по возрасту
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Образовательная организация (необязательно)</Label>
-                  <Select
-                    value={newChild.schoolId}
-                    onValueChange={(value) => setNewChild({ ...newChild, schoolId: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите организацию" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover z-50 max-h-60">
-                      {organizations.length === 0 ? (
-                        <SelectItem value="none" disabled>
-                          Нет организаций в вашем регионе
-                        </SelectItem>
-                      ) : (
-                        organizations.map((org) => (
-                          <SelectItem key={org.id} value={org.id}>
-                            {org.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-                  Отмена
-                </Button>
+              <div className="flex gap-2">
                 <Button 
-                  onClick={handleAddChild} 
-                  disabled={submitting}
-                  className="bg-pink-600 hover:bg-pink-700"
+                  onClick={() => setBookDialogOpen(true)} 
+                  variant="outline"
+                  className="gap-2 border-pink-300 text-pink-600 hover:bg-pink-50"
                 >
-                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Добавить
+                  <Phone className="h-4 w-4" />
+                  <span className="hidden sm:inline">Записаться на консультацию</span>
+                  <span className="sm:hidden">Записаться</span>
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {children.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Baby className="h-16 w-16 mx-auto text-pink-300 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Нет добавленных детей</h3>
-              <p className="text-muted-foreground mb-6">
-                Добавьте ребёнка, чтобы получить персональные рекомендации
-              </p>
-              <Button 
-                onClick={() => setAddDialogOpen(true)}
-                className="bg-pink-600 hover:bg-pink-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Добавить первого ребёнка
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {children.map((child) => (
-              <Card key={child.id} className="overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="h-16 w-16 bg-pink-100 dark:bg-pink-950">
-                      <AvatarFallback className="text-pink-600 text-xl font-bold">
-                        {child.full_name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold">{child.full_name}</h3>
-                          <div className="flex flex-wrap items-center gap-2 mt-1">
-                            {child.gender && (
-                              <Badge variant="secondary">
-                                {child.gender === "male" ? "Мальчик" : "Девочка"}
-                              </Badge>
-                            )}
-                            {child.birth_date && (
-                              <Badge variant="outline">
-                                {calculateAge(child.birth_date)}
-                              </Badge>
-                            )}
-                            {child.education_level && (
-                              <Badge variant="outline" className="bg-pink-50 dark:bg-pink-950/50">
-                                {educationLevels.find(l => l.value === child.education_level)?.label}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
+                <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-pink-600 hover:bg-pink-700 gap-2">
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden sm:inline">Добавить ребёнка</span>
+                      <span className="sm:hidden">Добавить</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Добавить ребёнка</DialogTitle>
+                      <DialogDescription>
+                        Заполните информацию о ребёнке. Класс/группа нужны для подбора материалов по возрасту.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="child-name">ФИО ребёнка *</Label>
+                        <Input
+                          id="child-name"
+                          value={newChild.fullName}
+                          onChange={(e) => setNewChild({ ...newChild, fullName: e.target.value })}
+                          placeholder="Иванов Иван Иванович"
+                        />
                       </div>
-                      
-                      <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Уникальный идентификатор ребёнка
-                            </p>
-                            <p className="font-mono font-semibold text-pink-600">
-                              {child.child_unique_id}
-                            </p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyChildId(child.child_unique_id)}
-                            className="gap-2"
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Пол</Label>
+                          <Select
+                            value={newChild.gender}
+                            onValueChange={(value) => setNewChild({ ...newChild, gender: value })}
                           >
-                            {copiedId === child.child_unique_id ? (
-                              <Check className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Выберите" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Мужской</SelectItem>
+                              <SelectItem value="female">Женский</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Может понадобиться при обращении к специалисту
-                        </p>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="birth-date">Дата рождения</Label>
+                          <Input
+                            id="birth-date"
+                            type="date"
+                            value={newChild.birthDate}
+                            onChange={(e) => setNewChild({ ...newChild, birthDate: e.target.value })}
+                          />
+                        </div>
                       </div>
 
-                      {(child.class_or_group || child.school_name) && (
-                        <div className="mt-3 text-sm text-muted-foreground">
-                          {child.class_or_group && <span>{child.class_or_group}</span>}
-                          {child.class_or_group && child.school_name && " • "}
-                          {child.school_name && <span>{child.school_name}</span>}
+                      <div className="space-y-2">
+                        <Label>Уровень образования</Label>
+                        <Select
+                          value={newChild.educationLevel}
+                          onValueChange={(value) => setNewChild({ 
+                            ...newChild, 
+                            educationLevel: value,
+                            classNumber: "",
+                            classLetter: ""
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите уровень" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50">
+                            {educationLevels.map((level) => (
+                              <SelectItem key={level.value} value={level.value}>
+                                {level.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {newChild.educationLevel && (
+                        <div className="space-y-2">
+                          <Label>
+                            {newChild.educationLevel === "DO" ? "Группа" : "Класс"}
+                          </Label>
+                          {newChild.educationLevel === "DO" ? (
+                            <Select
+                              value={newChild.classNumber}
+                              onValueChange={(value) => setNewChild({ ...newChild, classNumber: value, classLetter: "" })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Выберите группу" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-popover z-50">
+                                {getClassOptions("DO").map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Select
+                                value={newChild.classNumber}
+                                onValueChange={(value) => setNewChild({ ...newChild, classNumber: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Номер" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover z-50">
+                                  {getClassOptions(newChild.educationLevel).map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                value={newChild.classLetter}
+                                onValueChange={(value) => setNewChild({ ...newChild, classLetter: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Литера" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover z-50">
+                                  {classLetterOptions.map((letter) => (
+                                    <SelectItem key={letter} value={letter}>
+                                      {letter}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Info className="h-3 w-3" />
+                            Нужно для подбора рекомендаций по возрасту
+                          </p>
                         </div>
                       )}
+
+                      <div className="space-y-2">
+                        <Label>Образовательная организация (необязательно)</Label>
+                        <Select
+                          value={newChild.schoolId}
+                          onValueChange={(value) => setNewChild({ ...newChild, schoolId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите организацию" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50 max-h-60">
+                            {organizations.length === 0 ? (
+                              <SelectItem value="none" disabled>
+                                Нет организаций в вашем регионе
+                              </SelectItem>
+                            ) : (
+                              organizations.map((org) => (
+                                <SelectItem key={org.id} value={org.id}>
+                                  {org.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                  </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+                        Отмена
+                      </Button>
+                      <Button 
+                        onClick={handleAddChild} 
+                        disabled={submitting}
+                        className="bg-pink-600 hover:bg-pink-700"
+                      >
+                        {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Добавить
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {children.length === 0 ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <Baby className="h-16 w-16 mx-auto text-pink-300 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Нет добавленных детей</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Добавьте ребёнка, чтобы получить персональные рекомендации
+                  </p>
+                  <Button 
+                    onClick={() => setAddDialogOpen(true)}
+                    className="bg-pink-600 hover:bg-pink-700"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Добавить первого ребёнка
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              <div className="grid gap-4">
+                {children.map((child) => (
+                  <Card key={child.id} className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <Avatar className="h-16 w-16 bg-pink-100 dark:bg-pink-950">
+                          <AvatarFallback className="text-pink-600 text-xl font-bold">
+                            {child.full_name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-lg font-semibold">{child.full_name}</h3>
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
+                                {child.gender && (
+                                  <Badge variant="secondary">
+                                    {child.gender === "male" ? "Мальчик" : "Девочка"}
+                                  </Badge>
+                                )}
+                                {child.birth_date && (
+                                  <Badge variant="outline">
+                                    {calculateAge(child.birth_date)}
+                                  </Badge>
+                                )}
+                                {child.education_level && (
+                                  <Badge variant="outline" className="bg-pink-50 dark:bg-pink-950/50">
+                                    {educationLevels.find(l => l.value === child.education_level)?.label}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Уникальный идентификатор ребёнка
+                                </p>
+                                <p className="font-mono font-semibold text-pink-600">
+                                  {child.child_unique_id}
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyChildId(child.child_unique_id)}
+                                className="gap-2"
+                              >
+                                {copiedId === child.child_unique_id ? (
+                                  <Check className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Может понадобиться при обращении к специалисту
+                            </p>
+                          </div>
+
+                          {(child.class_or_group || child.school_name) && (
+                            <div className="mt-3 text-sm text-muted-foreground">
+                              {child.class_or_group && <span>{child.class_or_group}</span>}
+                              {child.class_or_group && child.school_name && " • "}
+                              {child.school_name && <span>{child.school_name}</span>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-          </TabsContent>
+        );
+      case "tests":
+        return (
+          <ParentTestsSection 
+            parentUserId={profile?.id || ""} 
+            children={children.map(c => ({ 
+              id: c.id, 
+              full_name: c.full_name,
+              child_unique_id: c.child_unique_id
+            }))} 
+          />
+        );
+      case "calendar":
+        return (
+          <ParentCalendar 
+            parentUserId={profile?.id || ""} 
+            childIds={children.map(c => c.id)} 
+          />
+        );
+      case "profile":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">Профиль</h2>
+              <p className="text-muted-foreground">Информация о вашем аккаунте</p>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 bg-pink-100 dark:bg-pink-950">
+                    <AvatarFallback className="text-pink-600 text-lg font-bold">
+                      {profile?.full_name?.charAt(0) || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="text-xl">{profile?.full_name}</div>
+                    <Badge variant="outline" className="mt-1 text-pink-600 border-pink-300">
+                      <Baby className="h-3 w-3 mr-1" />
+                      Родитель
+                    </Badge>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Mail className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="font-medium">{profile?.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Phone className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Телефон</p>
+                    <p className="font-medium">{profile?.phone}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Количество детей</p>
+                    <p className="font-medium">{children.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
-          <TabsContent value="tests">
-            <ParentTestsSection 
-              parentUserId={profile?.id || ""} 
-              children={children.map(c => ({ 
-                id: c.id, 
-                full_name: c.full_name,
-                child_unique_id: c.child_unique_id
-              }))} 
-            />
-          </TabsContent>
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-gradient-to-br from-pink-50 to-purple-100 dark:from-gray-900 dark:to-gray-800">
+        {/* Header - fixed at top */}
+        <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-16 items-center justify-between px-4 md:px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div className="hidden md:block">
+                <h1 className="text-xl font-bold">universum.</h1>
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <span>{profile?.full_name}</span>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-pink-500/10 text-pink-600 dark:text-pink-400">
+                    Родитель
+                  </span>
+                  {isAdmin && (
+                    <>
+                      <span className="text-muted-foreground/50">•</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        Режим просмотра
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Admin cabinet switcher */}
+              {isAdmin && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
+                        <Users className="h-4 w-4 text-blue-500" />
+                        <Switch
+                          checked={false}
+                          onCheckedChange={(checked) => {
+                            if (!checked) {
+                              navigate("/app");
+                            }
+                          }}
+                          className="data-[state=unchecked]:bg-primary"
+                        />
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-medium">Переключиться на кабинет педагогов</p>
+                      <p className="text-xs text-muted-foreground">Вы просматриваете кабинет родителей</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              
+              <div className="h-8 w-px bg-border hidden lg:block" />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab("profile")}
+                  className="flex items-center gap-2 p-2 hover:bg-accent rounded-md transition-colors"
+                >
+                  <Avatar className="h-8 w-8 bg-pink-100 dark:bg-pink-950">
+                    <AvatarFallback className="text-pink-600">
+                      {profile?.full_name?.charAt(0) || <User className="h-4 w-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+                <ThemeToggle />
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Выход</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
 
-          <TabsContent value="calendar">
-            <ParentCalendar 
-              parentUserId={profile?.id || ""} 
-              childIds={children.map(c => c.id)} 
-            />
-          </TabsContent>
-        </Tabs>
+        {/* Sidebar - positioned below header */}
+        <div className="hidden md:block">
+          <ParentSidebar 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+            childrenCount={children.length}
+          />
+        </div>
+        
+        {/* Main content */}
+        <main className="flex-1 w-full pt-16">
+          <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
+            {renderTabContent()}
+          </div>
+        </main>
 
         {/* Book Consultation Dialog */}
         <BookConsultationDialog
@@ -674,7 +750,7 @@ export default function ParentDashboard() {
           regionId={profile?.region_id || null}
           children={children.map(c => ({ id: c.id, full_name: c.full_name }))}
         />
-      </main>
-    </div>
+      </div>
+    </SidebarProvider>
   );
 }
