@@ -935,6 +935,90 @@ export type Database = {
           },
         ]
       }
+      parent_children: {
+        Row: {
+          birth_date: string | null
+          child_unique_id: string
+          class_or_group: string | null
+          created_at: string
+          education_level: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          notes: string | null
+          parent_user_id: string
+          school_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          birth_date?: string | null
+          child_unique_id: string
+          class_or_group?: string | null
+          created_at?: string
+          education_level?: string | null
+          full_name: string
+          gender?: string | null
+          id?: string
+          notes?: string | null
+          parent_user_id: string
+          school_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string | null
+          child_unique_id?: string
+          class_or_group?: string | null
+          created_at?: string
+          education_level?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          notes?: string | null
+          parent_user_id?: string
+          school_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parent_profiles: {
+        Row: {
+          created_at: string
+          data_processing_consent: boolean
+          email: string
+          email_notifications: boolean | null
+          full_name: string
+          id: string
+          is_blocked: boolean
+          notifications_enabled: boolean | null
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_processing_consent?: boolean
+          email: string
+          email_notifications?: boolean | null
+          full_name: string
+          id: string
+          is_blocked?: boolean
+          notifications_enabled?: boolean | null
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_processing_consent?: boolean
+          email?: string
+          email_notifications?: boolean | null
+          full_name?: string
+          id?: string
+          is_blocked?: boolean
+          notifications_enabled?: boolean | null
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_logs: {
         Row: {
           amount: number | null
@@ -1954,6 +2038,7 @@ export type Database = {
         | "user"
         | "organization_admin"
         | "director"
+        | "parent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2087,6 +2172,7 @@ export const Constants = {
         "user",
         "organization_admin",
         "director",
+        "parent",
       ],
     },
   },

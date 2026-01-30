@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Users, Heart } from "lucide-react";
 
-export const AuthFooter = () => {
+interface AuthFooterProps {
+  mode?: "teacher" | "parent";
+}
+
+export const AuthFooter = ({ mode = "teacher" }: AuthFooterProps) => {
   const [offerOpen, setOfferOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [contactsOpen, setContactsOpen] = useState(false);
@@ -18,6 +24,32 @@ export const AuthFooter = () => {
       <footer className="bg-background border-t py-6 mt-auto">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center gap-4">
+            {/* Переключатель режима авторизации */}
+            <div className="flex items-center gap-2 p-1 bg-muted rounded-lg">
+              <Link
+                to="/auth"
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  mode === "teacher"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                Для педагогов
+              </Link>
+              <Link
+                to="/parent-auth"
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  mode === "parent"
+                    ? "bg-pink-600 text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Heart className="h-4 w-4" />
+                Для родителей
+              </Link>
+            </div>
+
             {/* Кнопки для модальных окон */}
             <div className="flex flex-wrap justify-center gap-4 text-sm">
               <button
