@@ -10,15 +10,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
+import { ParentCalendar } from "@/components/ParentCalendar";
+import { BookConsultationDialog } from "@/components/BookConsultationDialog";
 
 interface ParentProfile {
   id: string;
   full_name: string;
   email: string;
   phone: string;
+  region_id: string | null;
 }
 
 interface ParentChild {
@@ -49,6 +53,7 @@ export default function ParentDashboard() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [bookDialogOpen, setBookDialogOpen] = useState(false);
 
   // New child form
   const [newChild, setNewChild] = useState({
@@ -89,7 +94,7 @@ export default function ParentDashboard() {
       // Load parent profile
       const { data: profileData, error: profileError } = await supabase
         .from("parent_profiles" as any)
-        .select("*")
+        .select("id, full_name, email, phone, region_id")
         .eq("id", user.id)
         .single() as { data: ParentProfile | null; error: any };
 
@@ -234,12 +239,41 @@ export default function ParentDashboard() {
       </header>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
+      <main className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
+        {/* Book Consultation Button */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Мои дети</h2>
-            <p className="text-muted-foreground">Управляйте профилями своих детей</p>
+            <h2 className="text-2xl font-bold">Личный кабинет родителя</h2>
+            <p className="text-muted-foreground">Управляйте детьми и записывайтесь на консультации</p>
           </div>
+          <Button 
+            onClick={() => setBookDialogOpen(true)} 
+            variant="outline"
+            className="gap-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+          >
+            <Phone className="h-4 w-4" />
+            Записаться на консультацию
+          </Button>
+        </div>
+
+        <Tabs defaultValue="children" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="children" className="gap-2">
+              <Baby className="h-4 w-4" />
+              Мои дети
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Календарь занятий
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="children">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-semibold">Мои дети</h3>
+                <p className="text-sm text-muted-foreground">Управляйте профилями своих детей</p>
+              </div>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-pink-600 hover:bg-pink-700 gap-2">
@@ -449,6 +483,24 @@ export default function ParentDashboard() {
             ))}
           </div>
         )}
+          </TabsContent>
+
+          <TabsContent value="calendar">
+            <ParentCalendar 
+              parentUserId={profile?.id || ""} 
+              childIds={children.map(c => c.id)} 
+            />
+          </TabsContent>
+        </Tabs>
+
+        {/* Book Consultation Dialog */}
+        <BookConsultationDialog
+          open={bookDialogOpen}
+          onOpenChange={setBookDialogOpen}
+          parentUserId={profile?.id || ""}
+          regionId={profile?.region_id || null}
+          children={children.map(c => ({ id: c.id, full_name: c.full_name }))}
+        />
       </main>
     </div>
   );

@@ -357,6 +357,69 @@ export type Database = {
         }
         Relationships: []
       }
+      consultation_slots: {
+        Row: {
+          booked_at: string | null
+          booked_by_parent_id: string | null
+          booked_for_child_id: string | null
+          booking_notes: string | null
+          created_at: string
+          end_time: string
+          id: string
+          is_booked: boolean
+          organization_id: string
+          slot_date: string
+          specialist_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          booked_at?: string | null
+          booked_by_parent_id?: string | null
+          booked_for_child_id?: string | null
+          booking_notes?: string | null
+          created_at?: string
+          end_time: string
+          id?: string
+          is_booked?: boolean
+          organization_id: string
+          slot_date: string
+          specialist_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          booked_at?: string | null
+          booked_by_parent_id?: string | null
+          booked_for_child_id?: string | null
+          booking_notes?: string | null
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_booked?: boolean
+          organization_id?: string
+          slot_date?: string
+          specialist_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_slots_booked_for_child_id_fkey"
+            columns: ["booked_for_child_id"]
+            isOneToOne: false
+            referencedRelation: "parent_children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultation_slots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           created_at: string
@@ -651,6 +714,54 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      linked_parent_children: {
+        Row: {
+          created_at: string
+          id: string
+          linked_at: string
+          linked_by: string | null
+          notes: string | null
+          organization_id: string
+          parent_child_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          linked_at?: string
+          linked_by?: string | null
+          notes?: string | null
+          organization_id: string
+          parent_child_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          linked_at?: string
+          linked_by?: string | null
+          notes?: string | null
+          organization_id?: string
+          parent_child_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linked_parent_children_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linked_parent_children_parent_child_id_fkey"
+            columns: ["parent_child_id"]
+            isOneToOne: false
+            referencedRelation: "parent_children"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organization_addresses: {
         Row: {
@@ -991,6 +1102,7 @@ export type Database = {
           is_blocked: boolean
           notifications_enabled: boolean | null
           phone: string
+          region_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1003,6 +1115,7 @@ export type Database = {
           is_blocked?: boolean
           notifications_enabled?: boolean | null
           phone: string
+          region_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1015,9 +1128,18 @@ export type Database = {
           is_blocked?: boolean
           notifications_enabled?: boolean | null
           phone?: string
+          region_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parent_profiles_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_logs: {
         Row: {

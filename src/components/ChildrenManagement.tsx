@@ -47,6 +47,7 @@ import {
   ClipboardList,
   MoreHorizontal,
   Database,
+  Link2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -62,6 +63,7 @@ import {
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ProtocolResultsModal } from "@/components/ProtocolResultsModal";
+import { LinkParentChildDialog } from "@/components/LinkParentChildDialog";
 
 interface Child {
   id: string;
@@ -127,6 +129,7 @@ export function ChildrenManagement() {
   const [selectedChildName, setSelectedChildName] = useState<string | null>(null);
   const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(null);
   const [showResultsModal, setShowResultsModal] = useState(false);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -457,6 +460,14 @@ export function ChildrenManagement() {
             <Badge variant="secondary" className="text-sm">
               Всего: {children.length}
             </Badge>
+            <Button
+              variant="outline"
+              onClick={() => setShowLinkDialog(true)}
+              className="gap-2"
+            >
+              <Link2 className="h-4 w-4" />
+              По коду родителя
+            </Button>
             <Button
               onClick={() => {
                 resetForm();
@@ -1024,6 +1035,12 @@ export function ChildrenManagement() {
           protocolId={selectedProtocolId}
         />
       )}
+
+      {/* Link Parent Child Dialog */}
+      <LinkParentChildDialog
+        open={showLinkDialog}
+        onOpenChange={setShowLinkDialog}
+      />
     </Card>
   );
 }
