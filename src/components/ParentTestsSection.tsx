@@ -14,8 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { 
   Loader2, ClipboardList, CheckCircle2, AlertCircle, 
-  Star, Info, ChevronRight, Lightbulb, Lock, Eye
+  Star, Info, ChevronRight, Lightbulb, Lock, Eye, BookOpen
 } from "lucide-react";
+import { TestRecommendationsDialog } from "./TestRecommendationsDialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -83,6 +84,8 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
   const [shareConsent, setShareConsent] = useState(false);
   const [draftResultId, setDraftResultId] = useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [recommendationsDialogOpen, setRecommendationsDialogOpen] = useState(false);
+  const [selectedResultForRecommendations, setSelectedResultForRecommendations] = useState<TestResult | null>(null);
 
   // Fetch available tests
   const { data: tests, isLoading: testsLoading } = useQuery({
@@ -430,6 +433,11 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
     return children.find(c => c.id === childId)?.full_name || "—";
   };
 
+  const openRecommendations = (result: TestResult) => {
+    setSelectedResultForRecommendations(result);
+    setRecommendationsDialogOpen(true);
+  };
+
   if (testsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -589,23 +597,16 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
                           </div>
                         </div>
 
-                        {/* Recommendations */}
-                        {result.recommendations && result.recommendations.length > 0 && (
-                          <div className="mt-4 p-3 bg-pink-50 dark:bg-pink-950/30 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Lightbulb className="h-4 w-4 text-pink-600" />
-                              <span className="font-medium text-sm">Рекомендации</span>
-                            </div>
-                            <ul className="text-sm space-y-1">
-                              {result.recommendations.map((rec: string, i: number) => (
-                                <li key={i} className="flex items-start gap-2">
-                                  <span className="text-pink-600">•</span>
-                                  {rec}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                        {/* Recommendations button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4 gap-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+                          onClick={() => openRecommendations(result)}
+                        >
+                          <BookOpen className="h-4 w-4" />
+                          Подробные рекомендации
+                        </Button>
                       </div>
                       
                       {/* Visibility toggle */}
@@ -816,6 +817,14 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Recommendations Dialog */}
+      <TestRecommendationsDialog
+        open={recommendationsDialogOpen}
+        onOpenChange={setRecommendationsDialogOpen}
+        result={selectedResultForRecommendations}
+        childName={selectedResultForRecommendations ? getChildName(selectedResultForRecommendations.child_id) : ""}
+      />
     </div>
   );
 }

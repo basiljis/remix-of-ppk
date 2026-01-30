@@ -15,13 +15,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ParentSidebar } from "@/components/ParentSidebar";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin } from "lucide-react";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ParentCalendar } from "@/components/ParentCalendar";
 import { BookConsultationDialog } from "@/components/BookConsultationDialog";
 import { ParentTestsSection } from "@/components/ParentTestsSection";
 import { ParentNotificationsDialog } from "@/components/ParentNotificationsDialog";
+import { EditChildDialog } from "@/components/EditChildDialog";
+import { ChildTestResultsBadges } from "@/components/ChildTestResultsBadges";
+import { TestRecommendationsDialog } from "@/components/TestRecommendationsDialog";
 
 interface ParentProfile {
   id: string;
@@ -40,6 +43,7 @@ interface ParentChild {
   school_name: string | null;
   class_or_group: string | null;
   education_level: string | null;
+  notes: string | null;
   created_at: string;
 }
 
@@ -85,6 +89,11 @@ export default function ParentDashboard() {
   const [bookDialogOpen, setBookDialogOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState("children");
+  const [editChildDialogOpen, setEditChildDialogOpen] = useState(false);
+  const [selectedChildForEdit, setSelectedChildForEdit] = useState<ParentChild | null>(null);
+  const [recommendationsDialogOpen, setRecommendationsDialogOpen] = useState(false);
+  const [selectedResultForRecommendations, setSelectedResultForRecommendations] = useState<any>(null);
+  const [selectedChildForRecommendations, setSelectedChildForRecommendations] = useState<string>("");
 
   // New child form
   const [newChild, setNewChild] = useState({
@@ -325,6 +334,17 @@ export default function ParentDashboard() {
     const monthWord = months === 1 ? "месяц" : months < 5 ? "месяца" : "месяцев";
     
     return months > 0 ? `${years} ${yearWord} ${months} ${monthWord}` : `${years} ${yearWord}`;
+  };
+
+  const openEditChild = (child: ParentChild) => {
+    setSelectedChildForEdit(child);
+    setEditChildDialogOpen(true);
+  };
+
+  const handleViewRecommendations = (result: any, childName: string) => {
+    setSelectedResultForRecommendations(result);
+    setSelectedChildForRecommendations(childName);
+    setRecommendationsDialogOpen(true);
   };
 
   if (loading) {
@@ -584,12 +604,26 @@ export default function ParentDashboard() {
                                 )}
                                 {child.education_level && (
                                   <Badge variant="outline" className="bg-pink-50 dark:bg-pink-950/50">
-                                    {educationLevels.find(l => l.value === child.education_level)?.label}
+                                    {educationLevels.find(l => l.value === child.education_level)?.shortLabel}
                                   </Badge>
                                 )}
                               </div>
                             </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditChild(child)}
+                              className="h-8 w-8 text-muted-foreground hover:text-pink-600"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                           </div>
+                          
+                          {/* Test Results */}
+                          <ChildTestResultsBadges 
+                            childId={child.id}
+                            onViewRecommendations={(result) => handleViewRecommendations(result, child.full_name)}
+                          />
                           
                           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                             <div className="flex items-center justify-between">
@@ -853,6 +887,25 @@ export default function ParentDashboard() {
           parentUserId={profile?.id || ""}
           regionId={profile?.region_id || null}
           children={children.map(c => ({ id: c.id, full_name: c.full_name }))}
+        />
+
+        {/* Edit Child Dialog */}
+        {selectedChildForEdit && (
+          <EditChildDialog
+            open={editChildDialogOpen}
+            onOpenChange={setEditChildDialogOpen}
+            child={selectedChildForEdit}
+            organizations={organizations}
+            onSuccess={loadData}
+          />
+        )}
+
+        {/* Recommendations Dialog */}
+        <TestRecommendationsDialog
+          open={recommendationsDialogOpen}
+          onOpenChange={setRecommendationsDialogOpen}
+          result={selectedResultForRecommendations}
+          childName={selectedChildForRecommendations}
         />
       </div>
     </SidebarProvider>
