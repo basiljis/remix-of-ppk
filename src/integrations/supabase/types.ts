@@ -253,6 +253,36 @@ export type Database = {
           },
         ]
       }
+      child_development_tests: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       children: {
         Row: {
           birth_date: string | null
@@ -416,6 +446,278 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_age_groups: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          max_months: number
+          min_months: number
+          sort_order: number
+          test_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          max_months: number
+          min_months: number
+          sort_order?: number
+          test_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          max_months?: number
+          min_months?: number
+          sort_order?: number
+          test_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_age_groups_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "child_development_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_spheres: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          test_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          test_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          test_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_spheres_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "child_development_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_tasks: {
+        Row: {
+          age_group_id: string
+          age_range_hint: string | null
+          allows_media_upload: boolean
+          created_at: string
+          id: string
+          sort_order: number
+          sphere_id: string
+          task_text: string
+          updated_at: string
+          video_demo_title: string | null
+          video_demo_url: string | null
+        }
+        Insert: {
+          age_group_id: string
+          age_range_hint?: string | null
+          allows_media_upload?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          sphere_id: string
+          task_text: string
+          updated_at?: string
+          video_demo_title?: string | null
+          video_demo_url?: string | null
+        }
+        Update: {
+          age_group_id?: string
+          age_range_hint?: string | null
+          allows_media_upload?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          sphere_id?: string
+          task_text?: string
+          updated_at?: string
+          video_demo_title?: string | null
+          video_demo_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_tasks_age_group_id_fkey"
+            columns: ["age_group_id"]
+            isOneToOne: false
+            referencedRelation: "development_age_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_tasks_sphere_id_fkey"
+            columns: ["sphere_id"]
+            isOneToOne: false
+            referencedRelation: "development_spheres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_test_media: {
+        Row: {
+          created_at: string
+          file_size: number | null
+          id: string
+          media_type: string
+          original_name: string | null
+          result_id: string
+          storage_path: string
+          task_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          media_type: string
+          original_name?: string | null
+          result_id: string
+          storage_path: string
+          task_id: string
+        }
+        Update: {
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          media_type?: string
+          original_name?: string | null
+          result_id?: string
+          storage_path?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_test_media_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "development_test_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_test_media_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "development_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_test_results: {
+        Row: {
+          age_group_id: string
+          answers: Json
+          child_age_months: number
+          child_id: string
+          completed_at: string | null
+          consent_given: boolean
+          created_at: string
+          id: string
+          is_completed: boolean
+          next_test_date: string | null
+          overall_risk_level: string
+          parent_user_id: string
+          recommendations: Json | null
+          sphere_scores: Json
+          started_at: string
+          test_id: string
+          updated_at: string
+        }
+        Insert: {
+          age_group_id: string
+          answers?: Json
+          child_age_months: number
+          child_id: string
+          completed_at?: string | null
+          consent_given?: boolean
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          next_test_date?: string | null
+          overall_risk_level?: string
+          parent_user_id: string
+          recommendations?: Json | null
+          sphere_scores?: Json
+          started_at?: string
+          test_id: string
+          updated_at?: string
+        }
+        Update: {
+          age_group_id?: string
+          answers?: Json
+          child_age_months?: number
+          child_id?: string
+          completed_at?: string | null
+          consent_given?: boolean
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          next_test_date?: string | null
+          overall_risk_level?: string
+          parent_user_id?: string
+          recommendations?: Json | null
+          sphere_scores?: Json
+          started_at?: string
+          test_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_test_results_age_group_id_fkey"
+            columns: ["age_group_id"]
+            isOneToOne: false
+            referencedRelation: "development_age_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_test_results_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "parent_children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_test_results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "child_development_tests"
             referencedColumns: ["id"]
           },
         ]
