@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -23,9 +24,10 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Calendar, Clock, Building2, User, Info, CheckCircle2 } from "lucide-react";
+import { Loader2, Calendar, Clock, Building2, User, Info, CheckCircle2, Search, X, MapPin } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
+import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
 interface BookConsultationDialogProps {
   open: boolean;
@@ -39,6 +41,7 @@ interface Organization {
   id: string;
   name: string;
   address: string | null;
+  district: string | null;
 }
 
 interface ConsultationSlot {
@@ -64,6 +67,10 @@ export function BookConsultationDialog({
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [selectedChildId, setSelectedChildId] = useState<string>("");
   const [notes, setNotes] = useState("");
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
 
   // Fetch organizations in parent's region
   const { data: organizations = [], isLoading: orgsLoading } = useQuery({
@@ -72,7 +79,7 @@ export function BookConsultationDialog({
       if (!regionId) return [];
       const { data, error } = await supabase
         .from("organizations")
-        .select("id, name, address")
+        .select("id, name, address, district")
         .eq("region_id", regionId)
         .eq("is_archived", false)
         .order("name");
@@ -81,6 +88,36 @@ export function BookConsultationDialog({
     },
     enabled: !!regionId && open,
   });
+
+  // Get unique districts from organizations for the filter
+  const availableDistricts = useMemo(() => {
+    const districts = organizations
+      .map(org => org.district)
+      .filter((d): d is string => !!d && d.trim() !== "");
+    return [...new Set(districts)].sort();
+  }, [organizations]);
+
+  // Check if region is Moscow (for showing district filter)
+  const isMoscowRegion = useMemo(() => {
+    // Check if any organization has a Moscow district
+    return organizations.some(org => 
+      MOSCOW_DISTRICTS.some(d => org.district?.includes(d.replace(" административный округ", "")))
+    );
+  }, [organizations]);
+
+  // Filter organizations based on search and district
+  const filteredOrganizations = useMemo(() => {
+    return organizations.filter(org => {
+      const matchesSearch = !searchQuery || 
+        org.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        org.address?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesDistrict = selectedDistrict === "all" || 
+        org.district === selectedDistrict;
+      
+      return matchesSearch && matchesDistrict;
+    });
+  }, [organizations, searchQuery, selectedDistrict]);
 
   // Fetch available slots for selected organization
   const { data: slots = [], isLoading: slotsLoading } = useQuery({
@@ -156,6 +193,8 @@ export function BookConsultationDialog({
     setSelectedSlotId("");
     setSelectedChildId("");
     setNotes("");
+    setSearchQuery("");
+    setSelectedDistrict("all");
     onOpenChange(false);
   };
 
@@ -213,6 +252,48 @@ export function BookConsultationDialog({
           {/* Step 1: Select Organization */}
           {step === "org" && (
             <div className="space-y-4">
+              {/* Search and Filter Controls */}
+              <div className="space-y-3">
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Поиск по названию или адресу..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 pr-9"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* District Filter (only for Moscow) */}
+                {(isMoscowRegion || availableDistricts.length > 0) && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Все округа" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Все округа</SelectItem>
+                        {availableDistricts.map((district) => (
+                          <SelectItem key={district} value={district}>
+                            {district}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
               {orgsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin" />
@@ -224,9 +305,16 @@ export function BookConsultationDialog({
                     В вашем регионе пока нет организаций с доступными консультациями
                   </AlertDescription>
                 </Alert>
+              ) : filteredOrganizations.length === 0 ? (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    По вашему запросу организации не найдены. Попробуйте изменить фильтры.
+                  </AlertDescription>
+                </Alert>
               ) : (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {organizations.map((org) => (
+                <div className="space-y-2 max-h-56 overflow-y-auto">
+                  {filteredOrganizations.map((org) => (
                     <Card
                       key={org.id}
                       className={`p-4 cursor-pointer transition-colors ${
@@ -238,16 +326,28 @@ export function BookConsultationDialog({
                     >
                       <div className="flex items-start gap-3">
                         <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="font-medium">{org.name}</p>
                           {org.address && (
-                            <p className="text-sm text-muted-foreground">{org.address}</p>
+                            <p className="text-sm text-muted-foreground truncate">{org.address}</p>
+                          )}
+                          {org.district && (
+                            <Badge variant="outline" className="mt-1 text-xs">
+                              {org.district}
+                            </Badge>
                           )}
                         </div>
                       </div>
                     </Card>
                   ))}
                 </div>
+              )}
+
+              {/* Results count */}
+              {!orgsLoading && organizations.length > 0 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Показано {filteredOrganizations.length} из {organizations.length} организаций
+                </p>
               )}
             </div>
           )}
