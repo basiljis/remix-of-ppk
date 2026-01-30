@@ -98,6 +98,12 @@ export default function ParentDashboard() {
 
   // Load organizations based on parent's region
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
+  
+  // Regions for profile editing
+  const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editedRegionId, setEditedRegionId] = useState<string>("");
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -137,6 +143,14 @@ export default function ParentDashboard() {
 
       if (profileError) throw profileError;
       setProfile(profileData as ParentProfile);
+      setEditedRegionId(profileData?.region_id || "");
+
+      // Load all regions for profile editing
+      const { data: regionsData } = await supabase
+        .from("regions")
+        .select("id, name")
+        .order("name");
+      setRegions(regionsData || []);
 
       // Load organizations for parent's region
       if (profileData?.region_id) {
@@ -168,6 +182,51 @@ export default function ParentDashboard() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!profile) return;
+    
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from("parent_profiles" as any)
+        .update({ region_id: editedRegionId })
+        .eq("id", profile.id) as { error: any };
+      
+      if (error) throw error;
+      
+      setProfile({ ...profile, region_id: editedRegionId });
+      setEditingProfile(false);
+      
+      // Reload organizations for new region
+      if (editedRegionId) {
+        const { data: orgsData } = await supabase
+          .from("organizations")
+          .select("id, name")
+          .eq("region_id", editedRegionId)
+          .eq("is_archived", false)
+          .order("name");
+        
+        setOrganizations(orgsData || []);
+      } else {
+        setOrganizations([]);
+      }
+      
+      toast({
+        title: "Успешно",
+        description: "Регион обновлён",
+      });
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось сохранить изменения",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -630,6 +689,46 @@ export default function ParentDashboard() {
                   <div>
                     <p className="text-xs text-muted-foreground">Телефон</p>
                     <p className="font-medium">{profile?.phone}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <MapPin className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Регион</p>
+                    {editingProfile ? (
+                      <div className="flex gap-2 mt-1">
+                        <Select value={editedRegionId} onValueChange={setEditedRegionId}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Выберите регион" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {regions.map((region) => (
+                              <SelectItem key={region.id} value={region.id}>
+                                {region.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button size="sm" onClick={handleSaveProfile} disabled={savingProfile}>
+                          {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить"}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => {
+                          setEditingProfile(false);
+                          setEditedRegionId(profile?.region_id || "");
+                        }}>
+                          Отмена
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium">
+                          {regions.find(r => r.id === profile?.region_id)?.name || "Не указан"}
+                        </p>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingProfile(true)}>
+                          Изменить
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
