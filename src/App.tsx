@@ -13,6 +13,8 @@ import Preloader from "@/components/Preloader";
 // Lazy load route components for better FCP
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const ParentAuth = lazy(() => import("./pages/ParentAuth"));
+const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ChildProfile = lazy(() => import("./pages/ChildProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -47,6 +49,8 @@ const App = () => (
                       <Route path="/" element={<RootGate />} />
                       <Route path="/app" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
+                      <Route path="/parent-auth" element={<ParentAuth />} />
+                      <Route path="/parent" element={<ParentDashboard />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/child-profile" element={<ChildProfile />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
