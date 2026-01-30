@@ -2277,6 +2277,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_parent_role: { Args: { _user_id: string }; Returns: undefined }
       generate_protocol_number: { Args: never; Returns: string }
       get_organization_subscription_end_date: {
         Args: { _user_id: string }

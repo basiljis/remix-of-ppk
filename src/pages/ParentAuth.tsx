@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -108,12 +108,6 @@ const ParentAuth = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Redirect if already authenticated
-  if (user) {
-    navigate("/parent");
-    return null;
-  }
-
   const [loading, setLoading] = useState(false);
 
   // Login form
@@ -132,14 +126,7 @@ const ParentAuth = () => {
 
   // Fetch regions
   const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
-  useState(() => {
-    supabase
-      .from("regions")
-      .select("id, name")
-      .order("name")
-      .then(({ data }) => setRegions(data || []));
-  });
-
+  
   // Validation errors
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
 
@@ -153,6 +140,27 @@ const ParentAuth = () => {
   // Welcome dialog
   const [welcomeDialogOpen, setWelcomeDialogOpen] = useState(false);
   const [welcomeUserName, setWelcomeUserName] = useState("");
+
+  // Redirect if already authenticated - AFTER all hooks
+  useEffect(() => {
+    if (user) {
+      navigate("/parent");
+    }
+  }, [user, navigate]);
+
+  // Fetch regions on mount
+  useEffect(() => {
+    supabase
+      .from("regions")
+      .select("id, name")
+      .order("name")
+      .then(({ data }) => setRegions(data || []));
+  }, []);
+
+  // If user is authenticated, show nothing while redirecting
+  if (user) {
+    return null;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,10 +291,9 @@ const ParentAuth = () => {
 
       if (profileError) throw profileError;
 
-      // Assign parent role
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: authData.user.id,
-        role: "parent",
+      // Assign parent role using secure function (bypasses RLS)
+      const { error: roleError } = await supabase.rpc('assign_parent_role', {
+        _user_id: authData.user.id
       });
 
       if (roleError) throw roleError;
