@@ -954,6 +954,7 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          allow_parent_registration: boolean
           coordinates_lat: number | null
           coordinates_lng: number | null
           created_at: string
@@ -982,6 +983,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          allow_parent_registration?: boolean
           coordinates_lat?: number | null
           coordinates_lng?: number | null
           created_at?: string
@@ -1010,6 +1012,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          allow_parent_registration?: boolean
           coordinates_lat?: number | null
           coordinates_lng?: number | null
           created_at?: string
