@@ -297,7 +297,7 @@ const Index = () => {
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="hidden md:block">
-                <h1 className="text-lg font-semibold">Система Протоколов ППК</h1>
+                <h1 className="text-xl font-bold">universum.</h1>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <span>{profile?.full_name} — {profile?.positions?.name}</span>
                   {roles.length > 0 && (
