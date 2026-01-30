@@ -11,11 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone } from "lucide-react";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ParentCalendar } from "@/components/ParentCalendar";
 import { BookConsultationDialog } from "@/components/BookConsultationDialog";
+import { ParentTestsSection } from "@/components/ParentTestsSection";
 
 interface ParentProfile {
   id: string;
@@ -262,6 +263,10 @@ export default function ParentDashboard() {
               <Baby className="h-4 w-4" />
               Мои дети
             </TabsTrigger>
+            <TabsTrigger value="tests" className="gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Тесты
+            </TabsTrigger>
             <TabsTrigger value="calendar" className="gap-2">
               <CalendarDays className="h-4 w-4" />
               Календарь занятий
@@ -483,6 +488,17 @@ export default function ParentDashboard() {
             ))}
           </div>
         )}
+          </TabsContent>
+
+          <TabsContent value="tests">
+            <ParentTestsSection 
+              parentUserId={profile?.id || ""} 
+              children={children.map(c => ({ 
+                id: c.id, 
+                full_name: c.full_name,
+                child_unique_id: c.child_unique_id
+              }))} 
+            />
           </TabsContent>
 
           <TabsContent value="calendar">

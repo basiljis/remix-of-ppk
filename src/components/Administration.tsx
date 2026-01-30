@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar, Briefcase, Shield, ClipboardList } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar, Briefcase, Shield, ClipboardList, Baby } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
@@ -21,6 +21,8 @@ import { PositionsRolesPanel } from "@/components/PositionsRolesPanel";
 import { OrganizationAdminManagement } from "@/components/OrganizationAdminManagement";
 import { SpecialistWorkloadReport } from "@/components/SpecialistWorkloadReport";
 import { SessionNotificationsPanel } from "@/components/SessionNotificationsPanel";
+import { ParentTestsManagement } from "@/components/ParentTestsManagement";
+import { ParentChildrenManagement } from "@/components/ParentChildrenManagement";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -495,6 +497,44 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
             </CardContent>
           </Card>
           <SessionNotificationsPanel />
+        </div>
+      )}
+
+      {activeSubTab === "parent-tests" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Тесты для родителей
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Управление тестами и вопросами для кабинета родителя
+              </p>
+            </CardContent>
+          </Card>
+          <ParentTestsManagement />
+        </div>
+      )}
+
+      {activeSubTab === "parent-children" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Baby className="h-5 w-5" />
+                Родители и дети
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Просмотр родителей и детей, зарегистрированных через кабинет родителя
+              </p>
+            </CardContent>
+          </Card>
+          <ParentChildrenManagement />
         </div>
       )}
     </div>
