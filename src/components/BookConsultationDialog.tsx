@@ -26,7 +26,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Calendar, Clock, Building2, User, Info, CheckCircle2, Search, X, MapPin, UserCircle, Briefcase } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, Calendar, Clock, Building2, User, Info, CheckCircle2, Search, X, MapPin, UserCircle, Briefcase, Filter } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
@@ -52,7 +53,9 @@ interface Specialist {
   organization_id: string | null;
   organization_name: string | null;
   is_private: boolean;
+  position_id: string | null;
   position_name: string | null;
+  avatar_url: string | null;
 }
 
 interface ConsultationSlot {
@@ -89,6 +92,21 @@ export function BookConsultationDialog({
   const [searchQuery, setSearchQuery] = useState("");
   const [specialistSearchQuery, setSpecialistSearchQuery] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
+  const [selectedPositionId, setSelectedPositionId] = useState<string>("all");
+
+  // Fetch positions for filter
+  const { data: positions = [] } = useQuery({
+    queryKey: ["positions-for-booking"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("positions")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data as Array<{ id: string; name: string }>;
+    },
+    enabled: open && bookingMode === "specialist",
+  });
 
   // Fetch organizations in parent's region (only those allowing parent registration)
   const { data: organizations = [], isLoading: orgsLoading } = useQuery({
@@ -121,6 +139,8 @@ export function BookConsultationDialog({
           id, 
           full_name, 
           organization_id,
+          position_id,
+          avatar_url,
           position:positions(name),
           organization:organizations!profiles_organization_id_fkey(id, name, allow_parent_registration)
         `)
@@ -136,6 +156,8 @@ export function BookConsultationDialog({
         .select(`
           id, 
           full_name,
+          position_id,
+          avatar_url,
           position:positions(name)
         `)
         .eq("region_id", regionId)
@@ -156,7 +178,9 @@ export function BookConsultationDialog({
             organization_id: s.organization_id,
             organization_name: s.organization?.name || null,
             is_private: false,
+            position_id: s.position_id || null,
             position_name: s.position?.name || null,
+            avatar_url: s.avatar_url || null,
           });
         }
       });
@@ -169,7 +193,9 @@ export function BookConsultationDialog({
           organization_id: null,
           organization_name: null,
           is_private: true,
+          position_id: s.position_id || null,
           position_name: s.position?.name || null,
+          avatar_url: s.avatar_url || null,
         });
       });
       
@@ -207,16 +233,33 @@ export function BookConsultationDialog({
     });
   }, [organizations, searchQuery, selectedDistrict]);
 
-  // Filter specialists based on search
+  // Filter specialists based on search and position
   const filteredSpecialists = useMemo(() => {
     return specialists.filter(s => {
-      if (!specialistSearchQuery) return true;
-      const query = specialistSearchQuery.toLowerCase();
-      return s.full_name.toLowerCase().includes(query) ||
-        s.organization_name?.toLowerCase().includes(query) ||
-        s.position_name?.toLowerCase().includes(query);
+      const matchesSearch = !specialistSearchQuery || 
+        s.full_name.toLowerCase().includes(specialistSearchQuery.toLowerCase()) ||
+        s.organization_name?.toLowerCase().includes(specialistSearchQuery.toLowerCase()) ||
+        s.position_name?.toLowerCase().includes(specialistSearchQuery.toLowerCase());
+      
+      const matchesPosition = selectedPositionId === "all" || 
+        s.position_id === selectedPositionId;
+      
+      return matchesSearch && matchesPosition;
     });
-  }, [specialists, specialistSearchQuery]);
+  }, [specialists, specialistSearchQuery, selectedPositionId]);
+
+  // Get unique positions from specialists for the filter
+  const availablePositions = useMemo(() => {
+    const positionMap = new Map<string, string>();
+    specialists.forEach(s => {
+      if (s.position_id && s.position_name) {
+        positionMap.set(s.position_id, s.position_name);
+      }
+    });
+    return Array.from(positionMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [specialists]);
 
   // Fetch available slots for selected organization OR specialist
   const { data: slots = [], isLoading: slotsLoading } = useQuery({
@@ -309,6 +352,7 @@ export function BookConsultationDialog({
     setSearchQuery("");
     setSpecialistSearchQuery("");
     setSelectedDistrict("all");
+    setSelectedPositionId("all");
     onOpenChange(false);
   };
 
@@ -340,6 +384,17 @@ export function BookConsultationDialog({
     setSearchQuery("");
     setSpecialistSearchQuery("");
     setSelectedDistrict("all");
+    setSelectedPositionId("all");
+  };
+
+  // Helper function to get initials
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   if (!regionId) {
@@ -499,7 +554,7 @@ export function BookConsultationDialog({
                   <div className="relative flex-shrink-0">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Поиск по ФИО, должности или организации..."
+                      placeholder="Поиск по ФИО или организации..."
                       value={specialistSearchQuery}
                       onChange={(e) => setSpecialistSearchQuery(e.target.value)}
                       className="pl-9 pr-9"
@@ -514,7 +569,27 @@ export function BookConsultationDialog({
                     )}
                   </div>
 
-                  {/* Specialists list */}
+                  {/* Position Filter */}
+                  {availablePositions.length > 0 && (
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <Select value={selectedPositionId} onValueChange={setSelectedPositionId}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Все специальности" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Все специальности</SelectItem>
+                          {availablePositions.map((position) => (
+                            <SelectItem key={position.id} value={position.id}>
+                              {position.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Specialists cards grid */}
                   <ScrollArea className="flex-1">
                     {specialistsLoading ? (
                       <div className="flex items-center justify-center py-8">
@@ -535,34 +610,42 @@ export function BookConsultationDialog({
                         </AlertDescription>
                       </Alert>
                     ) : (
-                      <div className="space-y-2 pr-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-4">
                         {filteredSpecialists.map((specialist) => (
                           <Card
                             key={specialist.id}
-                            className={`p-3 cursor-pointer transition-colors ${
+                            className={`p-4 cursor-pointer transition-all hover:shadow-md ${
                               selectedSpecialistId === specialist.id 
-                                ? "border-pink-500 bg-pink-50 dark:bg-pink-950/20" 
-                                : "hover:bg-muted"
+                                ? "border-pink-500 bg-pink-50 dark:bg-pink-950/20 ring-2 ring-pink-500/20" 
+                                : "hover:bg-muted/50"
                             }`}
                             onClick={() => setSelectedSpecialistId(specialist.id)}
                           >
-                            <div className="flex items-start gap-3">
-                              <UserCircle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm">{specialist.full_name}</p>
+                            <div className="flex flex-col items-center text-center gap-3">
+                              <Avatar className="h-16 w-16 border-2 border-muted">
+                                <AvatarImage 
+                                  src={specialist.avatar_url || undefined} 
+                                  alt={specialist.full_name}
+                                />
+                                <AvatarFallback className="text-lg bg-gradient-to-br from-pink-100 to-pink-200 text-pink-700">
+                                  {getInitials(specialist.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="space-y-1 min-w-0 w-full">
+                                <p className="font-semibold text-sm line-clamp-2">{specialist.full_name}</p>
                                 {specialist.position_name && (
                                   <p className="text-xs text-muted-foreground">{specialist.position_name}</p>
                                 )}
-                                <div className="flex flex-wrap gap-1 mt-1">
+                                <div className="flex flex-wrap justify-center gap-1 mt-2">
                                   {specialist.is_private ? (
                                     <Badge variant="secondary" className="text-xs gap-1">
                                       <Briefcase className="h-3 w-3" />
                                       Частная практика
                                     </Badge>
                                   ) : (
-                                    <Badge variant="outline" className="text-xs gap-1">
-                                      <Building2 className="h-3 w-3" />
-                                      {specialist.organization_name}
+                                    <Badge variant="outline" className="text-xs gap-1 max-w-full">
+                                      <Building2 className="h-3 w-3 flex-shrink-0" />
+                                      <span className="truncate">{specialist.organization_name}</span>
                                     </Badge>
                                   )}
                                 </div>
