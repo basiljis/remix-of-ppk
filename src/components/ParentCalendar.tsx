@@ -40,6 +40,7 @@ import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BookConsultationDialog } from "./BookConsultationDialog";
+import { ParentSessionsList } from "./ParentSessionsList";
 
 interface ParentCalendarProps {
   parentUserId: string;
@@ -48,7 +49,7 @@ interface ParentCalendarProps {
   children: Array<{ id: string; full_name: string }>;
 }
 
-interface SessionWithDetails {
+export interface SessionWithDetails {
   id: string;
   scheduled_date: string;
   start_time: string;
@@ -367,8 +368,9 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
   );
 
   return (
-    <>
-      <Card className="h-full flex flex-col">
+    <div className="h-full flex gap-4">
+      {/* Main Calendar */}
+      <Card className="flex-1 flex flex-col min-w-0">
         <CardHeader className="flex-shrink-0 pb-3">
           {/* Header with controls - responsive layout */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -720,6 +722,14 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
         </CardContent>
       </Card>
 
+      {/* Right sidebar with sessions list - desktop only */}
+      {!isMobile && (
+        <ParentSessionsList 
+          sessions={sessions} 
+          className="w-80 flex-shrink-0" 
+        />
+      )}
+
       {/* Mobile sheet for day details */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl">
@@ -742,6 +752,6 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
         regionId={regionId}
         children={children}
       />
-    </>
+    </div>
   );
 }
