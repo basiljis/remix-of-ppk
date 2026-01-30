@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/tooltip";
 import { 
   Loader2, CalendarDays, Clock, MapPin, User, Info, 
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Plus
 } from "lucide-react";
 import {
   format,
@@ -39,10 +39,13 @@ import {
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BookConsultationDialog } from "./BookConsultationDialog";
 
 interface ParentCalendarProps {
   parentUserId: string;
   childIds: string[];
+  regionId: string | null;
+  children: Array<{ id: string; full_name: string }>;
 }
 
 interface SessionWithDetails {
@@ -65,8 +68,9 @@ const timeSlots = Array.from({ length: 12 }, (_, i) => {
 
 type ViewMode = "week" | "month";
 
-export function ParentCalendar({ parentUserId, childIds }: ParentCalendarProps) {
+export function ParentCalendar({ parentUserId, childIds, regionId, children }: ParentCalendarProps) {
   const isMobile = useIsMobile();
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentWeekStart, setCurrentWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -375,6 +379,16 @@ export function ParentCalendar({ parentUserId, childIds }: ParentCalendarProps) 
             </CardTitle>
             
             <div className="flex flex-wrap items-center gap-2">
+              {/* Book Consultation Button */}
+              <Button 
+                onClick={() => setBookingDialogOpen(true)}
+                size="sm"
+                className="bg-pink-600 hover:bg-pink-700 gap-1 text-xs sm:text-sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Записаться</span>
+              </Button>
+
               {/* View mode toggle */}
               <div className="flex rounded-lg border overflow-hidden">
                 <Button
@@ -719,6 +733,15 @@ export function ParentCalendar({ parentUserId, childIds }: ParentCalendarProps) 
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Booking Dialog */}
+      <BookConsultationDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        parentUserId={parentUserId}
+        regionId={regionId}
+        children={children}
+      />
     </>
   );
 }

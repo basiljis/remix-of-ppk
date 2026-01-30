@@ -684,7 +684,9 @@ export default function ParentDashboard() {
         return (
           <ParentCalendar 
             parentUserId={profile?.id || ""} 
-            childIds={children.map(c => c.id)} 
+            childIds={children.map(c => c.id)}
+            regionId={profile?.region_id || null}
+            children={children.map(c => ({ id: c.id, full_name: c.full_name }))}
           />
         );
       case "profile":

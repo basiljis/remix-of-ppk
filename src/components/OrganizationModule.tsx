@@ -11,6 +11,7 @@ import { OrganizationStatistics } from "./OrganizationStatistics";
 import { OrganizationKPIManagement } from "./OrganizationKPIManagement";
 import { OrganizationHolidaysPanel } from "./OrganizationHolidaysPanel";
 import { HolidaySessionRequestsPanel } from "./HolidaySessionRequestsPanel";
+import { OrganizationRegistrationSettings } from "./OrganizationRegistrationSettings";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Badge } from "./ui/badge";
@@ -121,6 +122,8 @@ export function OrganizationModule({ activeSubTab = "employees" }: OrganizationM
         return <OrganizationHolidaysPanel />;
       case "requests":
         return <HolidaySessionRequestsPanel />;
+      case "settings":
+        return <OrganizationRegistrationSettings />;
       default:
         return <OrganizationEmployees />;
     }

@@ -91,6 +91,7 @@ const organizationItem = {
     { id: "organization-kpi", label: "KPI сотрудников" },
     { id: "organization-holidays", label: "Нерабочие дни" },
     { id: "organization-requests", label: "Запросы на согласование" },
+    { id: "organization-settings", label: "Настройки" },
   ]
 };
 
