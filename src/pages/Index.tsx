@@ -45,6 +45,7 @@ const Index = () => {
   const { user, loading, isAdmin, signOut, profile, hasAccessRequest, roles } = useAuth();
   const isDirector = roles.some(r => r.role === "director");
   const isOrgAdmin = roles.some(r => r.role === "organization_admin");
+  const isPrivateSpecialist = roles.some(r => r.role === "private_specialist");
   const { checklists, loading: checklistLoading, error } = useChecklistData();
   const subscriptionAccess = useSubscriptionAccess();
   const { hasOrganizationSubscription } = useOrganizationSubscription();
@@ -184,16 +185,24 @@ const Index = () => {
     
     switch (activeTab) {
       case "protocol":
-        return (
+      case "list":
+        // Private specialists cannot access PPK module
+        if (isPrivateSpecialist) {
+          return (
+            <div className="text-center p-8">
+              <p className="text-muted-foreground">Раздел ППК недоступен для частной практики.</p>
+              <p className="text-sm text-muted-foreground mt-2">Данный модуль предназначен для работы в составе организации.</p>
+            </div>
+          );
+        }
+        return activeTab === "protocol" ? (
           <Suspense fallback={loadingFallback}>
             <ProtocolForm 
               onProtocolSave={handleProtocolSave} 
               editingProtocol={editingProtocol}
             />
           </Suspense>
-        );
-      case "list":
-        return (
+        ) : (
           <Suspense fallback={loadingFallback}>
             <PPKList 
               onNewProtocol={handleNewProtocol}
@@ -273,6 +282,15 @@ const Index = () => {
       case "organization-kpi":
       case "organization-holidays":
       case "organization-requests":
+        // Private specialists cannot access Organization module
+        if (isPrivateSpecialist) {
+          return (
+            <div className="text-center p-8">
+              <p className="text-muted-foreground">Раздел «Организация» недоступен для частной практики.</p>
+              <p className="text-sm text-muted-foreground mt-2">Данный модуль предназначен для работы в составе организации.</p>
+            </div>
+          );
+        }
         return (isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess) ? (
           <Suspense fallback={loadingFallback}>
             <OrganizationModule activeSubTab={activeTab.startsWith("organization-") ? activeTab.replace("organization-", "") : "employees"} />
@@ -386,6 +404,7 @@ const Index = () => {
             isOrgAdmin={isOrgAdmin}
             isDirector={isDirector}
             hasOrganizationAccess={hasOrganizationAccess}
+            isPrivateSpecialist={isPrivateSpecialist}
           />
         </div>
         

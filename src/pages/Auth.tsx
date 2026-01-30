@@ -18,6 +18,7 @@ import { SystemInfoDialog } from "@/components/SystemInfoDialog";
 import { SupportDialog } from "@/components/SupportDialog";
 import { AuthFooter } from "@/components/AuthFooter";
 
+// Schema for organization users
 const signupSchema = z.object({
   fullName: z.string()
     .trim()
@@ -45,6 +46,39 @@ const signupSchema = z.object({
     message: "Необходимо согласие на обработку персональных данных"
   }),
 });
+
+// Schema for private practice specialists
+const privateSignupSchema = z.object({
+  fullName: z.string()
+    .trim()
+    .min(1, "ФИО обязательно для заполнения")
+    .max(200, "ФИО слишком длинное")
+    .regex(/^[а-яА-ЯёЁa-zA-Z\s\-]+$/, "Только буквы, пробелы и дефисы"),
+  phone: z.string()
+    .regex(/^\+?7[0-9]{10}$/, "Формат: +79991234567")
+    .transform(val => val.replace(/[^0-9+]/g, '')),
+  email: z.string()
+    .trim()
+    .email("Некорректный email")
+    .max(255, "Email слишком длинный"),
+  password: z.string()
+    .min(8, "Минимум 8 символов")
+    .regex(/[A-ZА-Я]/, "Нужна заглавная буква")
+    .regex(/[0-9]/, "Нужна цифра"),
+  positionId: z.string().min(1, "Должность обязательна для заполнения"),
+  regionId: z.string().min(1, "Регион обязателен для заполнения"),
+  dataProcessingConsent: z.boolean().refine(val => val === true, {
+    message: "Необходимо согласие на обработку персональных данных"
+  }),
+});
+
+// Positions excluded for private practice
+const EXCLUDED_POSITIONS = [
+  "медицинский работник",
+  "председатель ппк",
+  "руководитель организации",
+  "секретарь ппк"
+];
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -92,6 +126,22 @@ const Auth = () => {
   const [welcomeDialogOpen, setWelcomeDialogOpen] = useState(false);
   const [welcomeUserName, setWelcomeUserName] = useState("");
 
+  // Registration mode: 'organization' or 'private'
+  const [registrationMode, setRegistrationMode] = useState<'organization' | 'private'>('organization');
+  
+  // Private signup form
+  const [privateSignupData, setPrivateSignupData] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+    password: "",
+    positionId: "",
+    regionId: "",
+    dataProcessingConsent: false,
+  });
+  
+  const [privateSignupErrors, setPrivateSignupErrors] = useState<Record<string, string>>({});
+
   // Load reference data
   useState(() => {
     const loadRefData = async () => {
@@ -105,6 +155,11 @@ const Auth = () => {
     };
     loadRefData();
   });
+  
+  // Filter positions for private practice (exclude certain roles)
+  const privatePositions = positions.filter(
+    p => !EXCLUDED_POSITIONS.includes(p.name.toLowerCase())
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -299,6 +354,128 @@ const Auth = () => {
     }
   };
 
+  const handlePrivateSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setPrivateSignupErrors({});
+
+    try {
+      // Validate form data
+      const result = privateSignupSchema.safeParse(privateSignupData);
+      
+      if (!result.success) {
+        const errors: Record<string, string> = {};
+        result.error.issues.forEach((issue) => {
+          const path = issue.path[0] as string;
+          errors[path] = issue.message;
+        });
+        setPrivateSignupErrors(errors);
+        setLoading(false);
+        return;
+      }
+      
+      const validatedData = result.data;
+
+      // Check if email already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', validatedData.email)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('[Auth] Error checking existing user:', checkError);
+      }
+
+      if (existingUser) {
+        toast({
+          title: "Email уже зарегистрирован",
+          description: "Пользователь с таким email уже существует. Попробуйте восстановить доступ через 'Забыли пароль?'",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: validatedData.email,
+        password: validatedData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: validatedData.fullName,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Не удалось создать пользователя");
+
+      // Create profile directly for private specialists (no access request needed)
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: authData.user.id,
+        full_name: validatedData.fullName,
+        phone: validatedData.phone,
+        email: validatedData.email,
+        position_id: validatedData.positionId,
+        region_id: validatedData.regionId,
+        organization_id: null, // No organization for private specialists
+        is_blocked: false,
+      });
+
+      if (profileError) throw profileError;
+
+      // Assign private_specialist role
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: authData.user.id,
+        role: 'private_specialist',
+      });
+
+      if (roleError) throw roleError;
+
+      // Send registration confirmation email
+      try {
+        await supabase.functions.invoke('send-registration-email', {
+          body: {
+            email: validatedData.email,
+            fullName: validatedData.fullName,
+            organizationName: 'Частная практика',
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending registration email:", emailError);
+      }
+
+      toast({
+        title: "Регистрация успешна!",
+        description: "Вы можете войти в систему с указанными данными.",
+      });
+
+      // Clear form and switch to login
+      setPrivateSignupData({
+        fullName: "",
+        phone: "",
+        email: "",
+        password: "",
+        positionId: "",
+        regionId: "",
+        dataProcessingConsent: false,
+      });
+      
+      // Navigate to main app
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Ошибка регистрации",
+        description: error.message || "Не удалось зарегистрировать пользователя",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -449,209 +626,399 @@ const Auth = () => {
               <h2 className="text-2xl font-bold mb-2">Регистрация</h2>
               <p className="text-muted-foreground text-sm mb-4">Создайте новый аккаунт для работы с системой</p>
               
-              <form onSubmit={handleSignup} className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="fullName" className="text-sm">ФИО *</Label>
-                    <Input
-                      id="fullName"
-                      value={signupData.fullName}
-                      onChange={(e) => {
-                        setSignupData({ ...signupData, fullName: e.target.value });
-                        setSignupErrors({ ...signupErrors, fullName: "" });
-                      }}
-                      required
-                      className={`h-10 ${signupErrors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {signupErrors.fullName && (
-                      <p className="text-sm text-destructive">{signupErrors.fullName}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm">Телефон *</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+7 (999) 999-99-99"
-                      value={signupData.phone}
-                      onChange={(e) => {
-                        setSignupData({ ...signupData, phone: e.target.value });
-                        setSignupErrors({ ...signupErrors, phone: "" });
-                      }}
-                      required
-                      className={`h-10 ${signupErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {signupErrors.phone && (
-                      <p className="text-sm text-destructive">{signupErrors.phone}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm">Email (логин) *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={signupData.email}
-                      onChange={(e) => {
-                        setSignupData({ ...signupData, email: e.target.value });
-                        setSignupErrors({ ...signupErrors, email: "" });
-                      }}
-                      required
-                      className={`h-10 ${signupErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {signupErrors.email && (
-                      <p className="text-sm text-destructive">{signupErrors.email}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm">Пароль *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={signupData.password}
-                      onChange={(e) => {
-                        setSignupData({ ...signupData, password: e.target.value });
-                        setSignupErrors({ ...signupErrors, password: "" });
-                      }}
-                      required
-                      className={`h-10 ${signupErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {signupErrors.password && (
-                      <p className="text-sm text-destructive">{signupErrors.password}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="position" className="text-sm">Должность *</Label>
-                    <Select
-                      value={signupData.positionId}
-                      onValueChange={(value) => {
-                        setSignupData({ ...signupData, positionId: value });
-                        setSignupErrors({ ...signupErrors, positionId: "" });
-                      }}
-                      required
-                    >
-                      <SelectTrigger className={`h-10 ${signupErrors.positionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
-                        <SelectValue placeholder="Выберите должность" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {positions.map((position) => (
-                          <SelectItem key={position.id} value={position.id}>
-                            {position.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {signupErrors.positionId && (
-                      <p className="text-sm text-destructive">{signupErrors.positionId}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="region" className="text-sm">Регион *</Label>
-                    <Select
-                      value={signupData.regionId}
-                      onValueChange={(value) => {
-                        setSignupData({ ...signupData, regionId: value });
-                        setSignupErrors({ ...signupErrors, regionId: "" });
-                      }}
-                      required
-                    >
-                      <SelectTrigger className={`h-10 ${signupErrors.regionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
-                        <SelectValue placeholder="Выберите регион" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {regions.map((region) => (
-                          <SelectItem key={region.id} value={region.id}>
-                            {region.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {signupErrors.regionId && (
-                      <p className="text-sm text-destructive">{signupErrors.regionId}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="role" className="text-sm">Роль *</Label>
-                    <Select
-                      value={signupData.role}
-                      onValueChange={(value: "user" | "regional_operator" | "admin") => {
-                        setSignupData({ ...signupData, role: value });
-                        setSignupErrors({ ...signupErrors, role: "" });
-                      }}
-                      required
-                    >
-                      <SelectTrigger className={`h-10 ${signupErrors.role ? "border-destructive focus-visible:ring-destructive" : ""}`}>
-                        <SelectValue placeholder="Выберите роль" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">Пользователь</SelectItem>
-                        <SelectItem value="regional_operator">Региональный оператор</SelectItem>
-                        <SelectItem value="admin">Администратор</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {signupErrors.role && (
-                      <p className="text-sm text-destructive">{signupErrors.role}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <OrganizationSelector
-                      value={signupData.organizationId}
-                      onChange={(value) => {
-                        setSignupData({ ...signupData, organizationId: value });
-                        setSignupErrors({ ...signupErrors, organizationId: "" });
-                      }}
-                      placeholder="Если не нашли организацию выберите Иное..."
-                      regionFilter={signupData.regionId}
-                    />
-                    {signupErrors.organizationId && (
-                      <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <div className="flex items-start space-x-2">
-                      <Checkbox
-                        id="dataProcessingConsent"
-                        checked={signupData.dataProcessingConsent}
-                        onCheckedChange={(checked) => {
-                          setSignupData({ ...signupData, dataProcessingConsent: checked as boolean });
-                          setSignupErrors({ ...signupErrors, dataProcessingConsent: "" });
-                        }}
-                        className={signupErrors.dataProcessingConsent ? "border-destructive" : ""}
-                      />
-                      <label
-                        htmlFor="dataProcessingConsent"
-                        className="text-sm leading-tight cursor-pointer"
-                      >
-                        Я согласен на обработку персональных данных в соответствии с{" "}
-                        <DataProcessingAgreement />
-                      </label>
-                    </div>
-                    {signupErrors.dataProcessingConsent && (
-                      <p className="text-sm text-destructive">{signupErrors.dataProcessingConsent}</p>
-                    )}
-                  </div>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
-                  disabled={loading}
+              {/* Registration mode tabs */}
+              <div className="flex gap-2 mb-4">
+                <Button
+                  type="button"
+                  variant={registrationMode === 'organization' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRegistrationMode('organization')}
+                  className="flex-1"
                 >
-                  {loading ? "Регистрация..." : "Зарегистрироваться"}
+                  Для организаций
                 </Button>
-                
-                <div className="space-y-2">
-                  <SystemInfoDialog />
-                  <SupportDialog />
-                </div>
-              </form>
+                <Button
+                  type="button"
+                  variant={registrationMode === 'private' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRegistrationMode('private')}
+                  className="flex-1"
+                >
+                  Частная практика
+                </Button>
+              </div>
+
+              {registrationMode === 'organization' ? (
+                <form onSubmit={handleSignup} className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="fullName" className="text-sm">ФИО *</Label>
+                      <Input
+                        id="fullName"
+                        value={signupData.fullName}
+                        onChange={(e) => {
+                          setSignupData({ ...signupData, fullName: e.target.value });
+                          setSignupErrors({ ...signupErrors, fullName: "" });
+                        }}
+                        required
+                        className={`h-10 ${signupErrors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {signupErrors.fullName && (
+                        <p className="text-sm text-destructive">{signupErrors.fullName}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-sm">Телефон *</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+7 (999) 999-99-99"
+                        value={signupData.phone}
+                        onChange={(e) => {
+                          setSignupData({ ...signupData, phone: e.target.value });
+                          setSignupErrors({ ...signupErrors, phone: "" });
+                        }}
+                        required
+                        className={`h-10 ${signupErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {signupErrors.phone && (
+                        <p className="text-sm text-destructive">{signupErrors.phone}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm">Email (логин) *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={signupData.email}
+                        onChange={(e) => {
+                          setSignupData({ ...signupData, email: e.target.value });
+                          setSignupErrors({ ...signupErrors, email: "" });
+                        }}
+                        required
+                        className={`h-10 ${signupErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {signupErrors.email && (
+                        <p className="text-sm text-destructive">{signupErrors.email}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-sm">Пароль *</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={signupData.password}
+                        onChange={(e) => {
+                          setSignupData({ ...signupData, password: e.target.value });
+                          setSignupErrors({ ...signupErrors, password: "" });
+                        }}
+                        required
+                        className={`h-10 ${signupErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {signupErrors.password && (
+                        <p className="text-sm text-destructive">{signupErrors.password}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="position" className="text-sm">Должность *</Label>
+                      <Select
+                        value={signupData.positionId}
+                        onValueChange={(value) => {
+                          setSignupData({ ...signupData, positionId: value });
+                          setSignupErrors({ ...signupErrors, positionId: "" });
+                        }}
+                        required
+                      >
+                        <SelectTrigger className={`h-10 ${signupErrors.positionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
+                          <SelectValue placeholder="Выберите должность" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {positions.map((position) => (
+                            <SelectItem key={position.id} value={position.id}>
+                              {position.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {signupErrors.positionId && (
+                        <p className="text-sm text-destructive">{signupErrors.positionId}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="region" className="text-sm">Регион *</Label>
+                      <Select
+                        value={signupData.regionId}
+                        onValueChange={(value) => {
+                          setSignupData({ ...signupData, regionId: value });
+                          setSignupErrors({ ...signupErrors, regionId: "" });
+                        }}
+                        required
+                      >
+                        <SelectTrigger className={`h-10 ${signupErrors.regionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
+                          <SelectValue placeholder="Выберите регион" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {regions.map((region) => (
+                            <SelectItem key={region.id} value={region.id}>
+                              {region.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {signupErrors.regionId && (
+                        <p className="text-sm text-destructive">{signupErrors.regionId}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="role" className="text-sm">Роль *</Label>
+                      <Select
+                        value={signupData.role}
+                        onValueChange={(value: "user" | "regional_operator" | "admin") => {
+                          setSignupData({ ...signupData, role: value });
+                          setSignupErrors({ ...signupErrors, role: "" });
+                        }}
+                        required
+                      >
+                        <SelectTrigger className={`h-10 ${signupErrors.role ? "border-destructive focus-visible:ring-destructive" : ""}`}>
+                          <SelectValue placeholder="Выберите роль" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">Пользователь</SelectItem>
+                          <SelectItem value="regional_operator">Региональный оператор</SelectItem>
+                          <SelectItem value="admin">Администратор</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {signupErrors.role && (
+                        <p className="text-sm text-destructive">{signupErrors.role}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <OrganizationSelector
+                        value={signupData.organizationId}
+                        onChange={(value) => {
+                          setSignupData({ ...signupData, organizationId: value });
+                          setSignupErrors({ ...signupErrors, organizationId: "" });
+                        }}
+                        placeholder="Если не нашли организацию выберите Иное..."
+                        regionFilter={signupData.regionId}
+                      />
+                      {signupErrors.organizationId && (
+                        <p className="text-sm text-destructive">{signupErrors.organizationId}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox
+                          id="dataProcessingConsent"
+                          checked={signupData.dataProcessingConsent}
+                          onCheckedChange={(checked) => {
+                            setSignupData({ ...signupData, dataProcessingConsent: checked as boolean });
+                            setSignupErrors({ ...signupErrors, dataProcessingConsent: "" });
+                          }}
+                          className={signupErrors.dataProcessingConsent ? "border-destructive" : ""}
+                        />
+                        <label
+                          htmlFor="dataProcessingConsent"
+                          className="text-sm leading-tight cursor-pointer"
+                        >
+                          Я согласен на обработку персональных данных в соответствии с{" "}
+                          <DataProcessingAgreement />
+                        </label>
+                      </div>
+                      {signupErrors.dataProcessingConsent && (
+                        <p className="text-sm text-destructive">{signupErrors.dataProcessingConsent}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+                    disabled={loading}
+                  >
+                    {loading ? "Регистрация..." : "Зарегистрироваться"}
+                  </Button>
+                  
+                  <div className="space-y-2">
+                    <SystemInfoDialog />
+                    <SupportDialog />
+                  </div>
+                </form>
+              ) : (
+                /* Private practice registration form */
+                <form onSubmit={handlePrivateSignup} className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="privateFullName" className="text-sm">ФИО *</Label>
+                      <Input
+                        id="privateFullName"
+                        value={privateSignupData.fullName}
+                        onChange={(e) => {
+                          setPrivateSignupData({ ...privateSignupData, fullName: e.target.value });
+                          setPrivateSignupErrors({ ...privateSignupErrors, fullName: "" });
+                        }}
+                        required
+                        className={`h-10 ${privateSignupErrors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {privateSignupErrors.fullName && (
+                        <p className="text-sm text-destructive">{privateSignupErrors.fullName}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="privatePhone" className="text-sm">Телефон *</Label>
+                      <Input
+                        id="privatePhone"
+                        type="tel"
+                        placeholder="+7 (999) 999-99-99"
+                        value={privateSignupData.phone}
+                        onChange={(e) => {
+                          setPrivateSignupData({ ...privateSignupData, phone: e.target.value });
+                          setPrivateSignupErrors({ ...privateSignupErrors, phone: "" });
+                        }}
+                        required
+                        className={`h-10 ${privateSignupErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {privateSignupErrors.phone && (
+                        <p className="text-sm text-destructive">{privateSignupErrors.phone}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="privateEmail" className="text-sm">Email (логин) *</Label>
+                      <Input
+                        id="privateEmail"
+                        type="email"
+                        value={privateSignupData.email}
+                        onChange={(e) => {
+                          setPrivateSignupData({ ...privateSignupData, email: e.target.value });
+                          setPrivateSignupErrors({ ...privateSignupErrors, email: "" });
+                        }}
+                        required
+                        className={`h-10 ${privateSignupErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {privateSignupErrors.email && (
+                        <p className="text-sm text-destructive">{privateSignupErrors.email}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="privatePassword" className="text-sm">Пароль *</Label>
+                      <Input
+                        id="privatePassword"
+                        type="password"
+                        value={privateSignupData.password}
+                        onChange={(e) => {
+                          setPrivateSignupData({ ...privateSignupData, password: e.target.value });
+                          setPrivateSignupErrors({ ...privateSignupErrors, password: "" });
+                        }}
+                        required
+                        className={`h-10 ${privateSignupErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      />
+                      {privateSignupErrors.password && (
+                        <p className="text-sm text-destructive">{privateSignupErrors.password}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="privatePosition" className="text-sm">Должность *</Label>
+                      <Select
+                        value={privateSignupData.positionId}
+                        onValueChange={(value) => {
+                          setPrivateSignupData({ ...privateSignupData, positionId: value });
+                          setPrivateSignupErrors({ ...privateSignupErrors, positionId: "" });
+                        }}
+                        required
+                      >
+                        <SelectTrigger className={`h-10 ${privateSignupErrors.positionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
+                          <SelectValue placeholder="Выберите должность" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {privatePositions.map((position) => (
+                            <SelectItem key={position.id} value={position.id}>
+                              {position.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {privateSignupErrors.positionId && (
+                        <p className="text-sm text-destructive">{privateSignupErrors.positionId}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="privateRegion" className="text-sm">Регион *</Label>
+                      <Select
+                        value={privateSignupData.regionId}
+                        onValueChange={(value) => {
+                          setPrivateSignupData({ ...privateSignupData, regionId: value });
+                          setPrivateSignupErrors({ ...privateSignupErrors, regionId: "" });
+                        }}
+                        required
+                      >
+                        <SelectTrigger className={`h-10 ${privateSignupErrors.regionId ? "border-destructive focus-visible:ring-destructive" : ""}`}>
+                          <SelectValue placeholder="Выберите регион" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {regions.map((region) => (
+                            <SelectItem key={region.id} value={region.id}>
+                              {region.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {privateSignupErrors.regionId && (
+                        <p className="text-sm text-destructive">{privateSignupErrors.regionId}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox
+                          id="privateDataProcessingConsent"
+                          checked={privateSignupData.dataProcessingConsent}
+                          onCheckedChange={(checked) => {
+                            setPrivateSignupData({ ...privateSignupData, dataProcessingConsent: checked as boolean });
+                            setPrivateSignupErrors({ ...privateSignupErrors, dataProcessingConsent: "" });
+                          }}
+                          className={privateSignupErrors.dataProcessingConsent ? "border-destructive" : ""}
+                        />
+                        <label
+                          htmlFor="privateDataProcessingConsent"
+                          className="text-sm leading-tight cursor-pointer"
+                        >
+                          Я согласен на обработку персональных данных в соответствии с{" "}
+                          <DataProcessingAgreement />
+                        </label>
+                      </div>
+                      {privateSignupErrors.dataProcessingConsent && (
+                        <p className="text-sm text-destructive">{privateSignupErrors.dataProcessingConsent}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+                    disabled={loading}
+                  >
+                    {loading ? "Регистрация..." : "Зарегистрироваться"}
+                  </Button>
+                  
+                  <div className="space-y-2">
+                    <SystemInfoDialog />
+                    <SupportDialog />
+                  </div>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         </div>
