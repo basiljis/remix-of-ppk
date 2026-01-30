@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ const parentSignupSchema = z.object({
     .min(8, "Минимум 8 символов")
     .regex(/[A-ZА-Я]/, "Нужна заглавная буква")
     .regex(/[0-9]/, "Нужна цифра"),
+  regionId: z.string().min(1, "Выберите регион"),
   dataProcessingConsent: z.boolean().refine(val => val === true, {
     message: "Необходимо согласие на обработку персональных данных"
   }),
@@ -61,7 +63,18 @@ const ParentAuth = () => {
     phone: "",
     email: "",
     password: "",
+    regionId: "",
     dataProcessingConsent: false,
+  });
+
+  // Fetch regions
+  const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
+  useState(() => {
+    supabase
+      .from("regions")
+      .select("id, name")
+      .order("name")
+      .then(({ data }) => setRegions(data || []));
   });
 
   // Validation errors
@@ -200,6 +213,7 @@ const ParentAuth = () => {
         full_name: validatedData.fullName,
         phone: validatedData.phone,
         email: validatedData.email,
+        region_id: validatedData.regionId,
         data_processing_consent: true,
       } as any);
 
@@ -222,6 +236,7 @@ const ParentAuth = () => {
         phone: "",
         email: "",
         password: "",
+        regionId: "",
         dataProcessingConsent: false,
       });
     } catch (error: any) {
@@ -442,6 +457,31 @@ const ParentAuth = () => {
                       <p className="text-sm text-destructive">{signupErrors.password}</p>
                     )}
                     <p className="text-xs text-muted-foreground">Минимум 8 символов, заглавная буква и цифра</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="region">Регион *</Label>
+                    <Select
+                      value={signupData.regionId}
+                      onValueChange={(value) => {
+                        setSignupData({ ...signupData, regionId: value });
+                        setSignupErrors({ ...signupErrors, regionId: "" });
+                      }}
+                    >
+                      <SelectTrigger className={signupErrors.regionId ? "border-destructive" : ""}>
+                        <SelectValue placeholder="Выберите регион" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regions.map((region) => (
+                          <SelectItem key={region.id} value={region.id}>
+                            {region.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {signupErrors.regionId && (
+                      <p className="text-sm text-destructive">{signupErrors.regionId}</p>
+                    )}
                   </div>
 
                   <div className="flex items-start space-x-2">
