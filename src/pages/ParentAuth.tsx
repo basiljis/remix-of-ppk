@@ -13,6 +13,7 @@ import { z } from "zod";
 import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AuthFooter } from "@/components/AuthFooter";
+import { ParentSystemInfoDialog } from "@/components/ParentSystemInfoDialog";
 import { Heart, Users, Baby, Shield } from "lucide-react";
 
 const parentSignupSchema = z.object({
@@ -468,6 +469,10 @@ const ParentAuth = () => {
                   >
                     {loading ? "Регистрация..." : "Зарегистрироваться"}
                   </Button>
+                  
+                  <div className="pt-2">
+                    <ParentSystemInfoDialog />
+                  </div>
                 </form>
               </TabsContent>
             </Tabs>
