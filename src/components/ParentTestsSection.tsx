@@ -274,7 +274,7 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
         setCurrentResult(result);
         setResultDialogOpen(true);
       }
-      toast({ title: "Тест пройден!" });
+      // Toast removed - result dialog already shows success
     },
     onError: (error: any) => {
       toast({ title: "Ошибка", description: error.message, variant: "destructive" });
