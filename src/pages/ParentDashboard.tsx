@@ -21,6 +21,7 @@ import { ru } from "date-fns/locale";
 import { ParentCalendar } from "@/components/ParentCalendar";
 import { BookConsultationDialog } from "@/components/BookConsultationDialog";
 import { ParentTestsSection } from "@/components/ParentTestsSection";
+import { ParentNotificationsDialog } from "@/components/ParentNotificationsDialog";
 
 interface ParentProfile {
   id: string;
@@ -804,6 +805,10 @@ export default function ParentDashboard() {
               )}
               
               <div className="h-8 w-px bg-border hidden lg:block" />
+              
+              {/* Notifications bell */}
+              <ParentNotificationsDialog onNavigate={setActiveTab} />
+              
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setActiveTab("profile")}
