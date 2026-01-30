@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { 
   Loader2, ClipboardList, CheckCircle2, AlertCircle, 
-  Star, Info, ChevronRight, Lightbulb, Lock, Eye, BookOpen
+  Star, Info, ChevronRight, Lightbulb, Lock, Eye, BookOpen, Baby, TrendingUp
 } from "lucide-react";
 import { TestRecommendationsDialog } from "./TestRecommendationsDialog";
+import { DevelopmentTestWizard } from "./DevelopmentTestWizard";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -41,6 +42,7 @@ interface ParentChild {
   id: string;
   full_name: string;
   child_unique_id: string;
+  birth_date?: string | null;
 }
 
 interface TestResult {
@@ -86,6 +88,8 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [recommendationsDialogOpen, setRecommendationsDialogOpen] = useState(false);
   const [selectedResultForRecommendations, setSelectedResultForRecommendations] = useState<TestResult | null>(null);
+  const [developmentTestOpen, setDevelopmentTestOpen] = useState(false);
+  const [developmentTestChildId, setDevelopmentTestChildId] = useState<string | null>(null);
 
   // Fetch available tests
   const { data: tests, isLoading: testsLoading } = useQuery({
@@ -446,11 +450,94 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
     );
   }
 
+  const startDevelopmentTest = (childId: string) => {
+    if (children.length === 0) {
+      toast({
+        title: "Сначала добавьте ребёнка",
+        description: "Результаты теста сохраняются для конкретного ребёнка",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDevelopmentTestChildId(childId);
+    setDevelopmentTestOpen(true);
+  };
+
+  const handleDevelopmentTestComplete = () => {
+    setDevelopmentTestOpen(false);
+    setDevelopmentTestChildId(null);
+    queryClient.invalidateQueries({ queryKey: ["development-test-results"] });
+    toast({
+      title: "Тест завершён",
+      description: "Результаты сохранены в карточке ребёнка",
+    });
+  };
+
   return (
     <div className="space-y-6">
-      {/* Available Tests */}
+      {/* Development Test "My Child is Growing" */}
       <div>
-        <h3 className="text-xl font-semibold mb-4">Доступные тесты</h3>
+        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <Baby className="h-5 w-5 text-emerald-500" />
+          Мониторинг развития
+        </h3>
+        <Card className="border-emerald-200 dark:border-emerald-800 hover:shadow-md transition-shadow bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <CardTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                  <TrendingUp className="h-5 w-5" />
+                  Мой ребёнок растёт
+                </CardTitle>
+                <CardDescription className="mt-2">
+                  Комплексная оценка развития по 5 сферам: моторное, речевое, познавательное, 
+                  социально-коммуникативное и эмоционально-волевое. Система автоматически подберёт 
+                  задания по возрасту и сформирует персонализированные рекомендации.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-start gap-2 p-3 bg-emerald-100/50 dark:bg-emerald-900/30 rounded-lg mb-4">
+              <Info className="h-4 w-4 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+              <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                Тест занимает 10–15 минут. Вы можете загрузить фото/видео как доказательства выполнения заданий. 
+                Результаты интегрируются в карточку ребёнка и доступны специалистам ППк по вашему согласию.
+              </p>
+            </div>
+            
+            {children.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Выберите ребёнка:</p>
+                <div className="flex flex-wrap gap-2">
+                  {children.map((child) => (
+                    <Button 
+                      key={child.id}
+                      onClick={() => startDevelopmentTest(child.id)}
+                      variant="outline"
+                      className="border-emerald-300 hover:bg-emerald-100 hover:text-emerald-700 dark:border-emerald-700 dark:hover:bg-emerald-900 dark:hover:text-emerald-300"
+                    >
+                      <Baby className="h-4 w-4 mr-2" />
+                      {child.full_name}
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Сначала добавьте ребёнка в разделе «Мои дети»
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Separator />
+
+      {/* Available Parenting Tests */}
+      <div>
+        <h3 className="text-xl font-semibold mb-4">Тесты для родителей</h3>
         <div className="grid gap-4">
           {tests?.map((test) => (
             <Card key={test.id} className="hover:shadow-md transition-shadow">
@@ -824,6 +911,22 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
         onOpenChange={setRecommendationsDialogOpen}
         result={selectedResultForRecommendations}
         childName={selectedResultForRecommendations ? getChildName(selectedResultForRecommendations.child_id) : ""}
+      />
+
+      {/* Development Test Wizard */}
+      <DevelopmentTestWizard
+        open={developmentTestOpen}
+        onOpenChange={(open) => {
+          setDevelopmentTestOpen(open);
+          if (!open) setDevelopmentTestChildId(null);
+        }}
+        parentUserId={parentUserId}
+        children={developmentTestChildId ? children.filter(c => c.id === developmentTestChildId).map(c => ({
+          id: c.id,
+          full_name: c.full_name,
+          birth_date: c.birth_date || null
+        })) : []}
+        onComplete={handleDevelopmentTestComplete}
       />
     </div>
   );
