@@ -623,21 +623,21 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
               </ScrollArea>
             </div>
           ) : (
-            // Monthly view - responsive
-            <div className="h-full flex flex-col lg:flex-row gap-4 lg:gap-6">
+            // Monthly view - fixed grid layout
+            <div className="h-full flex flex-col">
               {/* Calendar grid */}
               <div className="flex-1 min-w-0">
                 {/* Weekday headers */}
-                <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
-                  {(isMobile ? ["П", "В", "С", "Ч", "П", "С", "В"] : ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]).map((day, idx) => (
-                    <div key={idx} className="p-1 sm:p-2 text-center text-xs sm:text-sm font-medium text-muted-foreground">
+                <div className="grid grid-cols-7 mb-1">
+                  {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day, idx) => (
+                    <div key={idx} className="p-2 text-center text-sm font-medium text-muted-foreground">
                       {day}
                     </div>
                   ))}
                 </div>
 
-                {/* Days grid - responsive sizing */}
-                <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+                {/* Days grid - fixed sizing */}
+                <div className="grid grid-cols-7 gap-1 auto-rows-fr">
                   {monthDays.map((day) => {
                     const isToday = isSameDay(day, new Date());
                     const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -651,7 +651,7 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                         key={day.toISOString()}
                         onClick={() => handleDateSelect(day)}
                         className={cn(
-                          "min-h-[50px] sm:min-h-[70px] lg:min-h-[90px] p-1 sm:p-2 rounded-lg border cursor-pointer transition-all hover:shadow-md",
+                          "min-h-[80px] p-2 rounded-lg border cursor-pointer transition-all hover:shadow-md flex flex-col",
                           !isCurrentMonth && "opacity-40",
                           isToday && "bg-blue-100 dark:bg-blue-950 border-blue-300",
                           hasEvents && !isToday && "bg-pink-50 dark:bg-pink-950/30",
@@ -659,18 +659,18 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                         )}
                       >
                         <div className={cn(
-                          "text-xs sm:text-sm font-medium mb-0.5 sm:mb-1",
+                          "text-sm font-medium mb-1",
                           isToday && "text-blue-600"
                         )}>
                           {format(day, "d")}
                         </div>
                         
-                        {/* Event indicators - responsive */}
-                        <div className="space-y-0.5 hidden sm:block">
-                          {daySessions.slice(0, isMobile ? 1 : 2).map((session) => (
+                        {/* Event indicators */}
+                        <div className="flex-1 space-y-0.5 overflow-hidden">
+                          {daySessions.slice(0, 2).map((session) => (
                             <div
                               key={session.id}
-                              className="text-[8px] sm:text-[10px] px-0.5 sm:px-1 py-0.5 rounded truncate"
+                              className="text-[10px] px-1 py-0.5 rounded truncate"
                               style={{
                                 backgroundColor: session.session_status?.color 
                                   ? `${session.session_status.color}30` 
@@ -682,41 +682,16 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                             </div>
                           ))}
                           {daySessions.length > 2 && (
-                            <div className="text-[8px] sm:text-[10px] text-muted-foreground px-0.5 sm:px-1">
+                            <div className="text-[10px] text-muted-foreground px-1">
                               +{daySessions.length - 2}
                             </div>
                           )}
                         </div>
-                        
-                        {/* Mobile: just show dot indicators */}
-                        {isMobile && hasEvents && (
-                          <div className="flex gap-0.5 flex-wrap mt-1">
-                            {daySessions.slice(0, 3).map((session, idx) => (
-                              <div
-                                key={idx}
-                                className="w-1.5 h-1.5 rounded-full"
-                                style={{
-                                  backgroundColor: session.session_status?.color || "hsl(var(--primary))",
-                                }}
-                              />
-                            ))}
-                            {daySessions.length > 3 && (
-                              <span className="text-[8px] text-muted-foreground">+{daySessions.length - 3}</span>
-                            )}
-                          </div>
-                        )}
                       </div>
                     );
                   })}
                 </div>
               </div>
-
-              {/* Selected day details - desktop only, hidden on mobile (use sheet) */}
-              {!isMobile && (
-                <div className="w-full lg:w-80 flex-shrink-0">
-                  {renderDayDetails()}
-                </div>
-              )}
             </div>
           )}
         </CardContent>

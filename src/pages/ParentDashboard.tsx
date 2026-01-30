@@ -18,6 +18,7 @@ import { ParentSidebar } from "@/components/ParentSidebar";
 import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { ParentCalendar } from "@/components/ParentCalendar";
 import { BookConsultationDialog } from "@/components/BookConsultationDialog";
 import { ParentTestsSection } from "@/components/ParentTestsSection";
@@ -880,7 +881,10 @@ export default function ParentDashboard() {
         
         {/* Main content */}
         <main className="flex-1 w-full pt-16">
-          <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
+          <div className={cn(
+            "container mx-auto p-4 sm:p-6",
+            activeTab === "calendar" ? "max-w-full px-2 sm:px-4" : "max-w-4xl lg:p-8"
+          )}>
             {renderTabContent()}
           </div>
         </main>
