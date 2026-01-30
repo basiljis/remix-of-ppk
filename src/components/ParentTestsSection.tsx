@@ -52,7 +52,9 @@ interface TestResult {
   scores: any;
   recommendations: any;
   is_visible_to_specialists: boolean;
+  is_completed: boolean;
   completed_at: string;
+  answers: Record<string, number>;
 }
 
 const ANSWER_OPTIONS = [
@@ -79,6 +81,8 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
   const [resultDialogOpen, setResultDialogOpen] = useState(false);
   const [currentResult, setCurrentResult] = useState<TestResult | null>(null);
   const [shareConsent, setShareConsent] = useState(false);
+  const [draftResultId, setDraftResultId] = useState<string | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
   // Fetch available tests
   const { data: tests, isLoading: testsLoading } = useQuery({
@@ -110,7 +114,7 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
     enabled: !!selectedTest?.id,
   });
 
-  // Fetch existing results
+  // Fetch existing results (completed only)
   const { data: existingResults } = useQuery({
     queryKey: ["parent-test-results", parentUserId],
     queryFn: async () => {
@@ -118,6 +122,22 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
         .from("parent_test_results" as any)
         .select("*")
         .eq("parent_user_id", parentUserId)
+        .eq("is_completed", true)
+        .order("completed_at", { ascending: false }) as { data: TestResult[] | null; error: any };
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch incomplete (draft) results
+  const { data: draftResults } = useQuery({
+    queryKey: ["parent-test-drafts", parentUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("parent_test_results" as any)
+        .select("*")
+        .eq("parent_user_id", parentUserId)
+        .eq("is_completed", false)
         .order("completed_at", { ascending: false }) as { data: TestResult[] | null; error: any };
       if (error) throw error;
       return data || [];
@@ -217,20 +237,39 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
         risk_level: riskLevel,
         recommendations,
         is_visible_to_specialists: shareConsent,
+        is_completed: true,
       };
 
-      const { data, error } = await supabase
-        .from("parent_test_results" as any)
-        .insert(resultData as any)
-        .select()
-        .single() as { data: TestResult | null; error: any };
+      let data: TestResult | null = null;
 
-      if (error) throw error;
+      if (draftResultId) {
+        // Update existing draft to completed
+        const { data: updatedData, error } = await supabase
+          .from("parent_test_results" as any)
+          .update(resultData as any)
+          .eq("id", draftResultId)
+          .select()
+          .single() as { data: TestResult | null; error: any };
+        if (error) throw error;
+        data = updatedData;
+      } else {
+        // Create new result
+        const { data: newData, error } = await supabase
+          .from("parent_test_results" as any)
+          .insert(resultData as any)
+          .select()
+          .single() as { data: TestResult | null; error: any };
+        if (error) throw error;
+        data = newData;
+      }
+
       return data as TestResult;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["parent-test-results"] });
+      queryClient.invalidateQueries({ queryKey: ["parent-test-drafts"] });
       setTestDialogOpen(false);
+      setDraftResultId(null);
       if (result) {
         setCurrentResult(result);
         setResultDialogOpen(true);
@@ -257,7 +296,67 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
     },
   });
 
-  const startTest = (test: ParentTest) => {
+  // Save draft on dialog close
+  const saveDraft = async () => {
+    if (!selectedTest || !selectedChildId || Object.keys(answers).length === 0) return;
+    
+    setIsSavingDraft(true);
+    try {
+      const draftData = {
+        parent_user_id: parentUserId,
+        child_id: selectedChildId,
+        test_id: selectedTest.id,
+        answers,
+        scores: { warmth: 0, control: 0, involvement: 0 },
+        result_type: "draft",
+        result_label: "Незавершённый тест",
+        risk_level: null,
+        recommendations: [],
+        is_visible_to_specialists: false,
+        is_completed: false,
+      };
+
+      if (draftResultId) {
+        // Update existing draft
+        await supabase
+          .from("parent_test_results" as any)
+          .update({ answers, completed_at: new Date().toISOString() } as any)
+          .eq("id", draftResultId);
+      } else {
+        // Create new draft
+        const { data } = await supabase
+          .from("parent_test_results" as any)
+          .insert(draftData as any)
+          .select()
+          .single();
+        if (data) setDraftResultId((data as any).id);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["parent-test-drafts"] });
+      toast({ 
+        title: "Прогресс сохранён", 
+        description: "Вы можете продолжить тест позже" 
+      });
+    } catch (error) {
+      console.error("Error saving draft:", error);
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleDialogClose = async (open: boolean) => {
+    if (!open && testDialogOpen && Object.keys(answers).length > 0 && questions && currentQuestionIndex < questions.length - 1) {
+      // User is closing dialog with incomplete test - save draft
+      await saveDraft();
+    }
+    setTestDialogOpen(open);
+    if (!open) {
+      // Reset state
+      setDraftResultId(null);
+    }
+  };
+
+  const startTest = (test: ParentTest, existingDraft?: TestResult) => {
     if (children.length === 0) {
       toast({
         title: "Сначала добавьте ребёнка",
@@ -267,9 +366,21 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
       return;
     }
     setSelectedTest(test);
-    setSelectedChildId(children[0].id);
-    setCurrentQuestionIndex(0);
-    setAnswers({});
+    
+    if (existingDraft) {
+      // Resume from draft
+      setSelectedChildId(existingDraft.child_id);
+      setAnswers(existingDraft.answers || {});
+      setDraftResultId(existingDraft.id);
+      // Find the first unanswered question
+      const firstUnanswered = questions?.findIndex(q => !existingDraft.answers?.[q.id]) ?? 0;
+      setCurrentQuestionIndex(Math.max(0, firstUnanswered));
+    } else {
+      setSelectedChildId(children[0].id);
+      setCurrentQuestionIndex(0);
+      setAnswers({});
+      setDraftResultId(null);
+    }
     setShareConsent(false);
     setTestDialogOpen(true);
   };
@@ -364,6 +475,62 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
           ))}
         </div>
       </div>
+
+      {/* Draft Tests (Incomplete) */}
+      {draftResults && draftResults.length > 0 && (
+        <>
+          <Separator />
+          <div>
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              Незавершённые тесты
+            </h3>
+            <div className="grid gap-4">
+              {draftResults.map((draft) => {
+                const test = tests?.find(t => t.id === draft.test_id);
+                const answeredCount = Object.keys(draft.answers || {}).length;
+                const totalQuestions = questions?.length || 12; // fallback
+                const progress = Math.round((answeredCount / totalQuestions) * 100);
+                
+                return (
+                  <Card key={draft.id} className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle className="h-5 w-5 text-orange-500" />
+                            <span className="font-semibold">{test?.title}</span>
+                            <Badge variant="outline" className="border-orange-500 text-orange-600">
+                              Не завершён
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Ребёнок: {getChildName(draft.child_id)} • Сохранено: {format(new Date(draft.completed_at), "dd MMMM yyyy, HH:mm", { locale: ru })}
+                          </p>
+                          <div className="mt-3 space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span>Прогресс</span>
+                              <span>{answeredCount} из {totalQuestions} вопросов ({progress}%)</span>
+                            </div>
+                            <Progress value={progress} className="h-2" />
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => test && startTest(test, draft)}
+                          className="ml-4 bg-orange-600 hover:bg-orange-700"
+                        >
+                          Продолжить
+                          <ChevronRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       <Separator />
 
@@ -472,17 +639,19 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
       </div>
 
       {/* Test Taking Dialog */}
-      <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
+      <Dialog open={testDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{selectedTest?.title}</DialogTitle>
             <DialogDescription>
-              Выберите ребёнка и ответьте на вопросы
+              {draftResultId 
+                ? "Продолжите прохождение теста с того места, где остановились" 
+                : "Выберите ребёнка и ответьте на вопросы"}
             </DialogDescription>
           </DialogHeader>
 
-          {/* Child selector */}
-          {currentQuestionIndex === 0 && (
+          {/* Child selector - only show if not resuming draft and on first question */}
+          {currentQuestionIndex === 0 && !draftResultId && (
             <div className="space-y-2 mb-4">
               <Label>Выберите ребёнка</Label>
               <Select value={selectedChildId} onValueChange={setSelectedChildId}>
@@ -497,6 +666,16 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {/* Show child name when resuming */}
+          {draftResultId && (
+            <div className="p-3 bg-muted rounded-lg mb-4">
+              <p className="text-sm">
+                <span className="text-muted-foreground">Ребёнок:</span>{" "}
+                <span className="font-medium">{getChildName(selectedChildId)}</span>
+              </p>
             </div>
           )}
 
