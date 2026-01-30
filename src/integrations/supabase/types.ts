@@ -1189,6 +1189,7 @@ export type Database = {
           completed_at: string
           created_at: string
           id: string
+          is_completed: boolean
           is_visible_to_specialists: boolean
           parent_user_id: string
           recommendations: Json | null
@@ -1205,6 +1206,7 @@ export type Database = {
           completed_at?: string
           created_at?: string
           id?: string
+          is_completed?: boolean
           is_visible_to_specialists?: boolean
           parent_user_id: string
           recommendations?: Json | null
@@ -1221,6 +1223,7 @@ export type Database = {
           completed_at?: string
           created_at?: string
           id?: string
+          is_completed?: boolean
           is_visible_to_specialists?: boolean
           parent_user_id?: string
           recommendations?: Json | null
