@@ -41,11 +41,34 @@ interface ParentChild {
 }
 
 const educationLevels = [
-  { value: "DO", label: "Дошкольное образование" },
-  { value: "NOO", label: "Начальное общее (1-4 класс)" },
-  { value: "OOO", label: "Основное общее (5-9 класс)" },
-  { value: "SOO", label: "Среднее общее (10-11 класс)" },
+  { value: "DO", label: "Дошкольное образование", shortLabel: "Дошкольное" },
+  { value: "NOO", label: "Начальное общее (1-4 класс)", shortLabel: "Начальное" },
+  { value: "OOO", label: "Основное общее (5-9 класс)", shortLabel: "Основное" },
+  { value: "SOO", label: "Среднее общее (10-11 класс)", shortLabel: "Среднее" },
 ];
+
+// Динамические опции для класса в зависимости от уровня образования
+const getClassOptions = (educationLevel: string) => {
+  switch (educationLevel) {
+    case "DO":
+      return [
+        { value: "Младшая группа", label: "Младшая группа" },
+        { value: "Средняя группа", label: "Средняя группа" },
+        { value: "Старшая группа", label: "Старшая группа" },
+        { value: "Подготовительная группа", label: "Подготовительная группа" },
+      ];
+    case "NOO":
+      return [1, 2, 3, 4].map((n) => ({ value: n.toString(), label: `${n} класс` }));
+    case "OOO":
+      return [5, 6, 7, 8, 9].map((n) => ({ value: n.toString(), label: `${n} класс` }));
+    case "SOO":
+      return [10, 11].map((n) => ({ value: n.toString(), label: `${n} класс` }));
+    default:
+      return [];
+  }
+};
+
+const classLetterOptions = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "З", "И", "К", "Л", "М"];
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
@@ -64,10 +87,14 @@ export default function ParentDashboard() {
     fullName: "",
     gender: "",
     birthDate: "",
-    schoolName: "",
-    classOrGroup: "",
+    schoolId: "",
+    classNumber: "",
+    classLetter: "",
     educationLevel: "",
   });
+
+  // Load organizations based on parent's region
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
     loadData();
@@ -108,6 +135,18 @@ export default function ParentDashboard() {
       if (profileError) throw profileError;
       setProfile(profileData as ParentProfile);
 
+      // Load organizations for parent's region
+      if (profileData?.region_id) {
+        const { data: orgsData } = await supabase
+          .from("organizations")
+          .select("id, name")
+          .eq("region_id", profileData.region_id)
+          .eq("is_archived", false)
+          .order("name");
+        
+        setOrganizations(orgsData || []);
+      }
+
       // Load children
       const { data: childrenData, error: childrenError } = await supabase
         .from("parent_children" as any)
@@ -145,13 +184,24 @@ export default function ParentDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Не авторизован");
 
+      // Build class_or_group from classNumber and classLetter
+      let classOrGroup = "";
+      if (newChild.educationLevel === "DO") {
+        classOrGroup = newChild.classNumber; // For preschool, classNumber contains the group name
+      } else if (newChild.classNumber) {
+        classOrGroup = newChild.classNumber + (newChild.classLetter ? newChild.classLetter : "");
+      }
+
+      // Get school name from selected organization
+      const selectedOrg = organizations.find(o => o.id === newChild.schoolId);
+
       const { error } = await supabase.from("parent_children" as any).insert({
         parent_user_id: user.id,
         full_name: newChild.fullName.trim(),
         gender: newChild.gender || null,
         birth_date: newChild.birthDate || null,
-        school_name: newChild.schoolName.trim() || null,
-        class_or_group: newChild.classOrGroup.trim() || null,
+        school_name: selectedOrg?.name || null,
+        class_or_group: classOrGroup || null,
         education_level: newChild.educationLevel || null,
       } as any);
 
@@ -167,8 +217,9 @@ export default function ParentDashboard() {
         fullName: "",
         gender: "",
         birthDate: "",
-        schoolName: "",
-        classOrGroup: "",
+        schoolId: "",
+        classNumber: "",
+        classLetter: "",
         educationLevel: "",
       });
       loadData();
@@ -376,12 +427,17 @@ export default function ParentDashboard() {
                   <Label>Уровень образования</Label>
                   <Select
                     value={newChild.educationLevel}
-                    onValueChange={(value) => setNewChild({ ...newChild, educationLevel: value })}
+                    onValueChange={(value) => setNewChild({ 
+                      ...newChild, 
+                      educationLevel: value,
+                      classNumber: "", // Reset class when education level changes
+                      classLetter: ""
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите уровень" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-popover z-50">
                       {educationLevels.map((level) => (
                         <SelectItem key={level.value} value={level.value}>
                           {level.label}
@@ -391,30 +447,91 @@ export default function ParentDashboard() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="class-group">
-                    {newChild.educationLevel === "DO" ? "Группа" : "Класс"}
-                  </Label>
-                  <Input
-                    id="class-group"
-                    value={newChild.classOrGroup}
-                    onChange={(e) => setNewChild({ ...newChild, classOrGroup: e.target.value })}
-                    placeholder={newChild.educationLevel === "DO" ? "Средняя группа" : "5А"}
-                  />
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Нужно для подбора рекомендаций по возрасту
-                  </p>
-                </div>
+                {newChild.educationLevel && (
+                  <div className="space-y-2">
+                    <Label>
+                      {newChild.educationLevel === "DO" ? "Группа" : "Класс"}
+                    </Label>
+                    {newChild.educationLevel === "DO" ? (
+                      <Select
+                        value={newChild.classNumber}
+                        onValueChange={(value) => setNewChild({ ...newChild, classNumber: value, classLetter: "" })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Выберите группу" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover z-50">
+                          {getClassOptions("DO").map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Select
+                          value={newChild.classNumber}
+                          onValueChange={(value) => setNewChild({ ...newChild, classNumber: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Номер" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50">
+                            {getClassOptions(newChild.educationLevel).map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={newChild.classLetter}
+                          onValueChange={(value) => setNewChild({ ...newChild, classLetter: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Литера" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50">
+                            {classLetterOptions.map((letter) => (
+                              <SelectItem key={letter} value={letter}>
+                                {letter}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      Нужно для подбора рекомендаций по возрасту
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="school-name">Образовательная организация (необязательно)</Label>
-                  <Input
-                    id="school-name"
-                    value={newChild.schoolName}
-                    onChange={(e) => setNewChild({ ...newChild, schoolName: e.target.value })}
-                    placeholder="Школа № 1234"
-                  />
+                  <Label>Образовательная организация (необязательно)</Label>
+                  <Select
+                    value={newChild.schoolId}
+                    onValueChange={(value) => setNewChild({ ...newChild, schoolId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите организацию" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover z-50 max-h-60">
+                      {organizations.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          Нет организаций в вашем регионе
+                        </SelectItem>
+                      ) : (
+                        organizations.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
