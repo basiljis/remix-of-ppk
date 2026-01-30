@@ -40,6 +40,69 @@ const parentSignupSchema = z.object({
   }),
 });
 
+// Helper function to translate login errors to user-friendly Russian messages
+const getLoginErrorMessage = (errorMessage: string): string => {
+  const message = errorMessage?.toLowerCase() || "";
+  
+  if (message.includes("invalid login credentials") || message.includes("invalid_credentials")) {
+    return "Неверный email или пароль. Проверьте правильность введённых данных. Если вы забыли пароль, воспользуйтесь функцией «Забыли пароль?» ниже.";
+  }
+  if (message.includes("email not confirmed")) {
+    return "Email не подтверждён. Проверьте вашу почту и перейдите по ссылке подтверждения. Если письмо не пришло, попробуйте зарегистрироваться заново.";
+  }
+  if (message.includes("too many requests") || message.includes("rate limit")) {
+    return "Слишком много попыток входа. Подождите несколько минут и попробуйте снова.";
+  }
+  if (message.includes("network") || message.includes("fetch")) {
+    return "Ошибка соединения. Проверьте подключение к интернету и попробуйте снова.";
+  }
+  
+  return `Не удалось выполнить вход. ${errorMessage}. Попробуйте ещё раз или обратитесь в поддержку.`;
+};
+
+// Helper function to translate signup errors to user-friendly Russian messages
+const getSignupErrorMessage = (errorMessage: string): string => {
+  const message = errorMessage?.toLowerCase() || "";
+  
+  if (message.includes("user already registered") || message.includes("already been registered")) {
+    return "Пользователь с такой почтой уже зарегистрирован. Если вы не помните пароль, перейдите на вкладку «Вход» и воспользуйтесь функцией «Забыли пароль?».";
+  }
+  if (message.includes("password") && message.includes("weak")) {
+    return "Пароль слишком простой. Используйте минимум 8 символов, включая заглавную букву и цифру.";
+  }
+  if (message.includes("invalid email")) {
+    return "Некорректный формат email. Проверьте правильность написания адреса электронной почты.";
+  }
+  if (message.includes("rate limit") || message.includes("too many")) {
+    return "Слишком много попыток регистрации. Подождите несколько минут и попробуйте снова.";
+  }
+  if (message.includes("network") || message.includes("fetch")) {
+    return "Ошибка соединения с сервером. Проверьте подключение к интернету и попробуйте снова.";
+  }
+  if (message.includes("signup_disabled")) {
+    return "Регистрация временно недоступна. Попробуйте позже или обратитесь в поддержку.";
+  }
+  
+  return `Не удалось зарегистрироваться. ${errorMessage}. Проверьте введённые данные и попробуйте ещё раз.`;
+};
+
+// Helper function to translate reset password errors
+const getResetPasswordErrorMessage = (errorMessage: string): string => {
+  const message = errorMessage?.toLowerCase() || "";
+  
+  if (message.includes("rate limit") || message.includes("too many")) {
+    return "Слишком много запросов на сброс пароля. Подождите несколько минут перед повторной попыткой.";
+  }
+  if (message.includes("user not found") || message.includes("no user")) {
+    return "Пользователь с таким email не найден. Проверьте правильность email или зарегистрируйтесь.";
+  }
+  if (message.includes("network") || message.includes("fetch")) {
+    return "Ошибка соединения. Проверьте подключение к интернету и попробуйте снова.";
+  }
+  
+  return `Не удалось отправить письмо для сброса пароля. ${errorMessage}. Попробуйте позже.`;
+};
+
 const ParentAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -142,9 +205,10 @@ const ParentAuth = () => {
       setWelcomeUserName((profile as any)?.full_name || "Родитель");
       setWelcomeDialogOpen(true);
     } catch (error: any) {
+      const errorMessage = getLoginErrorMessage(error.message);
       toast({
-        title: "Ошибка входа",
-        description: error.message,
+        title: "⚠️ Ошибка входа",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -240,9 +304,10 @@ const ParentAuth = () => {
         dataProcessingConsent: false,
       });
     } catch (error: any) {
+      const errorMessage = getSignupErrorMessage(error.message);
       toast({
-        title: "Ошибка регистрации",
-        description: error.message || "Не удалось зарегистрировать пользователя",
+        title: "⚠️ Ошибка регистрации",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -280,9 +345,10 @@ const ParentAuth = () => {
       setResetEmail("");
       setResetDialogOpen(false);
     } catch (error: any) {
+      const errorMessage = getResetPasswordErrorMessage(error.message);
       toast({
-        title: "Ошибка",
-        description: error.message,
+        title: "⚠️ Ошибка сброса пароля",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
