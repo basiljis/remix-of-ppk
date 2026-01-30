@@ -2311,6 +2311,7 @@ export type Database = {
         | "organization_admin"
         | "director"
         | "parent"
+        | "private_specialist"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2445,6 +2446,7 @@ export const Constants = {
         "organization_admin",
         "director",
         "parent",
+        "private_specialist",
       ],
     },
   },

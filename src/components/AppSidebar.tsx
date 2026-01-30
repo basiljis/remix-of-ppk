@@ -40,6 +40,7 @@ interface AppSidebarProps {
   isOrgAdmin?: boolean;
   isDirector?: boolean;
   hasOrganizationAccess?: boolean;
+  isPrivateSpecialist?: boolean;
 }
 
 const menuItems = [
@@ -153,12 +154,13 @@ const adminItems = [
   },
 ];
 
-export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false, hasOrganizationAccess = false }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false, hasOrganizationAccess = false, isPrivateSpecialist = false }: AppSidebarProps) {
   const { state } = useSidebar();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const subscriptionStatus = useSubscriptionStatus();
-  const canSeeOrganization = isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess;
+  const canSeeOrganization = !isPrivateSpecialist && (isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess);
+  const canSeePPK = !isPrivateSpecialist;
 
   // Fetch session counts for sidebar badges
   const today = new Date();
@@ -380,18 +382,20 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
 
         <Separator className="my-2" />
 
-        {/* Main menu items */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Система ППК</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => {
-                const isActive = activeTab === item.id || activeTab.startsWith(item.id + "-");
-                return renderMenuItem(item, isActive);
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Main menu items - PPK System (hidden for private specialists) */}
+        {canSeePPK && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Система ППК</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.map((item) => {
+                  const isActive = activeTab === item.id || activeTab.startsWith(item.id + "-");
+                  return renderMenuItem(item, isActive);
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Instructions module - separate section */}
         <SidebarGroup>
