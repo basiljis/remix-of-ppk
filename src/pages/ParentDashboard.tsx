@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ParentCalendar } from "@/components/ParentCalendar";
@@ -55,6 +57,7 @@ export default function ParentDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [bookDialogOpen, setBookDialogOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // New child form
   const [newChild, setNewChild] = useState({
@@ -86,8 +89,11 @@ export default function ParentDashboard() {
         .eq("user_id", user.id);
 
       const isParent = roles?.some(r => r.role === "parent");
+      const hasAdminRole = roles?.some(r => r.role === "admin");
+      setIsAdmin(hasAdminRole || false);
       
-      if (!isParent) {
+      // Allow admins to view parent dashboard even without parent role
+      if (!isParent && !hasAdminRole) {
         navigate("/parent-auth");
         return;
       }
@@ -228,6 +234,40 @@ export default function ParentDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {/* Admin cabinet switcher */}
+            {isAdmin && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      <Switch
+                        checked={false}
+                        onCheckedChange={(checked) => {
+                          if (!checked) {
+                            navigate("/app");
+                          }
+                        }}
+                        className="data-[state=unchecked]:bg-primary"
+                      />
+                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-medium">Переключиться на кабинет педагогов</p>
+                    <p className="text-xs text-muted-foreground">Вы просматриваете кабинет родителей</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            
+            {isAdmin && (
+              <Badge variant="outline" className="hidden sm:flex gap-1 border-amber-500/50 text-amber-600 dark:text-amber-400">
+                <Shield className="h-3 w-3" />
+                Режим просмотра
+              </Badge>
+            )}
+            
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium">{profile?.full_name}</p>
               <p className="text-xs text-muted-foreground">{profile?.email}</p>
