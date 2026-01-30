@@ -59,9 +59,14 @@ const RootGate = () => {
     return <Preloader />;
   }
 
-  const redirectPath = isAuthed ? "/app" : "/auth";
-  console.log("[RootGate] Редирект на:", redirectPath);
-  return <Navigate to={redirectPath} replace />;
+  // If authenticated, go to app; otherwise show landing page
+  if (isAuthed) {
+    console.log("[RootGate] Редирект на /app");
+    return <Navigate to="/app" replace />;
+  }
+  
+  console.log("[RootGate] Редирект на лендинг");
+  return <Navigate to="/landing" replace />;
 };
 
 export default RootGate;

@@ -20,6 +20,10 @@ const ChildProfile = lazy(() => import("./pages/ChildProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Install = lazy(() => import("./pages/Install"));
+const Landing = lazy(() => import("./pages/Landing"));
+const ForOrganizations = lazy(() => import("./pages/ForOrganizations"));
+const ForSpecialists = lazy(() => import("./pages/ForSpecialists"));
+const ForParents = lazy(() => import("./pages/ForParents"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
 const RootGate = lazy(() => import("./pages/RootGate").then(m => ({ default: m.default })));
 const OfflineIndicator = lazy(() => import("@/components/OfflineIndicator"));
@@ -47,6 +51,10 @@ const App = () => (
                   <Suspense fallback={<Preloader />}>
                     <Routes>
                       <Route path="/" element={<RootGate />} />
+                      <Route path="/landing" element={<Landing />} />
+                      <Route path="/for-organizations" element={<ForOrganizations />} />
+                      <Route path="/for-specialists" element={<ForSpecialists />} />
+                      <Route path="/for-parents" element={<ForParents />} />
                       <Route path="/app" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/parent-auth" element={<ParentAuth />} />
