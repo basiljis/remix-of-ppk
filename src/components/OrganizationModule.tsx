@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationSubscription } from "@/hooks/useOrganizationSubscription";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Building, Loader2, Lock } from "lucide-react";
@@ -23,6 +24,7 @@ interface OrganizationModuleProps {
 export function OrganizationModule({ activeSubTab = "employees" }: OrganizationModuleProps) {
   const { roles, profile, isAdmin, user } = useAuth();
   const { hasOrganizationSubscription, organizationSubscriptionEndDate, loading: subscriptionLoading } = useOrganizationSubscription();
+  const { isTrialActive } = useSubscriptionStatus();
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
   const isDirector = roles.some((r) => r.role === "director");
@@ -52,8 +54,8 @@ export function OrganizationModule({ activeSubTab = "employees" }: OrganizationM
   const hasAccess = hasRoleAccess || hasPermissionAccess;
 
   // Check if organization subscription is required
-  const requiresOrgSubscription = !isAdmin; // Admins don't need subscription
-  const hasRequiredSubscription = !requiresOrgSubscription || hasOrganizationSubscription;
+  // Allow access during trial period, for admins, or with active org subscription
+  const hasRequiredSubscription = isAdmin || isTrialActive || hasOrganizationSubscription;
 
   const isLoading = subscriptionLoading || permissionsLoading;
 
@@ -138,12 +140,16 @@ export function OrganizationModule({ activeSubTab = "employees" }: OrganizationM
             Управление сотрудниками, расписанием и статистикой организации
           </p>
         </div>
-        {hasOrganizationSubscription && organizationSubscriptionEndDate && (
+        {hasOrganizationSubscription && organizationSubscriptionEndDate ? (
           <Badge variant="outline" className="text-xs">
             <Calendar className="h-3 w-3 mr-1" />
             Подписка до {format(organizationSubscriptionEndDate, "dd.MM.yyyy", { locale: ru })}
           </Badge>
-        )}
+        ) : isTrialActive && !isAdmin ? (
+          <Badge variant="outline" className="bg-primary/10 text-xs">
+            Пробный период
+          </Badge>
+        ) : null}
       </div>
 
       {renderContent()}
