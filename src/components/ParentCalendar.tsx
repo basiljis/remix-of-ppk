@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/tooltip";
 import { 
   Loader2, CalendarDays, Clock, MapPin, User, Info, 
-  ChevronLeft, ChevronRight, Plus
+  ChevronLeft, ChevronRight, Plus, ClipboardCheck, Bell, Baby
 } from "lucide-react";
 import {
   format,
@@ -35,12 +35,27 @@ import {
   isSameMonth,
   addMonths,
   subMonths,
+  isPast,
+  isFuture,
+  isToday as isDateToday,
 } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BookConsultationDialog } from "./BookConsultationDialog";
 import { ParentSessionsList } from "./ParentSessionsList";
+
+// Test result interface for calendar display
+interface TestResultForCalendar {
+  id: string;
+  child_id: string;
+  completed_at: string | null;
+  next_test_date: string | null;
+  overall_risk_level: string;
+  test_id: string;
+  child_name?: string;
+  test_title?: string;
+}
 
 interface ParentCalendarProps {
   parentUserId: string;
@@ -212,6 +227,56 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
     enabled: !!parentUserId,
   });
 
+  // Fetch development test results for calendar
+  const { data: testResults = [] } = useQuery({
+    queryKey: ["parent-calendar-test-results", parentUserId, childIds],
+    queryFn: async () => {
+      if (!parentUserId || childIds.length === 0) return [];
+
+      const { data: results, error } = await supabase
+        .from("development_test_results" as any)
+        .select(`
+          id,
+          child_id,
+          completed_at,
+          next_test_date,
+          overall_risk_level,
+          test_id
+        `)
+        .eq("parent_user_id", parentUserId)
+        .eq("is_completed", true)
+        .order("completed_at", { ascending: false }) as { data: any[] | null; error: any };
+
+      if (error) {
+        console.error("Error fetching test results:", error);
+        return [];
+      }
+
+      // Fetch child names and test titles
+      const childIdsFromResults = [...new Set(results?.map(r => r.child_id) || [])];
+      const testIds = [...new Set(results?.map(r => r.test_id) || [])];
+
+      const [childrenData, testsData] = await Promise.all([
+        childIdsFromResults.length > 0 
+          ? supabase.from("parent_children" as any).select("id, full_name").in("id", childIdsFromResults)
+          : { data: [] },
+        testIds.length > 0 
+          ? supabase.from("child_development_tests" as any).select("id, title").in("id", testIds)
+          : { data: [] }
+      ]);
+
+      const childMap = new Map((childrenData.data as any[] || []).map(c => [c.id, c.full_name]));
+      const testMap = new Map((testsData.data as any[] || []).map(t => [t.id, t.title]));
+
+      return (results || []).map(r => ({
+        ...r,
+        child_name: childMap.get(r.child_id) || "Ребёнок",
+        test_title: testMap.get(r.test_id) || "Тест развития",
+      })) as TestResultForCalendar[];
+    },
+    enabled: !!parentUserId && childIds.length > 0,
+  });
+
   const getSessionsForDate = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return sessions.filter(s => s.scheduled_date === dateStr);
@@ -233,8 +298,36 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
     return consultationSlots.filter((s: any) => s.slot_date === dateStr);
   };
 
+  // Get completed tests for a date
+  const getCompletedTestsForDate = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return testResults.filter(r => r.completed_at?.split("T")[0] === dateStr);
+  };
+
+  // Get scheduled (next) tests for a date
+  const getScheduledTestsForDate = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return testResults.filter(r => r.next_test_date === dateStr);
+  };
+
+  // Get upcoming test reminders (next 30 days)
+  const upcomingTestReminders = useMemo(() => {
+    const today = new Date();
+    const thirtyDaysLater = addDays(today, 30);
+    
+    return testResults
+      .filter(r => {
+        if (!r.next_test_date) return false;
+        const nextDate = new Date(r.next_test_date);
+        return nextDate >= today && nextDate <= thirtyDaysLater;
+      })
+      .sort((a, b) => new Date(a.next_test_date!).getTime() - new Date(b.next_test_date!).getTime());
+  }, [testResults]);
+
   const selectedDateSessions = selectedDate ? getSessionsForDate(selectedDate) : [];
   const selectedDateConsultations = selectedDate ? getConsultationsForDate(selectedDate) : [];
+  const selectedDateCompletedTests = selectedDate ? getCompletedTestsForDate(selectedDate) : [];
+  const selectedDateScheduledTests = selectedDate ? getScheduledTestsForDate(selectedDate) : [];
 
   const handleDateSelect = (day: Date) => {
     setSelectedDate(day);
@@ -254,118 +347,189 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
     );
   }
 
-  const renderDayDetails = () => (
-    <div className="space-y-4">
-      <h3 className="font-medium text-lg">
-        {selectedDate 
-          ? format(selectedDate, "d MMMM yyyy", { locale: ru })
-          : "Выберите день"}
-      </h3>
+  const renderDayDetails = () => {
+    const hasAnyEvents = selectedDateSessions.length > 0 || 
+      selectedDateConsultations.length > 0 || 
+      selectedDateCompletedTests.length > 0 || 
+      selectedDateScheduledTests.length > 0;
 
-      {selectedDate && selectedDateSessions.length === 0 && selectedDateConsultations.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          Нет занятий на эту дату
-        </p>
-      ) : (
-        <ScrollArea className="h-[calc(100vh-300px)] md:h-auto md:max-h-[500px]">
-          <div className="space-y-3 pr-4">
-            {selectedDateSessions.map((session) => (
-              <Card key={session.id} className="p-3">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="font-medium text-sm">
-                        {session.start_time.slice(0, 5)} - {session.end_time.slice(0, 5)}
-                      </span>
-                    </div>
-                    {session.session_status && (
-                      <Badge 
-                        style={session.session_status.color ? { backgroundColor: session.session_status.color, color: 'white' } : undefined}
-                        variant={session.session_status.color ? "default" : "secondary"}
-                        className="text-xs flex-shrink-0"
-                      >
-                        {session.session_status.name}
+    return (
+      <div className="space-y-4">
+        <h3 className="font-medium text-lg">
+          {selectedDate 
+            ? format(selectedDate, "d MMMM yyyy", { locale: ru })
+            : "Выберите день"}
+        </h3>
+
+        {selectedDate && !hasAnyEvents ? (
+          <p className="text-muted-foreground text-sm">
+            Нет событий на эту дату
+          </p>
+        ) : (
+          <ScrollArea className="h-[calc(100vh-300px)] md:h-auto md:max-h-[500px]">
+            <div className="space-y-3 pr-4">
+              {/* Scheduled test reminders */}
+              {selectedDateScheduledTests.map((testResult) => (
+                <Card key={`reminder-${testResult.id}`} className="p-3 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Bell className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                        <span className="font-medium text-sm">Напоминание о тесте</span>
+                      </div>
+                      <Badge className="text-xs bg-amber-500 flex-shrink-0">
+                        Запланировано
                       </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Baby className="h-3 w-3 text-muted-foreground" />
+                      <span>{testResult.child_name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {testResult.test_title} — пора пройти повторно
+                    </p>
+                  </div>
+                </Card>
+              ))}
+
+              {/* Completed tests */}
+              {selectedDateCompletedTests.map((testResult) => (
+                <Card key={`completed-${testResult.id}`} className="p-3 border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <ClipboardCheck className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <span className="font-medium text-sm">Тест пройден</span>
+                      </div>
+                      <Badge 
+                        className={cn(
+                          "text-xs flex-shrink-0",
+                          testResult.overall_risk_level === "normal" && "bg-green-500",
+                          testResult.overall_risk_level === "attention" && "bg-yellow-500",
+                          testResult.overall_risk_level === "help_needed" && "bg-red-500"
+                        )}
+                      >
+                        {testResult.overall_risk_level === "normal" && "Норма"}
+                        {testResult.overall_risk_level === "attention" && "Внимание"}
+                        {testResult.overall_risk_level === "help_needed" && "Помощь"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Baby className="h-3 w-3 text-muted-foreground" />
+                      <span>{testResult.child_name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {testResult.test_title}
+                    </p>
+                    {testResult.next_test_date && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Следующий тест: {format(new Date(testResult.next_test_date), "d MMMM yyyy", { locale: ru })}
+                      </p>
                     )}
                   </div>
+                </Card>
+              ))}
 
-                  {session.child && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <User className="h-3 w-3 text-muted-foreground" />
-                      <span>{session.child.full_name}</span>
+              {/* Sessions */}
+              {selectedDateSessions.map((session) => (
+                <Card key={session.id} className="p-3">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium text-sm">
+                          {session.start_time.slice(0, 5)} - {session.end_time.slice(0, 5)}
+                        </span>
+                      </div>
+                      {session.session_status && (
+                        <Badge 
+                          style={session.session_status.color ? { backgroundColor: session.session_status.color, color: 'white' } : undefined}
+                          variant={session.session_status.color ? "default" : "secondary"}
+                          className="text-xs flex-shrink-0"
+                        >
+                          {session.session_status.name}
+                        </Badge>
+                      )}
                     </div>
-                  )}
 
-                  {session.session_type && (
-                    <Badge variant="outline" className="text-xs">
-                      {session.session_type.name}
-                    </Badge>
-                  )}
+                    {session.child && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-3 w-3 text-muted-foreground" />
+                        <span>{session.child.full_name}</span>
+                      </div>
+                    )}
 
-                  {session.topic && (
-                    <p className="text-sm text-muted-foreground">
-                      {session.topic}
-                    </p>
-                  )}
+                    {session.session_type && (
+                      <Badge variant="outline" className="text-xs">
+                        {session.session_type.name}
+                      </Badge>
+                    )}
 
-                  {session.specialist && (
-                    <p className="text-xs text-muted-foreground">
-                      Специалист: {session.specialist.full_name}
-                    </p>
-                  )}
+                    {session.topic && (
+                      <p className="text-sm text-muted-foreground">
+                        {session.topic}
+                      </p>
+                    )}
 
-                  {session.organization && (
-                    <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span>
-                        {session.organization.name}
-                        {session.organization.address && ` • ${session.organization.address}`}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            ))}
+                    {session.specialist && (
+                      <p className="text-xs text-muted-foreground">
+                        Специалист: {session.specialist.full_name}
+                      </p>
+                    )}
 
-            {selectedDateConsultations.map((slot: any) => (
-              <Card key={slot.id} className="p-3 border-pink-200 bg-pink-50/50 dark:bg-pink-950/20">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-pink-600 flex-shrink-0" />
-                      <span className="font-medium text-sm">
-                        {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
-                      </span>
-                    </div>
-                    <Badge className="text-xs bg-pink-600 flex-shrink-0">
-                      Консультация
-                    </Badge>
+                    {session.organization && (
+                      <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                        <span>
+                          {session.organization.name}
+                          {session.organization.address && ` • ${session.organization.address}`}
+                        </span>
+                      </div>
+                    )}
                   </div>
+                </Card>
+              ))}
 
-                  {slot.specialist && (
-                    <p className="text-xs text-muted-foreground">
-                      Специалист: {slot.specialist.full_name}
-                    </p>
-                  )}
-
-                  {slot.organization && (
-                    <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span>
-                        {slot.organization.name}
-                        {slot.organization.address && ` • ${slot.organization.address}`}
-                      </span>
+              {/* Consultations */}
+              {selectedDateConsultations.map((slot: any) => (
+                <Card key={slot.id} className="p-3 border-pink-200 bg-pink-50/50 dark:bg-pink-950/20">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-pink-600 flex-shrink-0" />
+                        <span className="font-medium text-sm">
+                          {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                        </span>
+                      </div>
+                      <Badge className="text-xs bg-pink-600 flex-shrink-0">
+                        Консультация
+                      </Badge>
                     </div>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
-      )}
-    </div>
-  );
+
+                    {slot.specialist && (
+                      <p className="text-xs text-muted-foreground">
+                        Специалист: {slot.specialist.full_name}
+                      </p>
+                    )}
+
+                    {slot.organization && (
+                      <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                        <span>
+                          {slot.organization.name}
+                          {slot.organization.address && ` • ${slot.organization.address}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="h-full flex gap-4">
@@ -481,9 +645,34 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded bg-pink-100 dark:bg-pink-950 ring-1 ring-pink-300" />
-              <span className="text-xs text-muted-foreground">Есть занятия</span>
+              <span className="text-xs text-muted-foreground">Занятия</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded bg-emerald-100 dark:bg-emerald-950 ring-1 ring-emerald-300" />
+              <span className="text-xs text-muted-foreground">Тест пройден</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded bg-amber-100 dark:bg-amber-950 ring-1 ring-amber-300" />
+              <span className="text-xs text-muted-foreground">Тест запланирован</span>
             </div>
           </div>
+
+          {/* Upcoming test reminders alert */}
+          {upcomingTestReminders.length > 0 && (
+            <Alert className="mt-3 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+              <Bell className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-sm">
+                <span className="font-medium">Запланированные тесты:</span>{" "}
+                {upcomingTestReminders.slice(0, 2).map((r, i) => (
+                  <span key={r.id}>
+                    {i > 0 && ", "}
+                    {r.child_name} ({format(new Date(r.next_test_date!), "d MMM", { locale: ru })})
+                  </span>
+                ))}
+                {upcomingTestReminders.length > 2 && ` и ещё ${upcomingTestReminders.length - 2}`}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
 
         <CardContent className="flex-1 overflow-hidden p-3 sm:p-6 pt-0 sm:pt-0">
@@ -504,7 +693,10 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                     {weekDays.map((day) => {
                       const isToday = isSameDay(day, new Date());
                       const daySessions = getSessionsForDate(day);
+                      const dayCompletedTests = getCompletedTestsForDate(day);
+                      const dayScheduledTests = getScheduledTestsForDate(day);
                       const hasEvents = daySessions.length > 0;
+                      const hasTests = dayCompletedTests.length > 0 || dayScheduledTests.length > 0;
                       const isSelected = selectedDate && isSameDay(day, selectedDate);
 
                       return (
@@ -513,7 +705,8 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                           className={cn(
                             "p-1 sm:p-2 text-center rounded-lg cursor-pointer transition-colors",
                             isToday && "bg-blue-100 dark:bg-blue-950",
-                            hasEvents && !isToday && "bg-pink-50 dark:bg-pink-950/30",
+                            hasEvents && !isToday && !hasTests && "bg-pink-50 dark:bg-pink-950/30",
+                            hasTests && !isToday && "bg-emerald-50 dark:bg-emerald-950/30",
                             isSelected && "ring-2 ring-pink-500"
                           )}
                           onClick={() => handleDateSelect(day)}
@@ -527,14 +720,32 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                           )}>
                             {format(day, "d")}
                           </div>
-                          {hasEvents && (
-                            <Badge 
-                              variant="secondary" 
-                              className="mt-0.5 text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0 bg-pink-100 text-pink-700"
-                            >
-                              {daySessions.length}
-                            </Badge>
-                          )}
+                          <div className="flex justify-center gap-0.5 mt-0.5">
+                            {hasEvents && (
+                              <Badge 
+                                variant="secondary" 
+                                className="text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0 bg-pink-100 text-pink-700"
+                              >
+                                {daySessions.length}
+                              </Badge>
+                            )}
+                            {dayScheduledTests.length > 0 && (
+                              <Badge 
+                                variant="secondary" 
+                                className="text-[8px] sm:text-[10px] px-1 py-0 bg-amber-100 text-amber-700"
+                              >
+                                <Bell className="h-2 w-2" />
+                              </Badge>
+                            )}
+                            {dayCompletedTests.length > 0 && (
+                              <Badge 
+                                variant="secondary" 
+                                className="text-[8px] sm:text-[10px] px-1 py-0 bg-emerald-100 text-emerald-700"
+                              >
+                                <ClipboardCheck className="h-2 w-2" />
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -643,7 +854,10 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                     const isCurrentMonth = isSameMonth(day, currentMonth);
                     const daySessions = getSessionsForDate(day);
                     const dayConsultations = getConsultationsForDate(day);
+                    const dayCompletedTests = getCompletedTestsForDate(day);
+                    const dayScheduledTests = getScheduledTestsForDate(day);
                     const hasEvents = daySessions.length > 0 || dayConsultations.length > 0;
+                    const hasTests = dayCompletedTests.length > 0 || dayScheduledTests.length > 0;
                     const isSelected = selectedDate && isSameDay(day, selectedDate);
 
                     return (
@@ -654,7 +868,8 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                           "min-h-[80px] p-2 rounded-lg border cursor-pointer transition-all hover:shadow-md flex flex-col",
                           !isCurrentMonth && "opacity-40",
                           isToday && "bg-blue-100 dark:bg-blue-950 border-blue-300",
-                          hasEvents && !isToday && "bg-pink-50 dark:bg-pink-950/30",
+                          hasEvents && !isToday && !hasTests && "bg-pink-50 dark:bg-pink-950/30",
+                          hasTests && !isToday && "bg-emerald-50 dark:bg-emerald-950/30",
                           isSelected && "ring-2 ring-pink-500 shadow-md"
                         )}
                       >
@@ -667,7 +882,30 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                         
                         {/* Event indicators */}
                         <div className="flex-1 space-y-0.5 overflow-hidden">
-                          {daySessions.slice(0, 2).map((session) => (
+                          {/* Scheduled tests (reminders) */}
+                          {dayScheduledTests.slice(0, 1).map((test) => (
+                            <div
+                              key={`sched-${test.id}`}
+                              className="text-[10px] px-1 py-0.5 rounded truncate bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"
+                            >
+                              <Bell className="h-2.5 w-2.5 inline mr-0.5" />
+                              Тест
+                            </div>
+                          ))}
+                          
+                          {/* Completed tests */}
+                          {dayCompletedTests.slice(0, 1).map((test) => (
+                            <div
+                              key={`comp-${test.id}`}
+                              className="text-[10px] px-1 py-0.5 rounded truncate bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
+                            >
+                              <ClipboardCheck className="h-2.5 w-2.5 inline mr-0.5" />
+                              {test.child_name?.split(" ")[0]}
+                            </div>
+                          ))}
+                          
+                          {/* Sessions */}
+                          {daySessions.slice(0, hasTests ? 1 : 2).map((session) => (
                             <div
                               key={session.id}
                               className="text-[10px] px-1 py-0.5 rounded truncate"
@@ -681,9 +919,11 @@ export function ParentCalendar({ parentUserId, childIds, regionId, children }: P
                               {session.child?.full_name?.split(" ")[0] || "Занятие"}
                             </div>
                           ))}
-                          {daySessions.length > 2 && (
+                          
+                          {/* More indicator */}
+                          {(daySessions.length + dayCompletedTests.length + dayScheduledTests.length) > 2 && (
                             <div className="text-[10px] text-muted-foreground px-1">
-                              +{daySessions.length - 2}
+                              +{daySessions.length + dayCompletedTests.length + dayScheduledTests.length - 2}
                             </div>
                           )}
                         </div>
