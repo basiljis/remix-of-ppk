@@ -678,7 +678,8 @@ export default function ParentDashboard() {
             children={children.map(c => ({ 
               id: c.id, 
               full_name: c.full_name,
-              child_unique_id: c.child_unique_id
+              child_unique_id: c.child_unique_id,
+              birth_date: c.birth_date
             }))} 
           />
         );
