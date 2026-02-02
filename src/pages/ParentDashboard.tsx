@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,8 +15,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ParentSidebar } from "@/components/ParentSidebar";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil, BarChart3, Search, X, Filter, BookOpen, Gamepad2 } from "lucide-react";
-import { format, differenceInYears, differenceInMonths } from "date-fns";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, Phone, GraduationCap, Users, Shield, Pencil, BarChart3, Search, X, BookOpen, Gamepad2 } from "lucide-react";
+import { differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { ParentCalendar } from "@/components/ParentCalendar";
@@ -798,6 +798,29 @@ export default function ParentDashboard() {
                               {child.school_name && <span>{child.school_name}</span>}
                             </div>
                           )}
+
+                          {/* Navigation buttons to materials and workspace */}
+                          <div className="mt-4 pt-3 border-t flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate("/parent/materials")}
+                              className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                            >
+                              <BookOpen className="h-4 w-4" />
+                              Материалы
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate("/child-workspace")}
+                              className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950"
+                            >
+                              <Gamepad2 className="h-4 w-4" />
+                              Игровая ребёнка
+                            </Button>
+                            <ChildCredentialsCard childId={child.id} childName={child.full_name} />
+                          </div>
                         </div>
                       </div>
                     </CardContent>
