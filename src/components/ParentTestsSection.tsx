@@ -93,6 +93,10 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
   const [developmentTestOpen, setDevelopmentTestOpen] = useState(false);
   const [developmentTestChildId, setDevelopmentTestChildId] = useState<string | null>(null);
 
+  // IMPORTANT: All hooks must be called before any conditional returns
+  // Get development test data for age group checking
+  const { ageGroups: devAgeGroups, getAgeGroupForChild } = useDevelopmentTest();
+
   // Fetch available tests
   const { data: tests, isLoading: testsLoading } = useQuery({
     queryKey: ["parent-tests"],
@@ -452,10 +456,7 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
     );
   }
 
-  // Get development test data for age group checking
-  const { ageGroups: devAgeGroups, getAgeGroupForChild } = useDevelopmentTest();
-
-  // Helper to get child's age group
+  // Helper to get child's age group (uses devAgeGroups from hook called at top)
   const getChildAgeGroup = (birthDate: string | null) => {
     if (!birthDate || !devAgeGroups) return null;
     return getAgeGroupForChild(birthDate);
