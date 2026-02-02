@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ParentSidebar } from "@/components/ParentSidebar";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil, BarChart3, Search, X, Filter } from "lucide-react";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil, BarChart3, Search, X, Filter, BookOpen, Gamepad2 } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ import { ParentInstructionsSection } from "@/components/ParentInstructionsSectio
 import { ParentProfileSection } from "@/components/ParentProfileSection";
 import { ChildDevelopmentResults } from "@/components/ChildDevelopmentResults";
 import { ChildAnalyticsDialog } from "@/components/ChildAnalyticsDialog";
+import { ChildCredentialsCard } from "@/components/ChildCredentialsCard";
 
 interface ParentProfile {
   id: string;
