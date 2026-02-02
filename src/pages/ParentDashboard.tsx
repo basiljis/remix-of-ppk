@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ParentSidebar } from "@/components/ParentSidebar";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil, BarChart3 } from "lucide-react";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil, BarChart3, Search, X, Filter } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -101,6 +101,11 @@ export default function ParentDashboard() {
   const [selectedChildForRecommendations, setSelectedChildForRecommendations] = useState<string>("");
   const [analyticsDialogOpen, setAnalyticsDialogOpen] = useState(false);
   const [selectedChildForAnalytics, setSelectedChildForAnalytics] = useState<ParentChild | null>(null);
+  
+  // Search and filter state for children
+  const [childSearchQuery, setChildSearchQuery] = useState("");
+  const [childGenderFilter, setChildGenderFilter] = useState<string>("all");
+  const [childEducationFilter, setChildEducationFilter] = useState<string>("all");
 
   // New child form
   const [newChild, setNewChild] = useState({
@@ -577,6 +582,56 @@ export default function ParentDashboard() {
               </div>
             </div>
 
+            {/* Search and Filters */}
+            {children.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Поиск по имени или ID..."
+                    value={childSearchQuery}
+                    onChange={(e) => setChildSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                  {childSearchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() => setChildSearchQuery("")}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Select value={childGenderFilter} onValueChange={setChildGenderFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Пол" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все</SelectItem>
+                      <SelectItem value="male">Мальчики</SelectItem>
+                      <SelectItem value="female">Девочки</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={childEducationFilter} onValueChange={setChildEducationFilter}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Уровень" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все уровни</SelectItem>
+                      {educationLevels.map(level => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.shortLabel}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
             {children.length === 0 ? (
               <Card className="text-center py-12">
                 <CardContent>
@@ -596,7 +651,45 @@ export default function ParentDashboard() {
               </Card>
             ) : (
               <div className="grid gap-4">
-                {children.map((child) => (
+                {(() => {
+                  const filteredChildren = children.filter(child => {
+                    // Search filter
+                    const searchMatch = !childSearchQuery || 
+                      child.full_name.toLowerCase().includes(childSearchQuery.toLowerCase()) ||
+                      child.child_unique_id.toLowerCase().includes(childSearchQuery.toLowerCase());
+                    
+                    // Gender filter
+                    const genderMatch = childGenderFilter === "all" || child.gender === childGenderFilter;
+                    
+                    // Education level filter
+                    const educationMatch = childEducationFilter === "all" || child.education_level === childEducationFilter;
+                    
+                    return searchMatch && genderMatch && educationMatch;
+                  });
+                  
+                  if (filteredChildren.length === 0) {
+                    return (
+                      <Card className="text-center py-8">
+                        <CardContent>
+                          <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                          <p className="text-muted-foreground">Нет детей, соответствующих фильтрам</p>
+                          <Button 
+                            variant="link" 
+                            onClick={() => {
+                              setChildSearchQuery("");
+                              setChildGenderFilter("all");
+                              setChildEducationFilter("all");
+                            }}
+                            className="mt-2"
+                          >
+                            Сбросить фильтры
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+                  
+                  return filteredChildren.map((child) => (
                   <Card key={child.id} className="overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
@@ -708,7 +801,8 @@ export default function ParentDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  ));
+                })()}
               </div>
             )}
           </div>
