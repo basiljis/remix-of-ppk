@@ -253,6 +253,50 @@ export type Database = {
           },
         ]
       }
+      child_credentials: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_login_at: string | null
+          login: string
+          parent_child_id: string
+          password_hash: string
+          plain_password: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          login: string
+          parent_child_id: string
+          password_hash: string
+          plain_password?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          login?: string
+          parent_child_id?: string
+          password_hash?: string
+          plain_password?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_credentials_parent_child_id_fkey"
+            columns: ["parent_child_id"]
+            isOneToOne: false
+            referencedRelation: "parent_children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       child_development_tests: {
         Row: {
           created_at: string
@@ -282,6 +326,67 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      child_task_progress: {
+        Row: {
+          answer: Json | null
+          block_id: string
+          child_id: string
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          score: number | null
+          status: string | null
+          task_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          answer?: Json | null
+          block_id: string
+          child_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          score?: number | null
+          status?: string | null
+          task_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: Json | null
+          block_id?: string
+          child_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          score?: number | null
+          status?: string | null
+          task_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_task_progress_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "development_task_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_task_progress_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "parent_children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_task_progress_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "development_block_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       children: {
         Row: {
@@ -491,6 +596,134 @@ export type Database = {
           },
         ]
       }
+      development_block_tasks: {
+        Row: {
+          block_id: string
+          content: Json | null
+          correct_answer: Json | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          instruction: string
+          is_active: boolean | null
+          points: number | null
+          sort_order: number | null
+          task_type: string
+          title: string
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          block_id: string
+          content?: Json | null
+          correct_answer?: Json | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          instruction: string
+          is_active?: boolean | null
+          points?: number | null
+          sort_order?: number | null
+          task_type: string
+          title: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          block_id?: string
+          content?: Json | null
+          correct_answer?: Json | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          instruction?: string
+          is_active?: boolean | null
+          points?: number | null
+          sort_order?: number | null
+          task_type?: string
+          title?: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_block_tasks_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "development_task_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_materials: {
+        Row: {
+          age_max_months: number | null
+          age_min_months: number | null
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty_level: string | null
+          duration_minutes: number | null
+          exercise_steps: Json | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          material_type: string
+          pdf_url: string | null
+          sort_order: number | null
+          specialist_type: string | null
+          sphere_slug: string
+          title: string
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          age_max_months?: number | null
+          age_min_months?: number | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          exercise_steps?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          material_type: string
+          pdf_url?: string | null
+          sort_order?: number | null
+          specialist_type?: string | null
+          sphere_slug: string
+          title: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          age_max_months?: number | null
+          age_min_months?: number | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          exercise_steps?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          material_type?: string
+          pdf_url?: string | null
+          sort_order?: number | null
+          specialist_type?: string | null
+          sphere_slug?: string
+          title?: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       development_spheres: {
         Row: {
           color: string | null
@@ -534,6 +767,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      development_task_blocks: {
+        Row: {
+          age_max_months: number | null
+          age_min_months: number | null
+          created_at: string | null
+          description: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          sphere_slug: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          age_max_months?: number | null
+          age_min_months?: number | null
+          created_at?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          sphere_slug: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          age_max_months?: number | null
+          age_min_months?: number | null
+          created_at?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          sphere_slug?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       development_tasks: {
         Row: {
@@ -2586,6 +2861,13 @@ export type Database = {
     }
     Functions: {
       assign_parent_role: { Args: { _user_id: string }; Returns: undefined }
+      generate_child_credentials: {
+        Args: { p_parent_child_id: string }
+        Returns: {
+          login: string
+          password: string
+        }[]
+      }
       generate_protocol_number: { Args: never; Returns: string }
       get_organization_subscription_end_date: {
         Args: { _user_id: string }
