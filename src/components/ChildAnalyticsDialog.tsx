@@ -11,7 +11,7 @@ import {
   Loader2, TrendingUp, TrendingDown, Minus, Brain, MessageCircle, 
   Heart, Hand, Users, Calendar, Lightbulb, LineChart, BarChart3, Activity
 } from "lucide-react";
-import { format, differenceInMonths } from "date-fns";
+import { format, differenceInMonths, differenceInYears } from "date-fns";
 import { ru } from "date-fns/locale";
 import { 
   ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, 
@@ -128,6 +128,21 @@ export function ChildAnalyticsDialog({
     return curr - prev;
   };
 
+  // Helper to format age in years and months
+  const formatAge = (birthDate: string) => {
+    const years = differenceInYears(new Date(), new Date(birthDate));
+    const totalMonths = differenceInMonths(new Date(), new Date(birthDate));
+    const months = totalMonths % 12;
+    
+    if (years === 0) {
+      return `${totalMonths} мес.`;
+    }
+    if (months === 0) {
+      return `${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'}`;
+    }
+    return `${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'} ${months} мес.`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh]">
@@ -140,7 +155,7 @@ export function ChildAnalyticsDialog({
             Динамика развития и результаты всех тестов
             {birthDate && (
               <span className="ml-2">
-                • Возраст: {differenceInMonths(new Date(), new Date(birthDate))} мес.
+                • Возраст: {formatAge(birthDate)}
               </span>
             )}
           </DialogDescription>
@@ -361,7 +376,82 @@ export function ChildAnalyticsDialog({
 
               {/* Recommendations Tab */}
               <TabsContent value="recommendations" className="space-y-4 mt-4">
-                {latestDevResult?.recommendations && (
+                {latestDevResult?.recommendations && Array.isArray(latestDevResult.recommendations) && latestDevResult.recommendations.length > 0 ? (
+                  <div className="space-y-4">
+                    {latestDevResult.recommendations.map((rec: any, idx: number) => {
+                      const sphereKey = rec.sphere;
+                      const sphereInfo = sphereConfig[sphereKey];
+                      
+                      return (
+                        <Card key={idx} className="border-yellow-200 dark:border-yellow-800">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <div 
+                                className="p-1.5 rounded"
+                                style={{ backgroundColor: sphereInfo?.color ? `${sphereInfo.color}20` : undefined }}
+                              >
+                                {sphereInfo?.icon || <Lightbulb className="h-4 w-4" />}
+                              </div>
+                              {rec.priority || sphereInfo?.name || sphereKey}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {/* Trainers/Activities */}
+                            {rec.trainers && rec.trainers.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Упражнения:</p>
+                                <ul className="space-y-1">
+                                  {rec.trainers.map((t: any, i: number) => (
+                                    <li key={i} className="text-sm flex items-center justify-between">
+                                      <span>• {t.name}</span>
+                                      <Badge variant="outline" className="text-xs">{t.duration}</Badge>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Videos */}
+                            {rec.videos && rec.videos.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Видеоматериалы:</p>
+                                <ul className="space-y-1">
+                                  {rec.videos.map((v: any, i: number) => (
+                                    <li key={i} className="text-sm">
+                                      • {v.title} <span className="text-muted-foreground">({v.specialist})</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Materials */}
+                            {rec.materials && rec.materials.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Материалы:</p>
+                                <ul className="space-y-1">
+                                  {rec.materials.map((m: any, i: number) => (
+                                    <li key={i} className="text-sm flex items-center gap-2">
+                                      • {m.title}
+                                      <Badge variant="secondary" className="text-xs">{m.type}</Badge>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Consultation Advice */}
+                            {rec.consultationAdvice && (
+                              <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded text-sm text-yellow-800 dark:text-yellow-200">
+                                💡 {rec.consultationAdvice}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : latestDevResult?.recommendations && typeof latestDevResult.recommendations === 'object' ? (
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base flex items-center gap-2">
@@ -370,31 +460,14 @@ export function ChildAnalyticsDialog({
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        {Array.isArray(latestDevResult.recommendations) ? (
-                          latestDevResult.recommendations.map((rec: any, idx: number) => (
-                            <div key={idx} className="p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
-                              <p className="font-medium text-sm mb-1">{rec.sphere}</p>
-                              {rec.activities && (
-                                <ul className="text-sm text-muted-foreground space-y-1">
-                                  {rec.activities.map((act: string, i: number) => (
-                                    <li key={i}>• {act}</li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            {JSON.stringify(latestDevResult.recommendations)}
-                          </p>
-                        )}
-                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Рекомендации доступны после прохождения теста
+                      </p>
                     </CardContent>
                   </Card>
-                )}
+                ) : null}
 
-                {latestParentResult?.recommendations && (
+                {latestParentResult?.recommendations && Array.isArray(latestParentResult.recommendations) && latestParentResult.recommendations.length > 0 && (
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base flex items-center gap-2">
@@ -404,7 +477,7 @@ export function ChildAnalyticsDialog({
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {(latestParentResult.recommendations as string[]).map((rec, idx) => (
+                        {latestParentResult.recommendations.map((rec: string, idx: number) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
                             <span className="text-pink-600">•</span>
                             {rec}
@@ -415,7 +488,8 @@ export function ChildAnalyticsDialog({
                   </Card>
                 )}
 
-                {!latestDevResult?.recommendations && !latestParentResult?.recommendations && (
+                {(!latestDevResult?.recommendations || (Array.isArray(latestDevResult.recommendations) && latestDevResult.recommendations.length === 0)) && 
+                 (!latestParentResult?.recommendations || (Array.isArray(latestParentResult.recommendations) && latestParentResult.recommendations.length === 0)) && (
                   <div className="text-center py-12 text-muted-foreground">
                     <Lightbulb className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p>Нет рекомендаций</p>
