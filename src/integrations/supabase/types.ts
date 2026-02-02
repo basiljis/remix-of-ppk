@@ -291,7 +291,7 @@ export type Database = {
           {
             foreignKeyName: "child_credentials_parent_child_id_fkey"
             columns: ["parent_child_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "parent_children"
             referencedColumns: ["id"]
           },
