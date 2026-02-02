@@ -15,7 +15,7 @@ import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AuthFooter } from "@/components/AuthFooter";
 import { ParentSystemInfoDialog } from "@/components/ParentSystemInfoDialog";
-import { Heart, Users, Baby, Shield } from "lucide-react";
+import { Heart, Users, Baby, Shield, Gamepad2 } from "lucide-react";
 
 const parentSignupSchema = z.object({
   fullName: z.string()
@@ -451,6 +451,19 @@ const ParentAuth = () => {
                       </form>
                     </DialogContent>
                   </Dialog>
+
+                  {/* Child Login Link */}
+                  <div className="mt-4 pt-4 border-t text-center">
+                    <p className="text-sm text-muted-foreground mb-2">Вход для ребёнка?</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate("/child-login")}
+                      className="gap-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950"
+                    >
+                      <Gamepad2 className="h-4 w-4" />
+                      Детский вход
+                    </Button>
+                  </div>
                 </form>
               </TabsContent>
 
