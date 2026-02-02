@@ -1,10 +1,12 @@
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { 
   Lightbulb, BookOpen, Heart, Users, Brain, 
-  MessageCircle, Clock, Target, AlertTriangle, CheckCircle2 
+  MessageCircle, Clock, Target, AlertTriangle, CheckCircle2, ArrowRight, Library, Gamepad2
 } from "lucide-react";
 
 interface TestResult {
@@ -196,6 +198,8 @@ export function TestRecommendationsDialog({
   result,
   childName 
 }: TestRecommendationsDialogProps) {
+  const navigate = useNavigate();
+  
   if (!result) return null;
 
   const styleData = PARENTING_STYLE_RECOMMENDATIONS[result.result_type] || PARENTING_STYLE_RECOMMENDATIONS.authoritative;
@@ -340,6 +344,43 @@ export function TestRecommendationsDialog({
                 </li>
               ))}
             </ul>
+          </div>
+
+          <Separator />
+
+          {/* Navigation to materials */}
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+            <h4 className="font-semibold flex items-center gap-2 mb-2">
+              <Library className="h-4 w-4 text-emerald-600" />
+              Перейти к материалам
+            </h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Мы подготовили статьи, упражнения и задания для развития вашего ребёнка
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate("/parent/materials");
+                }}
+                className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+              >
+                <Library className="h-4 w-4" />
+                Материалы для родителей
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate("/child-workspace");
+                }}
+                className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              >
+                <Gamepad2 className="h-4 w-4" />
+                Игровая ребёнка
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

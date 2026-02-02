@@ -1,4 +1,5 @@
-import { Baby, ClipboardList, CalendarDays, User, BookOpen, ChevronRight } from "lucide-react";
+import { Baby, ClipboardList, CalendarDays, User, BookOpen, Gamepad2, Library } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -8,12 +9,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Tooltip,
   TooltipContent,
@@ -36,8 +33,14 @@ const menuItems = [
   { id: "instructions", label: "Инструкции", icon: BookOpen },
 ];
 
+const developmentItems = [
+  { id: "materials", label: "Материалы", icon: Library, route: "/parent/materials" },
+  { id: "workspace", label: "Игровая ребёнка", icon: Gamepad2, route: "/child-workspace" },
+];
+
 export function ParentSidebar({ activeTab, onTabChange, childrenCount = 0 }: ParentSidebarProps) {
   const { state } = useSidebar();
+  const navigate = useNavigate();
 
   return (
     <TooltipProvider>
@@ -90,6 +93,44 @@ export function ParentSidebar({ activeTab, onTabChange, childrenCount = 0 }: Par
                           {item.id === "children" && childrenCount > 0 && (
                             <p className="text-xs text-muted-foreground">{childrenCount} детей</p>
                           )}
+                        </TooltipContent>
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <Separator className="my-2" />
+
+          {/* Development section */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              Развитие
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                Материалы
+              </span>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {developmentItems.map((item) => {
+                  const Icon = item.icon;
+                  
+                  return (
+                    <SidebarMenuItem key={item.id}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            onClick={() => navigate(item.route)}
+                            className="w-full justify-start gap-3 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950 dark:hover:text-emerald-300"
+                          >
+                            <Icon className="h-4 w-4" />
+                            {state !== "collapsed" && <span>{item.label}</span>}
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{item.label}</p>
                         </TooltipContent>
                       </Tooltip>
                     </SidebarMenuItem>
