@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ParentSidebar } from "@/components/ParentSidebar";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil } from "lucide-react";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, CalendarDays, Phone, ClipboardList, GraduationCap, Users, Shield, Mail, MapPin, Pencil, BarChart3 } from "lucide-react";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,9 @@ import { EditChildDialog } from "@/components/EditChildDialog";
 import { ChildTestResultsBadges } from "@/components/ChildTestResultsBadges";
 import { TestRecommendationsDialog } from "@/components/TestRecommendationsDialog";
 import { ParentInstructionsSection } from "@/components/ParentInstructionsSection";
+import { ParentProfileSection } from "@/components/ParentProfileSection";
+import { ChildDevelopmentResults } from "@/components/ChildDevelopmentResults";
+import { ChildAnalyticsDialog } from "@/components/ChildAnalyticsDialog";
 
 interface ParentProfile {
   id: string;
@@ -96,6 +99,8 @@ export default function ParentDashboard() {
   const [recommendationsDialogOpen, setRecommendationsDialogOpen] = useState(false);
   const [selectedResultForRecommendations, setSelectedResultForRecommendations] = useState<any>(null);
   const [selectedChildForRecommendations, setSelectedChildForRecommendations] = useState<string>("");
+  const [analyticsDialogOpen, setAnalyticsDialogOpen] = useState(false);
+  const [selectedChildForAnalytics, setSelectedChildForAnalytics] = useState<ParentChild | null>(null);
 
   // New child form
   const [newChild, setNewChild] = useState({
@@ -347,6 +352,17 @@ export default function ParentDashboard() {
     setSelectedResultForRecommendations(result);
     setSelectedChildForRecommendations(childName);
     setRecommendationsDialogOpen(true);
+  };
+
+  const openChildAnalytics = (child: ParentChild) => {
+    setSelectedChildForAnalytics(child);
+    setAnalyticsDialogOpen(true);
+  };
+
+  const handleProfileUpdate = (updates: Partial<ParentProfile>) => {
+    if (profile) {
+      setProfile({ ...profile, ...updates } as ParentProfile);
+    }
   };
 
   if (loading) {
@@ -611,21 +627,47 @@ export default function ParentDashboard() {
                                 )}
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openEditChild(child)}
-                              className="h-8 w-8 text-muted-foreground hover:text-pink-600"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => openChildAnalytics(child)}
+                                      className="h-8 w-8 text-muted-foreground hover:text-emerald-600"
+                                    >
+                                      <BarChart3 className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Статистика и аналитика</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditChild(child)}
+                                className="h-8 w-8 text-muted-foreground hover:text-pink-600"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                           
-                          {/* Test Results */}
+                          {/* Parenting Test Results */}
                           <ChildTestResultsBadges 
                             childId={child.id}
                             onViewRecommendations={(result) => handleViewRecommendations(result, child.full_name)}
                           />
+                          
+                          {/* Development Test Results */}
+                          <div className="mt-3">
+                            <ChildDevelopmentResults 
+                              childId={child.id}
+                              compact={true}
+                              onViewDetails={() => openChildAnalytics(child)}
+                            />
+                          </div>
                           
                           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                             <div className="flex items-center justify-between">
@@ -695,95 +737,14 @@ export default function ParentDashboard() {
       case "instructions":
         return <ParentInstructionsSection />;
       case "profile":
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">Профиль</h2>
-              <p className="text-muted-foreground">Информация о вашем аккаунте</p>
-            </div>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 bg-pink-100 dark:bg-pink-950">
-                    <AvatarFallback className="text-pink-600 text-lg font-bold">
-                      {profile?.full_name?.charAt(0) || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="text-xl">{profile?.full_name}</div>
-                    <Badge variant="outline" className="mt-1 text-pink-600 border-pink-300">
-                      <Baby className="h-3 w-3 mr-1" />
-                      Родитель
-                    </Badge>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="font-medium">{profile?.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <Phone className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Телефон</p>
-                    <p className="font-medium">{profile?.phone}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <MapPin className="h-5 w-5 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="text-xs text-muted-foreground">Регион</p>
-                    {editingProfile ? (
-                      <div className="flex gap-2 mt-1">
-                        <Select value={editedRegionId} onValueChange={setEditedRegionId}>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Выберите регион" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {regions.map((region) => (
-                              <SelectItem key={region.id} value={region.id}>
-                                {region.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button size="sm" onClick={handleSaveProfile} disabled={savingProfile}>
-                          {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить"}
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => {
-                          setEditingProfile(false);
-                          setEditedRegionId(profile?.region_id || "");
-                        }}>
-                          Отмена
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">
-                          {regions.find(r => r.id === profile?.region_id)?.name || "Не указан"}
-                        </p>
-                        <Button size="sm" variant="ghost" onClick={() => setEditingProfile(true)}>
-                          Изменить
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Количество детей</p>
-                    <p className="font-medium">{children.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return profile ? (
+          <ParentProfileSection
+            profile={profile}
+            regions={regions}
+            childrenCount={children.length}
+            onProfileUpdate={handleProfileUpdate}
+          />
+        ) : null;
       default:
         return null;
     }
@@ -917,6 +878,17 @@ export default function ParentDashboard() {
           result={selectedResultForRecommendations}
           childName={selectedChildForRecommendations}
         />
+
+        {/* Child Analytics Dialog */}
+        {selectedChildForAnalytics && (
+          <ChildAnalyticsDialog
+            open={analyticsDialogOpen}
+            onOpenChange={setAnalyticsDialogOpen}
+            childId={selectedChildForAnalytics.id}
+            childName={selectedChildForAnalytics.full_name}
+            birthDate={selectedChildForAnalytics.birth_date}
+          />
+        )}
       </div>
     </SidebarProvider>
   );
