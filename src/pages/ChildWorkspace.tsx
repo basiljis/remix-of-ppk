@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Play, CheckCircle, Clock, Star, Trophy, 
-  Brain, MessageCircle, Heart, Hand, Mic, ChevronRight 
+  Brain, MessageCircle, Heart, Hand, Mic, ChevronRight, RotateCcw 
 } from "lucide-react";
 import { gameItemImages, sphereImages, taskImages } from "@/assets/game-items";
 
@@ -227,7 +227,42 @@ export default function ChildWorkspace() {
     },
   });
 
-  const currentTask = tasks[currentTaskIndex];
+  // Shuffle and sort tasks: new tasks first (shuffled), completed tasks last with "repeat" label
+  const sortedTasks = useMemo(() => {
+    if (tasks.length === 0) return [];
+    
+    const completedTaskIds = new Set(
+      progress
+        .filter(p => p.block_id === selectedBlock?.id && p.status === "completed")
+        .map(p => p.task_id)
+    );
+    
+    const newTasks = tasks.filter(t => !completedTaskIds.has(t.id));
+    const completedTasks = tasks.filter(t => completedTaskIds.has(t.id));
+    
+    // Shuffle new tasks using Fisher-Yates
+    const shuffledNew = [...newTasks];
+    for (let i = shuffledNew.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledNew[i], shuffledNew[j]] = [shuffledNew[j], shuffledNew[i]];
+    }
+    
+    // Shuffle completed tasks too
+    const shuffledCompleted = [...completedTasks];
+    for (let i = shuffledCompleted.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledCompleted[i], shuffledCompleted[j]] = [shuffledCompleted[j], shuffledCompleted[i]];
+    }
+    
+    return [...shuffledNew, ...shuffledCompleted];
+  }, [tasks, progress, selectedBlock?.id]);
+
+  const currentTask = sortedTasks[currentTaskIndex];
+  const isCurrentTaskRepeat = useMemo(() => {
+    if (!currentTask) return false;
+    return progress.some(p => p.task_id === currentTask.id && p.status === "completed");
+  }, [currentTask, progress]);
+  
   const _blockProgress = progress.filter(p => p.block_id === selectedBlock?.id);
 
   const handleSubmitAnswer = async () => {
@@ -263,7 +298,7 @@ export default function ChildWorkspace() {
 
     setSelectedAnswer("");
     
-    if (currentTaskIndex < tasks.length - 1) {
+    if (currentTaskIndex < sortedTasks.length - 1) {
       setCurrentTaskIndex(prev => prev + 1);
     } else {
       toast({
@@ -324,10 +359,16 @@ export default function ChildWorkspace() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm text-muted-foreground">
-              Задание {currentTaskIndex + 1} из {tasks.length}
+              Задание {currentTaskIndex + 1} из {sortedTasks.length}
             </span>
+            {isCurrentTaskRepeat && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <RotateCcw className="h-3 w-3" />
+                Повторение
+              </Badge>
+            )}
           </div>
-          <Progress value={((currentTaskIndex + 1) / tasks.length) * 100} className="h-2" />
+          <Progress value={((currentTaskIndex + 1) / sortedTasks.length) * 100} className="h-2" />
         </div>
 
         {/* Task Card */}
@@ -378,7 +419,7 @@ export default function ChildWorkspace() {
                     return (
                       <div 
                         key={index}
-                        className={`flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer
+                        className={`flex items-center space-x-4 p-4 rounded-xl border-2 transition-all cursor-pointer
                           ${selectedAnswer === String(index) 
                             ? "border-primary bg-primary/5" 
                             : "border-muted hover:border-primary/50"
@@ -390,10 +431,10 @@ export default function ChildWorkspace() {
                           <img 
                             src={imageUrl} 
                             alt={option} 
-                            className="w-12 h-12 object-contain rounded-lg"
+                            className="w-20 h-20 object-contain rounded-lg bg-white/80 p-1"
                           />
                         )}
-                        <Label htmlFor={`option-${index}`} className="text-base cursor-pointer flex-1">
+                        <Label htmlFor={`option-${index}`} className="text-lg cursor-pointer flex-1 font-medium">
                           {option}
                         </Label>
                       </div>
