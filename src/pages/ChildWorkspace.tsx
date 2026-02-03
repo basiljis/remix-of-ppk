@@ -13,7 +13,25 @@ import {
   ArrowLeft, Play, CheckCircle, Clock, Star, Trophy, 
   Brain, MessageCircle, Heart, Hand, Mic, ChevronRight 
 } from "lucide-react";
-import { gameItemImages, sphereImages } from "@/assets/game-items";
+import { gameItemImages, sphereImages, taskImages } from "@/assets/game-items";
+
+// Helper to find task image based on task title or content
+const getTaskImage = (task: BlockTask): string | null => {
+  const title = task.title.toLowerCase();
+  const instruction = task.instruction.toLowerCase();
+  
+  // Check for specific keywords
+  if (title.includes("фрукт") || instruction.includes("фрукт")) return taskImages.count_fruits;
+  if (title.includes("эмоци") || instruction.includes("эмоци")) return taskImages.happy;
+  if (title.includes("грусть") || instruction.includes("грустит")) return taskImages.sad;
+  if (title.includes("память") || instruction.includes("запомни")) return taskImages.color_memory;
+  if (title.includes("бабочка") || instruction.includes("бабочк")) return taskImages.butterfly;
+  if (title.includes("дыши") || instruction.includes("дыхани") || instruction.includes("вдохни")) return taskImages.breathing_calm;
+  if (title.includes("язык") || instruction.includes("язык") || instruction.includes("язычок")) return taskImages.tongue;
+  if (title.includes("здоров") || instruction.includes("здоров") || instruction.includes("привет")) return taskImages.hello;
+  
+  return null;
+};
 
 interface TaskBlock {
   id: string;
@@ -337,6 +355,17 @@ export default function ChildWorkspace() {
               </div>
             </CardHeader>
             <CardContent className="pt-6 pb-8">
+              {/* Task illustration */}
+              {getTaskImage(currentTask) && (
+                <div className="flex justify-center mb-6">
+                  <img 
+                    src={getTaskImage(currentTask)!} 
+                    alt="Иллюстрация к заданию" 
+                    className="w-40 h-40 object-contain rounded-xl bg-white/50 p-2 shadow-sm"
+                  />
+                </div>
+              )}
+              
               <p className="text-lg mb-6">{currentTask.instruction}</p>
 
               {/* Question type */}
