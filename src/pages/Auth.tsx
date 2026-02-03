@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SystemInfoDialog } from "@/components/SystemInfoDialog";
 import { SupportDialog } from "@/components/SupportDialog";
 import { AuthFooter } from "@/components/AuthFooter";
+import { Home } from "lucide-react";
 
 // Schema for organization users
 const signupSchema = z.object({
@@ -530,6 +531,17 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+        {/* Home button */}
+        <Link 
+          to="/" 
+          className="absolute top-4 left-4 z-10"
+        >
+          <Button variant="outline" size="sm" className="gap-2">
+            <Home className="h-4 w-4" />
+            На главную
+          </Button>
+        </Link>
+        
         <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
         {/* Left side - Form */}
         <div className="p-8 md:p-12 flex flex-col justify-center">
