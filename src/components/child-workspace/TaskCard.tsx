@@ -15,16 +15,49 @@ const getTaskImage = (task: BlockTask): string | null => {
   const title = task.title.toLowerCase();
   const instruction = task.instruction.toLowerCase();
   
-  if (title.includes("фрукт") || instruction.includes("фрукт")) return taskImages.count_fruits;
+  // Emotions
+  if (title.includes("покажи эмоцию") || instruction.includes("покажи лицом")) return taskImages.show_emotions;
   if (title.includes("эмоци") || instruction.includes("эмоци")) return taskImages.happy;
   if (title.includes("грусть") || instruction.includes("грустит")) return taskImages.sad;
+  if (title.includes("помоги друг") || instruction.includes("друг грустит")) return taskImages.help_friend;
+  
+  // Memory & cognitive
+  if (title.includes("что пропало") || instruction.includes("исчезла")) return taskImages.what_disappeared;
+  if (title.includes("порядок") || instruction.includes("порядке")) return taskImages.picture_order;
+  if (title.includes("повтори слова") || instruction.includes("повтори")) return taskImages.repeat_words;
   if (title.includes("память") || instruction.includes("запомни")) return taskImages.color_memory;
-  if (title.includes("бабочка") || instruction.includes("бабочк")) return taskImages.butterfly;
+  if (title.includes("фрукт") || instruction.includes("фрукт")) return taskImages.count_fruits;
+  
+  // Breathing & relaxation
   if (title.includes("дыши") || instruction.includes("дыхани") || instruction.includes("вдохни")) return taskImages.breathing_calm;
+  
+  // Motor
+  if (title.includes("бабочка") || instruction.includes("бабочк")) return taskImages.butterfly;
+  
+  // Speech
   if (title.includes("язык") || instruction.includes("язык") || instruction.includes("язычок")) return taskImages.tongue;
+  
+  // Social
   if (title.includes("здоров") || instruction.includes("здоров") || instruction.includes("привет")) return taskImages.hello;
+  if (title.includes("делим") || instruction.includes("игрушк")) return taskImages.sharing;
+  if (title.includes("волшебн") || instruction.includes("спасибо") || instruction.includes("помогли")) return taskImages.thank_you;
+  if (title.includes("комплимент") || instruction.includes("комплимент") || instruction.includes("приятное")) return taskImages.compliment;
+  if (title.includes("радуемся") || instruction.includes("подарок") || instruction.includes("радость")) return taskImages.receiving_gift;
+  if (title.includes("магазин") || instruction.includes("магазин")) return taskImages.shop;
   
   return null;
+};
+
+// Helper to get game type image
+const getGameTypeImage = (content: any): string | null => {
+  if (!content?.type) return null;
+  
+  switch (content.type) {
+    case "puzzle": return taskImages.puzzle_game;
+    case "memory": return taskImages.memory_game;
+    case "sorting": return taskImages.sorting_game;
+    default: return null;
+  }
 };
 
 interface TaskCardProps {
@@ -221,9 +254,7 @@ export function TaskCard({
         {/* Game type with interactive elements */}
         {task.task_type === "game" && (
           <GameTask 
-            task={task} 
             content={content} 
-            selectedAnswer={selectedAnswer}
             onAnswerChange={onAnswerChange}
           />
         )}
@@ -259,16 +290,23 @@ interface GameTaskProps {
   onAnswerChange: (answer: string) => void;
 }
 
-function GameTask({ task, content, selectedAnswer, onAnswerChange }: GameTaskProps) {
+function GameTask({ content, onAnswerChange }: Omit<GameTaskProps, "task" | "selectedAnswer">) {
+  const gameImage = getGameTypeImage(content);
+  
   // Different game types
   if (content?.type === "puzzle") {
     return (
       <div className="text-center py-6">
+        {gameImage && (
+          <div className="flex justify-center mb-4">
+            <img src={gameImage} alt="Пазл" className="w-32 h-32 object-contain rounded-xl bg-muted/30 p-2" />
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto mb-6">
           {[1, 2, 3, 4].map((piece) => (
             <div 
               key={piece}
-              className="aspect-square bg-gradient-to-br from-purple-200 to-pink-200 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-600 cursor-pointer hover:scale-105 transition-transform"
+              className="aspect-square bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center text-2xl font-bold text-primary cursor-pointer hover:scale-105 transition-transform"
               onClick={() => onAnswerChange(`piece-${piece}`)}
             >
               {piece}
@@ -290,11 +328,16 @@ function GameTask({ task, content, selectedAnswer, onAnswerChange }: GameTaskPro
   if (content?.type === "memory") {
     return (
       <div className="text-center py-6">
+        {gameImage && (
+          <div className="flex justify-center mb-4">
+            <img src={gameImage} alt="Память" className="w-32 h-32 object-contain rounded-xl bg-muted/30 p-2" />
+          </div>
+        )}
         <div className="grid grid-cols-4 gap-2 max-w-sm mx-auto mb-6">
           {[...Array(8)].map((_, i) => (
             <div 
               key={i}
-              className="aspect-square bg-gradient-to-br from-blue-200 to-cyan-200 rounded-lg flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+              className="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
             >
               <span className="text-xl">🎴</span>
             </div>
@@ -315,6 +358,11 @@ function GameTask({ task, content, selectedAnswer, onAnswerChange }: GameTaskPro
   if (content?.type === "sorting") {
     return (
       <div className="text-center py-6">
+        {gameImage && (
+          <div className="flex justify-center mb-4">
+            <img src={gameImage} alt="Сортировка" className="w-32 h-32 object-contain rounded-xl bg-muted/30 p-2" />
+          </div>
+        )}
         <p className="text-muted-foreground mb-4">Перетащи предметы в нужные корзины</p>
         <div className="flex justify-center gap-4 mb-6">
           <div className="w-24 h-24 border-2 border-dashed border-primary/50 rounded-xl flex items-center justify-center">
@@ -338,8 +386,8 @@ function GameTask({ task, content, selectedAnswer, onAnswerChange }: GameTaskPro
   // Default game placeholder
   return (
     <div className="text-center py-8">
-      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
-        <Play className="h-10 w-10 text-white" />
+      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
+        <Play className="h-10 w-10 text-primary-foreground" />
       </div>
       <p className="text-muted-foreground mb-4">Игровое задание</p>
       <Button onClick={() => onAnswerChange("played")}>

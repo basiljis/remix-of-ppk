@@ -40,6 +40,20 @@ import spoon from "./spoon.png";
 import comb from "./comb.png";
 import pencil from "./pencil.png";
 
+// New generated images for tasks
+import sharingToys from "./sharing-toys.png";
+import thankYou from "./thank-you.png";
+import compliment from "./compliment.png";
+import repeatWords from "./repeat-words.png";
+import pictureOrder from "./picture-order.png";
+import helpFriend from "./help-friend.png";
+import showEmotions from "./show-emotions.png";
+import whatDisappeared from "./what-disappeared.png";
+import receivingGift from "./receiving-gift.png";
+import puzzleGame from "./puzzle-game.png";
+import memoryGame from "./memory-game.png";
+import sortingGame from "./sorting-game.png";
+
 // Map text options to images for quiz questions
 export const gameItemImages: Record<string, string> = {
   // Fruits
@@ -117,10 +131,18 @@ export const taskImages: Record<string, string> = {
   "sad": sadFace,
   "радость": happyFace,
   "грусть": sadFace,
+  "show_emotions": showEmotions,
+  "покажи_эмоцию": showEmotions,
   
   // Memory games
   "color_memory": colorSequence,
   "memory_colors": colorSequence,
+  "what_disappeared": whatDisappeared,
+  "что_пропало": whatDisappeared,
+  "picture_order": pictureOrder,
+  "порядок_картинок": pictureOrder,
+  "repeat_words": repeatWords,
+  "повтори_слова": repeatWords,
   
   // Motor exercises
   "butterfly": butterflyHands,
@@ -129,6 +151,7 @@ export const taskImages: Record<string, string> = {
   // Breathing
   "breathing_calm": calmBreathing,
   "дыши": calmBreathing,
+  "дыши_спокойно": calmBreathing,
   
   // Speech
   "tongue": tongueExercise,
@@ -138,6 +161,32 @@ export const taskImages: Record<string, string> = {
   "hello": greeting,
   "greeting": greeting,
   "привет": greeting,
+  "здороваться": greeting,
+  "sharing": sharingToys,
+  "делимся": sharingToys,
+  "игрушками": sharingToys,
+  "thank_you": thankYou,
+  "спасибо": thankYou,
+  "волшебные_слова": thankYou,
+  "compliment": compliment,
+  "комплимент": compliment,
+  "help_friend": helpFriend,
+  "помоги_другу": helpFriend,
+  "receiving_gift": receivingGift,
+  "радуемся": receivingGift,
+  "подарок": receivingGift,
+  
+  // Games
+  "puzzle_game": puzzleGame,
+  "пазл": puzzleGame,
+  "memory_game": memoryGame,
+  "мемори": memoryGame,
+  "sorting_game": sortingGame,
+  "сортировка": sortingGame,
+  
+  // Shop game
+  "shop": shop,
+  "магазин": shop,
 };
 
 // Export all images individually
@@ -149,5 +198,9 @@ export {
   // New images
   threeFruits, happyFace, sadFace, colorSequence, 
   butterflyHands, calmBreathing, tongueExercise, greeting,
-  bookItem, spoon, comb, pencil
+  bookItem, spoon, comb, pencil,
+  // Task images
+  sharingToys, thankYou, compliment, repeatWords, pictureOrder,
+  helpFriend, showEmotions, whatDisappeared, receivingGift,
+  puzzleGame, memoryGame, sortingGame
 };
