@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { BlockTask, TaskBlock, TaskProgress } from "./types";
 
 const INACTIVITY_THRESHOLD = 30000; // 30 seconds
@@ -17,9 +16,14 @@ interface WrongAnswerTracking {
   scheduledRetry: number | null; // timestamp when to retry
 }
 
+export interface SuccessFeedback {
+  message: string;
+  points: number;
+  isRetry: boolean;
+}
+
 export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
@@ -27,6 +31,8 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
   const [showWrongFeedback, setShowWrongFeedback] = useState(false);
   const [wrongAttempts, setWrongAttempts] = useState(0);
   const [wrongAnswerQueue, setWrongAnswerQueue] = useState<WrongAnswerTracking[]>([]);
+  const [successFeedback, setSuccessFeedback] = useState<SuccessFeedback | null>(null);
+  const [showSimilarHint, setShowSimilarHint] = useState(false);
   
   // Interaction time tracking
   const taskStartTimeRef = useRef<number | null>(null);
@@ -139,11 +145,6 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
     },
     onError: (error) => {
       console.error("Failed to save progress:", error);
-      toast({
-        title: "Ошибка сохранения",
-        description: "Попробуем ещё раз",
-        variant: "destructive",
-      });
     },
   });
 
@@ -272,18 +273,18 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
         // Also try to insert a similar task
         const similar = findSimilarTask(currentTask);
         if (similar) {
-          toast({
-            title: "Давай попробуем похожее задание! 🎯",
-            description: "А к этому вернёмся позже",
-          });
+          setShowSimilarHint(true);
         }
 
-        // Move to next task
-        setShowWrongFeedback(false);
-        setWrongAttempts(0);
-        if (currentTaskIndex < sortedTasks.length - 1) {
-          setCurrentTaskIndex(prev => prev + 1);
-        }
+        // Move to next task after short delay
+        setTimeout(() => {
+          setShowWrongFeedback(false);
+          setWrongAttempts(0);
+          setShowSimilarHint(false);
+          if (currentTaskIndex < sortedTasks.length - 1) {
+            setCurrentTaskIndex(prev => prev + 1);
+          }
+        }, 1500);
       }
       return;
     }
@@ -304,10 +305,12 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
 
       setTotalPoints(prev => prev + score);
       
+      // Show inline success feedback
       if (score > 0) {
-        toast({
-          title: isCurrentTaskRetry ? "Молодец! Теперь правильно! 🎉" : "Отлично! 🎉",
-          description: `+${score} очков!`,
+        setSuccessFeedback({
+          message: isCurrentTaskRetry ? "Молодец! Теперь правильно!" : "Отлично!",
+          points: score,
+          isRetry: isCurrentTaskRetry,
         });
       }
 
@@ -315,13 +318,17 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
       setShowWrongFeedback(false);
       setWrongAttempts(0);
       
-      if (currentTaskIndex < sortedTasks.length - 1) {
-        setCurrentTaskIndex(prev => prev + 1);
-      } else {
-        toast({
-          title: "Блок завершён! 🏆",
-          description: `Ты заработал ${totalPoints + score} очков!`,
-        });
+      // Move to next task after showing feedback
+      setTimeout(() => {
+        setSuccessFeedback(null);
+        if (currentTaskIndex < sortedTasks.length - 1) {
+          setCurrentTaskIndex(prev => prev + 1);
+        } else {
+          return "block_complete";
+        }
+      }, 1200);
+      
+      if (currentTaskIndex >= sortedTasks.length - 1) {
         return "block_complete";
       }
     } catch (error) {
@@ -338,7 +345,6 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
     getInteractionTime,
     saveProgressMutation,
     isCurrentTaskRetry,
-    toast,
   ]);
 
   // Reset timing when task changes
@@ -394,6 +400,8 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
     isCurrentTaskRetry,
     showWrongFeedback,
     wrongAttempts,
+    successFeedback,
+    showSimilarHint,
     isPending: saveProgressMutation.isPending,
     setSelectedAnswer,
     handleSubmitAnswer,
