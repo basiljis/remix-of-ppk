@@ -13,6 +13,7 @@ import {
   ArrowLeft, Search, BookOpen, Dumbbell, Video, FileText, Clock, 
   Brain, MessageCircle, Heart, Hand, Mic 
 } from "lucide-react";
+import { sphereImages } from "@/assets/game-items";
 
 interface DevelopmentMaterial {
   id: string;
@@ -152,10 +153,18 @@ export default function ParentMaterials() {
                 const Icon = config.icon;
                 return (
                   <div key={sphere} className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className={`p-2 rounded-lg ${config.color}`}>
-                        <Icon className="h-5 w-5" />
-                      </div>
+                    <div className="flex items-center gap-3">
+                      {sphereImages[sphere] ? (
+                        <img 
+                          src={sphereImages[sphere]} 
+                          alt={config.name} 
+                          className="w-12 h-12 object-contain rounded-lg"
+                        />
+                      ) : (
+                        <div className={`p-2 rounded-lg ${config.color}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                      )}
                       <h2 className="text-lg font-semibold">{config.name}</h2>
                       <Badge variant="secondary">{items.length}</Badge>
                     </div>
@@ -183,10 +192,18 @@ export default function ParentMaterials() {
 
             {Object.entries(sphereConfig).map(([sphere, config]) => (
               <TabsContent key={sphere} value={sphere} className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className={`p-2 rounded-lg ${config.color}`}>
-                    <config.icon className="h-5 w-5" />
-                  </div>
+                <div className="flex items-center gap-3 mb-4">
+                  {sphereImages[sphere] ? (
+                    <img 
+                      src={sphereImages[sphere]} 
+                      alt={config.name} 
+                      className="w-12 h-12 object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className={`p-2 rounded-lg ${config.color}`}>
+                      <config.icon className="h-5 w-5" />
+                    </div>
+                  )}
                   <h2 className="text-lg font-semibold">{config.name}</h2>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

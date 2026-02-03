@@ -13,7 +13,7 @@ import {
   ArrowLeft, Play, CheckCircle, Clock, Star, Trophy, 
   Brain, MessageCircle, Heart, Hand, Mic, ChevronRight 
 } from "lucide-react";
-import { gameItemImages } from "@/assets/game-items";
+import { gameItemImages, sphereImages } from "@/assets/game-items";
 
 interface TaskBlock {
   id: string;
@@ -234,9 +234,17 @@ export default function ChildWorkspace() {
           <Card className="max-w-2xl mx-auto shadow-lg">
             <CardHeader className={`${config.bgColor} rounded-t-lg`}>
               <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-full bg-white/80 ${config.color}`}>
-                  <Icon className="h-6 w-6" />
-                </div>
+                {sphereImages[selectedBlock.sphere_slug] ? (
+                  <img 
+                    src={sphereImages[selectedBlock.sphere_slug]} 
+                    alt={config.name} 
+                    className="w-14 h-14 object-contain rounded-full bg-white/80 p-1"
+                  />
+                ) : (
+                  <div className={`p-3 rounded-full bg-white/80 ${config.color}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                )}
                 <div>
                   <CardTitle className="text-lg">{currentTask.title}</CardTitle>
                   <CardDescription className="text-foreground/70">
@@ -386,9 +394,17 @@ export default function ChildWorkspace() {
               >
                 <CardHeader className={`${config.bgColor} rounded-t-lg`}>
                   <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-full bg-white/80 ${config.color}`}>
-                      <Icon className="h-6 w-6" />
-                    </div>
+                    {sphereImages[block.sphere_slug] ? (
+                      <img 
+                        src={sphereImages[block.sphere_slug]} 
+                        alt={config.name} 
+                        className="w-14 h-14 object-contain rounded-full bg-white/80 p-1"
+                      />
+                    ) : (
+                      <div className={`p-3 rounded-full bg-white/80 ${config.color}`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                    )}
                     <div>
                       <CardTitle className="text-base">{block.title}</CardTitle>
                       <p className="text-sm text-foreground/70">{config.name}</p>
