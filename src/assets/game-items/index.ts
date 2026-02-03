@@ -34,6 +34,12 @@ import calmBreathing from "./calm-breathing.png";
 import tongueExercise from "./tongue-exercise.png";
 import greeting from "./greeting.png";
 
+// Additional item images
+import bookItem from "./book-item.png";
+import spoon from "./spoon.png";
+import comb from "./comb.png";
+import pencil from "./pencil.png";
+
 // Map text options to images for quiz questions
 export const gameItemImages: Record<string, string> = {
   // Fruits
@@ -61,7 +67,7 @@ export const gameItemImages: Record<string, string> = {
   "пальцы": fingers,
   "рука": fingers,
   
-  // Activities
+  // Activities & Objects
   "ножницы": scissors,
   "дыхание": breathing,
   "эмоции": emotions,
@@ -72,6 +78,22 @@ export const gameItemImages: Record<string, string> = {
   "память": memory,
   "семья": family,
   "речь": speech,
+  
+  // New items
+  "книга": bookItem,
+  "книжка": bookItem,
+  "ложка": spoon,
+  "ложечка": spoon,
+  "расчёска": comb,
+  "расческа": comb,
+  "карандаш": pencil,
+  "карандашом": pencil,
+  
+  // Numbers (for counting tasks)
+  "2": undefined as any,
+  "3": threeFruits,
+  "4": undefined as any,
+  "5": undefined as any,
 };
 
 // Sphere images for blocks and materials
@@ -132,5 +154,6 @@ export {
   heart, book,
   // New images
   threeFruits, happyFace, sadFace, colorSequence, 
-  butterflyHands, calmBreathing, tongueExercise, greeting
+  butterflyHands, calmBreathing, tongueExercise, greeting,
+  bookItem, spoon, comb, pencil
 };
