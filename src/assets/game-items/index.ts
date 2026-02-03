@@ -83,6 +83,7 @@ export const gameItemImages: Record<string, string> = {
   
   // Activities & Objects
   "ножницы": scissors,
+  "ножницами": scissors,
   "дыхание": breathing,
   "эмоции": emotions,
   "артикуляция": articulation,
@@ -98,8 +99,11 @@ export const gameItemImages: Record<string, string> = {
   "книжка": bookItem,
   "ложка": spoon,
   "ложечка": spoon,
+  "ложкой": spoon,
   "расчёска": comb,
   "расческа": comb,
+  "расчёской": comb,
+  "расческой": comb,
   "карандаш": pencil,
   "карандашом": pencil,
 };
