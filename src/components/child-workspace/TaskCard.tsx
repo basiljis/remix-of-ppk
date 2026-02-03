@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { 
-  CheckCircle, ChevronRight, Trophy, Play, RotateCcw, AlertCircle, Lightbulb
+  CheckCircle, ChevronRight, Trophy, Play, RotateCcw, AlertCircle, Lightbulb, PartyPopper
 } from "lucide-react";
 import { gameItemImages, sphereImages, taskImages } from "@/assets/game-items";
 import { BlockTask, SphereConfig } from "./types";
+import { SuccessFeedback } from "./useChildTasks";
 
 // Helper to find task image based on task title or content
 const getTaskImage = (task: BlockTask): string | null => {
@@ -39,6 +40,8 @@ interface TaskCardProps {
   isLastTask: boolean;
   showWrongFeedback: boolean;
   wrongAttempts: number;
+  successFeedback: SuccessFeedback | null;
+  showSimilarHint: boolean;
 }
 
 export function TaskCard({
@@ -54,6 +57,8 @@ export function TaskCard({
   isLastTask,
   showWrongFeedback,
   wrongAttempts,
+  successFeedback,
+  showSimilarHint,
 }: TaskCardProps) {
   const content = task.content as any;
   const Icon = config.icon;
@@ -90,21 +95,43 @@ export function TaskCard({
         </div>
       </CardHeader>
       <CardContent className="pt-6 pb-8">
+        {/* Success feedback - inline at top, not blocking content */}
+        {successFeedback && (
+          <div className="mb-4 p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="p-2 rounded-full bg-emerald-100">
+              <PartyPopper className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-emerald-800">{successFeedback.message} 🎉</p>
+              <p className="text-sm text-emerald-700">+{successFeedback.points} очков!</p>
+            </div>
+          </div>
+        )}
+
+        {/* Similar task hint */}
+        {showSimilarHint && (
+          <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200 flex items-center gap-3 animate-in fade-in duration-300">
+            <Lightbulb className="h-5 w-5 text-blue-600" />
+            <p className="text-blue-800">Давай попробуем похожее задание! А к этому вернёмся позже 🎯</p>
+          </div>
+        )}
+
         {/* Wrong answer feedback */}
-        {showWrongFeedback && (
+        {showWrongFeedback && !successFeedback && (
           <div className="mb-4 p-4 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-amber-800">
-                {wrongAttempts === 1 ? "Попробуй ещё раз!" : "Подумай внимательнее!"}
+                {wrongAttempts === 1 ? "Попробуй ещё раз!" : wrongAttempts >= 3 ? "Ничего страшного!" : "Подумай внимательнее!"}
               </p>
               <p className="text-sm text-amber-700 mt-1">
-                {wrongAttempts >= 2 && (
+                {wrongAttempts >= 2 && wrongAttempts < 3 && (
                   <span className="flex items-center gap-1">
                     <Lightbulb className="h-4 w-4" />
                     Подсказка: внимательно посмотри на все варианты
                   </span>
                 )}
+                {wrongAttempts >= 3 && "Перейдём к следующему заданию"}
               </p>
             </div>
           </div>

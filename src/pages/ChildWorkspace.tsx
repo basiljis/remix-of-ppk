@@ -38,6 +38,8 @@ export default function ChildWorkspace() {
     isCurrentTaskRetry,
     showWrongFeedback,
     wrongAttempts,
+    successFeedback,
+    showSimilarHint,
     isPending,
     setSelectedAnswer,
     handleSubmitAnswer,
@@ -139,6 +141,8 @@ export default function ChildWorkspace() {
             isLastTask={currentTaskIndex >= sortedTasks.length - 1}
             showWrongFeedback={showWrongFeedback}
             wrongAttempts={wrongAttempts}
+            successFeedback={successFeedback}
+            showSimilarHint={showSimilarHint}
           />
         </div>
       </div>
