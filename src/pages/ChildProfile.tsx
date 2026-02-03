@@ -15,6 +15,7 @@ import { ChildInfoDetailsDialog } from "@/components/ChildInfoDetailsDialog";
 import { ProtocolDynamicsDetailsDialog } from "@/components/ProtocolDynamicsDetailsDialog";
 import { AddChildDialog } from "@/components/AddChildDialog";
 import { ChildDevelopmentResults } from "@/components/ChildDevelopmentResults";
+import { ChildGameProgressCard } from "@/components/ChildGameProgressCard";
 import Preloader from "@/components/Preloader";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -403,6 +404,13 @@ export default function ChildProfile() {
         {(linkedParentChildId || parentChildId) && (
           <ChildDevelopmentResults 
             childId={linkedParentChildId || parentChildId!} 
+          />
+        )}
+
+        {/* Game Progress from Child Workspace (if linked) */}
+        {(linkedParentChildId || parentChildId) && (
+          <ChildGameProgressCard 
+            parentChildId={linkedParentChildId || parentChildId!}
           />
         )}
 
