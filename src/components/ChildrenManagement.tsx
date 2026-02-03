@@ -129,6 +129,12 @@ export function ChildrenManagement() {
   const [showMergeDialog, setShowMergeDialog] = useState(false);
   const [mergeSourceChild, setMergeSourceChild] = useState<Child | null>(null);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
+  
+  // Child code sync states
+  const [childCode, setChildCode] = useState("");
+  const [syncStatus, setSyncStatus] = useState<"idle" | "searching" | "found" | "not_found" | "error">("idle");
+  const [linkedParentChildId, setLinkedParentChildId] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
     full_name: "",
     birth_date: "",
@@ -296,7 +302,9 @@ export function ChildrenManagement() {
   const isLoading = isLoadingChildren || isLoadingProtocols;
 
   const saveMutation = useMutation({
-    mutationFn: async (data: typeof formData & { id?: string }) => {
+    mutationFn: async (data: typeof formData & { id?: string; parentChildIdToLink?: string | null }) => {
+      let savedChildId: string | undefined;
+      
       if (data.id && !data.id.startsWith("protocol-")) {
         const { error } = await supabase
           .from("children")
@@ -313,8 +321,9 @@ export function ChildrenManagement() {
           })
           .eq("id", data.id);
         if (error) throw error;
+        savedChildId = data.id;
       } else {
-        const { error } = await supabase.from("children").insert({
+        const { data: newChild, error } = await supabase.from("children").insert({
           full_name: data.full_name,
           birth_date: data.birth_date || null,
           gender: data.gender || null,
@@ -325,8 +334,28 @@ export function ChildrenManagement() {
           notes: data.notes || null,
           is_active: data.is_active,
           organization_id: organizationId,
-        });
+        }).select("id").single();
         if (error) throw error;
+        savedChildId = newChild?.id;
+      }
+      
+      // Link to parent child if synced
+      if (data.parentChildIdToLink && organizationId && savedChildId) {
+        // Check if link already exists
+        const { data: existingLink } = await supabase
+          .from("linked_parent_children")
+          .select("id")
+          .eq("parent_child_id", data.parentChildIdToLink)
+          .eq("organization_id", organizationId)
+          .maybeSingle();
+        
+        if (!existingLink) {
+          await supabase.from("linked_parent_children").insert({
+            parent_child_id: data.parentChildIdToLink,
+            organization_id: organizationId,
+            linked_by: profile?.id,
+          });
+        }
       }
     },
     onSuccess: () => {
@@ -361,6 +390,61 @@ export function ChildrenManagement() {
       is_active: true,
     });
     setEditingChild(null);
+    setChildCode("");
+    setSyncStatus("idle");
+    setLinkedParentChildId(null);
+  };
+
+  // Search for parent child by code
+  const handleSearchByCode = async () => {
+    if (!childCode.trim()) return;
+    
+    setSyncStatus("searching");
+    try {
+      const { data: parentChild, error } = await supabase
+        .from("parent_children")
+        .select("id, full_name, child_unique_id, birth_date, gender, education_level, notes, school_name")
+        .eq("child_unique_id", childCode.trim().toUpperCase())
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (parentChild) {
+        setSyncStatus("found");
+        setLinkedParentChildId(parentChild.id);
+        
+        // Auto-fill form with parent child data (but allow editing)
+        setFormData(prev => ({
+          ...prev,
+          full_name: parentChild.full_name || prev.full_name,
+          birth_date: parentChild.birth_date || prev.birth_date,
+          gender: parentChild.gender || prev.gender,
+          education_level: parentChild.education_level?.toLowerCase() || prev.education_level,
+          notes: prev.notes 
+            ? `${prev.notes}\n\nИз карточки родителя: ${parentChild.notes || ""}`
+            : parentChild.notes || prev.notes,
+        }));
+        
+        toast({
+          title: "Данные синхронизированы",
+          description: `Загружены данные ребёнка: ${parentChild.full_name}`,
+        });
+      } else {
+        setSyncStatus("not_found");
+        toast({
+          title: "Ребёнок не найден",
+          description: "Проверьте правильность кода",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      setSyncStatus("error");
+      toast({
+        title: "Ошибка поиска",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = (child: Child) => {
@@ -391,6 +475,7 @@ export function ChildrenManagement() {
     saveMutation.mutate({
       ...formData,
       id: editingChild?.id.startsWith("protocol-") ? undefined : editingChild?.id,
+      parentChildIdToLink: linkedParentChildId,
     });
   };
 
@@ -779,6 +864,63 @@ export function ChildrenManagement() {
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            {/* Sync with parent portal section */}
+            <div className="border rounded-lg p-4 bg-muted/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Link2 className="h-4 w-4 text-primary" />
+                <h4 className="font-medium text-sm">Синхронизация с кабинетом родителя</h4>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={childCode}
+                  onChange={(e) => {
+                    setChildCode(e.target.value.toUpperCase());
+                    if (syncStatus !== "idle") setSyncStatus("idle");
+                  }}
+                  placeholder="PC-2024-XXXXXX"
+                  className="font-mono flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSearchByCode}
+                  disabled={!childCode.trim() || syncStatus === "searching"}
+                >
+                  {syncStatus === "searching" ? (
+                    <span className="animate-pulse">Поиск...</span>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Найти
+                    </>
+                  )}
+                </Button>
+              </div>
+              {syncStatus === "found" && (
+                <div className="mt-2 flex items-center gap-2">
+                  <Badge className="bg-primary text-primary-foreground">
+                    Синхронизировано
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Данные загружены из карточки родителя
+                  </span>
+                </div>
+              )}
+              {syncStatus === "not_found" && (
+                <div className="mt-2">
+                  <Badge variant="destructive">Код не найден</Badge>
+                </div>
+              )}
+              {syncStatus === "error" && (
+                <div className="mt-2">
+                  <Badge variant="destructive">Ошибка поиска</Badge>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                Введите код ребёнка из личного кабинета родителя для автоматического заполнения данных
+              </p>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="full_name">ФИО ребёнка *</Label>
               <Input
