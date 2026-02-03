@@ -16,6 +16,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const ParentAuth = lazy(() => import("./pages/ParentAuth"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const ParentMaterials = lazy(() => import("./pages/ParentMaterials"));
+const ChildPlayground = lazy(() => import("./pages/ChildPlayground"));
 const ChildWorkspace = lazy(() => import("./pages/ChildWorkspace"));
 const ChildLogin = lazy(() => import("./pages/ChildLogin"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -63,6 +64,7 @@ const App = () => (
                       <Route path="/parent-auth" element={<ParentAuth />} />
                       <Route path="/parent" element={<ParentDashboard />} />
                       <Route path="/parent/materials" element={<ParentMaterials />} />
+                      <Route path="/child-playground" element={<ChildPlayground />} />
                       <Route path="/child-workspace" element={<ChildWorkspace />} />
                       <Route path="/child-login" element={<ChildLogin />} />
                       <Route path="/profile" element={<Profile />} />

@@ -35,7 +35,7 @@ const menuItems = [
 
 const developmentItems = [
   { id: "materials", label: "Материалы", icon: Library, route: "/parent/materials" },
-  { id: "workspace", label: "Игровая ребёнка", icon: Gamepad2, route: "/child-workspace" },
+  { id: "playground", label: "Игровая ребёнка", icon: Gamepad2, route: "/child-playground" },
 ];
 
 export function ParentSidebar({ activeTab, onTabChange, childrenCount = 0 }: ParentSidebarProps) {
