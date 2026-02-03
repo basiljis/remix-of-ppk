@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
+import { useNavigationHistory } from "@/hooks/useNavigationHistory";
 import { 
   ArrowLeft, Baby, Gamepad2, Clock, Star, Trophy, 
   Calendar as CalendarIcon, ChevronRight, Home, Play,
@@ -68,6 +69,7 @@ function formatDuration(seconds: number): string {
 
 export default function ChildPlayground() {
   const navigate = useNavigate();
+  const { goBack } = useNavigationHistory();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -183,9 +185,9 @@ export default function ChildPlayground() {
                 На главную
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/parent")}>
+            <Button variant="ghost" size="sm" onClick={() => goBack("/parent")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              В кабинет родителя
+              Назад
             </Button>
             <div className="flex-1" />
             <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
@@ -266,9 +268,9 @@ export default function ChildPlayground() {
             </Button>
           )}
           {children.length === 1 && (
-            <Button variant="ghost" size="sm" onClick={() => navigate("/parent")}>
+            <Button variant="ghost" size="sm" onClick={() => goBack("/parent")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              В кабинет
+              Назад
             </Button>
           )}
           <div className="flex items-center gap-2 flex-1">
