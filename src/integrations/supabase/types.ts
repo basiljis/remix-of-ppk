@@ -335,7 +335,9 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           id: string
+          interaction_time_seconds: number | null
           score: number | null
+          started_at: string | null
           status: string | null
           task_id: string | null
           updated_at: string | null
@@ -347,7 +349,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           id?: string
+          interaction_time_seconds?: number | null
           score?: number | null
+          started_at?: string | null
           status?: string | null
           task_id?: string | null
           updated_at?: string | null
@@ -359,7 +363,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           id?: string
+          interaction_time_seconds?: number | null
           score?: number | null
+          started_at?: string | null
           status?: string | null
           task_id?: string | null
           updated_at?: string | null

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,7 @@ interface TaskProgress {
   status: string;
   answer: any;
   score: number | null;
+  interaction_time_seconds: number | null;
 }
 
 const sphereConfig: Record<string, { name: string; icon: any; color: string; bgColor: string }> = {
@@ -62,6 +63,76 @@ export default function ChildWorkspace() {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [totalPoints, setTotalPoints] = useState(0);
+  
+  // Interaction time tracking
+  const taskStartTimeRef = useRef<number | null>(null);
+  const interactionTimeRef = useRef<number>(0);
+  const lastActivityRef = useRef<number>(Date.now());
+  const isActiveRef = useRef<boolean>(true);
+  const INACTIVITY_THRESHOLD = 30000; // 30 seconds of inactivity = not counting time
+
+  // Track user activity
+  const handleUserActivity = useCallback(() => {
+    const now = Date.now();
+    
+    // If was inactive, restart the active period
+    if (!isActiveRef.current) {
+      isActiveRef.current = true;
+      lastActivityRef.current = now;
+    } else {
+      // If was active, add time since last activity (up to threshold)
+      const timeSinceLastActivity = now - lastActivityRef.current;
+      if (timeSinceLastActivity < INACTIVITY_THRESHOLD) {
+        interactionTimeRef.current += timeSinceLastActivity;
+      }
+      lastActivityRef.current = now;
+    }
+  }, []);
+
+  // Set up activity listeners when task is active
+  useEffect(() => {
+    if (!selectedBlock || !currentTask) return;
+    
+    // Reset timing for new task
+    taskStartTimeRef.current = Date.now();
+    interactionTimeRef.current = 0;
+    lastActivityRef.current = Date.now();
+    isActiveRef.current = true;
+
+    const events = ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'];
+    
+    events.forEach(event => {
+      window.addEventListener(event, handleUserActivity, { passive: true });
+    });
+
+    // Check for inactivity periodically
+    const inactivityCheck = setInterval(() => {
+      const now = Date.now();
+      if (now - lastActivityRef.current > INACTIVITY_THRESHOLD) {
+        isActiveRef.current = false;
+      }
+    }, 5000);
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, handleUserActivity);
+      });
+      clearInterval(inactivityCheck);
+    };
+  }, [selectedBlock?.id, currentTaskIndex, handleUserActivity]);
+
+  // Calculate final interaction time
+  const getInteractionTime = useCallback((): number => {
+    // Add any remaining active time
+    if (isActiveRef.current && lastActivityRef.current) {
+      const now = Date.now();
+      const timeSinceLastActivity = now - lastActivityRef.current;
+      if (timeSinceLastActivity < INACTIVITY_THRESHOLD) {
+        return Math.round((interactionTimeRef.current + timeSinceLastActivity) / 1000);
+      }
+    }
+    return Math.round(interactionTimeRef.current / 1000);
+  }, []);
 
   // Fetch task blocks
   const { data: blocks = [] } = useQuery({
@@ -109,9 +180,14 @@ export default function ChildWorkspace() {
     enabled: !!childId,
   });
 
-  // Save progress mutation
+  // Save progress mutation with interaction time
   const saveProgressMutation = useMutation({
-    mutationFn: async ({ taskId, answer, score }: { taskId: string; answer: any; score: number }) => {
+    mutationFn: async ({ taskId, answer, score, interactionTimeSeconds }: { 
+      taskId: string; 
+      answer: any; 
+      score: number;
+      interactionTimeSeconds: number;
+    }) => {
       if (!childId || !selectedBlock) return;
       const { error } = await supabase
         .from("child_task_progress")
@@ -122,6 +198,8 @@ export default function ChildWorkspace() {
           status: "completed",
           answer: answer as any,
           score,
+          interaction_time_seconds: interactionTimeSeconds,
+          started_at: taskStartTimeRef.current ? new Date(taskStartTimeRef.current).toISOString() : null,
           completed_at: new Date().toISOString(),
         }, { onConflict: "child_id,task_id" });
       if (error) throw error;
@@ -130,6 +208,7 @@ export default function ChildWorkspace() {
       queryClient.invalidateQueries({ queryKey: ["child-progress", childId] });
     },
   });
+
   const currentTask = tasks[currentTaskIndex];
   const _blockProgress = progress.filter(p => p.block_id === selectedBlock?.id);
 
@@ -145,10 +224,14 @@ export default function ChildWorkspace() {
       score = currentTask.points; // Full points for exercises
     }
 
+    // Get actual interaction time
+    const interactionTimeSeconds = getInteractionTime();
+
     await saveProgressMutation.mutateAsync({
       taskId: currentTask.id,
       answer: { selected: selectedAnswer },
       score,
+      interactionTimeSeconds,
     });
 
     setTotalPoints(prev => prev + score);
