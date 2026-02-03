@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ParentSidebar } from "@/components/ParentSidebar";
-import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, Phone, GraduationCap, Users, Shield, Pencil, BarChart3, Search, X, BookOpen, Gamepad2 } from "lucide-react";
+import { Loader2, Plus, Baby, LogOut, User, Copy, Check, Info, Phone, GraduationCap, Users, Shield, Pencil, BarChart3, Search, X, BookOpen, Gamepad2, Link2 } from "lucide-react";
 import { differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,8 @@ import { ChildDevelopmentResults } from "@/components/ChildDevelopmentResults";
 import { ChildAnalyticsDialog } from "@/components/ChildAnalyticsDialog";
 import { ChildCredentialsCard } from "@/components/ChildCredentialsCard";
 import { ChildPPKResultsCard } from "@/components/ChildPPKResultsCard";
+import { ChildCodeCard } from "@/components/ChildCodeCard";
+import { LinkChildByCodeDialog } from "@/components/LinkChildByCodeDialog";
 
 interface ParentProfile {
   id: string;
@@ -52,6 +54,7 @@ interface ParentChild {
   education_level: string | null;
   notes: string | null;
   created_at: string;
+  verification_code: string | null;
 }
 
 const educationLevels = [
@@ -103,6 +106,9 @@ export default function ParentDashboard() {
   const [selectedChildForRecommendations, setSelectedChildForRecommendations] = useState<string>("");
   const [analyticsDialogOpen, setAnalyticsDialogOpen] = useState(false);
   const [selectedChildForAnalytics, setSelectedChildForAnalytics] = useState<ParentChild | null>(null);
+  
+  // Link child by code dialog
+  const [linkChildDialogOpen, setLinkChildDialogOpen] = useState(false);
   
   // Search and filter state for children
   const [childSearchQuery, setChildSearchQuery] = useState("");
@@ -391,7 +397,7 @@ export default function ParentDashboard() {
                 <h2 className="text-2xl font-bold">Мои дети</h2>
                 <p className="text-muted-foreground">Управляйте профилями своих детей</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button 
                   onClick={() => setBookDialogOpen(true)} 
                   variant="outline"
@@ -400,6 +406,15 @@ export default function ParentDashboard() {
                   <Phone className="h-4 w-4" />
                   <span className="hidden sm:inline">Записаться на консультацию</span>
                   <span className="sm:hidden">Записаться</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setLinkChildDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <Link2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Привязать ребёнка по коду</span>
+                  <span className="sm:hidden">По коду</span>
                 </Button>
                 <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
                   <DialogTrigger asChild>
@@ -772,33 +787,47 @@ export default function ParentDashboard() {
                             />
                           </div>
                           
-                          <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-xs text-muted-foreground mb-1">
-                                  Уникальный идентификатор ребёнка
-                                </p>
-                                <p className="font-mono font-semibold text-pink-600">
-                                  {child.child_unique_id}
-                                </p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyChildId(child.child_unique_id)}
-                                className="gap-2"
-                              >
-                                {copiedId === child.child_unique_id ? (
-                                  <Check className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
-                              </Button>
+                          {/* Child Code Card with verification */}
+                          {child.verification_code && (
+                            <div className="mt-4">
+                              <ChildCodeCard
+                                childUniqueId={child.child_unique_id}
+                                verificationCode={child.verification_code}
+                                type="parent"
+                                childId={child.id}
+                              />
                             </div>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Может понадобиться при обращении к специалисту
-                            </p>
-                          </div>
+                          )}
+                          
+                          {!child.verification_code && (
+                            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    Уникальный идентификатор ребёнка
+                                  </p>
+                                  <p className="font-mono font-semibold text-pink-600">
+                                    {child.child_unique_id}
+                                  </p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyChildId(child.child_unique_id)}
+                                  className="gap-2"
+                                >
+                                  {copiedId === child.child_unique_id ? (
+                                    <Check className="h-4 w-4 text-green-600" />
+                                  ) : (
+                                    <Copy className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Может понадобиться при обращении к специалисту
+                              </p>
+                            </div>
+                          )}
 
                           {(child.class_or_group || child.school_name) && (
                             <div className="mt-3 text-sm text-muted-foreground">
@@ -1016,6 +1045,13 @@ export default function ParentDashboard() {
             birthDate={selectedChildForAnalytics.birth_date}
           />
         )}
+
+        {/* Link Child By Code Dialog */}
+        <LinkChildByCodeDialog
+          open={linkChildDialogOpen}
+          onOpenChange={setLinkChildDialogOpen}
+          mode="parent"
+        />
       </div>
     </SidebarProvider>
   );
