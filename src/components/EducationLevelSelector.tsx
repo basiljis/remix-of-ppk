@@ -50,7 +50,7 @@ export const EducationLevelSelector = ({ selectedLevel, onLevelChange }: Educati
           <Button
             key={level.value}
             variant={selectedLevel === level.value ? "default" : "outline"}
-            className={`h-auto min-h-[100px] p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center space-y-1 sm:space-y-1.5 transition-all duration-200 overflow-hidden ${
+            className={`h-auto min-h-[100px] p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-200 whitespace-normal ${
               selectedLevel === level.value
                 ? "bg-primary text-primary-foreground shadow-lg scale-105"
                 : "hover:bg-secondary/50"
@@ -58,10 +58,10 @@ export const EducationLevelSelector = ({ selectedLevel, onLevelChange }: Educati
             onClick={() => onLevelChange(level.value)}
           >
             <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-            <span className="font-semibold text-[10px] sm:text-xs md:text-sm text-center leading-tight break-words hyphens-auto w-full px-0.5">
+            <span className="font-semibold text-[10px] sm:text-xs md:text-sm text-center leading-tight w-full">
               {level.label}
             </span>
-            <Badge variant="secondary" className="text-[9px] sm:text-[10px] md:text-xs px-1 sm:px-1.5 md:px-2 py-0.5 flex-shrink-0">
+            <Badge variant="secondary" className="text-[9px] sm:text-[10px] md:text-xs px-1 sm:px-1.5 md:px-2 py-0.5 flex-shrink-0 whitespace-nowrap">
               {level.description}
             </Badge>
           </Button>
