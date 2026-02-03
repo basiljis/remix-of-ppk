@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   ArrowLeft, Search, BookOpen, Dumbbell, Video, FileText, Clock, 
-  Brain, MessageCircle, Heart, Hand, Mic, Star, Library, Sparkles
+  Brain, MessageCircle, Heart, Hand, Mic, Star, Library, Sparkles, X
 } from "lucide-react";
 import { sphereImages } from "@/assets/game-items";
 import { useDevelopmentTestResults } from "@/hooks/useDevelopmentTest";
@@ -49,7 +50,7 @@ export default function ParentMaterials() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSphere, setSelectedSphere] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [expandedMaterial, setExpandedMaterial] = useState<string | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<DevelopmentMaterial | null>(null);
   const [viewMode, setViewMode] = useState<"recommended" | "library">("recommended");
 
   // Get current user
@@ -260,10 +261,7 @@ export default function ParentMaterials() {
                         <MaterialCard 
                           key={material.id} 
                           material={material} 
-                          expanded={expandedMaterial === material.id}
-                          onToggle={() => setExpandedMaterial(
-                            expandedMaterial === material.id ? null : material.id
-                          )}
+                          onOpen={() => setSelectedMaterial(material)}
                         />
                       ))}
                     </div>
@@ -298,10 +296,7 @@ export default function ParentMaterials() {
                     <MaterialCard 
                       key={material.id} 
                       material={material}
-                      expanded={expandedMaterial === material.id}
-                      onToggle={() => setExpandedMaterial(
-                        expandedMaterial === material.id ? null : material.id
-                      )}
+                      onOpen={() => setSelectedMaterial(material)}
                     />
                   ))}
                 </div>
@@ -314,19 +309,126 @@ export default function ParentMaterials() {
             ))}
           </Tabs>
         )}
+
+        {/* Material Detail Modal */}
+        <MaterialDetailDialog 
+          material={selectedMaterial} 
+          onClose={() => setSelectedMaterial(null)} 
+        />
       </div>
     </div>
   );
 }
 
-function MaterialCard({ 
+function MaterialDetailDialog({ 
   material, 
-  expanded, 
-  onToggle 
+  onClose 
+}: { 
+  material: DevelopmentMaterial | null; 
+  onClose: () => void;
+}) {
+  if (!material) return null;
+  
+  const typeConfig = materialTypeConfig[material.material_type] || materialTypeConfig.article;
+  const TypeIcon = typeConfig.icon;
+  const sphereInfo = sphereConfig[material.sphere_slug];
+
+  return (
+    <Dialog open={!!material} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline">
+              <TypeIcon className="h-3 w-3 mr-1" />
+              {typeConfig.name}
+            </Badge>
+            {material.duration_minutes && (
+              <Badge variant="secondary">
+                <Clock className="h-3 w-3 mr-1" />
+                {material.duration_minutes} мин
+              </Badge>
+            )}
+            {sphereInfo && (
+              <Badge className={sphereInfo.color}>
+                {sphereInfo.name}
+              </Badge>
+            )}
+          </div>
+          <DialogTitle className="text-xl">{material.title}</DialogTitle>
+          {material.description && (
+            <DialogDescription className="text-base">
+              {material.description}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+        
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-4">
+            {material.specialist_type && (
+              <p className="text-sm text-muted-foreground">
+                Рекомендуемый специалист: <span className="font-medium text-primary">{material.specialist_type}</span>
+              </p>
+            )}
+
+            {material.content && (
+              <div 
+                className="prose prose-sm dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: material.content }}
+              />
+            )}
+
+            {!material.content && (
+              <p className="text-muted-foreground italic">
+                Подробное содержимое материала находится в разработке.
+              </p>
+            )}
+
+            {(material.video_url || material.pdf_url) && (
+              <div className="pt-4 border-t space-y-2">
+                <p className="text-sm font-medium">Дополнительные материалы:</p>
+                {material.video_url && (
+                  <a 
+                    href={material.video_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted transition-colors"
+                  >
+                    <Video className="h-5 w-5 text-primary" />
+                    <span>Смотреть видео</span>
+                  </a>
+                )}
+                {material.pdf_url && (
+                  <a 
+                    href={material.pdf_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted transition-colors"
+                  >
+                    <FileText className="h-5 w-5 text-primary" />
+                    <span>Скачать PDF</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        <div className="flex-shrink-0 pt-4 border-t">
+          <Button variant="outline" onClick={onClose} className="w-full">
+            Закрыть
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function MaterialCard({ 
+  material,
+  onOpen
 }: { 
   material: DevelopmentMaterial; 
-  expanded: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
 }) {
   const typeConfig = materialTypeConfig[material.material_type] || materialTypeConfig.article;
   const TypeIcon = typeConfig.icon;
@@ -359,51 +461,14 @@ function MaterialCard({
             Специалист: <span className="text-primary">{material.specialist_type}</span>
           </p>
         )}
-        
-        {expanded && material.content && (
-          <ScrollArea className="h-[300px] mb-4 p-3 border rounded-lg bg-muted/30">
-            <div 
-              className="prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: material.content }}
-            />
-          </ScrollArea>
-        )}
-
-        {material.video_url && (
-          <div className="mb-3">
-            <a 
-              href={material.video_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
-            >
-              <Video className="h-4 w-4" />
-              Смотреть видео
-            </a>
-          </div>
-        )}
-
-        {material.pdf_url && (
-          <div className="mb-3">
-            <a 
-              href={material.pdf_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
-            >
-              <FileText className="h-4 w-4" />
-              Скачать PDF
-            </a>
-          </div>
-        )}
 
         <Button 
           variant="outline" 
           size="sm" 
           className="w-full"
-          onClick={onToggle}
+          onClick={onOpen}
         >
-          {expanded ? "Свернуть" : "Читать подробнее"}
+          Читать подробнее
         </Button>
       </CardContent>
     </Card>
