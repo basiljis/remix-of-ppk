@@ -31,6 +31,7 @@ import { ParentProfileSection } from "@/components/ParentProfileSection";
 import { ChildDevelopmentResults } from "@/components/ChildDevelopmentResults";
 import { ChildAnalyticsDialog } from "@/components/ChildAnalyticsDialog";
 import { ChildCredentialsCard } from "@/components/ChildCredentialsCard";
+import { ChildPPKResultsCard } from "@/components/ChildPPKResultsCard";
 
 interface ParentProfile {
   id: string;
@@ -760,6 +761,14 @@ export default function ParentDashboard() {
                               childId={child.id}
                               compact={true}
                               onViewDetails={() => openChildAnalytics(child)}
+                            />
+                          </div>
+
+                          {/* PPK Results from specialists */}
+                          <div className="mt-3">
+                            <ChildPPKResultsCard 
+                              childId={child.id}
+                              childName={child.full_name}
                             />
                           </div>
                           
