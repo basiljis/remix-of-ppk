@@ -13,6 +13,7 @@ import {
   ArrowLeft, Play, CheckCircle, Clock, Star, Trophy, 
   Brain, MessageCircle, Heart, Hand, Mic, ChevronRight 
 } from "lucide-react";
+import { gameItemImages } from "@/assets/game-items";
 
 interface TaskBlock {
   id: string;
@@ -250,22 +251,34 @@ export default function ChildWorkspace() {
               {/* Question type */}
               {currentTask.task_type === "question" && content?.options && (
                 <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} className="space-y-3">
-                  {(content.options as string[]).map((option, index) => (
-                    <div 
-                      key={index}
-                      className={`flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer
-                        ${selectedAnswer === String(index) 
-                          ? "border-primary bg-primary/5" 
-                          : "border-muted hover:border-primary/50"
-                        }`}
-                      onClick={() => setSelectedAnswer(String(index))}
-                    >
-                      <RadioGroupItem value={String(index)} id={`option-${index}`} />
-                      <Label htmlFor={`option-${index}`} className="text-base cursor-pointer flex-1">
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
+                  {(content.options as string[]).map((option, index) => {
+                    const optionLower = option.toLowerCase().trim();
+                    const imageUrl = gameItemImages[optionLower];
+                    
+                    return (
+                      <div 
+                        key={index}
+                        className={`flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer
+                          ${selectedAnswer === String(index) 
+                            ? "border-primary bg-primary/5" 
+                            : "border-muted hover:border-primary/50"
+                          }`}
+                        onClick={() => setSelectedAnswer(String(index))}
+                      >
+                        <RadioGroupItem value={String(index)} id={`option-${index}`} />
+                        {imageUrl && (
+                          <img 
+                            src={imageUrl} 
+                            alt={option} 
+                            className="w-12 h-12 object-contain rounded-lg"
+                          />
+                        )}
+                        <Label htmlFor={`option-${index}`} className="text-base cursor-pointer flex-1">
+                          {option}
+                        </Label>
+                      </div>
+                    );
+                  })}
                 </RadioGroup>
               )}
 
