@@ -15,7 +15,8 @@ import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AuthFooter } from "@/components/AuthFooter";
 import { ParentSystemInfoDialog } from "@/components/ParentSystemInfoDialog";
-import { Heart, Users, Baby, Shield, Gamepad2 } from "lucide-react";
+import { Heart, Users, Baby, Shield, Gamepad2, Home } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const parentSignupSchema = z.object({
   fullName: z.string()
@@ -366,6 +367,17 @@ const ParentAuth = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100 dark:from-pink-950/20 dark:to-purple-950/30 p-4">
+        {/* Home button */}
+        <Link 
+          to="/" 
+          className="absolute top-4 left-4 z-10"
+        >
+          <Button variant="outline" size="sm" className="gap-2">
+            <Home className="h-4 w-4" />
+            На главную
+          </Button>
+        </Link>
+        
         <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
           {/* Left side - Form */}
           <div className="p-8 md:p-12 flex flex-col justify-center">

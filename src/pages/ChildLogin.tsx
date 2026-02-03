@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Baby, LogIn, ArrowLeft, Sparkles } from "lucide-react";
+import { Baby, LogIn, ArrowLeft, Sparkles, Home } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function ChildLogin() {
   const navigate = useNavigate();
@@ -127,6 +128,17 @@ export default function ChildLogin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 via-purple-100 to-pink-100 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950 flex flex-col items-center justify-center p-4">
+      {/* Home button */}
+      <Link 
+        to="/" 
+        className="absolute top-4 left-4 z-10"
+      >
+        <Button variant="outline" size="sm" className="gap-2">
+          <Home className="h-4 w-4" />
+          На главную
+        </Button>
+      </Link>
+      
       {/* Decorative elements */}
       <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-300 rounded-full opacity-50 blur-2xl" />
       <div className="absolute bottom-20 right-10 w-32 h-32 bg-blue-300 rounded-full opacity-50 blur-3xl" />
