@@ -45,16 +45,9 @@ import {
   Eye,
   User,
   ClipboardList,
-  MoreHorizontal,
   Database,
   Link2,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -64,6 +57,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ProtocolResultsModal } from "@/components/ProtocolResultsModal";
 import { LinkParentChildDialog } from "@/components/LinkParentChildDialog";
+import { LinkedChildrenSection } from "@/components/LinkedChildrenSection";
 
 interface Child {
   id: string;
@@ -440,7 +434,7 @@ export function ChildrenManagement() {
   const getStatusBadge = (status: string | null) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-100 text-green-800">Завершён</Badge>;
+        return <Badge className="bg-success/20 text-success">Завершён</Badge>;
       case "draft":
         return <Badge variant="secondary">Черновик</Badge>;
       default:
@@ -449,6 +443,7 @@ export function ChildrenManagement() {
   };
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -540,7 +535,7 @@ export function ChildrenManagement() {
                           {isFromProtocol && (
                             <Badge
                               variant="outline"
-                              className="text-xs bg-amber-50 text-amber-700 border-amber-200"
+                              className="text-xs bg-warning/10 text-warning border-warning/30"
                             >
                               из ППК
                             </Badge>
@@ -748,6 +743,7 @@ export function ChildrenManagement() {
           </Table>
         </div>
       </CardContent>
+    </Card>
 
       {/* Add/Edit Child Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -1041,6 +1037,20 @@ export function ChildrenManagement() {
         open={showLinkDialog}
         onOpenChange={setShowLinkDialog}
       />
-    </Card>
+
+      {/* Linked Children Section */}
+      <LinkedChildrenSection 
+        onViewChild={(childId, childName) => {
+          if (!organizationId) return;
+          const params = new URLSearchParams({
+            name: childName,
+            org: organizationId,
+            parentChildId: childId,
+            returnUrl: "/app",
+          });
+          navigate(`/child-profile?${params.toString()}`);
+        }}
+      />
+    </>
   );
 }
