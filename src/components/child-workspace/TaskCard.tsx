@@ -1,12 +1,13 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { 
-  CheckCircle, ChevronRight, Trophy, Play, RotateCcw, AlertCircle, Lightbulb, PartyPopper
+  CheckCircle, ChevronRight, Trophy, Play, RotateCcw, AlertCircle, Lightbulb, PartyPopper, Shuffle
 } from "lucide-react";
-import { gameItemImages, sphereImages, taskImages } from "@/assets/game-items";
+import { gameItemImages, sphereImages, taskImages, cat, dog, ball, apple } from "@/assets/game-items";
 import { BlockTask, SphereConfig } from "./types";
 import { SuccessFeedback } from "./useChildTasks";
 import { TimedExercise, hasTimingInstructions } from "./TimedExercise";
@@ -48,7 +49,7 @@ const getTaskImage = (task: BlockTask): string | null => {
   return null;
 };
 
-// Helper to get game type image
+// Helper to get game type image (used for game type detection)
 const getGameTypeImage = (content: any): string | null => {
   if (!content?.type) return null;
   
@@ -59,6 +60,7 @@ const getGameTypeImage = (content: any): string | null => {
     default: return null;
   }
 };
+void getGameTypeImage; // Prevent unused warning - kept for future use
 
 interface TaskCardProps {
   task: BlockTask;
@@ -290,97 +292,341 @@ interface GameTaskProps {
   onAnswerChange: (answer: string) => void;
 }
 
-function GameTask({ content, onAnswerChange }: Omit<GameTaskProps, "task" | "selectedAnswer">) {
-  const gameImage = getGameTypeImage(content);
-  
-  // Different game types
-  if (content?.type === "puzzle") {
-    return (
-      <div className="text-center py-6">
-        {gameImage && (
-          <div className="flex justify-center mb-4">
-            <img src={gameImage} alt="Пазл" className="w-32 h-32 object-contain rounded-xl bg-muted/30 p-2" />
-          </div>
-        )}
-        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto mb-6">
-          {[1, 2, 3, 4].map((piece) => (
+const puzzlePieces = [
+  { id: 1, image: cat, label: "Кошка" },
+  { id: 2, image: dog, label: "Собака" },
+  { id: 3, image: ball, label: "Мяч" },
+  { id: 4, image: apple, label: "Яблоко" },
+];
+
+type PuzzlePiece = { id: number; image: string; label: string; placed: boolean };
+
+function PuzzleGame({ onComplete }: { onComplete: () => void }) {
+  const [pieces, setPieces] = useState<PuzzlePiece[]>([]);
+  const [slots, setSlots] = useState<(typeof puzzlePieces[0] | null)[]>([null, null, null, null]);
+  const [selectedPiece, setSelectedPiece] = useState<PuzzlePiece | null>(null);
+  const [isComplete, setIsComplete] = useState(false);
+
+  // Shuffle pieces on mount
+  useEffect(() => {
+    const shuffled = [...puzzlePieces].sort(() => Math.random() - 0.5).map(p => ({ ...p, placed: false }));
+    setPieces(shuffled);
+  }, []);
+
+  const handlePieceClick = (piece: PuzzlePiece) => {
+    if (piece.placed) return;
+    setSelectedPiece(piece);
+  };
+
+  const handleSlotClick = (slotIndex: number) => {
+    if (!selectedPiece) return;
+    if (slots[slotIndex]) return; // Slot already filled
+
+    const newSlots = [...slots];
+    newSlots[slotIndex] = selectedPiece;
+    setSlots(newSlots);
+
+    setPieces(prev => prev.map(p => p.id === selectedPiece.id ? { ...p, placed: true } : p));
+    setSelectedPiece(null);
+
+    // Check if all slots are filled
+    if (newSlots.filter(Boolean).length === 4) {
+      setIsComplete(true);
+    }
+  };
+
+  const handleReset = () => {
+    const shuffled = [...puzzlePieces].sort(() => Math.random() - 0.5).map(p => ({ ...p, placed: false }));
+    setPieces(shuffled);
+    setSlots([null, null, null, null]);
+    setSelectedPiece(null);
+    setIsComplete(false);
+  };
+
+  const gameImage = taskImages.puzzle_game;
+
+  return (
+    <div className="text-center py-4">
+      {gameImage && (
+        <div className="flex justify-center mb-4">
+          <img src={gameImage} alt="Пазл" className="w-28 h-28 object-contain rounded-xl bg-muted/30 p-2" />
+        </div>
+      )}
+      
+      {/* Available pieces */}
+      <div className="bg-muted/30 rounded-xl p-4 mb-6">
+        <p className="text-sm text-muted-foreground mb-3">Выбери картинку и нажми на место:</p>
+        <div className="flex justify-center gap-3 flex-wrap">
+          {pieces.map((piece) => (
             <div 
-              key={piece}
-              className="aspect-square bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center text-2xl font-bold text-primary cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => onAnswerChange(`piece-${piece}`)}
+              key={piece.id}
+              onClick={() => handlePieceClick(piece)}
+              className={`w-20 h-20 rounded-xl flex items-center justify-center transition-all cursor-pointer
+                ${piece.placed 
+                  ? "bg-muted opacity-30 cursor-not-allowed" 
+                  : selectedPiece?.id === piece.id 
+                    ? "ring-4 ring-primary bg-white shadow-lg scale-110" 
+                    : "bg-white hover:shadow-md hover:scale-105"
+                }`}
             >
-              {piece}
+              <img src={piece.image} alt={piece.label} className="w-16 h-16 object-contain" />
             </div>
           ))}
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => onAnswerChange("played")}
-          className="mt-4"
-        >
-          <Play className="mr-2 h-4 w-4" />
-          Я собрал пазл!
-        </Button>
       </div>
-    );
+      
+      {/* Slots */}
+      <p className="text-sm text-muted-foreground mb-3">Собери картинку:</p>
+      <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto mb-6">
+        {slots.map((slot, index) => (
+          <div 
+            key={index}
+            onClick={() => handleSlotClick(index)}
+            className={`aspect-square rounded-xl flex items-center justify-center transition-all
+              ${slot 
+                ? "bg-white shadow-md" 
+                : selectedPiece 
+                  ? "border-3 border-dashed border-primary bg-primary/10 cursor-pointer hover:bg-primary/20" 
+                  : "border-2 border-dashed border-muted-foreground/30 bg-muted/20"
+              }`}
+          >
+            {slot ? (
+              <img src={slot.image} alt={slot.label} className="w-16 h-16 object-contain" />
+            ) : (
+              <span className="text-3xl font-bold text-muted-foreground/30">{index + 1}</span>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex justify-center gap-3">
+        <Button variant="outline" size="sm" onClick={handleReset}>
+          <Shuffle className="mr-2 h-4 w-4" />
+          Заново
+        </Button>
+        {isComplete && (
+          <Button onClick={onComplete} className="animate-pulse">
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Готово!
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Memory game component
+function MemoryGame({ onComplete }: { onComplete: () => void }) {
+  const cardImages = [cat, dog, ball, apple];
+  const [cards, setCards] = useState<Array<{ id: number; image: string; flipped: boolean; matched: boolean }>>([]);
+  const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    const gameCards = [...cardImages, ...cardImages].map((image, index) => ({
+      id: index,
+      image,
+      flipped: false,
+      matched: false,
+    })).sort(() => Math.random() - 0.5);
+    setCards(gameCards);
+  }, []);
+
+  const handleCardClick = (cardId: number) => {
+    if (flippedCards.length >= 2) return;
+    if (cards[cardId].flipped || cards[cardId].matched) return;
+
+    const newCards = [...cards];
+    newCards[cardId].flipped = true;
+    setCards(newCards);
+
+    const newFlipped = [...flippedCards, cardId];
+    setFlippedCards(newFlipped);
+
+    if (newFlipped.length === 2) {
+      const [first, second] = newFlipped;
+      if (cards[first].image === cards[second].image) {
+        // Match!
+        setTimeout(() => {
+          const matchedCards = [...newCards];
+          matchedCards[first].matched = true;
+          matchedCards[second].matched = true;
+          setCards(matchedCards);
+          setFlippedCards([]);
+          
+          if (matchedCards.every(c => c.matched)) {
+            setIsComplete(true);
+          }
+        }, 500);
+      } else {
+        // No match
+        setTimeout(() => {
+          const resetCards = [...newCards];
+          resetCards[first].flipped = false;
+          resetCards[second].flipped = false;
+          setCards(resetCards);
+          setFlippedCards([]);
+        }, 1000);
+      }
+    }
+  };
+
+  const gameImage = taskImages.memory_game;
+
+  return (
+    <div className="text-center py-4">
+      {gameImage && (
+        <div className="flex justify-center mb-4">
+          <img src={gameImage} alt="Память" className="w-28 h-28 object-contain rounded-xl bg-muted/30 p-2" />
+        </div>
+      )}
+      
+      <p className="text-sm text-muted-foreground mb-3">Найди одинаковые картинки:</p>
+      <div className="grid grid-cols-4 gap-2 max-w-sm mx-auto mb-6">
+        {cards.map((card) => (
+          <div 
+            key={card.id}
+            onClick={() => handleCardClick(card.id)}
+            className={`aspect-square rounded-lg flex items-center justify-center cursor-pointer transition-all
+              ${card.matched 
+                ? "bg-emerald-100 border-2 border-emerald-400" 
+                : card.flipped 
+                  ? "bg-white shadow-md" 
+                  : "bg-gradient-to-br from-primary/30 to-accent/30 hover:scale-105"
+              }`}
+          >
+            {card.flipped || card.matched ? (
+              <img src={card.image} alt="" className="w-12 h-12 object-contain" />
+            ) : (
+              <span className="text-2xl">🎴</span>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {isComplete && (
+        <Button onClick={onComplete} className="animate-pulse">
+          <CheckCircle className="mr-2 h-4 w-4" />
+          Ура, нашёл все!
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// Sorting game component
+function SortingGame({ onComplete }: { onComplete: () => void }) {
+  const items = [
+    { id: 1, image: apple, label: "Яблоко", category: "fruits" },
+    { id: 2, image: ball, label: "Мяч", category: "toys" },
+    { id: 3, image: cat, label: "Кошка", category: "animals" },
+    { id: 4, image: dog, label: "Собака", category: "animals" },
+  ];
+  
+  const [availableItems, setAvailableItems] = useState(items.sort(() => Math.random() - 0.5));
+  const [baskets, setBaskets] = useState<{ animals: typeof items; others: typeof items }>({ animals: [], others: [] });
+  const [selectedItem, setSelectedItem] = useState<typeof items[0] | null>(null);
+  const [isComplete, setIsComplete] = useState(false);
+
+  const handleItemClick = (item: typeof items[0]) => {
+    setSelectedItem(item);
+  };
+
+  const handleBasketClick = (basket: "animals" | "others") => {
+    if (!selectedItem) return;
+
+    setBaskets(prev => ({
+      ...prev,
+      [basket]: [...prev[basket], selectedItem]
+    }));
+    setAvailableItems(prev => prev.filter(i => i.id !== selectedItem.id));
+    setSelectedItem(null);
+
+    if (availableItems.length === 1) {
+      setIsComplete(true);
+    }
+  };
+
+  const gameImage = taskImages.sorting_game;
+
+  return (
+    <div className="text-center py-4">
+      {gameImage && (
+        <div className="flex justify-center mb-4">
+          <img src={gameImage} alt="Сортировка" className="w-28 h-28 object-contain rounded-xl bg-muted/30 p-2" />
+        </div>
+      )}
+      
+      {/* Available items */}
+      {availableItems.length > 0 && (
+        <div className="bg-muted/30 rounded-xl p-4 mb-4">
+          <p className="text-sm text-muted-foreground mb-3">Выбери картинку:</p>
+          <div className="flex justify-center gap-3 flex-wrap">
+            {availableItems.map((item) => (
+              <div 
+                key={item.id}
+                onClick={() => handleItemClick(item)}
+                className={`w-16 h-16 rounded-xl flex items-center justify-center transition-all cursor-pointer bg-white
+                  ${selectedItem?.id === item.id ? "ring-4 ring-primary shadow-lg scale-110" : "hover:shadow-md hover:scale-105"}`}
+              >
+                <img src={item.image} alt={item.label} className="w-12 h-12 object-contain" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Baskets */}
+      <p className="text-sm text-muted-foreground mb-3">Разложи по корзинкам:</p>
+      <div className="flex justify-center gap-4 mb-6">
+        <div 
+          onClick={() => handleBasketClick("animals")}
+          className={`w-32 p-3 border-2 border-dashed rounded-xl transition-all
+            ${selectedItem ? "border-primary cursor-pointer hover:bg-primary/10" : "border-muted-foreground/30"}`}
+        >
+          <p className="text-sm font-medium mb-2">🐾 Животные</p>
+          <div className="flex flex-wrap gap-1 justify-center min-h-[40px]">
+            {baskets.animals.map(item => (
+              <img key={item.id} src={item.image} alt={item.label} className="w-8 h-8 object-contain" />
+            ))}
+          </div>
+        </div>
+        <div 
+          onClick={() => handleBasketClick("others")}
+          className={`w-32 p-3 border-2 border-dashed rounded-xl transition-all
+            ${selectedItem ? "border-primary cursor-pointer hover:bg-primary/10" : "border-muted-foreground/30"}`}
+        >
+          <p className="text-sm font-medium mb-2">📦 Остальное</p>
+          <div className="flex flex-wrap gap-1 justify-center min-h-[40px]">
+            {baskets.others.map(item => (
+              <img key={item.id} src={item.image} alt={item.label} className="w-8 h-8 object-contain" />
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {isComplete && (
+        <Button onClick={onComplete} className="animate-pulse">
+          <CheckCircle className="mr-2 h-4 w-4" />
+          Всё разложил!
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function GameTask({ content, onAnswerChange }: Omit<GameTaskProps, "task" | "selectedAnswer">) {
+  // Different game types with interactive components
+  if (content?.type === "puzzle") {
+    return <PuzzleGame onComplete={() => onAnswerChange("played")} />;
   }
 
   if (content?.type === "memory") {
-    return (
-      <div className="text-center py-6">
-        {gameImage && (
-          <div className="flex justify-center mb-4">
-            <img src={gameImage} alt="Память" className="w-32 h-32 object-contain rounded-xl bg-muted/30 p-2" />
-          </div>
-        )}
-        <div className="grid grid-cols-4 gap-2 max-w-sm mx-auto mb-6">
-          {[...Array(8)].map((_, i) => (
-            <div 
-              key={i}
-              className="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
-            >
-              <span className="text-xl">🎴</span>
-            </div>
-          ))}
-        </div>
-        <Button 
-          variant="outline" 
-          onClick={() => onAnswerChange("played")}
-          className="mt-4"
-        >
-          <CheckCircle className="mr-2 h-4 w-4" />
-          Я нашёл все пары!
-        </Button>
-      </div>
-    );
+    return <MemoryGame onComplete={() => onAnswerChange("played")} />;
   }
 
   if (content?.type === "sorting") {
-    return (
-      <div className="text-center py-6">
-        {gameImage && (
-          <div className="flex justify-center mb-4">
-            <img src={gameImage} alt="Сортировка" className="w-32 h-32 object-contain rounded-xl bg-muted/30 p-2" />
-          </div>
-        )}
-        <p className="text-muted-foreground mb-4">Перетащи предметы в нужные корзины</p>
-        <div className="flex justify-center gap-4 mb-6">
-          <div className="w-24 h-24 border-2 border-dashed border-primary/50 rounded-xl flex items-center justify-center">
-            🍎
-          </div>
-          <div className="w-24 h-24 border-2 border-dashed border-primary/50 rounded-xl flex items-center justify-center">
-            🚗
-          </div>
-        </div>
-        <Button 
-          variant="outline" 
-          onClick={() => onAnswerChange("played")}
-        >
-          <CheckCircle className="mr-2 h-4 w-4" />
-          Готово!
-        </Button>
-      </div>
-    );
+    return <SortingGame onComplete={() => onAnswerChange("played")} />;
   }
 
   // Default game placeholder
