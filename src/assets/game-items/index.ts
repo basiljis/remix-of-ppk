@@ -7,7 +7,24 @@ import orange from "./orange.png";
 import ball from "./ball.png";
 import cat from "./cat.png";
 import dog from "./dog.png";
+import fingers from "./fingers.png";
+import puzzle from "./puzzle.png";
+import scissors from "./scissors.png";
+import breathing from "./breathing.png";
+import emotions from "./emotions.png";
+import articulation from "./articulation.png";
+import social from "./social.png";
+import shop from "./shop.png";
+import logic from "./logic.png";
+import memory from "./memory.png";
+import family from "./family.png";
+import speech from "./speech.png";
+import cognitive from "./cognitive.png";
+import motor from "./motor.png";
+import heart from "./heart.png";
+import book from "./book.png";
 
+// Map text options to images for quiz questions
 export const gameItemImages: Record<string, string> = {
   // Fruits
   "яблоко": apple,
@@ -21,12 +38,52 @@ export const gameItemImages: Record<string, string> = {
   // Toys
   "мяч": ball,
   "мячик": ball,
+  "пазл": puzzle,
   
   // Animals
   "кошка": cat,
   "кот": cat,
   "собака": dog,
   "пёс": dog,
+  
+  // Body parts
+  "пальчики": fingers,
+  "пальцы": fingers,
+  "рука": fingers,
+  
+  // Activities
+  "ножницы": scissors,
+  "дыхание": breathing,
+  "эмоции": emotions,
+  "артикуляция": articulation,
+  "общение": social,
+  "магазин": shop,
+  "логика": logic,
+  "память": memory,
+  "семья": family,
+  "речь": speech,
 };
 
-export { apple, pear, car, banana, orange, ball, cat, dog };
+// Sphere images for blocks and materials
+export const sphereImages: Record<string, string> = {
+  "cognitive": cognitive,
+  "motor": motor,
+  "speech": speech,
+  "social": social,
+  "emotional": heart,
+};
+
+// Material type images
+export const materialImages: Record<string, string> = {
+  "article": book,
+  "exercise": motor,
+  "video": speech,
+};
+
+// Export all images individually
+export { 
+  apple, pear, car, banana, orange, ball, cat, dog,
+  fingers, puzzle, scissors, breathing, emotions, articulation,
+  social, shop, logic, memory, family, speech, cognitive, motor,
+  heart, book
+};
