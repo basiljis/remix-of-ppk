@@ -60,6 +60,8 @@ import { ProtocolResultsModal } from "@/components/ProtocolResultsModal";
 import { LinkParentChildDialog } from "@/components/LinkParentChildDialog";
 import { LinkedChildrenSection } from "@/components/LinkedChildrenSection";
 import { MergeChildrenDialog } from "@/components/MergeChildrenDialog";
+import { ChildCodeCard } from "@/components/ChildCodeCard";
+import { LinkChildByCodeDialog } from "@/components/LinkChildByCodeDialog";
 
 interface Child {
   id: string;
@@ -74,6 +76,8 @@ interface Child {
   is_active: boolean;
   organization_id: string | null;
   created_at: string;
+  child_unique_id?: string;
+  verification_code?: string;
 }
 
 interface ProtocolChild {
@@ -129,6 +133,8 @@ export function ChildrenManagement() {
   const [showMergeDialog, setShowMergeDialog] = useState(false);
   const [mergeSourceChild, setMergeSourceChild] = useState<Child | null>(null);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
+  const [showLinkByCodeDialog, setShowLinkByCodeDialog] = useState(false);
+  const [selectedChildForCodes, setSelectedChildForCodes] = useState<Child | null>(null);
   
   // Child code sync states
   const [childCode, setChildCode] = useState("");
@@ -544,6 +550,14 @@ export function ChildrenManagement() {
             <Badge variant="secondary" className="text-sm">
               Всего: {children.length}
             </Badge>
+            <Button
+              variant="outline"
+              onClick={() => setShowLinkByCodeDialog(true)}
+              className="gap-2"
+            >
+              <Link2 className="h-4 w-4" />
+              Привязать по коду
+            </Button>
             <Button
               variant="outline"
               onClick={() => setShowLinkDialog(true)}
@@ -1229,6 +1243,31 @@ export function ChildrenManagement() {
           allChildren={children}
           organizationId={organizationId}
         />
+      )}
+
+      {/* Link Child By Code Dialog */}
+      <LinkChildByCodeDialog
+        open={showLinkByCodeDialog}
+        onOpenChange={setShowLinkByCodeDialog}
+        mode="specialist"
+        organizationId={organizationId}
+      />
+
+      {/* Child Code Card Dialog */}
+      {selectedChildForCodes && (
+        <Dialog open={!!selectedChildForCodes} onOpenChange={(open) => !open && setSelectedChildForCodes(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Коды ребёнка: {selectedChildForCodes.full_name}</DialogTitle>
+            </DialogHeader>
+            <ChildCodeCard
+              childUniqueId={selectedChildForCodes.child_unique_id || "Не назначен"}
+              verificationCode={selectedChildForCodes.verification_code || "Не назначен"}
+              type="specialist"
+              childId={selectedChildForCodes.id}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );

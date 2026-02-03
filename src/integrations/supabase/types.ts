@@ -397,50 +397,66 @@ export type Database = {
       children: {
         Row: {
           birth_date: string | null
+          child_unique_id: string | null
           created_at: string
           education_level: string | null
           full_name: string
           gender: string | null
           id: string
           is_active: boolean
+          linked_parent_child_id: string | null
           notes: string | null
           organization_id: string | null
           parent_email: string | null
           parent_name: string | null
           parent_phone: string | null
           updated_at: string
+          verification_code: string | null
         }
         Insert: {
           birth_date?: string | null
+          child_unique_id?: string | null
           created_at?: string
           education_level?: string | null
           full_name: string
           gender?: string | null
           id?: string
           is_active?: boolean
+          linked_parent_child_id?: string | null
           notes?: string | null
           organization_id?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           updated_at?: string
+          verification_code?: string | null
         }
         Update: {
           birth_date?: string | null
+          child_unique_id?: string | null
           created_at?: string
           education_level?: string | null
           full_name?: string
           gender?: string | null
           id?: string
           is_active?: boolean
+          linked_parent_child_id?: string | null
           notes?: string | null
           organization_id?: string | null
           parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           updated_at?: string
+          verification_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "children_linked_parent_child_id_fkey"
+            columns: ["linked_parent_child_id"]
+            isOneToOne: false
+            referencedRelation: "parent_children"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "children_organization_id_fkey"
             columns: ["organization_id"]
@@ -1646,6 +1662,7 @@ export type Database = {
           parent_user_id: string
           school_name: string | null
           updated_at: string
+          verification_code: string | null
         }
         Insert: {
           birth_date?: string | null
@@ -1660,6 +1677,7 @@ export type Database = {
           parent_user_id: string
           school_name?: string | null
           updated_at?: string
+          verification_code?: string | null
         }
         Update: {
           birth_date?: string | null
@@ -1674,6 +1692,7 @@ export type Database = {
           parent_user_id?: string
           school_name?: string | null
           updated_at?: string
+          verification_code?: string | null
         }
         Relationships: []
       }
@@ -2875,6 +2894,7 @@ export type Database = {
         }[]
       }
       generate_protocol_number: { Args: never; Returns: string }
+      generate_verification_code: { Args: never; Returns: string }
       get_organization_subscription_end_date: {
         Args: { _user_id: string }
         Returns: string
