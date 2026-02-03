@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { differenceInDays, format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 export interface ParentNotification {
   id: string;
-  type: "upcoming_session" | "consultation_booked" | "session_cancelled";
+  type: "upcoming_session" | "consultation_booked" | "session_cancelled" | "test_reminder" | "test_due_today" | "test_overdue";
   title: string;
   description: string;
   date: string;
@@ -101,6 +103,88 @@ export function useParentNotifications() {
     refetchInterval: 60000,
   });
 
+  // Fetch development test reminders (next_test_date)
+  const { data: testReminders = [] } = useQuery({
+    queryKey: ["parent-test-reminders"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      // Get parent's children
+      const { data: children } = await supabase
+        .from("parent_children")
+        .select("id, full_name")
+        .eq("parent_user_id", user.id);
+
+      if (!children || children.length === 0) return [];
+
+      const childIds = children.map(c => c.id);
+      const childMap = new Map(children.map(c => [c.id, c.full_name]));
+
+      // Get latest development test results with next_test_date
+      const { data: testResults, error } = await supabase
+        .from("development_test_results" as any)
+        .select("id, child_id, next_test_date, completed_at")
+        .eq("parent_user_id", user.id)
+        .eq("is_completed", true)
+        .in("child_id", childIds)
+        .not("next_test_date", "is", null)
+        .order("completed_at", { ascending: false }) as { data: any[] | null; error: any };
+
+      if (error) {
+        console.error("Error fetching test reminders:", error);
+        return [];
+      }
+
+      // Get only the latest result per child
+      const latestByChild = new Map<string, any>();
+      (testResults || []).forEach(result => {
+        if (!latestByChild.has(result.child_id)) {
+          latestByChild.set(result.child_id, result);
+        }
+      });
+
+      const reminders: Array<{
+        id: string;
+        childName: string;
+        nextTestDate: string;
+        daysUntil: number;
+        isOverdue: boolean;
+        isDueToday: boolean;
+        isDueSoon: boolean;
+      }> = [];
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      latestByChild.forEach((result, childId) => {
+        const nextDate = new Date(result.next_test_date);
+        nextDate.setHours(0, 0, 0, 0);
+        
+        const daysUntil = differenceInDays(nextDate, today);
+        const isOverdue = daysUntil < 0;
+        const isDueToday = daysUntil === 0;
+        const isDueSoon = daysUntil > 0 && daysUntil <= 3;
+
+        // Only add reminder if due within 3 days, today, or overdue
+        if (isOverdue || isDueToday || isDueSoon) {
+          reminders.push({
+            id: result.id,
+            childName: childMap.get(childId) || "Ребёнок",
+            nextTestDate: result.next_test_date,
+            daysUntil,
+            isOverdue,
+            isDueToday,
+            isDueSoon,
+          });
+        }
+      });
+
+      return reminders;
+    },
+    refetchInterval: 60000,
+  });
+
   // Build notifications from data
   const notifications: ParentNotification[] = [
     ...consultationSlots.map((slot: any) => {
@@ -133,10 +217,42 @@ export function useParentNotifications() {
         link: "calendar",
       };
     }),
+    // Test reminders
+    ...testReminders.map((reminder: any) => {
+      let title = "";
+      let type: ParentNotification["type"] = "test_reminder";
+      
+      if (reminder.isOverdue) {
+        title = "Тест просрочен!";
+        type = "test_overdue";
+      } else if (reminder.isDueToday) {
+        title = "Тест сегодня!";
+        type = "test_due_today";
+      } else {
+        title = `Тест через ${reminder.daysUntil} дн.`;
+        type = "test_reminder";
+      }
+
+      const formattedDate = format(new Date(reminder.nextTestDate), "d MMMM", { locale: ru });
+      
+      return {
+        id: `test-${reminder.id}`,
+        type,
+        title,
+        description: `${reminder.childName} — повторный тест развития ${reminder.isDueToday ? "сегодня" : reminder.isOverdue ? "просрочен" : formattedDate}`,
+        date: reminder.nextTestDate,
+        link: "tests",
+      };
+    }),
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  // Count urgent notifications (today or tomorrow)
+  // Count urgent notifications (today or tomorrow, or test reminders)
   const urgentCount = notifications.filter(n => {
+    // Test reminders are always urgent if they appear
+    if (n.type === "test_overdue" || n.type === "test_due_today" || n.type === "test_reminder") {
+      return true;
+    }
+    
     const notifDate = new Date(n.date);
     const today = new Date();
     const tomorrow = new Date(today);
