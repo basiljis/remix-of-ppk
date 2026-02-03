@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ArrowLeft, Search, BookOpen, Dumbbell, Video, FileText, Clock, 
-  Brain, MessageCircle, Heart, Hand, Mic 
+  Brain, MessageCircle, Heart, Hand, Mic, Star, Library, Sparkles
 } from "lucide-react";
 import { sphereImages } from "@/assets/game-items";
+import { useDevelopmentTestResults } from "@/hooks/useDevelopmentTest";
 
 interface DevelopmentMaterial {
   id: string;
@@ -49,7 +50,21 @@ export default function ParentMaterials() {
   const [selectedSphere, setSelectedSphere] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [expandedMaterial, setExpandedMaterial] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"recommended" | "library">("recommended");
 
+  // Get current user
+  const { data: user } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  // Get test results for recommendations
+  const { data: testResults = [] } = useDevelopmentTestResults(user?.id || "");
+
+  // Get all materials
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["development-materials"],
     queryFn: async () => {
@@ -63,7 +78,27 @@ export default function ParentMaterials() {
     },
   });
 
-  const filteredMaterials = materials.filter((m) => {
+  // Extract recommended spheres from test results
+  const recommendedSpheres = testResults.flatMap((result) => {
+    const scores = result.sphere_scores as Record<string, number>;
+    // Get spheres with scores below 70% (need improvement)
+    return Object.entries(scores)
+      .filter(([_, score]) => score < 70)
+      .map(([slug]) => slug);
+  });
+
+  // Get unique recommended spheres
+  const uniqueRecommendedSpheres = [...new Set(recommendedSpheres)];
+
+  // Filter materials based on recommendations
+  const recommendedMaterials = materials.filter((m) => 
+    uniqueRecommendedSpheres.includes(m.sphere_slug)
+  );
+
+  // Filter based on view mode
+  const baseMaterials = viewMode === "recommended" ? recommendedMaterials : materials;
+
+  const filteredMaterials = baseMaterials.filter((m) => {
     const matchesSearch = !searchQuery || 
       m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -94,6 +129,58 @@ export default function ParentMaterials() {
       </header>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* View Mode Toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant={viewMode === "recommended" ? "default" : "outline"}
+            onClick={() => setViewMode("recommended")}
+            className="flex items-center gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            Рекомендованные
+            {uniqueRecommendedSpheres.length > 0 && (
+              <Badge variant="secondary" className="ml-1">
+                {recommendedMaterials.length}
+              </Badge>
+            )}
+          </Button>
+          <Button
+            variant={viewMode === "library" ? "default" : "outline"}
+            onClick={() => setViewMode("library")}
+            className="flex items-center gap-2"
+          >
+            <Library className="h-4 w-4" />
+            Все материалы
+            <Badge variant="secondary" className="ml-1">
+              {materials.length}
+            </Badge>
+          </Button>
+        </div>
+
+        {/* Recommendation info */}
+        {viewMode === "recommended" && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-4">
+              <div className="flex items-start gap-3">
+                <Star className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Персональные рекомендации</p>
+                  {uniqueRecommendedSpheres.length > 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      На основе результатов тестирования подобраны материалы для развития: {" "}
+                      {uniqueRecommendedSpheres.map(s => sphereConfig[s]?.name || s).join(", ")}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Пройдите тест развития ребёнка, чтобы получить персональные рекомендации по материалам
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Filters */}
         <Card>
           <CardContent className="pt-4">
