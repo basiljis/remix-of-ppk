@@ -28,6 +28,7 @@ const Landing = lazy(() => import("./pages/Landing"));
 const ForOrganizations = lazy(() => import("./pages/ForOrganizations"));
 const ForSpecialists = lazy(() => import("./pages/ForSpecialists"));
 const ForParents = lazy(() => import("./pages/ForParents"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
 const RootGate = lazy(() => import("./pages/RootGate").then(m => ({ default: m.default })));
 const OfflineIndicator = lazy(() => import("@/components/OfflineIndicator"));
@@ -59,6 +60,7 @@ const App = () => (
                       <Route path="/for-organizations" element={<ForOrganizations />} />
                       <Route path="/for-specialists" element={<ForSpecialists />} />
                       <Route path="/for-parents" element={<ForParents />} />
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/app" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/parent-auth" element={<ParentAuth />} />

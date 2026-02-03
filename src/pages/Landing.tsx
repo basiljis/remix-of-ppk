@@ -384,6 +384,11 @@ export default function Landing() {
                 <li>ИП Загладин В.С.</li>
                 <li>ИНН: 770702169499</li>
                 <li>ОГРНИП: 323774600132891</li>
+                <li className="pt-2">
+                  <Link to="/privacy-policy" className="hover:text-foreground underline underline-offset-4">
+                    Политика конфиденциальности
+                  </Link>
+                </li>
               </ul>
             </div>
             
