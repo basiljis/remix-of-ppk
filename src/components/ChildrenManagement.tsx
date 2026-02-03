@@ -47,6 +47,7 @@ import {
   ClipboardList,
   Database,
   Link2,
+  Merge,
 } from "lucide-react";
 import {
   Tooltip,
@@ -58,6 +59,7 @@ import { ru } from "date-fns/locale";
 import { ProtocolResultsModal } from "@/components/ProtocolResultsModal";
 import { LinkParentChildDialog } from "@/components/LinkParentChildDialog";
 import { LinkedChildrenSection } from "@/components/LinkedChildrenSection";
+import { MergeChildrenDialog } from "@/components/MergeChildrenDialog";
 
 interface Child {
   id: string;
@@ -124,6 +126,8 @@ export function ChildrenManagement() {
   const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(null);
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showMergeDialog, setShowMergeDialog] = useState(false);
+  const [mergeSourceChild, setMergeSourceChild] = useState<Child | null>(null);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -733,6 +737,25 @@ export function ChildrenManagement() {
                               </TooltipContent>
                             </Tooltip>
                           )}
+                          {/* Merge duplicates button */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => {
+                                  setMergeSourceChild(child);
+                                  setShowMergeDialog(true);
+                                }}
+                              >
+                                <Merge className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Объединить с дублем</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1051,6 +1074,20 @@ export function ChildrenManagement() {
           navigate(`/child-profile?${params.toString()}`);
         }}
       />
+
+      {/* Merge Children Dialog */}
+      {mergeSourceChild && organizationId && (
+        <MergeChildrenDialog
+          open={showMergeDialog}
+          onOpenChange={(open) => {
+            setShowMergeDialog(open);
+            if (!open) setMergeSourceChild(null);
+          }}
+          sourceChild={mergeSourceChild}
+          allChildren={children}
+          organizationId={organizationId}
+        />
+      )}
     </>
   );
 }
