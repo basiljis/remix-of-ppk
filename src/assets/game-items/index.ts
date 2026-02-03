@@ -88,12 +88,6 @@ export const gameItemImages: Record<string, string> = {
   "расческа": comb,
   "карандаш": pencil,
   "карандашом": pencil,
-  
-  // Numbers (for counting tasks)
-  "2": undefined as any,
-  "3": threeFruits,
-  "4": undefined as any,
-  "5": undefined as any,
 };
 
 // Sphere images for blocks and materials
