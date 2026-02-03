@@ -24,6 +24,16 @@ import motor from "./motor.png";
 import heart from "./heart.png";
 import book from "./book.png";
 
+// New task-specific images
+import threeFruits from "./three-fruits.png";
+import happyFace from "./happy-face.png";
+import sadFace from "./sad-face.png";
+import colorSequence from "./color-sequence.png";
+import butterflyHands from "./butterfly-hands.png";
+import calmBreathing from "./calm-breathing.png";
+import tongueExercise from "./tongue-exercise.png";
+import greeting from "./greeting.png";
+
 // Map text options to images for quiz questions
 export const gameItemImages: Record<string, string> = {
   // Fruits
@@ -80,10 +90,47 @@ export const materialImages: Record<string, string> = {
   "video": speech,
 };
 
+// Task-specific images for instructions/illustrations
+export const taskImages: Record<string, string> = {
+  // Counting tasks
+  "count_fruits": threeFruits,
+  "three_fruits": threeFruits,
+  
+  // Emotions
+  "happy": happyFace,
+  "sad": sadFace,
+  "радость": happyFace,
+  "грусть": sadFace,
+  
+  // Memory games
+  "color_memory": colorSequence,
+  "memory_colors": colorSequence,
+  
+  // Motor exercises
+  "butterfly": butterflyHands,
+  "бабочка": butterflyHands,
+  
+  // Breathing
+  "breathing_calm": calmBreathing,
+  "дыши": calmBreathing,
+  
+  // Speech
+  "tongue": tongueExercise,
+  "язычок": tongueExercise,
+  
+  // Social
+  "hello": greeting,
+  "greeting": greeting,
+  "привет": greeting,
+};
+
 // Export all images individually
 export { 
   apple, pear, car, banana, orange, ball, cat, dog,
   fingers, puzzle, scissors, breathing, emotions, articulation,
   social, shop, logic, memory, family, speech, cognitive, motor,
-  heart, book
+  heart, book,
+  // New images
+  threeFruits, happyFace, sadFace, colorSequence, 
+  butterflyHands, calmBreathing, tongueExercise, greeting
 };
