@@ -34,6 +34,10 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
   const [successFeedback, setSuccessFeedback] = useState<SuccessFeedback | null>(null);
   const [showSimilarHint, setShowSimilarHint] = useState(false);
   
+  // Store shuffled task order to prevent re-shuffling on progress updates
+  const shuffledTaskOrderRef = useRef<string[]>([]);
+  const lastBlockIdRef = useRef<string | null>(null);
+  
   // Interaction time tracking
   const taskStartTimeRef = useRef<number | null>(null);
   const interactionTimeRef = useRef<number>(0);
@@ -148,9 +152,15 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
     },
   });
 
-  // Sort tasks: new first (shuffled), then scheduled retries, then completed
+  // Sort tasks: shuffle only once when block changes, keep order stable during session
   const sortedTasks = useMemo(() => {
     if (tasks.length === 0) return [];
+    
+    // If block changed, reset the shuffle order
+    if (selectedBlock?.id !== lastBlockIdRef.current) {
+      lastBlockIdRef.current = selectedBlock?.id || null;
+      shuffledTaskOrderRef.current = [];
+    }
     
     const completedTaskIds = new Set(
       progress
@@ -158,53 +168,41 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
         .map(p => p.task_id)
     );
     
-    // Check for tasks needing retry
-    const now = Date.now();
-    const retryTaskIds = new Set(
-      wrongAnswerQueue
-        .filter(w => w.scheduledRetry && w.scheduledRetry <= now)
-        .map(w => w.taskId)
-    );
-    
-    const newTasks = tasks.filter(t => !completedTaskIds.has(t.id) && !retryTaskIds.has(t.id));
-    const retryTasks = tasks.filter(t => retryTaskIds.has(t.id));
-    const completedTasks = tasks.filter(t => completedTaskIds.has(t.id) && !retryTaskIds.has(t.id));
-    
-    // Shuffle new tasks
-    const shuffledNew = [...newTasks];
-    for (let i = shuffledNew.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledNew[i], shuffledNew[j]] = [shuffledNew[j], shuffledNew[i]];
-    }
-    
-    // Shuffle completed tasks too
-    const shuffledCompleted = [...completedTasks];
-    for (let i = shuffledCompleted.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledCompleted[i], shuffledCompleted[j]] = [shuffledCompleted[j], shuffledCompleted[i]];
-    }
-    
-    // Insert retry tasks after first few new tasks for spaced repetition
-    const result: BlockTask[] = [];
-    let retryIndex = 0;
-    
-    shuffledNew.forEach((task, i) => {
-      result.push(task);
-      // Insert a retry task every 2-3 new tasks
-      if (retryIndex < retryTasks.length && (i + 1) % 2 === 0) {
-        result.push(retryTasks[retryIndex]);
-        retryIndex++;
+    // If we don't have a shuffled order yet, create one
+    if (shuffledTaskOrderRef.current.length === 0) {
+      const newTasks = tasks.filter(t => !completedTaskIds.has(t.id));
+      const completedTasks = tasks.filter(t => completedTaskIds.has(t.id));
+      
+      // Shuffle new tasks using Fisher-Yates with seeded approach
+      const shuffledNew = [...newTasks];
+      for (let i = shuffledNew.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledNew[i], shuffledNew[j]] = [shuffledNew[j], shuffledNew[i]];
       }
-    });
-    
-    // Add remaining retry tasks
-    while (retryIndex < retryTasks.length) {
-      result.push(retryTasks[retryIndex]);
-      retryIndex++;
+      
+      // Shuffle completed tasks too
+      const shuffledCompleted = [...completedTasks];
+      for (let i = shuffledCompleted.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledCompleted[i], shuffledCompleted[j]] = [shuffledCompleted[j], shuffledCompleted[i]];
+      }
+      
+      // Store the order
+      shuffledTaskOrderRef.current = [...shuffledNew, ...shuffledCompleted].map(t => t.id);
     }
     
-    return [...result, ...shuffledCompleted];
-  }, [tasks, progress, selectedBlock?.id, wrongAnswerQueue]);
+    // Use stored order to maintain stability
+    const taskMap = new Map(tasks.map(t => [t.id, t]));
+    const orderedTasks = shuffledTaskOrderRef.current
+      .map(id => taskMap.get(id))
+      .filter((t): t is BlockTask => t !== undefined);
+    
+    // Add any new tasks that weren't in the original order (shouldn't happen normally)
+    const orderedIds = new Set(shuffledTaskOrderRef.current);
+    const missingTasks = tasks.filter(t => !orderedIds.has(t.id));
+    
+    return [...orderedTasks, ...missingTasks];
+  }, [tasks, progress, selectedBlock?.id]);
 
   const currentTask = sortedTasks[currentTaskIndex];
   
@@ -385,6 +383,10 @@ export function useChildTasks({ childId, selectedBlock }: UseChildTasksOptions) 
     setSelectedAnswer("");
     setShowWrongFeedback(false);
     setWrongAttempts(0);
+    setSuccessFeedback(null);
+    setShowSimilarHint(false);
+    shuffledTaskOrderRef.current = [];
+    lastBlockIdRef.current = null;
   }, []);
 
   return {
