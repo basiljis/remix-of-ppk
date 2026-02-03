@@ -813,7 +813,7 @@ export default function ParentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate("/child-workspace")}
+                              onClick={() => navigate(`/child-workspace?childId=${child.id}`)}
                               className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950"
                             >
                               <Gamepad2 className="h-4 w-4" />
