@@ -44,12 +44,12 @@ interface TaskProgress {
   interaction_time_seconds: number | null;
 }
 
-const sphereConfig: Record<string, { name: string; icon: any; color: string; bgColor: string }> = {
-  motor: { name: "Моторика", icon: Hand, color: "text-blue-600", bgColor: "bg-blue-100" },
-  speech: { name: "Речь", icon: Mic, color: "text-green-600", bgColor: "bg-green-100" },
-  cognitive: { name: "Познание", icon: Brain, color: "text-purple-600", bgColor: "bg-purple-100" },
-  social: { name: "Общение", icon: MessageCircle, color: "text-orange-600", bgColor: "bg-orange-100" },
-  emotional: { name: "Эмоции", icon: Heart, color: "text-pink-600", bgColor: "bg-pink-100" },
+const sphereConfig: Record<string, { name: string; icon: any; color: string; bgColor: string; textColor: string }> = {
+  motor: { name: "Моторика", icon: Hand, color: "text-blue-600", bgColor: "bg-blue-100", textColor: "text-blue-900" },
+  speech: { name: "Речь", icon: Mic, color: "text-green-600", bgColor: "bg-green-100", textColor: "text-green-900" },
+  cognitive: { name: "Познание", icon: Brain, color: "text-purple-600", bgColor: "bg-purple-100", textColor: "text-purple-900" },
+  social: { name: "Общение", icon: MessageCircle, color: "text-orange-600", bgColor: "bg-orange-100", textColor: "text-orange-900" },
+  emotional: { name: "Эмоции", icon: Heart, color: "text-pink-600", bgColor: "bg-pink-100", textColor: "text-pink-900" },
 };
 
 export default function ChildWorkspace() {
@@ -329,8 +329,8 @@ export default function ChildWorkspace() {
                   </div>
                 )}
                 <div>
-                  <CardTitle className="text-lg">{currentTask.title}</CardTitle>
-                  <CardDescription className="text-foreground/70">
+                  <CardTitle className={`text-lg ${config.textColor}`}>{currentTask.title}</CardTitle>
+                  <CardDescription className={`${config.textColor} opacity-80`}>
                     {selectedBlock.title}
                   </CardDescription>
                 </div>
@@ -489,8 +489,8 @@ export default function ChildWorkspace() {
                       </div>
                     )}
                     <div>
-                      <CardTitle className="text-base">{block.title}</CardTitle>
-                      <p className="text-sm text-foreground/70">{config.name}</p>
+                      <CardTitle className={`text-base ${config.textColor}`}>{block.title}</CardTitle>
+                      <p className={`text-sm ${config.textColor} opacity-80`}>{config.name}</p>
                     </div>
                   </div>
                 </CardHeader>
