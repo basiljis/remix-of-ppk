@@ -23,8 +23,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, Link2, CheckCircle2, XCircle } from "lucide-react";
 import { differenceInYears, differenceInMonths } from "date-fns";
 
 const educationLevels = [
@@ -81,6 +82,17 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
   const { profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // State for child code lookup
+  const [childCode, setChildCode] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [linkedParentChild, setLinkedParentChild] = useState<{
+    id: string;
+    full_name: string;
+    child_unique_id: string;
+  } | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
     full_name: "",
     birth_date: "",
@@ -141,6 +153,98 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
       notes: "",
       is_active: true,
     });
+    setChildCode("");
+    setLinkedParentChild(null);
+    setSearchError(null);
+  };
+
+  // Search for child by unique code
+  const handleSearchByCode = async () => {
+    if (!childCode.trim()) {
+      setSearchError("Введите код ребёнка");
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      // Search in parent_children table by child_unique_id
+      const { data: parentChild, error } = await supabase
+        .from("parent_children")
+        .select(`
+          id,
+          full_name,
+          child_unique_id,
+          birth_date,
+          gender,
+          education_level,
+          class_or_group,
+          school_name,
+          notes
+        `)
+        .eq("child_unique_id", childCode.trim().toUpperCase())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!parentChild) {
+        setSearchError("Ребёнок с таким кодом не найден");
+        setLinkedParentChild(null);
+        return;
+      }
+
+      // Check if already linked to this organization
+      const { data: existingLink } = await supabase
+        .from("linked_parent_children")
+        .select("id")
+        .eq("parent_child_id", parentChild.id)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+
+      if (existingLink) {
+        setSearchError("Этот ребёнок уже привязан к вашей организации");
+        setLinkedParentChild(null);
+        return;
+      }
+
+      // Set linked parent child info
+      setLinkedParentChild({
+        id: parentChild.id,
+        full_name: parentChild.full_name,
+        child_unique_id: parentChild.child_unique_id,
+      });
+
+      // Pre-fill form data from parent's child record
+      setFormData(prev => ({
+        ...prev,
+        full_name: parentChild.full_name || prev.full_name,
+        birth_date: parentChild.birth_date || prev.birth_date,
+        gender: parentChild.gender || prev.gender,
+        education_level: parentChild.education_level || prev.education_level,
+        class_number: parentChild.class_or_group || prev.class_number,
+        notes: parentChild.notes 
+          ? `${parentChild.notes}${prev.notes ? '\n' + prev.notes : ''}`
+          : prev.notes,
+      }));
+
+      toast({
+        title: "Ребёнок найден",
+        description: `Данные ${parentChild.full_name} загружены из родительского кабинета`,
+      });
+    } catch (error: any) {
+      console.error("Error searching for child:", error);
+      setSearchError("Ошибка при поиске: " + error.message);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Clear linked child
+  const handleClearLinkedChild = () => {
+    setLinkedParentChild(null);
+    setChildCode("");
+    setSearchError(null);
   };
 
   const saveMutation = useMutation({
@@ -167,7 +271,8 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
         notesArray.push(data.notes);
       }
 
-      const { error } = await supabase.from("children").insert({
+      // Insert into children table
+      const { data: newChild, error } = await supabase.from("children").insert({
         full_name: data.full_name,
         birth_date: data.birth_date || null,
         gender: data.gender || null,
@@ -178,19 +283,40 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
         notes: notesArray.length > 0 ? notesArray.join("\n") : null,
         is_active: data.is_active,
         organization_id: organizationId,
-      });
+      }).select("id").single();
+      
       if (error) throw error;
+
+      // If linked to parent child, create the link
+      if (linkedParentChild && organizationId) {
+        const { error: linkError } = await supabase.from("linked_parent_children").insert({
+          parent_child_id: linkedParentChild.id,
+          organization_id: organizationId,
+          linked_by: profile?.id,
+          notes: `Привязан при создании карточки ребёнка`,
+        });
+        
+        if (linkError) {
+          console.error("Error creating link:", linkError);
+          // Don't throw - child was created successfully
+        }
+      }
+
+      return newChild;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["children"] });
       queryClient.invalidateQueries({ queryKey: ["children-from-protocols"] });
       queryClient.invalidateQueries({ queryKey: ["child-card-children"] });
       queryClient.invalidateQueries({ queryKey: ["child-card-protocol-children"] });
+      queryClient.invalidateQueries({ queryKey: ["linked-parent-children"] });
       onOpenChange(false);
       resetForm();
       toast({
         title: "Успешно",
-        description: "Ребёнок добавлен в базу данных",
+        description: linkedParentChild 
+          ? "Ребёнок добавлен и связан с родительским кабинетом"
+          : "Ребёнок добавлен в базу данных",
       });
       onSuccess?.();
     },
@@ -233,6 +359,72 @@ export function AddChildDialog({ open, onOpenChange, onSuccess }: AddChildDialog
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
+          {/* Синхронизация с родительским кабинетом */}
+          <div className="space-y-3 p-4 bg-secondary/30 rounded-lg border border-primary/20">
+            <div className="flex items-center gap-2">
+              <Link2 className="h-4 w-4 text-primary" />
+              <h4 className="font-medium text-sm">Синхронизация с родительским кабинетом</h4>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              Введите индивидуальный код ребёнка из личного кабинета родителя для автоматического заполнения данных
+            </p>
+
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  value={childCode}
+                  onChange={(e) => {
+                    setChildCode(e.target.value.toUpperCase());
+                    setSearchError(null);
+                  }}
+                  placeholder="PC-2024-000001"
+                  className="font-mono"
+                  disabled={!!linkedParentChild}
+                />
+              </div>
+              {linkedParentChild ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleClearLinkedChild}
+                  title="Отменить привязку"
+                >
+                  <XCircle className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSearchByCode}
+                  disabled={isSearching || !childCode.trim()}
+                >
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {searchError && (
+              <p className="text-xs text-destructive">{searchError}</p>
+            )}
+
+            {linkedParentChild && (
+              <div className="flex items-center gap-2 p-2 bg-success/10 rounded border border-success/30">
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{linkedParentChild.full_name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{linkedParentChild.child_unique_id}</p>
+                </div>
+                <Badge variant="secondary" className="text-xs">Синхронизирован</Badge>
+              </div>
+            )}
+          </div>
+
           {/* Основные данные */}
           <div className="space-y-4">
             <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
