@@ -9,7 +9,7 @@ import {
 import { gameItemImages, sphereImages, taskImages } from "@/assets/game-items";
 import { BlockTask, SphereConfig } from "./types";
 import { SuccessFeedback } from "./useChildTasks";
-
+import { TimedExercise, hasTimingInstructions } from "./TimedExercise";
 // Helper to find task image based on task title or content
 const getTaskImage = (task: BlockTask): string | null => {
   const title = task.title.toLowerCase();
@@ -184,31 +184,38 @@ export function TaskCard({
           </RadioGroup>
         )}
 
-        {/* Exercise type */}
+        {/* Exercise type - with optional timer for timed exercises */}
         {task.task_type === "exercise" && content?.steps && (
-          <div className="space-y-3">
-            {(content.steps as string[]).map((step, index) => (
-              <div 
-                key={index}
-                className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
-              >
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                  {index + 1}
+          hasTimingInstructions(content.steps as string[]) ? (
+            <TimedExercise 
+              steps={content.steps as string[]} 
+              onComplete={() => onAnswerChange("done")}
+            />
+          ) : (
+            <div className="space-y-3">
+              {(content.steps as string[]).map((step, index) => (
+                <div 
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
+                >
+                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                    {index + 1}
+                  </div>
+                  <span>{step}</span>
                 </div>
-                <span>{step}</span>
+              ))}
+              <div className="pt-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => onAnswerChange("done")}
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Я выполнил задание!
+                </Button>
               </div>
-            ))}
-            <div className="pt-4">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => onAnswerChange("done")}
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Я выполнил задание!
-              </Button>
             </div>
-          </div>
+          )
         )}
 
         {/* Game type with interactive elements */}
