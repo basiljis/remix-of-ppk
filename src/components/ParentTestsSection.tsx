@@ -16,11 +16,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useDevelopmentTest } from "@/hooks/useDevelopmentTest";
 import { 
   Loader2, ClipboardList, CheckCircle2, AlertCircle, 
-  Star, Info, ChevronRight, Lightbulb, Lock, Eye, BookOpen, Baby, TrendingUp, AlertTriangle, Calendar
+  Info, ChevronRight, Lightbulb, Lock, Eye, BookOpen, Baby, TrendingUp, AlertTriangle, Calendar, Bell, RefreshCw
 } from "lucide-react";
 import { TestRecommendationsDialog } from "./TestRecommendationsDialog";
 import { DevelopmentTestWizard } from "./DevelopmentTestWizard";
-import { format, differenceInMonths, differenceInYears } from "date-fns";
+import { format, differenceInMonths, differenceInYears, differenceInDays, isBefore } from "date-fns";
 import { ru } from "date-fns/locale";
 
 interface ParentTest {
@@ -75,6 +75,14 @@ interface ParentTestsSectionProps {
   children: ParentChild[];
 }
 
+interface DevelopmentTestResult {
+  id: string;
+  child_id: string;
+  next_test_date: string | null;
+  completed_at: string | null;
+  overall_risk_level: string;
+}
+
 export function ParentTestsSection({ parentUserId, children }: ParentTestsSectionProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -96,6 +104,59 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
   // IMPORTANT: All hooks must be called before any conditional returns
   // Get development test data for age group checking
   const { ageGroups: devAgeGroups, getAgeGroupForChild } = useDevelopmentTest();
+
+  // Fetch development test results for all children (to get next_test_date)
+  const { data: developmentTestResults } = useQuery({
+    queryKey: ["development-test-results-all", parentUserId],
+    queryFn: async () => {
+      const childIds = children.map(c => c.id);
+      if (childIds.length === 0) return [];
+      
+      const { data, error } = await supabase
+        .from("development_test_results" as any)
+        .select("id, child_id, next_test_date, completed_at, overall_risk_level")
+        .eq("parent_user_id", parentUserId)
+        .eq("is_completed", true)
+        .in("child_id", childIds)
+        .order("completed_at", { ascending: false }) as { data: DevelopmentTestResult[] | null; error: any };
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: children.length > 0,
+  });
+
+  // Helper to get the latest test result for a child
+  const getLatestTestResult = (childId: string): DevelopmentTestResult | null => {
+    if (!developmentTestResults) return null;
+    return developmentTestResults.find(r => r.child_id === childId) || null;
+  };
+
+  // Helper to get next test date info
+  const getNextTestInfo = (childId: string) => {
+    const result = getLatestTestResult(childId);
+    if (!result?.next_test_date) return null;
+    
+    const nextDate = new Date(result.next_test_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    nextDate.setHours(0, 0, 0, 0);
+    
+    const daysUntil = differenceInDays(nextDate, today);
+    const isOverdue = isBefore(nextDate, today);
+    const isDueToday = daysUntil === 0;
+    const isDueSoon = daysUntil > 0 && daysUntil <= 3;
+    
+    return {
+      date: result.next_test_date,
+      formattedDate: format(nextDate, "d MMMM yyyy", { locale: ru }),
+      daysUntil,
+      isOverdue,
+      isDueToday,
+      isDueSoon,
+      lastCompletedAt: result.completed_at,
+    };
+  };
 
   // Fetch available tests
   const { data: tests, isLoading: testsLoading } = useQuery({
@@ -551,60 +612,98 @@ export function ParentTestsSection({ parentUserId, children }: ParentTestsSectio
               <div className="space-y-3">
                 <p className="text-sm font-medium text-muted-foreground">Выберите ребёнка:</p>
                 <div className="grid gap-2">
-                  <TooltipProvider>
+                <TooltipProvider>
                     {children.map((child) => {
                       const ageGroup = child.birth_date ? getChildAgeGroup(child.birth_date) : null;
                       const hasValidAge = !!ageGroup;
                       const hasBirthDate = !!child.birth_date;
+                      const nextTestInfo = getNextTestInfo(child.id);
                       
                       return (
-                        <Tooltip key={child.id}>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center gap-2">
-                              <Button 
-                                onClick={() => startDevelopmentTest(child.id)}
-                                variant="outline"
-                                disabled={!hasValidAge}
-                                className={`flex-1 justify-start ${hasValidAge 
-                                  ? "border-emerald-300 hover:bg-emerald-100 hover:text-emerald-700 dark:border-emerald-700 dark:hover:bg-emerald-900 dark:hover:text-emerald-300" 
-                                  : "border-muted opacity-60"}`}
-                              >
-                                <Baby className="h-4 w-4 mr-2" />
-                                <span className="flex-1 text-left">{child.full_name}</span>
-                                {hasBirthDate && (
-                                  <Badge variant="secondary" className="ml-2 text-xs">
-                                    {formatChildAge(child.birth_date!)}
-                                  </Badge>
-                                )}
-                                {hasValidAge ? (
-                                  <Badge variant="outline" className="ml-1 text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
-                                    {ageGroup.label}
-                                  </Badge>
-                                ) : !hasBirthDate ? (
-                                  <Badge variant="outline" className="ml-1 text-xs bg-orange-50 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
-                                    <AlertTriangle className="h-3 w-3 mr-1" />
-                                    Нет даты рождения
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="ml-1 text-xs bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-300">
-                                    <AlertTriangle className="h-3 w-3 mr-1" />
-                                    Возраст не поддерживается
-                                  </Badge>
-                                )}
-                                <ChevronRight className="ml-2 h-4 w-4" />
-                              </Button>
+                        <div key={child.id} className="space-y-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  onClick={() => startDevelopmentTest(child.id)}
+                                  variant="outline"
+                                  disabled={!hasValidAge}
+                                  className={`flex-1 justify-start ${hasValidAge 
+                                    ? "border-emerald-300 hover:bg-emerald-100 hover:text-emerald-700 dark:border-emerald-700 dark:hover:bg-emerald-900 dark:hover:text-emerald-300" 
+                                    : "border-muted opacity-60"}`}
+                                >
+                                  <Baby className="h-4 w-4 mr-2" />
+                                  <span className="flex-1 text-left">{child.full_name}</span>
+                                  {hasBirthDate && (
+                                    <Badge variant="secondary" className="ml-2 text-xs">
+                                      {formatChildAge(child.birth_date!)}
+                                    </Badge>
+                                  )}
+                                  {hasValidAge ? (
+                                    <Badge variant="outline" className="ml-1 text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                                      {ageGroup.label}
+                                    </Badge>
+                                  ) : !hasBirthDate ? (
+                                    <Badge variant="outline" className="ml-1 text-xs bg-orange-50 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
+                                      <AlertTriangle className="h-3 w-3 mr-1" />
+                                      Нет даты рождения
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="ml-1 text-xs bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-300">
+                                      <AlertTriangle className="h-3 w-3 mr-1" />
+                                      Возраст не поддерживается
+                                    </Badge>
+                                  )}
+                                  <ChevronRight className="ml-2 h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TooltipTrigger>
+                            {!hasValidAge && (
+                              <TooltipContent>
+                                <p>
+                                  {!hasBirthDate 
+                                    ? "Укажите дату рождения ребёнка в разделе «Мои дети»" 
+                                    : "Тест доступен для детей от 0 до 18 лет"}
+                                </p>
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                          
+                          {/* Next test date indicator */}
+                          {nextTestInfo && (
+                            <div className={`flex items-center gap-2 ml-2 p-2 rounded-lg text-sm ${
+                              nextTestInfo.isOverdue 
+                                ? "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300" 
+                                : nextTestInfo.isDueToday 
+                                  ? "bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300"
+                                  : nextTestInfo.isDueSoon 
+                                    ? "bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-300"
+                                    : "bg-muted/50 text-muted-foreground"
+                            }`}>
+                              {nextTestInfo.isOverdue ? (
+                                <>
+                                  <RefreshCw className="h-4 w-4" />
+                                  <span>Повторный тест просрочен на {Math.abs(nextTestInfo.daysUntil)} дн. — пора пройти снова!</span>
+                                </>
+                              ) : nextTestInfo.isDueToday ? (
+                                <>
+                                  <Bell className="h-4 w-4 animate-pulse" />
+                                  <span>Сегодня запланирован повторный тест!</span>
+                                </>
+                              ) : nextTestInfo.isDueSoon ? (
+                                <>
+                                  <Calendar className="h-4 w-4" />
+                                  <span>Повторный тест через {nextTestInfo.daysUntil} дн. ({nextTestInfo.formattedDate})</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Calendar className="h-4 w-4" />
+                                  <span>Следующий тест: {nextTestInfo.formattedDate}</span>
+                                </>
+                              )}
                             </div>
-                          </TooltipTrigger>
-                          {!hasValidAge && (
-                            <TooltipContent>
-                              <p>
-                                {!hasBirthDate 
-                                  ? "Укажите дату рождения ребёнка в разделе «Мои дети»" 
-                                  : "Тест доступен для детей от 0 до 18 лет"}
-                              </p>
-                            </TooltipContent>
                           )}
-                        </Tooltip>
+                        </div>
                       );
                     })}
                   </TooltipProvider>
