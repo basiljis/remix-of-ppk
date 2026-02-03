@@ -28,32 +28,64 @@ export default function ChildLogin() {
 
     setIsLoading(true);
     try {
-      // Verify child credentials
+      // Normalize login - remove invisible characters and extra spaces
+      const normalizedLogin = login.trim().normalize("NFC").replace(/\s+/g, "_");
+      const normalizedPassword = password.trim();
+      
+      console.log("[ChildLogin] Attempting login with:", { login: normalizedLogin, passwordLength: normalizedPassword.length });
+
+      // Verify child credentials - use maybeSingle to avoid error on no match
       const { data, error } = await supabase
         .from("child_credentials")
         .select("*, parent_children(*)")
-        .eq("login", login.trim())
+        .eq("login", normalizedLogin)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      console.log("[ChildLogin] Query result:", { data: data ? "found" : "not found", error });
+
+      if (error) {
+        console.error("[ChildLogin] Database error:", error);
         toast({
-          title: "Неверный логин или пароль",
-          description: "Попроси родителей проверить данные для входа",
+          title: "Ошибка подключения",
+          description: "Попробуй ещё раз позже",
           variant: "destructive",
         });
         return;
       }
 
-      const credentialData = data as unknown as {
+      if (!data) {
+        // Try case-insensitive search as fallback
+        const { data: fallbackData } = await supabase
+          .from("child_credentials")
+          .select("*, parent_children(*)")
+          .ilike("login", normalizedLogin)
+          .eq("is_active", true)
+          .maybeSingle();
+        
+        if (!fallbackData) {
+          toast({
+            title: "Неверный логин или пароль",
+            description: "Попроси родителей проверить данные для входа",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Use fallback data
+        Object.assign(data || {}, fallbackData);
+      }
+
+      const credentialData = (data || {}) as unknown as {
         id: string;
         parent_child_id: string;
         plain_password: string | null;
         parent_children: { full_name: string } | null;
       };
 
-      // Simple password check
-      if (credentialData.plain_password !== password.trim()) {
+      // Simple password check - case sensitive
+      if (!credentialData.plain_password || credentialData.plain_password !== normalizedPassword) {
+        console.log("[ChildLogin] Password mismatch");
         toast({
           title: "Неверный пароль",
           description: "Попробуй ещё раз",
