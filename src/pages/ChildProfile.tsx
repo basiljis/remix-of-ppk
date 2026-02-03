@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, School, User, CalendarIcon, ExternalLink, Plus } from "lucide-react";
+import { ArrowLeft, Calendar, School, User, CalendarIcon, ExternalLink, Plus, Link2 } from "lucide-react";
 import { ChildProfileRadarChart } from "@/components/ChildProfileRadarChart";
 import { ChildProfileBarChart } from "@/components/ChildProfileBarChart";
 import { ChildProfileTable } from "@/components/ChildProfileTable";
@@ -14,6 +14,7 @@ import { ChildSessionsStatistics } from "@/components/ChildSessionsStatistics";
 import { ChildInfoDetailsDialog } from "@/components/ChildInfoDetailsDialog";
 import { ProtocolDynamicsDetailsDialog } from "@/components/ProtocolDynamicsDetailsDialog";
 import { AddChildDialog } from "@/components/AddChildDialog";
+import { ChildDevelopmentResults } from "@/components/ChildDevelopmentResults";
 import Preloader from "@/components/Preloader";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -83,11 +84,13 @@ export default function ChildProfile() {
   const [sessionData, setSessionData] = useState<SessionChildRecord[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [childData, setChildData] = useState<ChildData | null>(null);
+  const [linkedParentChildId, setLinkedParentChildId] = useState<string | null>(null);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [showDynamicsDialog, setShowDynamicsDialog] = useState(false);
   const [showAddChildDialog, setShowAddChildDialog] = useState(false);
   const childName = searchParams.get("name");
   const organizationId = searchParams.get("org");
+  const parentChildId = searchParams.get("parentChildId"); // Direct link to parent child
   const returnUrl = searchParams.get("returnUrl") || "/app";
 
   useEffect(() => {
@@ -188,6 +191,26 @@ export default function ChildProfile() {
             setSessionData(formattedData);
           }
           setSessionsLoading(false);
+        }
+
+        // Check for linked parent child
+        const { data: linkedData } = await supabase
+          .from("linked_parent_children")
+          .select("parent_child_id")
+          .eq("organization_id", organizationId)
+          .maybeSingle();
+
+        if (linkedData) {
+          // Find matching child by name in parent_children
+          const { data: parentChild } = await supabase
+            .from("parent_children")
+            .select("id, full_name")
+            .eq("id", linkedData.parent_child_id)
+            .maybeSingle();
+
+          if (parentChild && parentChild.full_name.toLowerCase() === childName?.toLowerCase()) {
+            setLinkedParentChildId(parentChild.id);
+          }
         }
       } catch (error) {
         console.error("Error loading protocols:", error);
@@ -375,6 +398,13 @@ export default function ChildProfile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Development Test Results from Parent (if linked) */}
+        {(linkedParentChildId || parentChildId) && (
+          <ChildDevelopmentResults 
+            childId={linkedParentChildId || parentChildId!} 
+          />
+        )}
 
         {/* Sessions Statistics from Schedule */}
         <ChildSessionsStatistics sessions={sessionData} loading={sessionsLoading} />
