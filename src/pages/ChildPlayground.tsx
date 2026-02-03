@@ -170,8 +170,8 @@ export default function ChildPlayground() {
 
   const selectedChild = children.find(c => c.id === selectedChildId);
 
-  // Child selection screen
-  if (!selectedChildId || children.length > 1) {
+  // Child selection screen - show only if no child selected
+  if (!selectedChildId) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-pink-950/20">
         {/* Header */}
