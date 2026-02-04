@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -130,6 +131,108 @@ const userTypes = [
   }
 ];
 
+function FeaturesSection() {
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  
+  const filteredFeatures = activeFilter 
+    ? features.filter(f => f.audience.includes(activeFilter))
+    : features;
+
+  const filterButtons = [
+    { key: null, label: "Все" },
+    { key: "org", label: "Организации", icon: Building2 },
+    { key: "specialist", label: "Педагоги", icon: GraduationCap },
+    { key: "private", label: "Частная практика", icon: Users },
+    { key: "parent", label: "Родители", icon: Baby }
+  ];
+
+  return (
+    <section className="py-20 px-4">
+      <div className="container mx-auto max-w-6xl">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-4">Возможности системы</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Полный набор инструментов для автоматизации работы психолого-педагогической службы
+          </p>
+        </div>
+        
+        {/* Filter buttons */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
+          {filterButtons.map((btn) => (
+            <button
+              key={btn.key ?? "all"}
+              onClick={() => setActiveFilter(btn.key)}
+              className={`
+                flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all
+                ${activeFilter === btn.key 
+                  ? "bg-primary text-primary-foreground shadow-md" 
+                  : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
+                }
+              `}
+            >
+              {btn.icon && <btn.icon className="h-4 w-4" />}
+              {btn.label}
+              <span className={`
+                ml-1 text-xs px-1.5 py-0.5 rounded-full
+                ${activeFilter === btn.key 
+                  ? "bg-primary-foreground/20 text-primary-foreground" 
+                  : "bg-background text-muted-foreground"
+                }
+              `}>
+                {btn.key === null 
+                  ? features.length 
+                  : features.filter(f => f.audience.includes(btn.key!)).length
+                }
+              </span>
+            </button>
+          ))}
+        </div>
+        
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredFeatures.map((feature) => (
+            <Card key={feature.title} className="hover:shadow-md transition-all relative overflow-hidden animate-in fade-in-0 duration-300">
+              {feature.isNew && (
+                <div className="absolute top-3 right-3">
+                  <Badge className="bg-green-500 hover:bg-green-600 text-white text-[10px] px-2">
+                    NEW
+                  </Badge>
+                </div>
+              )}
+              <CardHeader className="pb-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                  <feature.icon className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  {feature.title}
+                </CardTitle>
+                <CardDescription>{feature.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex flex-wrap gap-1">
+                  {feature.audience.map((aud) => (
+                    <span 
+                      key={aud} 
+                      className={`text-[10px] px-1.5 py-0.5 rounded cursor-pointer transition-all hover:scale-105 ${audienceLabels[aud].color}`}
+                      onClick={() => setActiveFilter(aud)}
+                    >
+                      {audienceLabels[aud].label}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {filteredFeatures.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            Нет функций для выбранной категории
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function Landing() {
   return (
@@ -253,51 +356,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Возможности системы</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Полный набор инструментов для автоматизации работы психолого-педагогической службы
-            </p>
-          </div>
-          
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <Card key={feature.title} className="hover:shadow-md transition-shadow relative overflow-hidden">
-                {feature.isNew && (
-                  <div className="absolute top-3 right-3">
-                    <Badge className="bg-green-500 hover:bg-green-600 text-white text-[10px] px-2">
-                      NEW
-                    </Badge>
-                  </div>
-                )}
-                <CardHeader className="pb-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                    <feature.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    {feature.title}
-                  </CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex flex-wrap gap-1">
-                    {feature.audience.map((aud) => (
-                      <span 
-                        key={aud} 
-                        className={`text-[10px] px-1.5 py-0.5 rounded ${audienceLabels[aud].color}`}
-                      >
-                        {audienceLabels[aud].label}
-                      </span>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FeaturesSection />
 
       {/* Screenshots/Preview Section */}
       <section className="py-20 px-4 bg-muted/30">
