@@ -63,40 +63,34 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
     setLoading(true);
 
     try {
-      // Создаем пользователя в Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        email_confirm: true,
-      });
-
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error("Не удалось создать пользователя");
+      // Получаем токен текущего пользователя
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error("Необходима авторизация");
       }
 
-      // Создаем профиль пользователя
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authData.user.id,
-        email: formData.email,
-        full_name: formData.full_name,
-        phone: formData.phone,
-        position_id: formData.position_id,
-        region_id: formData.region_id,
-        organization_id: formData.organization_id || null,
-        is_blocked: false,
+      // Вызываем edge function для создания пользователя
+      const response = await supabase.functions.invoke("create-user", {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.full_name,
+          phone: formData.phone,
+          position_id: formData.position_id,
+          region_id: formData.region_id,
+          organization_id: formData.organization_id || null,
+          role: formData.role,
+        },
       });
 
-      if (profileError) throw profileError;
+      if (response.error) {
+        throw new Error(response.error.message || "Ошибка при создании пользователя");
+      }
 
-      // Назначаем роль пользователю
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: authData.user.id,
-        role: formData.role,
-      });
-
-      if (roleError) throw roleError;
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
 
       toast.success("Пользователь успешно создан");
       setOpen(false);
