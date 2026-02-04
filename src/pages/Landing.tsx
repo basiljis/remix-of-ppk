@@ -8,34 +8,56 @@ import {
   GraduationCap, Building2, Baby, 
   ClipboardList, Calendar, FileText, Shield, 
   CheckCircle, ArrowRight, Phone, Mail,
-  BarChart3, UserCheck, Heart
+  BarChart3, UserCheck, Heart, Gamepad2, 
+  BookOpen, CalendarCheck, Bell, Users, Target
 } from "lucide-react";
 
 const features = [
   {
     icon: ClipboardList,
     title: "Протоколы ППк",
-    description: "Автоматизация психолого-педагогических консилиумов с генерацией заключений"
+    description: "Автоматизация психолого-педагогических консилиумов с генерацией заключений и рекомендаций"
   },
   {
     icon: Calendar,
     title: "Журнал учёта занятий",
-    description: "Планирование, учёт посещаемости и статистика работы специалистов"
+    description: "Индивидуальные и групповые занятия, серии сессий, учёт посещаемости",
+    isNew: true
   },
   {
     icon: FileText,
     title: "Карта ребёнка",
-    description: "Централизованное хранение истории развития и рекомендаций"
+    description: "Централизованное хранение истории развития, синхронизация с родителями"
+  },
+  {
+    icon: Gamepad2,
+    title: "Игровая ребёнка",
+    description: "Интерактивные развивающие игры и упражнения для детей с отслеживанием прогресса",
+    isNew: true
+  },
+  {
+    icon: CalendarCheck,
+    title: "Онлайн-запись",
+    description: "Родители записываются к специалистам напрямую, управление слотами",
+    isNew: true
+  },
+  {
+    icon: BookOpen,
+    title: "Библиотека материалов",
+    description: "Рекомендации по развитию на основе результатов тестирования",
+    isNew: true
   },
   {
     icon: BarChart3,
-    title: "Аналитика и отчёты",
-    description: "Статистика по организации, специалистам и результатам работы"
+    title: "Аналитика и KPI",
+    description: "Сравнительная статистика, отслеживание KPI специалистов",
+    isNew: true
   },
   {
-    icon: UserCheck,
-    title: "Управление сотрудниками",
-    description: "Контроль доступа, права и нагрузка специалистов"
+    icon: Bell,
+    title: "Уведомления",
+    description: "Автоматические напоминания о занятиях, email и push-уведомления",
+    isNew: true
   },
   {
     icon: Shield,
@@ -49,7 +71,12 @@ const userTypes = [
     icon: Building2,
     title: "Для организаций",
     description: "Школы, детские сады, ППМС-центры",
-    features: ["Управление сотрудниками", "Протоколы ППк", "Журнал занятий", "Аналитика"],
+    features: [
+      { text: "Управление сотрудниками и KPI", isNew: true },
+      { text: "Протоколы ППк" },
+      { text: "Групповые и серийные занятия", isNew: true },
+      { text: "Сравнительная аналитика", isNew: true }
+    ],
     link: "/for-organizations",
     authLink: "/auth",
     color: "from-blue-500/20 to-blue-600/10",
@@ -58,8 +85,13 @@ const userTypes = [
   {
     icon: GraduationCap,
     title: "Для педагогов",
-    description: "Психологи, логопеды, дефектологи",
-    features: ["Личный кабинет", "Ведение документации", "Расписание", "Карты детей"],
+    description: "Психологи, логопеды, дефектологи, частная практика",
+    features: [
+      { text: "Личный кабинет и расписание" },
+      { text: "Протоколы и карты детей" },
+      { text: "Онлайн-запись клиентов", isNew: true },
+      { text: "Персональный KPI", isNew: true }
+    ],
     link: "/for-specialists",
     authLink: "/auth",
     color: "from-orange-500/20 to-orange-600/10",
@@ -69,7 +101,12 @@ const userTypes = [
     icon: Baby,
     title: "Для родителей",
     description: "Личный кабинет законного представителя",
-    features: ["Запись на консультацию", "Тесты развития", "Расписание занятий", "Рекомендации"],
+    features: [
+      { text: "Запись на консультацию", isNew: true },
+      { text: "Тесты развития и результаты ППк" },
+      { text: "Игровая ребёнка", isNew: true },
+      { text: "Персональные рекомендации", isNew: true }
+    ],
     link: "/for-parents",
     authLink: "/parent-auth",
     color: "from-pink-500/20 to-pink-600/10",
@@ -167,9 +204,16 @@ export default function Landing() {
                 <CardContent className="relative space-y-4">
                   <ul className="space-y-2">
                     {type.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        {feature}
+                      <li key={typeof feature === 'string' ? feature : feature.text} className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        <span className="flex items-center gap-1.5">
+                          {typeof feature === 'string' ? feature : feature.text}
+                          {typeof feature === 'object' && feature.isNew && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                              NEW
+                            </Badge>
+                          )}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -204,12 +248,21 @@ export default function Landing() {
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature) => (
-              <Card key={feature.title} className="hover:shadow-md transition-shadow">
+              <Card key={feature.title} className="hover:shadow-md transition-shadow relative overflow-hidden">
+                {feature.isNew && (
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-green-500 hover:bg-green-600 text-white text-[10px] px-2">
+                      NEW
+                    </Badge>
+                  </div>
+                )}
                 <CardHeader>
                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
                     <feature.icon className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {feature.title}
+                  </CardTitle>
                   <CardDescription>{feature.description}</CardDescription>
                 </CardHeader>
               </Card>
