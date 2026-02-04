@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Link as LinkIcon, Copy, Check, Upload, Building2, Globe, Eye, EyeOff } from "lucide-react";
+import { Loader2, Save, Link as LinkIcon, Copy, Check, Upload, Building2, Eye, EyeOff, Image as ImageIcon, X } from "lucide-react";
+
+const PRODUCTION_DOMAIN = "https://ppk.profilaktika.site";
 
 export function OrganizationDataPanel() {
   const { profile, isAdmin } = useAuth();
@@ -23,6 +25,8 @@ export function OrganizationDataPanel() {
   const [logoUrl, setLogoUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [slugError, setSlugError] = useState("");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const organizationId = profile?.organization_id;
 
@@ -109,9 +113,9 @@ export function OrganizationDataPanel() {
   });
 
   const publicUrl = publicSlug 
-    ? `${window.location.origin}/o/${publicSlug}`
+    ? `${PRODUCTION_DOMAIN}/o/${publicSlug}`
     : organizationId 
-      ? `${window.location.origin}/organization/${organizationId}`
+      ? `${PRODUCTION_DOMAIN}/organization/${organizationId}`
       : "";
 
   const handleCopyLink = () => {
@@ -129,6 +133,71 @@ export function OrganizationDataPanel() {
     const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
     setPublicSlug(sanitized);
     setSlugError("");
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !organizationId) return;
+
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Неверный формат",
+        description: "Поддерживаются только PNG, JPG и WebP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Файл слишком большой",
+        description: "Максимальный размер логотипа — 2 МБ",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingLogo(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${organizationId}/logo.${fileExt}`;
+
+      // Upload to avatars bucket (it's public and already exists)
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setLogoUrl(publicUrl);
+      
+      toast({
+        title: "Логотип загружен",
+        description: "Не забудьте сохранить изменения",
+      });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast({
+        title: "Ошибка загрузки",
+        description: "Не удалось загрузить логотип",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoUrl("");
   };
 
   if (isLoading) {
@@ -190,8 +259,8 @@ export function OrganizationDataPanel() {
             </Label>
             <div className="flex gap-2">
               <div className="flex-1 flex items-center">
-                <span className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded-l-md border border-r-0">
-                  {window.location.origin}/o/
+              <span className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded-l-md border border-r-0">
+                  {PRODUCTION_DOMAIN}/o/
                 </span>
                 <Input
                   id="public-slug"
@@ -244,21 +313,76 @@ export function OrganizationDataPanel() {
             />
           </div>
 
-          {/* Logo URL */}
-          <div className="space-y-2">
-            <Label htmlFor="logo-url">
-              Ссылка на логотип
-            </Label>
-            <Input
-              id="logo-url"
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="https://..."
-              type="url"
-            />
-            <p className="text-xs text-muted-foreground">
-              Вставьте ссылку на изображение логотипа (рекомендуемый размер: 200x200 px)
-            </p>
+          {/* Logo Upload */}
+          <div className="space-y-3">
+            <Label>Логотип организации</Label>
+            
+            {logoUrl ? (
+              <div className="flex items-start gap-4">
+                <div className="relative">
+                  <img 
+                    src={logoUrl} 
+                    alt="Логотип" 
+                    className="w-24 h-24 object-contain rounded-lg border bg-muted"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6"
+                    onClick={handleRemoveLogo}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">
+                    Логотип загружен. Чтобы заменить, удалите текущий и загрузите новый.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div 
+                className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                {isUploadingLogo ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Загрузка...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Нажмите для загрузки</p>
+                      <p className="text-xs text-muted-foreground">
+                        PNG, JPG или WebP до 2 МБ
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 p-3 rounded-md">
+              <p className="font-medium">Требования к логотипу:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li>Рекомендуемый размер: 200×200 пикселей</li>
+                <li>Формат: PNG (с прозрачным фоном), JPG или WebP</li>
+                <li>Квадратные пропорции для лучшего отображения</li>
+                <li>Максимальный размер файла: 2 МБ</li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>
