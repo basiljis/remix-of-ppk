@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedQuery, useOptimizedMutation } from '@/hooks/useOptimizedQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface Protocol {
   id: string;
@@ -33,11 +34,14 @@ export interface Protocol {
 export const useProtocols = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile, isAdmin } = useAuth();
+
+  const organizationId = profile?.organization_id;
 
   const { data: protocols = [], isLoading: loading, error, refetch: loadProtocols } = useOptimizedQuery(
-    ['protocols'],
+    ['protocols', organizationId || 'all', isAdmin ? 'admin' : 'user'],
     async () => {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('protocols')
         .select(`
           *,
@@ -50,10 +54,19 @@ export const useProtocols = () => {
         `)
         .order('created_at', { ascending: false });
 
+      // Фильтруем по организации, если пользователь не админ
+      if (!isAdmin && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      }
+
+      const { data, error: fetchError } = await query;
+
       if (fetchError) throw fetchError;
       return data || [];
     },
-    {},
+    {
+      enabled: isAdmin || !!organizationId
+    },
     { staleTime: 1000 * 60 * 5 } // 5 minutes
   );
 
