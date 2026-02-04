@@ -195,7 +195,7 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите должность" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999] bg-background">
                   {positions?.map((position) => (
                     <SelectItem key={position.id} value={position.id}>
                       {position.name}
@@ -215,7 +215,7 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите регион" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999] bg-background max-h-60">
                   {regions?.map((region) => (
                     <SelectItem key={region.id} value={region.id}>
                       {region.name}
@@ -235,7 +235,7 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
               <SelectTrigger>
                 <SelectValue placeholder="Выберите организацию (необязательно)" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[9999] bg-background max-h-60">
                 {organizations?.map((org) => (
                   <SelectItem key={org.id} value={org.id}>
                     {org.name}
@@ -255,7 +255,7 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
               <SelectTrigger>
                 <SelectValue placeholder="Выберите роль" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[9999] bg-background">
                 <SelectItem value="user">Пользователь</SelectItem>
                 <SelectItem value="regional_operator">Региональный оператор</SelectItem>
                 <SelectItem value="admin">Администратор</SelectItem>
