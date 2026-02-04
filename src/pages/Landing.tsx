@@ -280,24 +280,19 @@ export default function Landing() {
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Инновационная платформа для комплексной поддержки и развития детей. Технологии, которые работают на благо каждого ребенка.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
-              <Button size="lg" className="gap-2">
-                Начать работу
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/for-organizations#pricing">
-              <Button size="lg" variant="outline">
-                Узнать стоимость
-              </Button>
-            </Link>
-          </div>
+          <Button 
+            size="lg" 
+            className="gap-2"
+            onClick={() => document.getElementById('user-types')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            Начать работу
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </section>
 
       {/* User Types Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="user-types" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Выберите свой кабинет</h2>
