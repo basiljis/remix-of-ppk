@@ -266,7 +266,7 @@ export const SubscriptionsManagement = () => {
             user_id: (await supabase.auth.getUser()).data.user?.id || "",
             subscription_type: months >= 12 ? "yearly" : "monthly",
             amount: amount,
-            payment_type: "invoice",
+            payment_type: "legal",
             status: "active",
             start_date: startDate.toISOString(),
             end_date: endDate.toISOString(),
@@ -325,7 +325,7 @@ export const SubscriptionsManagement = () => {
             user_id: userId,
             subscription_type: subscriptionType,
             amount: amount,
-            payment_type: "invoice",
+            payment_type: "individual",
             status: "active",
             start_date: startDate.toISOString(),
             end_date: endDate.toISOString(),
@@ -573,8 +573,8 @@ export const SubscriptionsManagement = () => {
           row[fieldLabels[field]] = statusLabels[user.subscription_status] || user.subscription_status;
         } else if (field === "payment_type") {
           const paymentLabels: Record<string, string> = {
-            online: "Онлайн",
-            invoice: "По счету",
+            individual: "Физ. лицо",
+            legal: "Юр. лицо",
           };
           row[fieldLabels[field]] = user[field] ? (paymentLabels[user[field]] || user[field]) : "—";
         } else if (field === "amount") {
