@@ -86,12 +86,13 @@ const organizationItem = {
   subItems: [
     { id: "organization-data", label: "Данные организации" },
     { id: "organization-employees", label: "Сотрудники" },
+    { id: "organization-access-requests", label: "Заявки на доступ" },
     { id: "organization-schedule", label: "Расписание организации" },
     { id: "organization-rates", label: "Ставки специалистов" },
     { id: "organization-statistics", label: "Статистика" },
     { id: "organization-kpi", label: "KPI сотрудников" },
     { id: "organization-holidays", label: "Нерабочие дни" },
-    { id: "organization-requests", label: "Запросы на согласование" },
+    { id: "organization-holiday-requests", label: "Запросы на согласование" },
     { id: "organization-settings", label: "Настройки" },
   ]
 };
@@ -220,7 +221,7 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
   const { data: orgCounts } = useQuery({
     queryKey: ["sidebar-org-counts", profile?.organization_id],
     queryFn: async () => {
-      if (!profile?.organization_id) return { employees: 0, requests: 0 };
+      if (!profile?.organization_id) return { employees: 0, holidayRequests: 0, accessRequests: 0 };
       
       // Get employees count
       const { count: employeesCount } = await supabase
@@ -230,15 +231,23 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
         .eq("is_blocked", false);
 
       // Get pending holiday requests count
-      const { count: requestsCount } = await supabase
+      const { count: holidayRequestsCount } = await supabase
         .from("holiday_session_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", profile.organization_id)
+        .eq("status", "pending");
+
+      // Get pending access requests count
+      const { count: accessRequestsCount } = await supabase
+        .from("access_requests")
         .select("*", { count: "exact", head: true })
         .eq("organization_id", profile.organization_id)
         .eq("status", "pending");
 
       return { 
         employees: employeesCount || 0, 
-        requests: requestsCount || 0
+        holidayRequests: holidayRequestsCount || 0,
+        accessRequests: accessRequestsCount || 0
       };
     },
     enabled: !!profile?.organization_id && canSeeOrganization,
@@ -650,10 +659,13 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                               const isSubActive = activeTab === subItem.id;
                               const badge = subItem.id === "organization-employees" 
                                 ? orgCounts?.employees 
-                                : subItem.id === "organization-requests" 
-                                  ? orgCounts?.requests 
-                                  : null;
-                              const isUrgent = subItem.id === "organization-requests" && (orgCounts?.requests || 0) > 0;
+                                : subItem.id === "organization-holiday-requests" 
+                                  ? orgCounts?.holidayRequests
+                                  : subItem.id === "organization-access-requests"
+                                    ? orgCounts?.accessRequests 
+                                    : null;
+                              const isUrgent = (subItem.id === "organization-holiday-requests" && (orgCounts?.holidayRequests || 0) > 0) ||
+                                               (subItem.id === "organization-access-requests" && (orgCounts?.accessRequests || 0) > 0);
                               return (
                                 <SidebarMenuSubItem key={subItem.id}>
                                   <SidebarMenuSubButton
