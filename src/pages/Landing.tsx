@@ -16,55 +16,71 @@ const features = [
   {
     icon: ClipboardList,
     title: "Протоколы ППк",
-    description: "Автоматизация психолого-педагогических консилиумов с генерацией заключений и рекомендаций"
+    description: "Автоматизация психолого-педагогических консилиумов с генерацией заключений и рекомендаций",
+    audience: ["org", "specialist"]
   },
   {
     icon: Calendar,
     title: "Журнал учёта занятий",
     description: "Индивидуальные и групповые занятия, серии сессий, учёт посещаемости",
-    isNew: true
+    isNew: true,
+    audience: ["org", "specialist", "private"]
   },
   {
     icon: FileText,
     title: "Карта ребёнка",
-    description: "Централизованное хранение истории развития, синхронизация с родителями"
+    description: "Централизованное хранение истории развития, синхронизация с родителями",
+    audience: ["org", "specialist", "private", "parent"]
   },
   {
     icon: Gamepad2,
     title: "Игровая ребёнка",
     description: "Интерактивные развивающие игры и упражнения для детей с отслеживанием прогресса",
-    isNew: true
+    isNew: true,
+    audience: ["parent"]
   },
   {
     icon: CalendarCheck,
     title: "Онлайн-запись",
     description: "Родители записываются к специалистам напрямую, управление слотами",
-    isNew: true
+    isNew: true,
+    audience: ["org", "specialist", "private", "parent"]
   },
   {
     icon: BookOpen,
     title: "Библиотека материалов",
     description: "Рекомендации по развитию на основе результатов тестирования",
-    isNew: true
+    isNew: true,
+    audience: ["parent"]
   },
   {
     icon: BarChart3,
     title: "Аналитика и KPI",
-    description: "Сравнительная статистика, отслеживание KPI специалистов",
-    isNew: true
+    description: "Сравнительная статистика, отслеживание KPI специалистов организации",
+    isNew: true,
+    audience: ["org"]
   },
   {
     icon: Bell,
     title: "Уведомления",
     description: "Автоматические напоминания о занятиях, email и push-уведомления",
-    isNew: true
+    isNew: true,
+    audience: ["org", "specialist", "private", "parent"]
   },
   {
     icon: Shield,
     title: "Безопасность данных",
-    description: "Соответствие ФЗ-152, шифрование и хранение в РФ"
+    description: "Соответствие ФЗ-152, шифрование и хранение в РФ",
+    audience: ["org", "specialist", "private", "parent"]
   }
 ];
+
+const audienceLabels: Record<string, { label: string; color: string }> = {
+  org: { label: "Организации", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  specialist: { label: "Педагоги", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" },
+  private: { label: "Частная практика", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+  parent: { label: "Родители", color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400" }
+};
 
 const userTypes = [
   {
@@ -256,7 +272,7 @@ export default function Landing() {
                     </Badge>
                   </div>
                 )}
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
                     <feature.icon className="h-5 w-5 text-primary" />
                   </div>
@@ -265,6 +281,18 @@ export default function Landing() {
                   </CardTitle>
                   <CardDescription>{feature.description}</CardDescription>
                 </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-wrap gap-1">
+                    {feature.audience.map((aud) => (
+                      <span 
+                        key={aud} 
+                        className={`text-[10px] px-1.5 py-0.5 rounded ${audienceLabels[aud].color}`}
+                      >
+                        {audienceLabels[aud].label}
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
               </Card>
             ))}
           </div>
