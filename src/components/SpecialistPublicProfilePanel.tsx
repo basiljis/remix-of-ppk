@@ -169,10 +169,12 @@ export function SpecialistPublicProfilePanel() {
     },
   });
 
+  const PRODUCTION_DOMAIN = "https://ppk.profilaktika.site";
+  
   const publicUrl = publicSlug 
-    ? `${window.location.origin}/s/${publicSlug}`
+    ? `${PRODUCTION_DOMAIN}/s/${publicSlug}`
     : user?.id 
-      ? `${window.location.origin}/specialist/${user.id}`
+      ? `${PRODUCTION_DOMAIN}/specialist/${user.id}`
       : "";
 
   const handleCopyLink = () => {
