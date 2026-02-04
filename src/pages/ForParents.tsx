@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import LandingFooter from "@/components/LandingFooter";
 import { 
   Baby, Calendar, ClipboardList, FileText, 
   Bell, CheckCircle, ArrowRight, Heart, ChevronLeft,
@@ -283,20 +284,7 @@ export default function ForParents() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-8 px-4">
-        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Heart className="h-3 w-3 text-primary-foreground" />
-            </div>
-            <span className="font-bold">universum.</span>
-          </Link>
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ИП Загладин В.С. Все права защищены.
-          </p>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
