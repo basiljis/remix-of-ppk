@@ -77,23 +77,6 @@ const userTypes = [
   }
 ];
 
-const pricing = [
-  {
-    title: "Ежемесячная",
-    price: "2 500 ₽",
-    period: "/ месяц",
-    description: "Гибкость оплаты",
-    features: ["Полный функционал", "Техническая поддержка", "Обновления системы", "Хранение данных"]
-  },
-  {
-    title: "Годовая",
-    price: "25 500 ₽",
-    period: "/ год",
-    description: "Экономия 15%",
-    badge: "Выгодно",
-    features: ["Полный функционал", "Приоритетная поддержка", "Обновления системы", "Хранение данных", "Экономия ~4 500 ₽"]
-  }
-];
 
 export default function Landing() {
   return (
@@ -148,7 +131,7 @@ export default function Landing() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link to="#pricing">
+            <Link to="/for-organizations#pricing">
               <Button size="lg" variant="outline">
                 Узнать стоимость
               </Button>
@@ -279,56 +262,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Стоимость для организаций</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Прозрачное ценообразование. 7 дней бесплатного пробного периода для новых пользователей.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {pricing.map((plan) => (
-              <Card key={plan.title} className={`relative ${plan.badge ? "border-primary border-2" : ""}`}>
-                {plan.badge && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
-                    {plan.badge}
-                  </Badge>
-                )}
-                <CardHeader className="text-center pb-2">
-                  <CardTitle>{plan.title}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="pt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/auth">
-                    <Button className="w-full" variant={plan.badge ? "default" : "outline"}>
-                      Начать бесплатно
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          <p className="text-center text-sm text-muted-foreground mt-8">
-            Для родителей — личный кабинет <span className="font-medium text-foreground">бесплатно</span>
-          </p>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary/5">
