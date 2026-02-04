@@ -398,9 +398,9 @@ export default function PublicOrganizations() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {employees.map((employee) => (
                     <Card key={employee.id} className="hover:shadow-md transition-all">
-                      <CardContent className="pt-4">
-                        <div className="flex items-start gap-3">
-                          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <CardContent className="pt-6 pb-4">
+                        <div className="flex flex-col items-center text-center gap-3">
+                          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center overflow-hidden ring-2 ring-primary/20">
                             {employee.public_photo_url ? (
                               <img 
                                 src={employee.public_photo_url} 
@@ -408,23 +408,23 @@ export default function PublicOrganizations() {
                                 className="h-full w-full object-cover"
                               />
                             ) : (
-                              <User className="h-6 w-6 text-muted-foreground" />
+                              <User className="h-8 w-8 text-muted-foreground" />
                             )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{employee.full_name}</p>
+                          <div className="space-y-1">
+                            <p className="font-medium leading-tight">{employee.full_name}</p>
                             {employee.position?.name && (
-                              <p className="text-sm text-muted-foreground truncate">{employee.position.name}</p>
+                              <p className="text-sm text-muted-foreground">{employee.position.name}</p>
                             )}
                           </div>
                         </div>
                         {employee.public_bio && (
-                          <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                          <p className="text-sm text-muted-foreground mt-3 line-clamp-2 text-center">
                             {employee.public_bio}
                           </p>
                         )}
                         {employee.public_slug && (
-                          <Link to={`/s/${employee.public_slug}`} className="mt-3 block">
+                          <Link to={`/s/${employee.public_slug}`} className="mt-4 block">
                             <Button variant="outline" size="sm" className="w-full">
                               Подробнее
                             </Button>
