@@ -187,7 +187,7 @@ export default function PublicSpecialists() {
       {/* Hero Section */}
       <section className="pt-24 pb-8 px-4">
         <div className="container mx-auto max-w-6xl">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />
             На главную
           </Link>
