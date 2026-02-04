@@ -147,6 +147,7 @@ const adminItems = [
     subItems: [
       { id: "administration-statistics", label: "Статистика" },
       { id: "administration-analytics", label: "Аналитика" },
+      { id: "administration-site-analytics", label: "SMM аналитика" },
       { id: "administration-system-health", label: "Мониторинг системы" },
     ]
   },

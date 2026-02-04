@@ -273,6 +273,7 @@ const Index = () => {
       case "administration-payment-logs":
       case "administration-commercial-offers":
       case "administration-analytics":
+      case "administration-site-analytics":
       case "administration-system-health":
       case "administration-positions-roles":
       case "administration-schedule":
