@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { 
-  Users, GraduationCap, Building2, Baby, 
+  GraduationCap, Building2, Baby, 
   ClipboardList, Calendar, FileText, Shield, 
-  CheckCircle, Star, ArrowRight, Phone, Mail,
-  BarChart3, UserCheck, BookOpen, Heart
+  CheckCircle, ArrowRight, Phone, Mail,
+  BarChart3, UserCheck, Heart
 } from "lucide-react";
 
 const features = [
@@ -356,7 +356,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t py-12 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <Link to="/" className="flex items-center gap-2 mb-4">
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
@@ -372,28 +372,9 @@ export default function Landing() {
             <div>
               <h4 className="font-medium mb-4">Продукт</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/for-organizations" className="hover:text-foreground">Организациям</Link></li>
-                <li><Link to="/for-specialists" className="hover:text-foreground">Педагогам</Link></li>
-                <li><Link to="/for-parents" className="hover:text-foreground">Родителям</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-medium mb-4">Компания</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>ИП Загладин В.С.</li>
-                <li>ИНН: 770702169499</li>
-                <li>ОГРНИП: 323774600132891</li>
-                <li className="pt-2">
-                  <Link to="/privacy-policy" className="hover:text-foreground underline underline-offset-4">
-                    Политика конфиденциальности
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/partnership-offer" className="hover:text-foreground underline underline-offset-4">
-                    Партнёрская программа
-                  </Link>
-                </li>
+                <li><Link to="/for-organizations" className="hover:text-foreground transition-colors">Организациям</Link></li>
+                <li><Link to="/for-specialists" className="hover:text-foreground transition-colors">Педагогам</Link></li>
+                <li><Link to="/for-parents" className="hover:text-foreground transition-colors">Родителям</Link></li>
               </ul>
             </div>
             
@@ -401,19 +382,52 @@ export default function Landing() {
               <h4 className="font-medium mb-4">Контакты</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+                  <Mail className="h-4 w-4 flex-shrink-0" />
                   info@profilaktika.site
                 </li>
                 <li className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
+                  <Phone className="h-4 w-4 flex-shrink-0" />
                   Пн-Пт, 10:00-18:00 МСК
+                </li>
+              </ul>
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">ИП Загладин В.С.</p>
+                <p className="text-xs text-muted-foreground">ИНН: 770702169499</p>
+                <p className="text-xs text-muted-foreground">ОГРНИП: 323774600132891</p>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-medium mb-4">Документы</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <Link 
+                    to="/privacy-policy" 
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
+                  >
+                    <FileText className="h-4 w-4 flex-shrink-0 group-hover:text-primary transition-colors" />
+                    <span>Политика конфиденциальности</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/partnership-offer" 
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
+                  >
+                    <FileText className="h-4 w-4 flex-shrink-0 group-hover:text-primary transition-colors" />
+                    <span>Партнёрская программа</span>
+                  </Link>
                 </li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} universum. Все права защищены.
+          <div className="border-t mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+            <p>© {new Date().getFullYear()} universum. Все права защищены.</p>
+            <div className="flex gap-4">
+              <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Конфиденциальность</Link>
+              <Link to="/partnership-offer" className="hover:text-foreground transition-colors">Партнёрство</Link>
+            </div>
           </div>
         </div>
       </footer>
