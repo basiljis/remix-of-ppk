@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.sync-auth-users]
 verify_jwt = false
+
+[functions.yandex-metrika-stats]
+verify_jwt = false
