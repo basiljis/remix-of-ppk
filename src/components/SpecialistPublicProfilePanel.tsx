@@ -171,7 +171,7 @@ export function SpecialistPublicProfilePanel() {
     },
   });
 
-  const PRODUCTION_DOMAIN = "https://ppk.profilaktika.site";
+  const PRODUCTION_DOMAIN = "https://unvrsm.ru";
   
   const publicUrl = publicSlug 
     ? `${PRODUCTION_DOMAIN}/s/${publicSlug}`
