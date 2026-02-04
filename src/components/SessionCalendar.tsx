@@ -50,6 +50,7 @@ import { GroupSessionForm } from "./GroupSessionForm";
 import { RecurringSessionForm } from "./RecurringSessionForm";
 import { RescheduleSessionDialog } from "./RescheduleSessionDialog";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
+import { ConsultationSlotForm } from "./ConsultationSlotForm";
 import { cn } from "@/lib/utils";
 
 interface Session {
@@ -94,6 +95,7 @@ export function SessionCalendar() {
   const [showSessionForm, setShowSessionForm] = useState(false);
   const [showGroupSessionForm, setShowGroupSessionForm] = useState(false);
   const [showRecurringForm, setShowRecurringForm] = useState(false);
+  const [showConsultationSlotForm, setShowConsultationSlotForm] = useState(false);
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
   const [showAttendanceDialog, setShowAttendanceDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
@@ -367,6 +369,18 @@ export function SessionCalendar() {
                   <div className="flex flex-col">
                     <span>Серия занятий</span>
                     <span className="text-xs text-muted-foreground">Регулярное расписание</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedSlot({ date: format(new Date(), "yyyy-MM-dd"), time: "09:00" });
+                    setShowConsultationSlotForm(true);
+                  }}
+                >
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  <div className="flex flex-col">
+                    <span>Запись на консультацию</span>
+                    <span className="text-xs text-muted-foreground">Родитель выбирает время</span>
                   </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -680,6 +694,13 @@ export function SessionCalendar() {
       <RecurringSessionForm
         open={showRecurringForm}
         onOpenChange={setShowRecurringForm}
+      />
+
+      <ConsultationSlotForm
+        open={showConsultationSlotForm}
+        onOpenChange={setShowConsultationSlotForm}
+        defaultDate={selectedSlot?.date}
+        defaultStartTime={selectedSlot?.time}
       />
 
       <RescheduleSessionDialog
