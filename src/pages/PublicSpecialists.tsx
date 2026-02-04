@@ -50,7 +50,7 @@ interface PublicProfile {
   work_district: string | null;
   position_id: string | null;
   position: { id: string; name: string } | null;
-  organization: { name: string; district: string | null } | null;
+  organization: { id: string; name: string; district: string | null; public_slug: string | null } | null;
 }
 
 export default function PublicSpecialists() {
@@ -111,7 +111,7 @@ export default function PublicSpecialists() {
           work_district,
           position_id,
           position:positions(id, name),
-          organization:organizations(name, district)
+          organization:organizations(id, name, district, public_slug)
         `)
         .eq("is_published", true)
         .eq("is_blocked", false);
@@ -327,10 +327,13 @@ export default function PublicSpecialists() {
                             Частная практика
                           </Badge>
                         ) : specialist.organization?.name && (
-                          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground px-2">
+                          <Link 
+                            to={specialist.organization.public_slug ? `/o/${specialist.organization.public_slug}` : `/organizations`}
+                            className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground px-2 hover:text-primary transition-colors"
+                          >
                             <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
-                            <span className="text-center">{specialist.organization.name}</span>
-                          </div>
+                            <span className="text-center underline-offset-2 hover:underline">{specialist.organization.name}</span>
+                          </Link>
                         )}
                       </div>
                     </CardHeader>
