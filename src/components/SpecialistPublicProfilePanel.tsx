@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera, Wallet, Clock, Percent, Package, MapPin, Monitor, Globe } from "lucide-react";
+import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera, Wallet, Clock, Percent, Package, MapPin, Monitor, Globe, Upload, Trash2 } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
 const COMMON_SPECIALIZATIONS = [
@@ -50,6 +50,8 @@ export function SpecialistPublicProfilePanel() {
   const [newSpecialization, setNewSpecialization] = useState("");
   const [copied, setCopied] = useState(false);
   const [slugError, setSlugError] = useState("");
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Pricing fields
   const [consultationPrice, setConsultationPrice] = useState<number | "">("");
@@ -215,6 +217,94 @@ export function SpecialistPublicProfilePanel() {
 
   const handleRemovePackage = (index: number) => {
     setSessionPackages(sessionPackages.filter((_, i) => i !== index));
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.id) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Ошибка",
+        description: "Можно загружать только изображения",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Ошибка",
+        description: "Максимальный размер файла — 2 МБ",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      // Generate file path
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filePath = `${user.id}/photo.${fileExt}`;
+
+      // Delete old photo if exists
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      // Upload new photo
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update the photo URL with cache buster
+      const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setPublicPhotoUrl(photoUrl);
+
+      toast({
+        title: "Фото загружено",
+        description: "Не забудьте сохранить изменения",
+      });
+    } catch (error: any) {
+      console.error('Photo upload error:', error);
+      toast({
+        title: "Ошибка загрузки",
+        description: error.message || "Не удалось загрузить фото",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!user?.id) return;
+    
+    try {
+      // Try to remove from storage
+      const extensions = ['jpg', 'jpeg', 'png', 'webp'];
+      for (const ext of extensions) {
+        await supabase.storage.from('avatars').remove([`${user.id}/photo.${ext}`]);
+      }
+      
+      setPublicPhotoUrl("");
+      toast({
+        title: "Фото удалено",
+        description: "Не забудьте сохранить изменения",
+      });
+    } catch (error) {
+      console.error('Photo remove error:', error);
+    }
   };
 
   if (isLoading) {
@@ -395,13 +485,11 @@ export function SpecialistPublicProfilePanel() {
             </div>
           )}
 
-          {/* Photo URL */}
+          {/* Photo Upload */}
           <div className="space-y-2">
-            <Label htmlFor="photo-url">
-              Ссылка на фото
-            </Label>
-            <div className="flex gap-4">
-              <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+            <Label>Фото профиля</Label>
+            <div className="flex gap-4 items-start">
+              <div className="relative h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-dashed border-muted-foreground/30">
                 {publicPhotoUrl ? (
                   <img 
                     src={publicPhotoUrl} 
@@ -414,17 +502,47 @@ export function SpecialistPublicProfilePanel() {
                 ) : (
                   <Camera className="h-8 w-8 text-muted-foreground" />
                 )}
+                {isUploadingPhoto && (
+                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                )}
               </div>
-              <div className="flex-1">
-                <Input
-                  id="photo-url"
-                  value={publicPhotoUrl}
-                  onChange={(e) => setPublicPhotoUrl(e.target.value)}
-                  placeholder="https://..."
-                  type="url"
+              <div className="flex-1 space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Рекомендуемый размер: 300x300 px
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingPhoto}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {publicPhotoUrl ? "Заменить" : "Загрузить"}
+                  </Button>
+                  {publicPhotoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemovePhoto}
+                      disabled={isUploadingPhoto}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Удалить
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG или WebP. Максимум 2 МБ. Рекомендуемый размер: 300×300 px
                 </p>
               </div>
             </div>
