@@ -9,8 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import LandingFooter from "@/components/LandingFooter";
-import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2 } from "lucide-react";
+import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2, Wallet, Clock } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
+
+interface SessionPackage {
+  sessions: number;
+  price: number;
+  discount?: number;
+}
 
 interface PublicProfile {
   id: string;
@@ -23,6 +29,9 @@ interface PublicProfile {
   achievements: string | null;
   specializations: string[] | null;
   is_private_practice: boolean;
+  consultation_price: number | null;
+  consultation_duration: number | null;
+  session_packages: SessionPackage[] | null;
   position: { name: string } | null;
   organization: { name: string; district: string | null } | null;
 }
@@ -49,6 +58,9 @@ export default function PublicSpecialists() {
           achievements,
           specializations,
           is_private_practice,
+          consultation_price,
+          consultation_duration,
+          session_packages,
           position:positions(name),
           organization:organizations(name, district)
         `)
@@ -56,7 +68,7 @@ export default function PublicSpecialists() {
         .eq("is_blocked", false);
 
       if (error) throw error;
-      return data as PublicProfile[];
+      return data as unknown as PublicProfile[];
     },
   });
 
@@ -262,6 +274,38 @@ export default function PublicSpecialists() {
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           <span>{specialist.organization.district}</span>
+                        </div>
+                      )}
+
+                      {/* Pricing info for private practice */}
+                      {specialist.is_private_practice && specialist.consultation_price && (
+                        <div className="pt-2 mt-2 border-t space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-1 text-muted-foreground">
+                              <Wallet className="h-3.5 w-3.5" />
+                              Консультация
+                            </span>
+                            <span className="font-semibold text-primary">
+                              {specialist.consultation_price.toLocaleString('ru-RU')} ₽
+                            </span>
+                          </div>
+                          {specialist.consultation_duration && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              {specialist.consultation_duration} мин
+                            </div>
+                          )}
+                          {specialist.session_packages && specialist.session_packages.length > 0 && (
+                            <div className="text-xs text-muted-foreground">
+                              {specialist.session_packages.map((pkg, i) => (
+                                <span key={i}>
+                                  {i > 0 && ' • '}
+                                  {pkg.sessions} сес. — {pkg.price.toLocaleString('ru-RU')} ₽
+                                  {pkg.discount ? ` (-${pkg.discount}%)` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                       

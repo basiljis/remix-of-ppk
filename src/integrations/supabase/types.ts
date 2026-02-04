@@ -1979,6 +1979,8 @@ export type Database = {
         Row: {
           achievements: string | null
           avatar_url: string | null
+          consultation_duration: number | null
+          consultation_price: number | null
           created_at: string
           education: string | null
           email: string
@@ -1996,6 +1998,7 @@ export type Database = {
           public_photo_url: string | null
           public_slug: string | null
           region_id: string
+          session_packages: Json | null
           specializations: string[] | null
           updated_at: string
           work_experience: string | null
@@ -2003,6 +2006,8 @@ export type Database = {
         Insert: {
           achievements?: string | null
           avatar_url?: string | null
+          consultation_duration?: number | null
+          consultation_price?: number | null
           created_at?: string
           education?: string | null
           email: string
@@ -2020,6 +2025,7 @@ export type Database = {
           public_photo_url?: string | null
           public_slug?: string | null
           region_id: string
+          session_packages?: Json | null
           specializations?: string[] | null
           updated_at?: string
           work_experience?: string | null
@@ -2027,6 +2033,8 @@ export type Database = {
         Update: {
           achievements?: string | null
           avatar_url?: string | null
+          consultation_duration?: number | null
+          consultation_price?: number | null
           created_at?: string
           education?: string | null
           email?: string
@@ -2044,6 +2052,7 @@ export type Database = {
           public_photo_url?: string | null
           public_slug?: string | null
           region_id?: string
+          session_packages?: Json | null
           specializations?: string[] | null
           updated_at?: string
           work_experience?: string | null

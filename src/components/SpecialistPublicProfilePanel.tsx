@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera } from "lucide-react";
+import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera, Wallet, Clock, Percent, Package } from "lucide-react";
 
 const COMMON_SPECIALIZATIONS = [
   "Педагог-психолог",
@@ -24,6 +24,12 @@ const COMMON_SPECIALIZATIONS = [
   "ABA-терапевт",
   "Сенсорная интеграция",
 ];
+
+interface SessionPackage {
+  sessions: number;
+  price: number;
+  discount?: number;
+}
 
 export function SpecialistPublicProfilePanel() {
   const { user, profile } = useAuth();
@@ -41,6 +47,11 @@ export function SpecialistPublicProfilePanel() {
   const [newSpecialization, setNewSpecialization] = useState("");
   const [copied, setCopied] = useState(false);
   const [slugError, setSlugError] = useState("");
+  
+  // Pricing fields
+  const [consultationPrice, setConsultationPrice] = useState<number | "">("");
+  const [consultationDuration, setConsultationDuration] = useState<number>(60);
+  const [sessionPackages, setSessionPackages] = useState<SessionPackage[]>([]);
 
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["specialist-public-profile", user?.id],
@@ -53,6 +64,7 @@ export function SpecialistPublicProfilePanel() {
           id, full_name, is_published, public_slug, public_bio, 
           public_photo_url, work_experience, education, achievements, 
           specializations, is_private_practice,
+          consultation_price, consultation_duration, session_packages,
           organization:organizations(is_published, allow_employee_publishing)
         `)
         .eq("id", user.id)
@@ -74,6 +86,9 @@ export function SpecialistPublicProfilePanel() {
       setEducation(profileData.education || "");
       setAchievements(profileData.achievements || "");
       setSpecializations(profileData.specializations || []);
+      setConsultationPrice(profileData.consultation_price || "");
+      setConsultationDuration(profileData.consultation_duration || 60);
+      setSessionPackages(Array.isArray(profileData.session_packages) ? profileData.session_packages as unknown as SessionPackage[] : []);
     }
   }, [profileData]);
 
@@ -116,6 +131,9 @@ export function SpecialistPublicProfilePanel() {
           education: education || null,
           achievements: achievements || null,
           specializations: specializations.length > 0 ? specializations : null,
+          consultation_price: consultationPrice || null,
+          consultation_duration: consultationDuration,
+          session_packages: sessionPackages.length > 0 ? JSON.parse(JSON.stringify(sessionPackages)) : [],
         })
         .eq("id", user.id);
 
@@ -169,6 +187,20 @@ export function SpecialistPublicProfilePanel() {
 
   const handleRemoveSpecialization = (spec: string) => {
     setSpecializations(specializations.filter(s => s !== spec));
+  };
+
+  const handleAddPackage = () => {
+    setSessionPackages([...sessionPackages, { sessions: 5, price: 0, discount: 0 }]);
+  };
+
+  const handleUpdatePackage = (index: number, field: keyof SessionPackage, value: number) => {
+    const updated = [...sessionPackages];
+    updated[index] = { ...updated[index], [field]: value };
+    setSessionPackages(updated);
+  };
+
+  const handleRemovePackage = (index: number) => {
+    setSessionPackages(sessionPackages.filter((_, i) => i !== index));
   };
 
   if (isLoading) {
@@ -439,6 +471,155 @@ export function SpecialistPublicProfilePanel() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pricing Card - Only for private practice */}
+      {profileData?.is_private_practice && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Стоимость услуг
+            </CardTitle>
+            <CardDescription>
+              Информация о ценах для родителей на публичной странице
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Single consultation */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="consultation-price" className="flex items-center gap-2">
+                  <Wallet className="h-4 w-4" />
+                  Стоимость консультации
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="consultation-price"
+                    type="number"
+                    min={0}
+                    value={consultationPrice}
+                    onChange={(e) => setConsultationPrice(e.target.value ? Number(e.target.value) : "")}
+                    placeholder="2500"
+                  />
+                  <span className="text-sm text-muted-foreground">₽</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="consultation-duration" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Продолжительность
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="consultation-duration"
+                    type="number"
+                    min={15}
+                    step={15}
+                    value={consultationDuration}
+                    onChange={(e) => setConsultationDuration(Number(e.target.value) || 60)}
+                    placeholder="60"
+                  />
+                  <span className="text-sm text-muted-foreground">мин</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Session packages */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Пакеты занятий
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddPackage}
+                  className="gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Добавить пакет
+                </Button>
+              </div>
+              
+              {sessionPackages.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Добавьте пакеты сессий со скидками для привлечения клиентов
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {sessionPackages.map((pkg, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                      <div className="flex-1 grid grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Сессий</Label>
+                          <Input
+                            type="number"
+                            min={2}
+                            value={pkg.sessions}
+                            onChange={(e) => handleUpdatePackage(index, 'sessions', Number(e.target.value))}
+                            className="h-8"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Цена (₽)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={pkg.price}
+                            onChange={(e) => handleUpdatePackage(index, 'price', Number(e.target.value))}
+                            className="h-8"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Percent className="h-3 w-3" />
+                            Скидка
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={pkg.discount || 0}
+                            onChange={(e) => handleUpdatePackage(index, 'discount', Number(e.target.value))}
+                            className="h-8"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => handleRemovePackage(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {consultationPrice && sessionPackages.length > 0 && (
+                <div className="p-3 bg-muted rounded-lg text-sm">
+                  <p className="font-medium mb-2">Предпросмотр:</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>• 1 консультация: {Number(consultationPrice).toLocaleString('ru-RU')} ₽</li>
+                    {sessionPackages.map((pkg, i) => (
+                      <li key={i}>
+                        • {pkg.sessions} {pkg.sessions === 1 ? 'сессия' : pkg.sessions < 5 ? 'сессии' : 'сессий'}: {pkg.price.toLocaleString('ru-RU')} ₽
+                        {pkg.discount ? ` (скидка ${pkg.discount}%)` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Save button */}
       <div className="flex justify-end">
