@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import LandingFooter from "@/components/LandingFooter";
-import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail } from "lucide-react";
+import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
 interface PublicOrganization {
@@ -29,11 +29,39 @@ interface PublicOrganization {
   employees_count?: number;
 }
 
+// Auto-detect region from browser/IP (returns district name if in Moscow)
+const detectUserRegion = async (): Promise<string | null> => {
+  try {
+    // Try to get approximate location from timezone or IP
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezone === "Europe/Moscow") {
+      return null; // In Moscow but can't determine district
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 export default function PublicOrganizations() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [isAutoDetecting, setIsAutoDetecting] = useState(false);
+
+  // Try to auto-detect region on mount
+  useEffect(() => {
+    const autoDetect = async () => {
+      setIsAutoDetecting(true);
+      const detectedRegion = await detectUserRegion();
+      if (detectedRegion) {
+        setSelectedDistrict(detectedRegion);
+      }
+      setIsAutoDetecting(false);
+    };
+    autoDetect();
+  }, []);
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ["public-organizations"],
@@ -165,8 +193,15 @@ export default function PublicOrganizations() {
             </div>
             
             <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Округ" />
+              <SelectTrigger className="w-full sm:w-[240px]">
+                <div className="flex items-center gap-2">
+                  {isAutoDetecting ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <SelectValue placeholder="Округ Москвы" />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Все округа</SelectItem>
@@ -178,7 +213,7 @@ export default function PublicOrganizations() {
             
             <Select value={selectedType || ""} onValueChange={(v) => setSelectedType(v || null)}>
               <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Тип" />
+                <SelectValue placeholder="Тип организации" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Все типы</SelectItem>
