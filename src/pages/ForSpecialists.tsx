@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import LandingFooter from "@/components/LandingFooter";
+import { PublicNavbar } from "@/components/PublicNavbar";
 import { 
   GraduationCap, ClipboardList, Calendar, FileText, 
-  BarChart3, CheckCircle, ArrowRight, Heart, ChevronLeft,
+  BarChart3, CheckCircle, ArrowRight, ChevronLeft,
   Users, Clock, BookOpen, Target
 } from "lucide-react";
 
@@ -65,42 +65,10 @@ const roles = [
 export default function ForSpecialists() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Heart className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">universum.</span>
-          </Link>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/for-organizations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Организациям
-            </Link>
-            <Link to="/for-specialists" className="text-sm font-medium text-foreground">
-              Педагогам
-            </Link>
-            <Link to="/for-parents" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Родителям
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link to="/auth">
-              <Button variant="outline" size="sm">Вход</Button>
-            </Link>
-            <Link to="/auth">
-              <Button size="sm">Регистрация</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PublicNavbar currentPage="specialists" />
 
       {/* Hero */}
-      <section className="pt-32 pb-16 px-4 bg-gradient-to-br from-orange-500/10 to-orange-600/5">
+      <section className="pt-40 pb-16 px-4 bg-gradient-to-br from-orange-500/10 to-orange-600/5">
         <div className="container mx-auto max-w-4xl">
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
             <ChevronLeft className="h-4 w-4" />
