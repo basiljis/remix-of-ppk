@@ -299,10 +299,11 @@ export default function PublicSpecialists() {
               </p>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredSpecialists.map((specialist) => (
-                  <Card key={specialist.id} className="overflow-hidden hover:shadow-lg transition-all">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start gap-4">
-                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <Card key={specialist.id} className="overflow-hidden hover:shadow-lg transition-all group">
+                    <CardHeader className="pb-4 pt-6">
+                      {/* Photo centered at top */}
+                      <div className="flex justify-center mb-4">
+                        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
                           {specialist.public_photo_url ? (
                             <img 
                               src={specialist.public_photo_url} 
@@ -310,26 +311,27 @@ export default function PublicSpecialists() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <User className="h-8 w-8 text-muted-foreground" />
+                            <User className="h-10 w-10 text-muted-foreground" />
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg truncate">{specialist.full_name}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1">
-                            <Briefcase className="h-3 w-3" />
-                            {specialist.position?.name || "Специалист"}
-                          </CardDescription>
-                          {specialist.is_private_practice ? (
-                            <Badge variant="secondary" className="mt-2 text-xs">
-                              Частная практика
-                            </Badge>
-                          ) : specialist.organization?.name && (
-                            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                              <Building2 className="h-3 w-3" />
-                              <span className="truncate">{specialist.organization.name}</span>
-                            </div>
-                          )}
-                        </div>
+                      </div>
+                      {/* Name and position centered */}
+                      <div className="text-center space-y-2">
+                        <CardTitle className="text-lg leading-tight">{specialist.full_name}</CardTitle>
+                        <CardDescription className="flex items-center justify-center gap-1.5">
+                          <Briefcase className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span>{specialist.position?.name || "Специалист"}</span>
+                        </CardDescription>
+                        {specialist.is_private_practice ? (
+                          <Badge variant="secondary" className="text-xs">
+                            Частная практика
+                          </Badge>
+                        ) : specialist.organization?.name && (
+                          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                            <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span className="line-clamp-1">{specialist.organization.name}</span>
+                          </div>
+                        )}
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
