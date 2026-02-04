@@ -152,7 +152,7 @@ function FeaturesSection() {
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-4">Возможности системы</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Полный набор инструментов для автоматизации работы психолого-педагогической службы
+            Инструменты для организаций, специалистов частной практики и родителей
           </p>
         </div>
         
