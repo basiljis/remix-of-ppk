@@ -89,3 +89,9 @@ verify_jwt = false
 
 [functions.cancel-session]
 verify_jwt = false
+
+[functions.create-user]
+verify_jwt = false
+
+[functions.sync-auth-users]
+verify_jwt = false

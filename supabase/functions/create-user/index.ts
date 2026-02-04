@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +16,7 @@ interface CreateUserRequest {
   role: "admin" | "regional_operator" | "user";
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -26,6 +25,7 @@ serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!supabaseUrl || !serviceKey) {
+    console.error("Missing service credentials");
     return new Response(
       JSON.stringify({ error: "Service credentials are not configured" }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -38,12 +38,20 @@ serve(async (req) => {
   const authHeader = req.headers.get("Authorization") || "";
   const jwt = authHeader.replace("Bearer ", "");
 
+  if (!jwt) {
+    return new Response(JSON.stringify({ error: "Unauthorized - no token" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
   const authed = createClient(supabaseUrl, serviceKey, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
 
   const { data: me, error: meErr } = await authed.auth.getUser();
   if (meErr || !me?.user) {
+    console.error("Auth error:", meErr);
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -54,6 +62,8 @@ serve(async (req) => {
   const { data: isAdminData, error: roleErr } = await admin
     .rpc("has_role", { _user_id: me.user.id, _role: "admin" });
 
+  console.log("Admin check:", { isAdminData, roleErr, userId: me.user.id });
+
   if (roleErr || !isAdminData) {
     return new Response(JSON.stringify({ error: "Forbidden: Admin role required" }), {
       status: 403,
@@ -63,6 +73,7 @@ serve(async (req) => {
 
   try {
     const body: CreateUserRequest = await req.json();
+    console.log("Creating user with data:", { ...body, password: "[REDACTED]" });
 
     // Validate required fields
     if (!body.email || !body.password || !body.full_name || !body.phone || !body.position_id || !body.region_id || !body.role) {
@@ -83,7 +94,7 @@ serve(async (req) => {
     });
 
     if (authError) {
-      console.error("Auth error:", authError);
+      console.error("Auth error creating user:", authError);
       return new Response(
         JSON.stringify({ error: authError.message }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -96,6 +107,8 @@ serve(async (req) => {
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    console.log("User created in auth:", authData.user.id);
 
     // Create user profile
     const { error: profileError } = await admin.from("profiles").insert({
@@ -119,6 +132,8 @@ serve(async (req) => {
       );
     }
 
+    console.log("Profile created");
+
     // Assign role to user
     const { error: roleError } = await admin.from("user_roles").insert({
       user_id: authData.user.id,
@@ -132,6 +147,8 @@ serve(async (req) => {
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    console.log("Role assigned:", body.role);
 
     return new Response(
       JSON.stringify({ 
