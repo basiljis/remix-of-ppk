@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,7 @@ const classLetterOptions = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "З", "И"
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ParentProfile | null>(null);
@@ -97,6 +98,7 @@ export default function ParentDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [bookDialogOpen, setBookDialogOpen] = useState(false);
+  const [preselectedSpecialistId, setPreselectedSpecialistId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState("children");
   const [editChildDialogOpen, setEditChildDialogOpen] = useState(false);
@@ -138,6 +140,23 @@ export default function ParentDashboard() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Handle booking redirect from public specialists page
+  useEffect(() => {
+    const bookParam = searchParams.get("book");
+    const specialistId = searchParams.get("specialist");
+    
+    if (bookParam && !loading && profile) {
+      // Clear URL params to prevent re-triggering
+      setSearchParams({});
+      
+      // Set preselected specialist and open booking dialog
+      if (specialistId) {
+        setPreselectedSpecialistId(specialistId);
+      }
+      setBookDialogOpen(true);
+    }
+  }, [searchParams, loading, profile, setSearchParams]);
 
   const loadData = async () => {
     try {
@@ -1010,10 +1029,16 @@ export default function ParentDashboard() {
         {/* Book Consultation Dialog */}
         <BookConsultationDialog
           open={bookDialogOpen}
-          onOpenChange={setBookDialogOpen}
+          onOpenChange={(open) => {
+            setBookDialogOpen(open);
+            if (!open) {
+              setPreselectedSpecialistId(null);
+            }
+          }}
           parentUserId={profile?.id || ""}
           regionId={profile?.region_id || null}
           children={children.map(c => ({ id: c.id, full_name: c.full_name }))}
+          preselectedSpecialistId={preselectedSpecialistId}
         />
 
         {/* Edit Child Dialog */}

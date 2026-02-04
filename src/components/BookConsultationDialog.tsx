@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,7 @@ interface BookConsultationDialogProps {
   parentUserId: string;
   regionId: string | null;
   children: Array<{ id: string; full_name: string }>;
+  preselectedSpecialistId?: string | null;
 }
 
 interface Organization {
@@ -76,6 +77,7 @@ export function BookConsultationDialog({
   parentUserId,
   regionId,
   children,
+  preselectedSpecialistId,
 }: BookConsultationDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -93,6 +95,31 @@ export function BookConsultationDialog({
   const [specialistSearchQuery, setSpecialistSearchQuery] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
   const [selectedPositionId, setSelectedPositionId] = useState<string>("all");
+
+  // Handle preselected specialist - jump directly to slot selection
+  useEffect(() => {
+    if (open && preselectedSpecialistId) {
+      setBookingMode("specialist");
+      setSelectedSpecialistId(preselectedSpecialistId);
+      setStep("slot");
+    }
+  }, [open, preselectedSpecialistId]);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      // Only reset if no preselected specialist (handled externally)
+      if (!preselectedSpecialistId) {
+        setStep("select");
+        setSelectedOrgId("");
+        setSelectedSpecialistId("");
+        setSelectedSlotId("");
+        setSelectedChildId("");
+        setNotes("");
+        setBookingMode("organization");
+      }
+    }
+  }, [open, preselectedSpecialistId]);
 
   // Fetch positions for filter
   const { data: positions = [] } = useQuery({
