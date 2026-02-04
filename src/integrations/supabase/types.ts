@@ -2001,7 +2001,9 @@ export type Database = {
           session_packages: Json | null
           specializations: string[] | null
           updated_at: string
+          work_district: string | null
           work_experience: string | null
+          work_format: string | null
         }
         Insert: {
           achievements?: string | null
@@ -2028,7 +2030,9 @@ export type Database = {
           session_packages?: Json | null
           specializations?: string[] | null
           updated_at?: string
+          work_district?: string | null
           work_experience?: string | null
+          work_format?: string | null
         }
         Update: {
           achievements?: string | null
@@ -2055,7 +2059,9 @@ export type Database = {
           session_packages?: Json | null
           specializations?: string[] | null
           updated_at?: string
+          work_district?: string | null
           work_experience?: string | null
+          work_format?: string | null
         }
         Relationships: [
           {
