@@ -9,8 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera, Wallet, Clock, Percent, Package } from "lucide-react";
+import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera, Wallet, Clock, Percent, Package, MapPin, Monitor, Globe } from "lucide-react";
+import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
 const COMMON_SPECIALIZATIONS = [
   "Педагог-психолог",
@@ -52,6 +55,10 @@ export function SpecialistPublicProfilePanel() {
   const [consultationPrice, setConsultationPrice] = useState<number | "">("");
   const [consultationDuration, setConsultationDuration] = useState<number>(60);
   const [sessionPackages, setSessionPackages] = useState<SessionPackage[]>([]);
+  
+  // Work format fields
+  const [workFormat, setWorkFormat] = useState<string>("offline");
+  const [workDistrict, setWorkDistrict] = useState<string>("");
 
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["specialist-public-profile", user?.id],
@@ -65,6 +72,7 @@ export function SpecialistPublicProfilePanel() {
           public_photo_url, work_experience, education, achievements, 
           specializations, is_private_practice,
           consultation_price, consultation_duration, session_packages,
+          work_format, work_district,
           organization:organizations(is_published, allow_employee_publishing)
         `)
         .eq("id", user.id)
@@ -89,6 +97,8 @@ export function SpecialistPublicProfilePanel() {
       setConsultationPrice(profileData.consultation_price || "");
       setConsultationDuration(profileData.consultation_duration || 60);
       setSessionPackages(Array.isArray(profileData.session_packages) ? profileData.session_packages as unknown as SessionPackage[] : []);
+      setWorkFormat(profileData.work_format || "offline");
+      setWorkDistrict(profileData.work_district || "");
     }
   }, [profileData]);
 
@@ -134,6 +144,8 @@ export function SpecialistPublicProfilePanel() {
           consultation_price: consultationPrice || null,
           consultation_duration: consultationDuration,
           session_packages: sessionPackages.length > 0 ? JSON.parse(JSON.stringify(sessionPackages)) : [],
+          work_format: workFormat,
+          work_district: workFormat === "online" ? null : (workDistrict || null),
         })
         .eq("id", user.id);
 
@@ -279,6 +291,59 @@ export function SpecialistPublicProfilePanel() {
               checked={isPublished}
               onCheckedChange={setIsPublished}
             />
+          </div>
+
+          {/* Work Format */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Формат работы
+              </Label>
+              <RadioGroup value={workFormat} onValueChange={setWorkFormat} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="offline" id="work-offline" />
+                  <Label htmlFor="work-offline" className="flex items-center gap-1 cursor-pointer">
+                    <MapPin className="h-4 w-4" />
+                    Офлайн
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="online" id="work-online" />
+                  <Label htmlFor="work-online" className="flex items-center gap-1 cursor-pointer">
+                    <Monitor className="h-4 w-4" />
+                    Онлайн
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="both" id="work-both" />
+                  <Label htmlFor="work-both" className="cursor-pointer">
+                    Оба формата
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* District selector - only for offline or both */}
+            {(workFormat === "offline" || workFormat === "both") && (
+              <div className="space-y-2">
+                <Label htmlFor="work-district">Округ Москвы (для офлайн занятий)</Label>
+                <Select value={workDistrict} onValueChange={setWorkDistrict}>
+                  <SelectTrigger id="work-district">
+                    <SelectValue placeholder="Выберите округ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Не указан</SelectItem>
+                    {MOSCOW_DISTRICTS.map(district => (
+                      <SelectItem key={district} value={district}>{district}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Укажите округ, чтобы родители из вашего района могли легко вас найти
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Custom URL */}

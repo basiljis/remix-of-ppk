@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,9 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LandingFooter from "@/components/LandingFooter";
-import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2, Wallet, Clock, MapPinned } from "lucide-react";
+import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2, Wallet, Clock, MapPinned, Globe, Monitor } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
+import { REGIONS } from "@/constants/regions";
 
 // Position types for filtering
 const SPECIALIST_POSITIONS = [
@@ -39,43 +41,19 @@ interface PublicProfile {
   consultation_price: number | null;
   consultation_duration: number | null;
   session_packages: SessionPackage[] | null;
+  work_format: string | null;
+  work_district: string | null;
   position: { name: string } | null;
   organization: { name: string; district: string | null } | null;
 }
 
-// Auto-detect region from browser/IP (returns district name if in Moscow)
-const detectUserRegion = async (): Promise<string | null> => {
-  try {
-    // Try to get approximate location from timezone or IP
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone === "Europe/Moscow") {
-      return null; // In Moscow but can't determine district
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
-
 export default function PublicSpecialists() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [workFormat, setWorkFormat] = useState<"online" | "offline">("offline");
+  const [selectedRegion, setSelectedRegion] = useState<string>("moscow");
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [isAutoDetecting, setIsAutoDetecting] = useState(false);
-
-  // Try to auto-detect region on mount
-  useEffect(() => {
-    const autoDetect = async () => {
-      setIsAutoDetecting(true);
-      const detectedRegion = await detectUserRegion();
-      if (detectedRegion) {
-        setSelectedDistrict(detectedRegion);
-      }
-      setIsAutoDetecting(false);
-    };
-    autoDetect();
-  }, []);
 
   const { data: specialists, isLoading } = useQuery({
     queryKey: ["public-specialists"],
@@ -96,6 +74,8 @@ export default function PublicSpecialists() {
           consultation_price,
           consultation_duration,
           session_packages,
+          work_format,
+          work_district,
           position:positions(name),
           organization:organizations(name, district)
         `)
@@ -114,9 +94,18 @@ export default function PublicSpecialists() {
       specialist.public_bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       specialist.position?.name?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDistrict = !selectedDistrict || selectedDistrict === "all" ||
-      specialist.organization?.district === selectedDistrict ||
-      (selectedDistrict === "private" && specialist.is_private_practice);
+    // Filter by work format
+    const specFormat = specialist.work_format || "offline";
+    const matchesWorkFormat = 
+      specFormat === "both" || 
+      specFormat === workFormat;
+    
+    // Filter by district (only for offline mode and Moscow region)
+    const matchesDistrict = workFormat === "online" || 
+      !selectedDistrict || 
+      selectedDistrict === "all" ||
+      specialist.work_district === selectedDistrict ||
+      specialist.organization?.district === selectedDistrict;
     
     // Match by position name
     const matchesPosition = !selectedPosition || selectedPosition === "all" || (() => {
@@ -133,7 +122,7 @@ export default function PublicSpecialists() {
       }
     })();
     
-    return matchesSearch && matchesDistrict && matchesPosition;
+    return matchesSearch && matchesWorkFormat && matchesDistrict && matchesPosition;
   }) || [];
 
   const handleBooking = (specialistId: string, slug: string | null) => {
@@ -192,6 +181,22 @@ export default function PublicSpecialists() {
       {/* Filters */}
       <section className="px-4 pb-8">
         <div className="container mx-auto max-w-6xl">
+          {/* Work Format Toggle */}
+          <div className="mb-4">
+            <Tabs value={workFormat} onValueChange={(v) => setWorkFormat(v as "online" | "offline")}>
+              <TabsList className="grid w-full max-w-[300px] grid-cols-2">
+                <TabsTrigger value="offline" className="gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Офлайн
+                </TabsTrigger>
+                <TabsTrigger value="online" className="gap-2">
+                  <Monitor className="h-4 w-4" />
+                  Онлайн
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -203,25 +208,38 @@ export default function PublicSpecialists() {
               />
             </div>
             
-            <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
-              <SelectTrigger className="w-full sm:w-[240px]">
+            {/* Region filter */}
+            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <div className="flex items-center gap-2">
-                  {isAutoDetecting ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
-                  )}
-                  <SelectValue placeholder="Округ Москвы" />
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="Регион" />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все округа</SelectItem>
-                <SelectItem value="private">Частная практика</SelectItem>
-                {MOSCOW_DISTRICTS.map(district => (
-                  <SelectItem key={district} value={district}>{district}</SelectItem>
+                {REGIONS.map(region => (
+                  <SelectItem key={region.value} value={region.value}>{region.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* District filter - only for offline mode and Moscow region */}
+            {workFormat === "offline" && selectedRegion === "moscow" && (
+              <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
+                <SelectTrigger className="w-full sm:w-[280px]">
+                  <div className="flex items-center gap-2">
+                    <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
+                    <SelectValue placeholder="Округ Москвы" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все округа</SelectItem>
+                  {MOSCOW_DISTRICTS.map(district => (
+                    <SelectItem key={district} value={district}>{district}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             
             <Select value={selectedPosition || ""} onValueChange={(v) => setSelectedPosition(v || null)}>
               <SelectTrigger className="w-full sm:w-[200px]">
