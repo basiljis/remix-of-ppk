@@ -23,6 +23,7 @@ import { SpecialistWorkloadReport } from "@/components/SpecialistWorkloadReport"
 import { SessionNotificationsPanel } from "@/components/SessionNotificationsPanel";
 import { ParentTestsManagement } from "@/components/ParentTestsManagement";
 import { ParentChildrenManagement } from "@/components/ParentChildrenManagement";
+import { SystemHealthPanel } from "@/components/SystemHealthPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -335,6 +336,12 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
       {activeSubTab === "statistics" && (
         <div className="space-y-6">
           <AdminStatisticsPanel />
+        </div>
+      )}
+
+      {activeSubTab === "system-health" && (
+        <div className="space-y-6">
+          <SystemHealthPanel />
         </div>
       )}
 
