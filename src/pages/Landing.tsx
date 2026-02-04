@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Menu } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -262,15 +264,76 @@ export default function Landing() {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link to="/auth">
+            <Link to="/auth" className="hidden md:block">
               <Button variant="outline" size="sm">Вход</Button>
             </Link>
+            
+            {/* Mobile Menu */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Меню</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground px-3">Каталог</p>
+                    <Link 
+                      to="/specialists" 
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <GraduationCap className="h-4 w-4" />
+                      Найти специалиста
+                    </Link>
+                    <Link 
+                      to="/organizations" 
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <Building2 className="h-4 w-4" />
+                      Найти организацию
+                    </Link>
+                  </div>
+                  
+                  <div className="border-t pt-4 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground px-3">Информация</p>
+                    <Link 
+                      to="/for-organizations" 
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      Организациям
+                    </Link>
+                    <Link 
+                      to="/for-specialists" 
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      Педагогам
+                    </Link>
+                    <Link 
+                      to="/for-parents" 
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      Родителям
+                    </Link>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <Link to="/auth" className="block">
+                      <Button className="w-full">Вход</Button>
+                    </Link>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
-      {/* Secondary navigation bar for public catalog */}
-      <div className="fixed top-16 left-0 right-0 z-40 bg-muted/50 backdrop-blur border-b">
+      {/* Secondary navigation bar for public catalog - hidden on mobile */}
+      <div className="hidden md:block fixed top-16 left-0 right-0 z-40 bg-muted/50 backdrop-blur border-b">
         <div className="container mx-auto flex h-10 items-center justify-center gap-6 px-4">
           <Link 
             to="/specialists" 
@@ -291,7 +354,7 @@ export default function Landing() {
       </div>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-20 px-4">
+      <section className="pt-24 md:pt-40 pb-20 px-4">
         <div className="container mx-auto text-center max-w-4xl">
           <Badge variant="secondary" className="mb-6">
             Развитие. Для каждого
