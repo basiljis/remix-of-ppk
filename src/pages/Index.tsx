@@ -320,50 +320,56 @@ const Index = () => {
               <SidebarTrigger />
               <div className="hidden md:block">
                 <h1 className="text-xl font-bold">universum.</h1>
-                <p className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
-                  <span>{profile?.full_name} — {profile?.positions?.name}</span>
-                  {profile?.organizations?.name && (
-                    <span className="inline-flex items-center gap-1">
-                      <span className="text-muted-foreground/50">•</span>
-                      {profile.organizations.name.length > 30 ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-accent/50 cursor-help">
-                                <Building2 className="h-3 w-3" />
-                                <HelpCircle className="h-3 w-3" />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-xs">
-                              <p className="font-medium">{profile.organizations.name}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-accent/50">
-                          {profile.organizations.name}
+                <TooltipProvider>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="max-w-[200px] truncate cursor-help">
+                          {profile?.full_name}
                         </span>
-                      )}
-                    </span>
-                  )}
-                  {roles.length > 0 && (
-                    <span className="inline-flex items-center gap-1">
-                      <span className="text-muted-foreground/50">•</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        isAdmin ? "bg-destructive/10 text-destructive" :
-                        isDirector ? "bg-orange-500/10 text-orange-600 dark:text-orange-400" :
-                        isOrgAdmin ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
-                        "bg-muted text-muted-foreground"
-                      }`}>
-                        {isAdmin ? "Администратор" :
-                         isDirector ? "Руководитель" :
-                         isOrgAdmin ? "Админ организации" :
-                         roles.some(r => r.role === "regional_operator") ? "Региональный оператор" :
-                         "Специалист"}
-                      </span>
-                    </span>
-                  )}
-                </p>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{profile?.full_name}</p>
+                        <p className="text-xs text-muted-foreground">{profile?.positions?.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    {profile?.organizations?.name && (
+                      <>
+                        <span className="text-muted-foreground/50">•</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-accent/50 cursor-help max-w-[180px] truncate">
+                              <Building2 className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{profile.organizations.name}</span>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-xs">
+                            <p className="font-medium">{profile.organizations.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </>
+                    )}
+                    
+                    {roles.length > 0 && (
+                      <>
+                        <span className="text-muted-foreground/50">•</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${
+                          isAdmin ? "bg-destructive/10 text-destructive" :
+                          isDirector ? "bg-orange-500/10 text-orange-600 dark:text-orange-400" :
+                          isOrgAdmin ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
+                          "bg-muted text-muted-foreground"
+                        }`}>
+                          {isAdmin ? "Админ" :
+                           isDirector ? "Рук-ль" :
+                           isOrgAdmin ? "Орг-админ" :
+                           roles.some(r => r.role === "regional_operator") ? "Рег. оп." :
+                           "Спец."}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </TooltipProvider>
               </div>
             </div>
             <div className="flex items-center gap-3">
