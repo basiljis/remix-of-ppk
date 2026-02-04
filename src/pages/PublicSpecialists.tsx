@@ -12,7 +12,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LandingFooter from "@/components/LandingFooter";
 import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2, Wallet, Clock, MapPinned, Globe, Monitor } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
-import { REGIONS } from "@/constants/regions";
 
 // Position types for filtering
 const SPECIALIST_POSITIONS = [
@@ -20,6 +19,9 @@ const SPECIALIST_POSITIONS = [
   { value: "speech_therapist", label: "Учитель-логопед" },
   { value: "defectologist", label: "Учитель-дефектолог" },
 ] as const;
+
+// Moscow region ID in the database
+const MOSCOW_REGION_ID = "77";
 
 interface SessionPackage {
   sessions: number;
@@ -51,9 +53,22 @@ export default function PublicSpecialists() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [workFormat, setWorkFormat] = useState<"online" | "offline">("offline");
-  const [selectedRegion, setSelectedRegion] = useState<string>("moscow");
+  const [selectedRegion, setSelectedRegion] = useState<string>(MOSCOW_REGION_ID);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+
+  // Fetch regions from database
+  const { data: regions = [] } = useQuery({
+    queryKey: ["public-regions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("regions")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const { data: specialists, isLoading } = useQuery({
     queryKey: ["public-specialists"],
@@ -217,14 +232,14 @@ export default function PublicSpecialists() {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                {REGIONS.map(region => (
-                  <SelectItem key={region.value} value={region.value}>{region.label}</SelectItem>
+                {regions.map(region => (
+                  <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
             {/* District filter - only for offline mode and Moscow region */}
-            {workFormat === "offline" && selectedRegion === "moscow" && (
+            {workFormat === "offline" && selectedRegion === MOSCOW_REGION_ID && (
               <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
                 <SelectTrigger className="w-full sm:w-[280px]">
                   <div className="flex items-center gap-2">
