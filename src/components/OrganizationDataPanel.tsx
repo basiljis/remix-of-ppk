@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save, Link as LinkIcon, Copy, Check, Upload, Building2, Eye, EyeOff, Image as ImageIcon, X } from "lucide-react";
 
-const PRODUCTION_DOMAIN = "https://ppk.profilaktika.site";
+const PRODUCTION_DOMAIN = "https://unvrsm.ru";
 
 export function OrganizationDataPanel() {
   const { profile, isAdmin } = useAuth();
