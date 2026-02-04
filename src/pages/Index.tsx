@@ -283,8 +283,8 @@ const Index = () => {
       case "organization-statistics":
       case "organization-kpi":
       case "organization-holidays":
+      case "organization-holiday-requests":
       case "organization-settings":
-      case "organization-requests":
         // Private specialists cannot access Organization module
         if (isPrivateSpecialist) {
           return (
