@@ -1,4 +1,4 @@
-import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText, Building, Download, Crown, Sparkles } from "lucide-react";
+import { ClipboardList, Database, BarChart3, BookOpen, Settings, Calendar, Users, Wallet, Cog, Info, FileText, Building, Download, Crown, Sparkles, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -254,6 +254,30 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
     enabled: !!profile?.organization_id && canSeeOrganization,
     refetchInterval: 60000,
   });
+
+  // Fetch organization publishing settings to check if employee can publish profile
+  const { data: organizationSettings } = useQuery({
+    queryKey: ["sidebar-org-publishing", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return null;
+      
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("is_published, allow_employee_publishing")
+        .eq("id", profile.organization_id)
+        .single();
+
+      if (error) return null;
+      return data;
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  // Check if user can access publication section
+  // Private specialists can always access, org employees need permission
+  const canAccessPublication = isPrivateSpecialist || 
+    !profile?.organization_id || // No organization = can publish
+    (organizationSettings?.is_published && organizationSettings?.allow_employee_publishing);
 
   type MenuItem = {
     id: string;
@@ -721,6 +745,40 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Publication section - visible if allowed by organization */}
+        {canAccessPublication && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Globe className="h-3 w-3" />
+              Публикация
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton
+                        onClick={() => onTabChange("public-profile")}
+                        className={`w-full justify-start gap-3 ${
+                          activeTab === "public-profile" 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                      >
+                        <Globe className="h-4 w-4" />
+                        {state !== "collapsed" && <span>Мой публичный профиль</span>}
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Мой публичный профиль</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Admin section */}
         {isAdmin && (

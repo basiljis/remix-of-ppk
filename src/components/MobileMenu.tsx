@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, ClipboardList, Database, BarChart3, BookOpen, Settings, ChevronDown, Users } from "lucide-react";
+import { Menu, ClipboardList, Database, BarChart3, BookOpen, Settings, ChevronDown, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -9,6 +9,7 @@ interface MobileMenuProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   isAdmin?: boolean;
+  canAccessPublication?: boolean;
 }
 
 // Core feature - separate highlighted item
@@ -32,6 +33,9 @@ const instructionsItem = {
     { id: "instructions-legal", label: "НПБ" },
   ]
 };
+
+// Publication item
+const publicationItem = { id: "public-profile", label: "Публичный профиль", icon: Globe };
 
 const adminItems = { 
   id: "administration", 
@@ -58,7 +62,7 @@ const adminItems = {
   ]
 };
 
-export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMenuProps) => {
+export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true, canAccessPublication = true }: MobileMenuProps) => {
   const [open, setOpen] = useState(false);
 
   const handleTabClick = (tabId: string) => {
@@ -156,6 +160,22 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true }: MobileMen
               })}
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Publication section */}
+          {canAccessPublication && (
+            <>
+              <Separator className="my-3" />
+              <p className="text-xs font-medium text-muted-foreground px-3">Публикация</p>
+              <Button
+                variant={activeTab === publicationItem.id ? "default" : "ghost"}
+                className="w-full justify-start gap-3"
+                onClick={() => handleTabClick(publicationItem.id)}
+              >
+                <publicationItem.icon className="h-4 w-4" />
+                {publicationItem.label}
+              </Button>
+            </>
+          )}
 
           {/* Admin section */}
           {isAdmin && (

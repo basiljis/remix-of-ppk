@@ -32,6 +32,7 @@ const Administration = lazy(() => import("@/components/Administration").then(m =
 const ScheduleModule = lazy(() => import("@/components/ScheduleModule").then(m => ({ default: m.ScheduleModule })));
 const OrganizationModule = lazy(() => import("@/components/OrganizationModule").then(m => ({ default: m.OrganizationModule })));
 const ChildCardSection = lazy(() => import("@/components/ChildCardSection").then(m => ({ default: m.ChildCardSection })));
+const SpecialistPublicProfilePanel = lazy(() => import("@/components/SpecialistPublicProfilePanel").then(m => ({ default: m.SpecialistPublicProfilePanel })));
 const InstallPrompt = lazy(() => import("@/components/InstallPrompt"));
 
 const Index = () => {
@@ -69,7 +70,30 @@ const Index = () => {
     enabled: !!user && !!profile?.organization_id,
   });
   
+  // Check organization publishing settings for publication access
+  const { data: organizationSettings } = useQuery({
+    queryKey: ["index-org-publishing", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return null;
+      
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("is_published, allow_employee_publishing")
+        .eq("id", profile.organization_id)
+        .single();
+
+      if (error) return null;
+      return data;
+    },
+    enabled: !!profile?.organization_id,
+  });
+
   const hasOrganizationAccess = hasOrganizationSubscription || employeePermissions?.org_view || false;
+  
+  // Check if user can access publication section
+  const canAccessPublication = isPrivateSpecialist || 
+    !profile?.organization_id || 
+    (organizationSettings?.is_published && organizationSettings?.allow_employee_publishing);
   
   // Автоматический таймаут сессии 15 минут
   useSessionTimeout();
@@ -304,6 +328,12 @@ const Index = () => {
             <p className="text-muted-foreground">У вас нет доступа к этому разделу</p>
           </div>
         );
+      case "public-profile":
+        return (
+          <Suspense fallback={loadingFallback}>
+            <SpecialistPublicProfilePanel />
+          </Suspense>
+        );
       default:
         return null;
     }
@@ -406,7 +436,7 @@ const Index = () => {
               
               <div className="h-8 w-px bg-border hidden lg:block" />
               <div className="flex items-center gap-2">
-                <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
+                <MobileMenu activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} canAccessPublication={canAccessPublication} />
                 <NotificationsDialog onNavigate={setActiveTab} />
                 <button
                   onClick={() => navigate("/profile")}
