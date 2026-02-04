@@ -50,16 +50,21 @@ const menuItems = [
 ];
 
 // Instructions module - separate highlighted section with subsections by module
+// Filtered dynamically based on user access in the component
+const getInstructionsSubItems = (canSeePPK: boolean, canAccessSchedule: boolean, canSeeOrganization: boolean) => {
+  const items = [];
+  if (canSeePPK) items.push({ id: "instructions-ppk", label: "ППк" });
+  if (canAccessSchedule) items.push({ id: "instructions-schedule", label: "Расписание" });
+  if (canSeeOrganization) items.push({ id: "instructions-organization", label: "Организация" });
+  // НПБ (legal) always visible for all users
+  items.push({ id: "instructions-legal", label: "НПБ" });
+  return items;
+};
+
 const instructionsItem = { 
   id: "instructions-module", 
   label: "Инструкции", 
   icon: BookOpen,
-  subItems: [
-    { id: "instructions-ppk", label: "ППк" },
-    { id: "instructions-schedule", label: "Расписание" },
-    { id: "instructions-organization", label: "Организация" },
-    { id: "instructions-legal", label: "НПБ" },
-  ]
 };
 
 // Separate child card item - highlighted as core feature
@@ -442,7 +447,9 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
           <SidebarGroupContent>
             <SidebarMenu>
               {(() => {
-                const isActive = instructionsItem.subItems.some(sub => activeTab === sub.id);
+                const canAccessScheduleMenu = subscriptionStatus.canAccessSchedule || subscriptionStatus.isTrialActive || isAdmin;
+                const instructionsSubItems = getInstructionsSubItems(canSeePPK, canAccessScheduleMenu, canSeeOrganization);
+                const isActive = instructionsSubItems.some(sub => activeTab === sub.id);
                 
                 return (
                   <Collapsible
@@ -473,7 +480,7 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                         {state === "collapsed" && (
                           <TooltipContent side="right" className="flex flex-col gap-1">
                             <p className="font-medium">{instructionsItem.label}</p>
-                            {instructionsItem.subItems.map((subItem) => (
+                            {instructionsSubItems.map((subItem) => (
                               <button
                                 key={subItem.id}
                                 onClick={() => onTabChange(subItem.id)}
@@ -487,7 +494,7 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                       </Tooltip>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {instructionsItem.subItems.map((subItem) => {
+                          {instructionsSubItems.map((subItem) => {
                             const isSubActive = activeTab === subItem.id;
                             return (
                               <SidebarMenuSubItem key={subItem.id}>
