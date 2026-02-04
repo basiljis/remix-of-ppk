@@ -340,14 +340,27 @@ export default function PublicOrganizations() {
                 <CardTitle className="text-lg">Контактная информация</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {/* Region/City */}
+                {singleOrganization.region_id && (
+                  <div className="flex items-start gap-3">
+                    <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium">
+                        {regions.find(r => r.id === singleOrganization.region_id)?.name || "Россия"}
+                      </p>
+                      {singleOrganization.district && (
+                        <p className="text-sm text-muted-foreground">{singleOrganization.district}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Address */}
                 {singleOrganization.address && (
                   <div className="flex items-start gap-3">
                     <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-medium">{singleOrganization.address}</p>
-                      {singleOrganization.district && (
-                        <p className="text-sm text-muted-foreground">{singleOrganization.district}</p>
-                      )}
                       {singleOrganization.metro_station && (
                         <p className="text-sm text-muted-foreground">м. {singleOrganization.metro_station}</p>
                       )}
@@ -385,6 +398,11 @@ export default function PublicOrganizations() {
                       {singleOrganization.website}
                     </a>
                   </div>
+                )}
+
+                {/* Show message if no contact info at all */}
+                {!singleOrganization.region_id && !singleOrganization.address && !singleOrganization.phone && !singleOrganization.email && !singleOrganization.website && (
+                  <p className="text-muted-foreground text-sm">Контактная информация не указана</p>
                 )}
               </CardContent>
             </Card>
