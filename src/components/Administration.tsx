@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar, Briefcase, Shield, ClipboardList, Baby } from "lucide-react";
+import { Building, Settings, Download, Upload, FileSpreadsheet, FileText, Users, BarChart3, Mail, CreditCard, Calendar, Briefcase, Shield, ClipboardList, Baby, Globe } from "lucide-react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InstructionsEditor } from "@/components/InstructionsEditor";
 import { OrganizationsManagement } from "@/components/OrganizationsManagement";
@@ -24,6 +24,7 @@ import { SessionNotificationsPanel } from "@/components/SessionNotificationsPane
 import { ParentTestsManagement } from "@/components/ParentTestsManagement";
 import { ParentChildrenManagement } from "@/components/ParentChildrenManagement";
 import { SystemHealthPanel } from "@/components/SystemHealthPanel";
+import { SiteAnalyticsPanel } from "@/components/SiteAnalyticsPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import {
@@ -397,6 +398,12 @@ export const Administration = ({ activeSubTab = "access-requests" }: Administrat
             </CardContent>
           </Card>
           <SubscriptionsDashboard />
+        </div>
+      )}
+
+      {activeSubTab === "site-analytics" && (
+        <div className="space-y-6">
+          <SiteAnalyticsPanel />
         </div>
       )}
 

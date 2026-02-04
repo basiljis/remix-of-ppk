@@ -49,6 +49,7 @@ const adminItems = {
     { id: "administration-organizations", label: "Организации" },
     { id: "administration-subscriptions", label: "Подписки" },
     { id: "administration-analytics", label: "Аналитика" },
+    { id: "administration-site-analytics", label: "SMM аналитика" },
     { id: "administration-payment-logs", label: "Логи платежей" },
     { id: "administration-checklist", label: "Чеклист" },
     { id: "administration-parent-tests", label: "Тесты родителей" },
