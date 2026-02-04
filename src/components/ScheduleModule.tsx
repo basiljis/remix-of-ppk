@@ -13,11 +13,12 @@ interface ScheduleModuleProps {
 
 export function ScheduleModule({ activeSubTab = "calendar" }: ScheduleModuleProps) {
   const { isAdmin, roles } = useAuth();
-  const { hasActiveSubscription, isTrialActive } = useSubscriptionStatus();
+  const { canAccessSchedule: hasSubscriptionAccess, isTrialActive } = useSubscriptionStatus();
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
   const isRegionalOperator = roles.some((r) => r.role === "regional_operator");
-  const canAccessSchedule = hasActiveSubscription || isTrialActive || isAdmin;
+  // Доступ при: индивидуальной подписке, подписке организации, триале или для админа
+  const canAccessSchedule = hasSubscriptionAccess || isTrialActive || isAdmin;
 
   if (!canAccessSchedule) {
     return (
@@ -76,7 +77,7 @@ export function ScheduleModule({ activeSubTab = "calendar" }: ScheduleModuleProp
             Управление занятиями, детьми и рабочим временем
           </p>
         </div>
-        {!hasActiveSubscription && isTrialActive && (
+        {!hasSubscriptionAccess && isTrialActive && (
           <Badge variant="outline" className="bg-primary/10">
             Пробный период
           </Badge>

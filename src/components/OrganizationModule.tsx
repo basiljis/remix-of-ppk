@@ -26,7 +26,7 @@ interface OrganizationModuleProps {
 export function OrganizationModule({ activeSubTab = "employees" }: OrganizationModuleProps) {
   const { roles, profile, isAdmin, user } = useAuth();
   const { hasOrganizationSubscription, organizationSubscriptionEndDate, loading: subscriptionLoading } = useOrganizationSubscription();
-  const { isTrialActive } = useSubscriptionStatus();
+  const { isTrialActive, canAccessOrganization: hasSubscriptionOrgAccess } = useSubscriptionStatus();
   
   const isOrgAdmin = roles.some((r) => r.role === "organization_admin");
   const isDirector = roles.some((r) => r.role === "director");
@@ -57,7 +57,7 @@ export function OrganizationModule({ activeSubTab = "employees" }: OrganizationM
 
   // Check if organization subscription is required
   // Allow access during trial period, for admins, or with active org subscription
-  const hasRequiredSubscription = isAdmin || isTrialActive || hasOrganizationSubscription;
+  const hasRequiredSubscription = isAdmin || isTrialActive || hasOrganizationSubscription || hasSubscriptionOrgAccess;
 
   const isLoading = subscriptionLoading || permissionsLoading;
 
