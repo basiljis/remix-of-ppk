@@ -389,6 +389,11 @@ export default function Landing() {
                     Политика конфиденциальности
                   </Link>
                 </li>
+                <li>
+                  <Link to="/partnership-offer" className="hover:text-foreground underline underline-offset-4">
+                    Партнёрская программа
+                  </Link>
+                </li>
               </ul>
             </div>
             
