@@ -9,8 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import LandingFooter from "@/components/LandingFooter";
-import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned, ExternalLink, User } from "lucide-react";
+import { ParentAuthModal } from "@/components/ParentAuthModal";
+import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned, ExternalLink, User, AlertCircle } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Moscow region ID in the database
 const MOSCOW_REGION_ID = "77";
@@ -58,6 +67,102 @@ const detectUserRegion = (): string => {
   }
 };
 
+// Component for showing no slots available dialog with contact info
+function NoSlotsDialog({ 
+  open, 
+  onOpenChange, 
+  organizationId 
+}: { 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void; 
+  organizationId: string;
+}) {
+  const { data: org } = useQuery({
+    queryKey: ["org-contact", organizationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("name, phone, email, address, website")
+        .eq("id", organizationId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !!organizationId,
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            Нет доступных слотов
+          </DialogTitle>
+          <DialogDescription>
+            К сожалению, в данный момент нет доступных слотов для записи{org?.name ? ` в ${org.name}` : ""}.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <p className="text-sm text-muted-foreground">
+            Вы можете связаться с организацией напрямую:
+          </p>
+          
+          <div className="space-y-3">
+            {org?.phone && (
+              <a 
+                href={`tel:${org.phone}`} 
+                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors"
+              >
+                <Phone className="h-5 w-5 text-primary" />
+                <span className="font-medium">{org.phone}</span>
+              </a>
+            )}
+            {org?.email && (
+              <a 
+                href={`mailto:${org.email}`} 
+                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors"
+              >
+                <Mail className="h-5 w-5 text-primary" />
+                <span className="font-medium">{org.email}</span>
+              </a>
+            )}
+            {org?.address && (
+              <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/50">
+                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <span className="text-sm">{org.address}</span>
+              </div>
+            )}
+            {org?.website && (
+              <a 
+                href={org.website.startsWith('http') ? org.website : `https://${org.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors"
+              >
+                <ExternalLink className="h-5 w-5 text-primary" />
+                <span className="font-medium">{org.website}</span>
+              </a>
+            )}
+            {!org?.phone && !org?.email && !org?.address && !org?.website && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Контактные данные не указаны. Попробуйте позже.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Закрыть
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function PublicOrganizations() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
@@ -65,6 +170,11 @@ export default function PublicOrganizations() {
   const [selectedRegion, setSelectedRegion] = useState<string>(() => detectUserRegion());
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingOrgId, setPendingOrgId] = useState<string | null>(null);
+  const [showNoSlotsAlert, setShowNoSlotsAlert] = useState(false);
 
   // Fetch single organization by slug
   const { data: singleOrganization, isLoading: isLoadingSingle } = useQuery({
@@ -130,6 +240,64 @@ export default function PublicOrganizations() {
     },
     enabled: !!singleOrganization?.id,
   });
+
+  // Fetch available consultation slots for the organization
+  const { data: availableSlots = [], isLoading: slotsLoading } = useQuery({
+    queryKey: ["public-organization-slots", singleOrganization?.id],
+    queryFn: async () => {
+      if (!singleOrganization?.id) return [];
+      
+      const today = new Date().toISOString().split("T")[0];
+      const { data, error } = await supabase
+        .from("consultation_slots")
+        .select("id")
+        .eq("organization_id", singleOrganization.id)
+        .eq("is_booked", false)
+        .gte("slot_date", today)
+        .limit(1);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!singleOrganization?.id,
+  });
+
+  const hasAvailableSlots = availableSlots.length > 0;
+
+  // Handle booking button click
+  const handleBookingClick = (orgId: string) => {
+    // Check slots and then decide action
+    const checkAndBook = async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const { data } = await supabase
+        .from("consultation_slots")
+        .select("id")
+        .eq("organization_id", orgId)
+        .eq("is_booked", false)
+        .gte("slot_date", today)
+        .limit(1);
+
+      if (data && data.length > 0) {
+        // Has slots - show auth modal
+        setPendingOrgId(orgId);
+        setShowAuthModal(true);
+      } else {
+        // No slots - show alert
+        setPendingOrgId(orgId);
+        setShowNoSlotsAlert(true);
+      }
+    };
+    checkAndBook();
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    if (pendingOrgId) {
+      navigate(`/parent?booking=${pendingOrgId}`);
+    } else {
+      navigate("/parent");
+    }
+  };
 
   // Fetch regions from database
   const { data: regions = [] } = useQuery({
@@ -455,19 +623,72 @@ export default function PublicOrganizations() {
               </div>
             )}
 
-            {/* CTA */}
-            <div className="flex justify-center">
-              <Button 
-                size="lg"
-                className="gap-2"
-                onClick={() => navigate(`/parent-auth?redirect=/organizations/${singleOrganization.id}`)}
-              >
-                <CalendarCheck className="h-5 w-5" />
-                Записаться на консультацию
-              </Button>
-            </div>
+            {/* CTA or No Slots Alert */}
+            {slotsLoading ? (
+              <div className="flex justify-center">
+                <Button size="lg" disabled className="gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Проверяем доступность...
+                </Button>
+              </div>
+            ) : hasAvailableSlots ? (
+              <div className="flex justify-center">
+                <Button 
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => handleBookingClick(singleOrganization.id)}
+                >
+                  <CalendarCheck className="h-5 w-5" />
+                  Записаться на консультацию
+                </Button>
+              </div>
+            ) : (
+              <Alert className="max-w-xl mx-auto">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Нет доступных слотов</AlertTitle>
+                <AlertDescription className="space-y-3">
+                  <p>
+                    К сожалению, в данный момент нет доступных слотов для записи. 
+                    Вы можете связаться с организацией напрямую:
+                  </p>
+                  <div className="flex flex-col gap-2 pt-2">
+                    {singleOrganization.phone && (
+                      <a 
+                        href={`tel:${singleOrganization.phone}`} 
+                        className="flex items-center gap-2 text-primary hover:underline"
+                      >
+                        <Phone className="h-4 w-4" />
+                        {singleOrganization.phone}
+                      </a>
+                    )}
+                    {singleOrganization.email && (
+                      <a 
+                        href={`mailto:${singleOrganization.email}`} 
+                        className="flex items-center gap-2 text-primary hover:underline"
+                      >
+                        <Mail className="h-4 w-4" />
+                        {singleOrganization.email}
+                      </a>
+                    )}
+                    {!singleOrganization.phone && !singleOrganization.email && (
+                      <p className="text-muted-foreground text-sm">
+                        Контактные данные не указаны. Попробуйте позже.
+                      </p>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </section>
+
+        {/* Auth Modal */}
+        <ParentAuthModal
+          open={showAuthModal}
+          onOpenChange={setShowAuthModal}
+          onSuccess={handleAuthSuccess}
+          specialistName={singleOrganization?.name}
+        />
 
         <LandingFooter />
       </div>
@@ -669,7 +890,7 @@ export default function PublicOrganizations() {
                         </Button>
                         <Button 
                           className="flex-1 gap-2"
-                          onClick={() => navigate(`/parent-auth?redirect=/organizations/${org.id}`)}
+                          onClick={() => handleBookingClick(org.id)}
                         >
                           <CalendarCheck className="h-4 w-4" />
                           Записаться
@@ -683,6 +904,22 @@ export default function PublicOrganizations() {
           )}
         </div>
       </section>
+
+      {/* Auth Modal */}
+      <ParentAuthModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        onSuccess={handleAuthSuccess}
+      />
+
+      {/* No Slots Dialog */}
+      {showNoSlotsAlert && pendingOrgId && (
+        <NoSlotsDialog
+          open={showNoSlotsAlert}
+          onOpenChange={setShowNoSlotsAlert}
+          organizationId={pendingOrgId}
+        />
+      )}
 
       <LandingFooter />
     </div>
