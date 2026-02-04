@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import LandingFooter from "@/components/LandingFooter";
 import { ParentAuthModal } from "@/components/ParentAuthModal";
+import { SearchNavBar } from "@/components/PublicNavbar";
 import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned, ExternalLink, User, AlertCircle } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -724,10 +725,11 @@ export default function PublicOrganizations() {
             </Link>
           </div>
         </div>
-      </header>
+        </header>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-8 px-4">
+        {/* Secondary nav bar with search links */}
+        <SearchNavBar currentPage="organizations" />
+        <section className="pt-32 pb-8 px-4">
         <div className="container mx-auto max-w-6xl">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />

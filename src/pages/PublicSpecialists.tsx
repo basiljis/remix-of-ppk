@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import LandingFooter from "@/components/LandingFooter";
 import { ParentAuthModal } from "@/components/ParentAuthModal";
+import { SearchNavBar } from "@/components/PublicNavbar";
 import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2, Wallet, Clock, MapPinned, Globe, Monitor } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 import { useAuth } from "@/hooks/useAuth";
@@ -259,8 +260,9 @@ export default function PublicSpecialists() {
           </div>
         </header>
 
-        {/* Hero Section */}
-        <section className="pt-24 pb-8 px-4">
+        {/* Secondary nav bar with search links */}
+        <SearchNavBar currentPage="specialists" />
+        <section className="pt-32 pb-8 px-4">
           <div className="container mx-auto max-w-6xl">
             <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
               <ArrowLeft className="h-4 w-4" />

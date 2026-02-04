@@ -15,7 +15,7 @@ import { DataProcessingAgreement } from "@/components/DataProcessingAgreement";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AuthFooter } from "@/components/AuthFooter";
 import { ParentSystemInfoDialog } from "@/components/ParentSystemInfoDialog";
-import { Heart, Users, Baby, Shield, Gamepad2, Home } from "lucide-react";
+import { Heart, Users, Baby, Shield, Gamepad2, Home, GraduationCap, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const parentSignupSchema = z.object({
@@ -366,17 +366,37 @@ const ParentAuth = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100 dark:from-pink-950/20 dark:to-purple-950/30 p-4">
-        {/* Home button */}
-        <Link 
-          to="/" 
-          className="absolute top-4 left-4 z-10"
-        >
-          <Button variant="outline" size="sm" className="gap-2">
-            <Home className="h-4 w-4" />
-            На главную
-          </Button>
-        </Link>
+      {/* Navigation bar with search buttons */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b">
+        <div className="container mx-auto flex h-14 items-center justify-between px-4">
+          <Link to="/" className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Home className="h-4 w-4" />
+              На главную
+            </Button>
+          </Link>
+          
+          <div className="flex items-center gap-4">
+            <Link 
+              to="/specialists" 
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+            >
+              <GraduationCap className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Найти специалиста</span>
+            </Link>
+            <span className="text-muted-foreground/30 hidden sm:inline">|</span>
+            <Link 
+              to="/organizations" 
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Найти организацию</span>
+            </Link>
+          </div>
+        </div>
+      </header>
+      
+      <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100 dark:from-pink-950/20 dark:to-purple-950/30 p-4 pt-20">
         
         <div className="w-full max-w-6xl grid md:grid-cols-2 gap-0 bg-background rounded-2xl shadow-2xl overflow-hidden">
           {/* Left side - Form */}
