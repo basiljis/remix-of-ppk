@@ -65,26 +65,27 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       try {
         const organizationId = profile?.organization_id;
 
-        // 1. Проверяем индивидуальную подписку пользователя
+        // 1. Проверяем любую активную подписку пользователя (личную или с organization_id)
         const { data: userSubscription } = await supabase
           .from('subscriptions')
-          .select('end_date, payment_type, admin_notes')
+          .select('end_date, payment_type, admin_notes, organization_id')
           .eq('user_id', user.id)
           .eq('status', 'active')
           .gte('end_date', new Date().toISOString())
-          .order('created_at', { ascending: false })
+          .order('end_date', { ascending: false })
           .maybeSingle();
 
-        // 2. Проверяем подписку организации (если пользователь привязан к организации)
+        // 2. Проверяем подписку организации пользователя (если он привязан к организации, 
+        // и подписка организации оформлена на другого user_id)
         let orgSubscription = null;
         if (organizationId) {
           const { data: orgSub } = await supabase
             .from('subscriptions')
-            .select('end_date, payment_type, admin_notes')
+            .select('end_date, payment_type, admin_notes, organization_id')
             .eq('organization_id', organizationId)
             .eq('status', 'active')
             .gte('end_date', new Date().toISOString())
-            .order('created_at', { ascending: false })
+            .order('end_date', { ascending: false })
             .maybeSingle();
           
           orgSubscription = orgSub;
@@ -94,13 +95,19 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
         const hasOrgSubscription = !!orgSubscription;
         const hasAnyActiveSubscription = hasUserSubscription || hasOrgSubscription;
 
+        // Определяем, является ли подписка организационной:
+        // - если есть подписка организации профиля (orgSubscription), или
+        // - если личная подписка пользователя привязана к организации (userSubscription.organization_id)
+        const isOrgSubscription = hasOrgSubscription || (hasUserSubscription && !!userSubscription?.organization_id);
+
         if (hasAnyActiveSubscription) {
           // Выбираем активную подписку для отображения информации
+          // Приоритет: подписка пользователя (она может быть и с organization_id)
           const activeSubscription = userSubscription || orgSubscription;
           
           setStatus({
             hasActiveSubscription: hasAnyActiveSubscription,
-            hasOrganizationSubscription: hasOrgSubscription,
+            hasOrganizationSubscription: isOrgSubscription,
             isTrialActive: false,
             trialEndDate: null,
             daysLeft: null,
@@ -108,12 +115,12 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
             canCreateProtocols: true,
             canViewProtocols: true,
             canAccessSchedule: true, // Доступ к расписанию при любой активной подписке
-            canAccessOrganization: hasOrgSubscription, // Доступ к организации только при подписке организации
+            canAccessOrganization: isOrgSubscription, // Доступ к организации при подписке организации
             subscriptionInfo: activeSubscription ? {
               endDate: activeSubscription.end_date,
               paymentType: activeSubscription.payment_type,
               adminNotes: activeSubscription.admin_notes,
-              isOrganizationSubscription: hasOrgSubscription && !hasUserSubscription,
+              isOrganizationSubscription: isOrgSubscription,
             } : null,
             loading: false,
           });
