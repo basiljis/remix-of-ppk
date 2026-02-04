@@ -328,12 +328,12 @@ export function SpecialistPublicProfilePanel() {
             {(workFormat === "offline" || workFormat === "both") && (
               <div className="space-y-2">
                 <Label htmlFor="work-district">Округ Москвы (для офлайн занятий)</Label>
-                <Select value={workDistrict} onValueChange={setWorkDistrict}>
+                <Select value={workDistrict || "not-specified"} onValueChange={(val) => setWorkDistrict(val === "not-specified" ? "" : val)}>
                   <SelectTrigger id="work-district">
                     <SelectValue placeholder="Выберите округ" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Не указан</SelectItem>
+                    <SelectItem value="not-specified">Не указан</SelectItem>
                     {MOSCOW_DISTRICTS.map(district => (
                       <SelectItem key={district} value={district}>{district}</SelectItem>
                     ))}
