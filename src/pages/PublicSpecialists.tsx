@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,11 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import LandingFooter from "@/components/LandingFooter";
+import { ParentAuthModal } from "@/components/ParentAuthModal";
 import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2, Wallet, Clock, MapPinned, Globe, Monitor } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
+import { useAuth } from "@/hooks/useAuth";
 
-// Position types for filtering
 // Specialist positions that should be shown in public filter
 const SPECIALIST_POSITION_NAMES = [
   "Педагог-психолог",
@@ -55,11 +57,16 @@ interface PublicProfile {
 
 export default function PublicSpecialists() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [workFormat, setWorkFormat] = useState<"online" | "offline">("offline");
   const [selectedRegion, setSelectedRegion] = useState<string>(MOSCOW_REGION_ID);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  
+  // Auth modal state
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [selectedSpecialist, setSelectedSpecialist] = useState<{ id: string; name: string; slug: string | null } | null>(null);
 
   // Fetch regions from database
   const { data: regions = [] } = useQuery({
@@ -121,307 +128,419 @@ export default function PublicSpecialists() {
     },
   });
 
-  // Filter specialists
-  const filteredSpecialists = specialists?.filter(specialist => {
-    const matchesSearch = !searchQuery || 
-      specialist.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      specialist.public_bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      specialist.position?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by work format
-    const specFormat = specialist.work_format || "offline";
-    const matchesWorkFormat = 
-      specFormat === "both" || 
-      specFormat === workFormat;
-    
-    // Filter by district (only for offline mode and Moscow region)
-    const matchesDistrict = workFormat === "online" || 
-      !selectedDistrict || 
-      selectedDistrict === "all" ||
-      specialist.work_district === selectedDistrict ||
-      specialist.organization?.district === selectedDistrict;
-    
-    // Match by position ID
-    const matchesPosition = !selectedPosition || selectedPosition === "all" ||
-      specialist.position_id === selectedPosition;
-    
-    return matchesSearch && matchesWorkFormat && matchesDistrict && matchesPosition;
-  }) || [];
+  // Fetch available slots count for each specialist
+  const { data: slotsData = {} } = useQuery({
+    queryKey: ["public-specialists-slots"],
+    queryFn: async () => {
+      const today = new Date().toISOString().split("T")[0];
+      
+      const { data, error } = await supabase
+        .from("consultation_slots")
+        .select("specialist_id")
+        .eq("is_booked", false)
+        .gte("slot_date", today);
 
-  const handleBooking = (specialistId: string, slug: string | null) => {
-    // Navigate to parent auth with redirect to booking
-    const target = slug ? `/s/${slug}` : `/specialist/${specialistId}`;
-    navigate(`/parent-auth?redirect=${encodeURIComponent(target)}`);
+      if (error) throw error;
+      
+      // Count slots per specialist
+      const counts: Record<string, number> = {};
+      data?.forEach(slot => {
+        counts[slot.specialist_id] = (counts[slot.specialist_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
+  // Filter specialists
+  const filteredSpecialists = useMemo(() => {
+    return specialists?.filter(specialist => {
+      const matchesSearch = !searchQuery || 
+        specialist.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        specialist.public_bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        specialist.position?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Filter by work format
+      const specFormat = specialist.work_format || "offline";
+      const matchesWorkFormat = 
+        specFormat === "both" || 
+        specFormat === workFormat;
+      
+      // Filter by district (only for offline mode and Moscow region)
+      const matchesDistrict = workFormat === "online" || 
+        !selectedDistrict || 
+        selectedDistrict === "all" ||
+        specialist.work_district === selectedDistrict ||
+        specialist.organization?.district === selectedDistrict;
+      
+      // Match by position ID
+      const matchesPosition = !selectedPosition || selectedPosition === "all" ||
+        specialist.position_id === selectedPosition;
+      
+      return matchesSearch && matchesWorkFormat && matchesDistrict && matchesPosition;
+    }) || [];
+  }, [specialists, searchQuery, workFormat, selectedDistrict, selectedPosition]);
+
+  const handleBooking = (specialist: PublicProfile) => {
+    // Check if user is already authenticated as parent
+    if (user) {
+      // Check if user has parent role - redirect to booking
+      const target = specialist.public_slug ? `/s/${specialist.public_slug}` : `/specialist/${specialist.id}`;
+      navigate(`/parent?book=${encodeURIComponent(target)}&specialist=${specialist.id}`);
+    } else {
+      // Show auth modal
+      setSelectedSpecialist({
+        id: specialist.id,
+        name: specialist.full_name,
+        slug: specialist.public_slug,
+      });
+      setAuthModalOpen(true);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setAuthModalOpen(false);
+    if (selectedSpecialist) {
+      // Redirect to parent dashboard with booking intent
+      navigate(`/parent?book=true&specialist=${selectedSpecialist.id}`);
+    } else {
+      navigate("/parent");
+    }
+  };
+
+  const getSlotStatus = (specialistId: string, workFormat: string | null) => {
+    const slotCount = slotsData[specialistId] || 0;
+    const format = workFormat || "offline";
+    
+    if (slotCount === 0) {
+      return {
+        hasSlots: false,
+        label: "Нет свободных слотов",
+        tooltip: format === "online" 
+          ? "У специалиста пока нет свободных слотов для онлайн-записи" 
+          : "У специалиста пока нет свободных слотов для очной записи",
+      };
+    }
+    
+    return {
+      hasSlots: true,
+      label: `${slotCount} ${slotCount === 1 ? 'слот' : slotCount < 5 ? 'слота' : 'слотов'}`,
+      tooltip: null,
+    };
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Heart className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">universum.</span>
-          </Link>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/specialists" className="text-sm text-foreground font-medium">
-              Специалисты
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                <Heart className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">universum.</span>
             </Link>
-            <Link to="/organizations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Организации
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link to="/parent-auth">
-              <Button variant="outline" size="sm">Вход для родителей</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="pt-24 pb-8 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
-            <ArrowLeft className="h-4 w-4" />
-            На главную
-          </Link>
-          
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Найти специалиста
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Психологи, логопеды, дефектологи и другие специалисты для развития вашего ребёнка
-          </p>
-        </div>
-      </section>
-
-      {/* Filters */}
-      <section className="px-4 pb-8">
-        <div className="container mx-auto max-w-6xl">
-          {/* Work Format Toggle */}
-          <div className="mb-4">
-            <Tabs value={workFormat} onValueChange={(v) => setWorkFormat(v as "online" | "offline")}>
-              <TabsList className="grid w-full max-w-[300px] grid-cols-2">
-                <TabsTrigger value="offline" className="gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Офлайн
-                </TabsTrigger>
-                <TabsTrigger value="online" className="gap-2">
-                  <Monitor className="h-4 w-4" />
-                  Онлайн
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Поиск по имени или должности..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
             
-            {/* Region filter */}
-            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                  <SelectValue placeholder="Регион" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {regions.map(region => (
-                  <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <nav className="hidden md:flex items-center gap-6">
+              <Link to="/specialists" className="text-sm text-foreground font-medium">
+                Специалисты
+              </Link>
+              <Link to="/organizations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Организации
+              </Link>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Link to="/parent-auth">
+                <Button variant="outline" size="sm">Вход для родителей</Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="pt-24 pb-8 px-4">
+          <div className="container mx-auto max-w-6xl">
+            <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
+              <ArrowLeft className="h-4 w-4" />
+              На главную
+            </Link>
             
-            {/* District filter - only for offline mode and Moscow region */}
-            {workFormat === "offline" && selectedRegion === MOSCOW_REGION_ID && (
-              <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
-                <SelectTrigger className="w-full sm:w-[280px]">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              Найти специалиста
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              Психологи, логопеды, дефектологи и другие специалисты для развития вашего ребёнка
+            </p>
+          </div>
+        </section>
+
+        {/* Filters */}
+        <section className="px-4 pb-8">
+          <div className="container mx-auto max-w-6xl">
+            {/* Work Format Toggle */}
+            <div className="mb-4">
+              <Tabs value={workFormat} onValueChange={(v) => setWorkFormat(v as "online" | "offline")}>
+                <TabsList className="grid w-full max-w-[300px] grid-cols-2">
+                  <TabsTrigger value="offline" className="gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Офлайн
+                  </TabsTrigger>
+                  <TabsTrigger value="online" className="gap-2">
+                    <Monitor className="h-4 w-4" />
+                    Онлайн
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Поиск по имени или должности..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              {/* Region filter */}
+              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <div className="flex items-center gap-2">
-                    <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
-                    <SelectValue placeholder="Округ Москвы" />
+                    <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                    <SelectValue placeholder="Регион" />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все округа</SelectItem>
-                  {MOSCOW_DISTRICTS.map(district => (
-                    <SelectItem key={district} value={district}>{district}</SelectItem>
+                  {regions.map(region => (
+                    <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
-            
-            <Select value={selectedPosition || ""} onValueChange={(v) => setSelectedPosition(v || null)}>
-              <SelectTrigger className="w-full sm:w-[220px]">
-                <SelectValue placeholder="Специалист" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все специалисты</SelectItem>
-                {positions.map(pos => (
-                  <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              
+              {/* District filter - only for offline mode and Moscow region */}
+              {workFormat === "offline" && selectedRegion === MOSCOW_REGION_ID && (
+                <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
+                  <SelectTrigger className="w-full sm:w-[280px]">
+                    <div className="flex items-center gap-2">
+                      <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
+                      <SelectValue placeholder="Округ Москвы" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все округа</SelectItem>
+                    {MOSCOW_DISTRICTS.map(district => (
+                      <SelectItem key={district} value={district}>{district}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              <Select value={selectedPosition || ""} onValueChange={(v) => setSelectedPosition(v || null)}>
+                <SelectTrigger className="w-full sm:w-[220px]">
+                  <SelectValue placeholder="Специалист" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все специалисты</SelectItem>
+                  {positions.map(pos => (
+                    <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Specialists Grid */}
-      <section className="px-4 pb-20">
-        <div className="container mx-auto max-w-6xl">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredSpecialists.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Специалисты не найдены</p>
-              <p className="text-sm">Попробуйте изменить параметры поиска</p>
-            </div>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground mb-4">
-                Найдено: {filteredSpecialists.length} специалист{filteredSpecialists.length === 1 ? '' : filteredSpecialists.length < 5 ? 'а' : 'ов'}
-              </p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredSpecialists.map((specialist) => (
-                  <Card key={specialist.id} className="overflow-hidden hover:shadow-lg transition-all group">
-                    <CardHeader className="pb-4 pt-6">
-                      {/* Photo centered at top */}
-                      <div className="flex justify-center mb-4">
-                        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
-                          {specialist.public_photo_url ? (
-                            <img 
-                              src={specialist.public_photo_url} 
-                              alt={specialist.full_name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <User className="h-10 w-10 text-muted-foreground" />
-                          )}
-                        </div>
-                      </div>
-                      {/* Name and position centered */}
-                      <div className="text-center space-y-2">
-                        <CardTitle className="text-lg leading-tight">{specialist.full_name}</CardTitle>
-                        <CardDescription className="flex items-center justify-center gap-1.5">
-                          <Briefcase className="h-3.5 w-3.5 flex-shrink-0" />
-                          <span>{specialist.position?.name || "Специалист"}</span>
-                        </CardDescription>
-                        {specialist.is_private_practice ? (
-                          <Badge variant="secondary" className="text-xs">
-                            Частная практика
-                          </Badge>
-                        ) : specialist.organization?.name && (
-                          <Link 
-                            to={specialist.organization.public_slug ? `/o/${specialist.organization.public_slug}` : `/organizations`}
-                            className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground px-2 hover:text-primary transition-colors"
-                          >
-                            <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
-                            <span className="text-center underline-offset-2 hover:underline">{specialist.organization.name}</span>
-                          </Link>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {specialist.specializations && specialist.specializations.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {specialist.specializations.slice(0, 3).map((spec) => (
-                            <Badge key={spec} variant="outline" className="text-xs">
-                              {spec}
-                            </Badge>
-                          ))}
-                          {specialist.specializations.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{specialist.specializations.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                      
-                      {specialist.public_bio && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {specialist.public_bio}
-                        </p>
-                      )}
-                      
-                      {specialist.work_experience && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <GraduationCap className="h-4 w-4" />
-                          <span className="line-clamp-1">{specialist.work_experience}</span>
-                        </div>
-                      )}
-                      
-                      {specialist.organization?.district && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{specialist.organization.district}</span>
-                        </div>
-                      )}
-
-                      {/* Pricing info for private practice */}
-                      {specialist.is_private_practice && specialist.consultation_price && (
-                        <div className="pt-2 mt-2 border-t space-y-1">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                              <Wallet className="h-3.5 w-3.5" />
-                              Консультация
-                            </span>
-                            <span className="font-semibold text-primary">
-                              {specialist.consultation_price.toLocaleString('ru-RU')} ₽
-                            </span>
-                          </div>
-                          {specialist.consultation_duration && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {specialist.consultation_duration} мин
-                            </div>
-                          )}
-                          {specialist.session_packages && specialist.session_packages.length > 0 && (
-                            <div className="text-xs text-muted-foreground">
-                              {specialist.session_packages.map((pkg, i) => (
-                                <span key={i}>
-                                  {i > 0 && ' • '}
-                                  {pkg.sessions} сес. — {pkg.price.toLocaleString('ru-RU')} ₽
-                                  {pkg.discount ? ` (-${pkg.discount}%)` : ''}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      <Button 
-                        className="w-full mt-4 gap-2"
-                        onClick={() => handleBooking(specialist.id, specialist.public_slug)}
-                      >
-                        <CalendarCheck className="h-4 w-4" />
-                        Записаться
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+        {/* Specialists Grid */}
+        <section className="px-4 pb-20">
+          <div className="container mx-auto max-w-6xl">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            </>
-          )}
-        </div>
-      </section>
+            ) : filteredSpecialists.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Специалисты не найдены</p>
+                <p className="text-sm">Попробуйте изменить параметры поиска</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Найдено: {filteredSpecialists.length} специалист{filteredSpecialists.length === 1 ? '' : filteredSpecialists.length < 5 ? 'а' : 'ов'}
+                </p>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredSpecialists.map((specialist) => {
+                    const slotStatus = getSlotStatus(specialist.id, specialist.work_format);
+                    
+                    return (
+                      <Card key={specialist.id} className="overflow-hidden hover:shadow-lg transition-all group">
+                        <CardHeader className="pb-4 pt-6">
+                          {/* Photo centered at top */}
+                          <div className="flex justify-center mb-4">
+                            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                              {specialist.public_photo_url ? (
+                                <img 
+                                  src={specialist.public_photo_url} 
+                                  alt={specialist.full_name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <User className="h-10 w-10 text-muted-foreground" />
+                              )}
+                            </div>
+                          </div>
+                          {/* Name and position centered */}
+                          <div className="text-center space-y-2">
+                            <CardTitle className="text-lg leading-tight">{specialist.full_name}</CardTitle>
+                            <CardDescription className="flex items-center justify-center gap-1.5">
+                              <Briefcase className="h-3.5 w-3.5 flex-shrink-0" />
+                              <span>{specialist.position?.name || "Специалист"}</span>
+                            </CardDescription>
+                            {specialist.is_private_practice ? (
+                              <Badge variant="secondary" className="text-xs">
+                                Частная практика
+                              </Badge>
+                            ) : specialist.organization?.name && (
+                              <Link 
+                                to={specialist.organization.public_slug ? `/o/${specialist.organization.public_slug}` : `/organizations`}
+                                className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground px-2 hover:text-primary transition-colors"
+                              >
+                                <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
+                                <span className="text-center underline-offset-2 hover:underline">{specialist.organization.name}</span>
+                              </Link>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {specialist.specializations && specialist.specializations.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {specialist.specializations.slice(0, 3).map((spec) => (
+                                <Badge key={spec} variant="outline" className="text-xs">
+                                  {spec}
+                                </Badge>
+                              ))}
+                              {specialist.specializations.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{specialist.specializations.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          
+                          {specialist.public_bio && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {specialist.public_bio}
+                            </p>
+                          )}
+                          
+                          {specialist.work_experience && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <GraduationCap className="h-4 w-4" />
+                              <span className="line-clamp-1">{specialist.work_experience}</span>
+                            </div>
+                          )}
+                          
+                          {specialist.organization?.district && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4" />
+                              <span>{specialist.organization.district}</span>
+                            </div>
+                          )}
 
-      <LandingFooter />
-    </div>
+                          {/* Pricing info for private practice */}
+                          {specialist.is_private_practice && specialist.consultation_price && (
+                            <div className="pt-2 mt-2 border-t space-y-1">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="flex items-center gap-1 text-muted-foreground">
+                                  <Wallet className="h-3.5 w-3.5" />
+                                  Консультация
+                                </span>
+                                <span className="font-semibold text-primary">
+                                  {specialist.consultation_price.toLocaleString('ru-RU')} ₽
+                                </span>
+                              </div>
+                              {specialist.consultation_duration && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3" />
+                                  {specialist.consultation_duration} мин
+                                </div>
+                              )}
+                              {specialist.session_packages && specialist.session_packages.length > 0 && (
+                                <div className="text-xs text-muted-foreground">
+                                  {specialist.session_packages.map((pkg, i) => (
+                                    <span key={i}>
+                                      {i > 0 && ' • '}
+                                      {pkg.sessions} сес. — {pkg.price.toLocaleString('ru-RU')} ₽
+                                      {pkg.discount ? ` (-${pkg.discount}%)` : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Booking button with slot status */}
+                          <div className="mt-4 space-y-2">
+                            {slotStatus.hasSlots ? (
+                              <>
+                                <Button 
+                                  className="w-full gap-2"
+                                  onClick={() => handleBooking(specialist)}
+                                >
+                                  <CalendarCheck className="h-4 w-4" />
+                                  Записаться
+                                </Button>
+                                <p className="text-xs text-center text-muted-foreground">
+                                  Доступно: {slotStatus.label}
+                                </p>
+                              </>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    <Button 
+                                      className="w-full gap-2"
+                                      variant="secondary"
+                                      disabled
+                                    >
+                                      <CalendarCheck className="h-4 w-4" />
+                                      Записаться
+                                    </Button>
+                                    <p className="text-xs text-center text-muted-foreground mt-2">
+                                      {slotStatus.label}
+                                    </p>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{slotStatus.tooltip}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        <LandingFooter />
+
+        {/* Auth Modal */}
+        <ParentAuthModal
+          open={authModalOpen}
+          onOpenChange={setAuthModalOpen}
+          onSuccess={handleAuthSuccess}
+          specialistName={selectedSpecialist?.name}
+        />
+      </div>
+    </TooltipProvider>
   );
 }
