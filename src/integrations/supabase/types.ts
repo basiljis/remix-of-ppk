@@ -1553,6 +1553,7 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          allow_employee_publishing: boolean | null
           allow_parent_registration: boolean
           coordinates_lat: number | null
           coordinates_lng: number | null
@@ -1566,12 +1567,16 @@ export type Database = {
           id: string
           is_archived: boolean | null
           is_manual: boolean
+          is_published: boolean | null
           last_sync_at: string | null
+          logo_url: string | null
           metro_station: string | null
           mrsd: string | null
           name: string
           parent_organization: string | null
           phone: string | null
+          public_description: string | null
+          public_slug: string | null
           region_id: string | null
           short_name: string | null
           status_id: number | null
@@ -1582,6 +1587,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          allow_employee_publishing?: boolean | null
           allow_parent_registration?: boolean
           coordinates_lat?: number | null
           coordinates_lng?: number | null
@@ -1595,12 +1601,16 @@ export type Database = {
           id?: string
           is_archived?: boolean | null
           is_manual?: boolean
+          is_published?: boolean | null
           last_sync_at?: string | null
+          logo_url?: string | null
           metro_station?: string | null
           mrsd?: string | null
           name: string
           parent_organization?: string | null
           phone?: string | null
+          public_description?: string | null
+          public_slug?: string | null
           region_id?: string | null
           short_name?: string | null
           status_id?: number | null
@@ -1611,6 +1621,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          allow_employee_publishing?: boolean | null
           allow_parent_registration?: boolean
           coordinates_lat?: number | null
           coordinates_lng?: number | null
@@ -1624,12 +1635,16 @@ export type Database = {
           id?: string
           is_archived?: boolean | null
           is_manual?: boolean
+          is_published?: boolean | null
           last_sync_at?: string | null
+          logo_url?: string | null
           metro_station?: string | null
           mrsd?: string | null
           name?: string
           parent_organization?: string | null
           phone?: string | null
+          public_description?: string | null
+          public_slug?: string | null
           region_id?: string | null
           short_name?: string | null
           status_id?: number | null
@@ -1962,49 +1977,76 @@ export type Database = {
       }
       profiles: {
         Row: {
+          achievements: string | null
           avatar_url: string | null
           created_at: string
+          education: string | null
           email: string
           email_notifications: boolean | null
           full_name: string
           id: string
           is_blocked: boolean
+          is_private_practice: boolean | null
+          is_published: boolean | null
           notifications_enabled: boolean | null
           organization_id: string | null
           phone: string
           position_id: string
+          public_bio: string | null
+          public_photo_url: string | null
+          public_slug: string | null
           region_id: string
+          specializations: string[] | null
           updated_at: string
+          work_experience: string | null
         }
         Insert: {
+          achievements?: string | null
           avatar_url?: string | null
           created_at?: string
+          education?: string | null
           email: string
           email_notifications?: boolean | null
           full_name: string
           id: string
           is_blocked?: boolean
+          is_private_practice?: boolean | null
+          is_published?: boolean | null
           notifications_enabled?: boolean | null
           organization_id?: string | null
           phone: string
           position_id: string
+          public_bio?: string | null
+          public_photo_url?: string | null
+          public_slug?: string | null
           region_id: string
+          specializations?: string[] | null
           updated_at?: string
+          work_experience?: string | null
         }
         Update: {
+          achievements?: string | null
           avatar_url?: string | null
           created_at?: string
+          education?: string | null
           email?: string
           email_notifications?: boolean | null
           full_name?: string
           id?: string
           is_blocked?: boolean
+          is_private_practice?: boolean | null
+          is_published?: boolean | null
           notifications_enabled?: boolean | null
           organization_id?: string | null
           phone?: string
           position_id?: string
+          public_bio?: string | null
+          public_photo_url?: string | null
+          public_slug?: string | null
           region_id?: string
+          specializations?: string[] | null
           updated_at?: string
+          work_experience?: string | null
         }
         Relationships: [
           {

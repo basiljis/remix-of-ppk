@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, User, ArrowLeft, CreditCard, Receipt, Clock } from "lucide-react";
+import { Loader2, Upload, User, ArrowLeft, CreditCard, Receipt, Clock, Globe } from "lucide-react";
 import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { PaymentStatusDialog } from "@/components/PaymentStatusDialog";
 import { PaymentHistory } from "@/components/PaymentHistory";
+import { SpecialistPublicProfilePanel } from "@/components/SpecialistPublicProfilePanel";
 import { Progress } from "@/components/ui/progress";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
@@ -148,10 +149,14 @@ export default function Profile() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             Профиль
+          </TabsTrigger>
+          <TabsTrigger value="public" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Публикация
           </TabsTrigger>
           <TabsTrigger value="subscription" className="gap-2">
             <CreditCard className="h-4 w-4" />
@@ -159,7 +164,7 @@ export default function Profile() {
           </TabsTrigger>
           <TabsTrigger value="payments" className="gap-2">
             <Receipt className="h-4 w-4" />
-            История платежей
+            История
           </TabsTrigger>
         </TabsList>
 
@@ -370,6 +375,10 @@ export default function Profile() {
               Сохранить изменения
             </Button>
           </div>
+        </TabsContent>
+
+        <TabsContent value="public" className="mt-6">
+          <SpecialistPublicProfilePanel />
         </TabsContent>
 
         <TabsContent value="subscription" className="mt-6">
