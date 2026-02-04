@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import LandingFooter from "@/components/LandingFooter";
-import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned } from "lucide-react";
+import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned, ExternalLink, User } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
 // Moscow region ID in the database
@@ -33,6 +33,15 @@ interface PublicOrganization {
   employees_count?: number;
 }
 
+interface PublicEmployee {
+  id: string;
+  full_name: string;
+  public_bio: string | null;
+  public_photo_url: string | null;
+  public_slug: string | null;
+  position: { id: string; name: string } | null;
+}
+
 // Auto-detect region based on timezone
 const detectUserRegion = (): string => {
   try {
@@ -51,10 +60,76 @@ const detectUserRegion = (): string => {
 
 export default function PublicOrganizations() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState<string>(() => detectUserRegion());
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+
+  // Fetch single organization by slug
+  const { data: singleOrganization, isLoading: isLoadingSingle } = useQuery({
+    queryKey: ["public-organization-slug", slug],
+    queryFn: async () => {
+      if (!slug) return null;
+      
+      const { data, error } = await supabase
+        .from("organizations")
+        .select(`
+          id,
+          name,
+          full_name,
+          public_description,
+          public_slug,
+          logo_url,
+          district,
+          address,
+          phone,
+          email,
+          website,
+          type,
+          metro_station,
+          region_id
+        `)
+        .eq("public_slug", slug)
+        .eq("is_published", true)
+        .eq("is_archived", false)
+        .single();
+
+      if (error) {
+        console.error("Error fetching organization:", error);
+        return null;
+      }
+      
+      return data as PublicOrganization;
+    },
+    enabled: !!slug,
+  });
+
+  // Fetch employees for the organization
+  const { data: employees = [] } = useQuery({
+    queryKey: ["public-organization-employees", singleOrganization?.id],
+    queryFn: async () => {
+      if (!singleOrganization?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          public_bio,
+          public_photo_url,
+          public_slug,
+          position:positions(id, name)
+        `)
+        .eq("organization_id", singleOrganization.id)
+        .eq("is_published", true)
+        .eq("is_blocked", false);
+
+      if (error) throw error;
+      return data as unknown as PublicEmployee[];
+    },
+    enabled: !!singleOrganization?.id,
+  });
 
   // Fetch regions from database
   const { data: regions = [] } = useQuery({
@@ -111,6 +186,7 @@ export default function PublicOrganizations() {
       
       return orgsWithCounts as PublicOrganization[];
     },
+    enabled: !slug, // Only fetch list when not viewing single org
   });
 
   // Get unique types for filter
@@ -145,6 +221,242 @@ export default function PublicOrganizations() {
     navigate(target);
   };
 
+  // If slug is provided, show single organization detail view
+  if (slug) {
+    if (isLoadingSingle) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      );
+    }
+
+    if (!singleOrganization) {
+      return (
+        <div className="min-h-screen bg-background">
+          <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container mx-auto flex h-16 items-center justify-between px-4">
+              <Link to="/" className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                  <Heart className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <span className="text-xl font-bold">universum.</span>
+              </Link>
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+              </div>
+            </div>
+          </header>
+          <div className="pt-24 text-center py-20">
+            <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h1 className="text-2xl font-bold mb-2">Организация не найдена</h1>
+            <p className="text-muted-foreground mb-6">Возможно, она была удалена или ещё не опубликована</p>
+            <Link to="/organizations">
+              <Button variant="outline" className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                К списку организаций
+              </Button>
+            </Link>
+          </div>
+          <LandingFooter />
+        </div>
+      );
+    }
+
+    // Single organization detail view
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                <Heart className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">universum.</span>
+            </Link>
+            
+            <nav className="hidden md:flex items-center gap-6">
+              <Link to="/specialists" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Специалисты
+              </Link>
+              <Link to="/organizations" className="text-sm text-foreground font-medium">
+                Организации
+              </Link>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Link to="/parent-auth">
+                <Button variant="outline" size="sm">Вход для родителей</Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        {/* Organization Detail */}
+        <section className="pt-24 pb-8 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <Link to="/organizations" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
+              <ArrowLeft className="h-4 w-4" />
+              К списку организаций
+            </Link>
+
+            <div className="flex flex-col md:flex-row gap-6 mb-8">
+              <div className="h-24 w-24 md:h-32 md:w-32 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {singleOrganization.logo_url ? (
+                  <img 
+                    src={singleOrganization.logo_url} 
+                    alt={singleOrganization.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Building2 className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground" />
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                  {singleOrganization.full_name || singleOrganization.name}
+                </h1>
+                
+                {singleOrganization.type && (
+                  <Badge variant="secondary" className="mb-4">
+                    {singleOrganization.type}
+                  </Badge>
+                )}
+                
+                {singleOrganization.public_description && (
+                  <p className="text-muted-foreground mb-4">
+                    {singleOrganization.public_description}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="text-lg">Контактная информация</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {singleOrganization.address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium">{singleOrganization.address}</p>
+                      {singleOrganization.district && (
+                        <p className="text-sm text-muted-foreground">{singleOrganization.district}</p>
+                      )}
+                      {singleOrganization.metro_station && (
+                        <p className="text-sm text-muted-foreground">м. {singleOrganization.metro_station}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {singleOrganization.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
+                    <a href={`tel:${singleOrganization.phone}`} className="hover:text-primary transition-colors">
+                      {singleOrganization.phone}
+                    </a>
+                  </div>
+                )}
+                
+                {singleOrganization.email && (
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
+                    <a href={`mailto:${singleOrganization.email}`} className="hover:text-primary transition-colors">
+                      {singleOrganization.email}
+                    </a>
+                  </div>
+                )}
+                
+                {singleOrganization.website && (
+                  <div className="flex items-center gap-3">
+                    <ExternalLink className="h-5 w-5 text-muted-foreground" />
+                    <a 
+                      href={singleOrganization.website.startsWith('http') ? singleOrganization.website : `https://${singleOrganization.website}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors"
+                    >
+                      {singleOrganization.website}
+                    </a>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Employees */}
+            {employees.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-bold mb-4">
+                  Наши специалисты ({employees.length})
+                </h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {employees.map((employee) => (
+                    <Card key={employee.id} className="hover:shadow-md transition-all">
+                      <CardContent className="pt-4">
+                        <div className="flex items-start gap-3">
+                          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {employee.public_photo_url ? (
+                              <img 
+                                src={employee.public_photo_url} 
+                                alt={employee.full_name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <User className="h-6 w-6 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{employee.full_name}</p>
+                            {employee.position?.name && (
+                              <p className="text-sm text-muted-foreground truncate">{employee.position.name}</p>
+                            )}
+                          </div>
+                        </div>
+                        {employee.public_bio && (
+                          <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                            {employee.public_bio}
+                          </p>
+                        )}
+                        {employee.public_slug && (
+                          <Link to={`/s/${employee.public_slug}`} className="mt-3 block">
+                            <Button variant="outline" size="sm" className="w-full">
+                              Подробнее
+                            </Button>
+                          </Link>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CTA */}
+            <div className="flex justify-center">
+              <Button 
+                size="lg"
+                className="gap-2"
+                onClick={() => navigate(`/parent-auth?redirect=/organizations/${singleOrganization.id}`)}
+              >
+                <CalendarCheck className="h-5 w-5" />
+                Записаться на консультацию
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <LandingFooter />
+      </div>
+    );
+  }
+
+  // Organizations list view
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -322,7 +634,7 @@ export default function PublicOrganizations() {
                         </p>
                       )}
                       
-                      {org.employees_count > 0 && (
+                      {org.employees_count && org.employees_count > 0 && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Users className="h-4 w-4" />
                           <span>{org.employees_count} специалист{org.employees_count === 1 ? '' : org.employees_count < 5 ? 'а' : 'ов'}</span>
