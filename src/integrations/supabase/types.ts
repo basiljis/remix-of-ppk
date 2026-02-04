@@ -526,6 +526,7 @@ export type Database = {
           is_booked: boolean
           organization_id: string
           slot_date: string
+          slot_format: string
           specialist_id: string
           start_time: string
           updated_at: string
@@ -541,6 +542,7 @@ export type Database = {
           is_booked?: boolean
           organization_id: string
           slot_date: string
+          slot_format?: string
           specialist_id: string
           start_time: string
           updated_at?: string
@@ -556,6 +558,7 @@ export type Database = {
           is_booked?: boolean
           organization_id?: string
           slot_date?: string
+          slot_format?: string
           specialist_id?: string
           start_time?: string
           updated_at?: string
