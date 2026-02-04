@@ -84,6 +84,7 @@ const organizationItem = {
   label: "Организация", 
   icon: Building,
   subItems: [
+    { id: "organization-data", label: "Данные организации" },
     { id: "organization-employees", label: "Сотрудники" },
     { id: "organization-schedule", label: "Расписание организации" },
     { id: "organization-rates", label: "Ставки специалистов" },

@@ -249,6 +249,12 @@ export default function Landing() {
           </Link>
           
           <nav className="hidden md:flex items-center gap-6">
+            <Link to="/specialists" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Специалисты
+            </Link>
+            <Link to="/organizations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Организации
+            </Link>
             <Link to="/for-organizations" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Организациям
             </Link>
