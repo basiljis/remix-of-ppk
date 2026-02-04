@@ -327,9 +327,9 @@ export default function PublicSpecialists() {
                             Частная практика
                           </Badge>
                         ) : specialist.organization?.name && (
-                          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground px-2">
                             <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
-                            <span className="line-clamp-1">{specialist.organization.name}</span>
+                            <span className="text-center">{specialist.organization.name}</span>
                           </div>
                         )}
                       </div>
