@@ -14,11 +14,13 @@ import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, A
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
 // Position types for filtering
-const SPECIALIST_POSITIONS = [
-  { value: "psychologist", label: "Педагог-психолог" },
-  { value: "speech_therapist", label: "Учитель-логопед" },
-  { value: "defectologist", label: "Учитель-дефектолог" },
-] as const;
+// Specialist positions that should be shown in public filter
+const SPECIALIST_POSITION_NAMES = [
+  "Педагог-психолог",
+  "Учитель-логопед",
+  "Дефектолог/Тифлопедагог/Сурдопедагог",
+  "Социальный педагог",
+];
 
 // Moscow region ID in the database
 const MOSCOW_REGION_ID = "77";
@@ -45,7 +47,8 @@ interface PublicProfile {
   session_packages: SessionPackage[] | null;
   work_format: string | null;
   work_district: string | null;
-  position: { name: string } | null;
+  position_id: string | null;
+  position: { id: string; name: string } | null;
   organization: { name: string; district: string | null } | null;
 }
 
@@ -64,6 +67,20 @@ export default function PublicSpecialists() {
       const { data, error } = await supabase
         .from("regions")
         .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch positions from database (only specialist positions)
+  const { data: positions = [] } = useQuery({
+    queryKey: ["public-positions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("positions")
+        .select("id, name")
+        .in("name", SPECIALIST_POSITION_NAMES)
         .order("name");
       if (error) throw error;
       return data || [];
@@ -91,7 +108,8 @@ export default function PublicSpecialists() {
           session_packages,
           work_format,
           work_district,
-          position:positions(name),
+          position_id,
+          position:positions(id, name),
           organization:organizations(name, district)
         `)
         .eq("is_published", true)
@@ -122,20 +140,9 @@ export default function PublicSpecialists() {
       specialist.work_district === selectedDistrict ||
       specialist.organization?.district === selectedDistrict;
     
-    // Match by position name
-    const matchesPosition = !selectedPosition || selectedPosition === "all" || (() => {
-      const posName = specialist.position?.name?.toLowerCase() || "";
-      switch (selectedPosition) {
-        case "psychologist":
-          return posName.includes("психолог");
-        case "speech_therapist":
-          return posName.includes("логопед");
-        case "defectologist":
-          return posName.includes("дефектолог");
-        default:
-          return true;
-      }
-    })();
+    // Match by position ID
+    const matchesPosition = !selectedPosition || selectedPosition === "all" ||
+      specialist.position_id === selectedPosition;
     
     return matchesSearch && matchesWorkFormat && matchesDistrict && matchesPosition;
   }) || [];
@@ -257,13 +264,13 @@ export default function PublicSpecialists() {
             )}
             
             <Select value={selectedPosition || ""} onValueChange={(v) => setSelectedPosition(v || null)}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Должность" />
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Специалист" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все должности</SelectItem>
-                {SPECIALIST_POSITIONS.map(pos => (
-                  <SelectItem key={pos.value} value={pos.value}>{pos.label}</SelectItem>
+                <SelectItem value="all">Все специалисты</SelectItem>
+                {positions.map(pos => (
+                  <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
