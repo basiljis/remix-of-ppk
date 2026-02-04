@@ -12,6 +12,9 @@ import LandingFooter from "@/components/LandingFooter";
 import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
+// Moscow region ID in the database
+const MOSCOW_REGION_ID = "77";
+
 interface PublicOrganization {
   id: string;
   name: string;
@@ -26,42 +29,45 @@ interface PublicOrganization {
   website: string | null;
   type: string | null;
   metro_station: string | null;
+  region_id: string | null;
   employees_count?: number;
 }
 
-// Auto-detect region from browser/IP (returns district name if in Moscow)
-const detectUserRegion = async (): Promise<string | null> => {
+// Auto-detect region based on timezone
+const detectUserRegion = (): string => {
   try {
-    // Try to get approximate location from timezone or IP
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    // If timezone is Europe/Moscow, default to Moscow region
     if (timezone === "Europe/Moscow") {
-      return null; // In Moscow but can't determine district
+      return MOSCOW_REGION_ID;
     }
-    return null;
+    // For other Russian timezones, could map to specific regions
+    // For now, default to Moscow
+    return MOSCOW_REGION_ID;
   } catch {
-    return null;
+    return MOSCOW_REGION_ID;
   }
 };
 
 export default function PublicOrganizations() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState<string>(() => detectUserRegion());
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [isAutoDetecting, setIsAutoDetecting] = useState(false);
 
-  // Try to auto-detect region on mount
-  useEffect(() => {
-    const autoDetect = async () => {
-      setIsAutoDetecting(true);
-      const detectedRegion = await detectUserRegion();
-      if (detectedRegion) {
-        setSelectedDistrict(detectedRegion);
-      }
-      setIsAutoDetecting(false);
-    };
-    autoDetect();
-  }, []);
+  // Fetch regions from database
+  const { data: regions = [] } = useQuery({
+    queryKey: ["public-regions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("regions")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ["public-organizations"],
@@ -81,7 +87,8 @@ export default function PublicOrganizations() {
           email,
           website,
           type,
-          metro_station
+          metro_station,
+          region_id
         `)
         .eq("is_published", true)
         .eq("is_archived", false);
@@ -117,13 +124,20 @@ export default function PublicOrganizations() {
       org.public_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       org.address?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDistrict = !selectedDistrict || selectedDistrict === "all" ||
+    // Filter by region
+    const matchesRegion = !selectedRegion || selectedRegion === "all" ||
+      org.region_id === selectedRegion;
+    
+    // Filter by district (only for Moscow region)
+    const matchesDistrict = selectedRegion !== MOSCOW_REGION_ID ||
+      !selectedDistrict || 
+      selectedDistrict === "all" ||
       org.district === selectedDistrict;
     
     const matchesType = !selectedType || selectedType === "all" ||
       org.type === selectedType;
     
-    return matchesSearch && matchesDistrict && matchesType;
+    return matchesSearch && matchesRegion && matchesDistrict && matchesType;
   }) || [];
 
   const handleViewDetails = (orgId: string, slug: string | null) => {
@@ -181,8 +195,8 @@ export default function PublicOrganizations() {
       {/* Filters */}
       <section className="px-4 pb-8">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Поиск по названию или адресу..."
@@ -192,24 +206,39 @@ export default function PublicOrganizations() {
               />
             </div>
             
-            <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
-              <SelectTrigger className="w-full sm:w-[240px]">
+            {/* Region filter */}
+            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <div className="flex items-center gap-2">
-                  {isAutoDetecting ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
-                  )}
-                  <SelectValue placeholder="Округ Москвы" />
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="Регион" />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Все округа</SelectItem>
-                {MOSCOW_DISTRICTS.map(district => (
-                  <SelectItem key={district} value={district}>{district}</SelectItem>
+                <SelectItem value="all">Все регионы</SelectItem>
+                {regions.map(region => (
+                  <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* District filter - only for Moscow region */}
+            {selectedRegion === MOSCOW_REGION_ID && (
+              <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
+                <SelectTrigger className="w-full sm:w-[280px]">
+                  <div className="flex items-center gap-2">
+                    <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
+                    <SelectValue placeholder="Округ Москвы" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все округа</SelectItem>
+                  {MOSCOW_DISTRICTS.map(district => (
+                    <SelectItem key={district} value={district}>{district}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             
             <Select value={selectedType || ""} onValueChange={(v) => setSelectedType(v || null)}>
               <SelectTrigger className="w-full sm:w-[200px]">
