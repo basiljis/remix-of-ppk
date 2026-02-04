@@ -3,14 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, TrendingUp, TrendingDown, Users, Eye, Clock, MousePointerClick, Globe, BarChart3, Calendar, RefreshCw, Download } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Users, Eye, Clock, MousePointerClick, Globe, BarChart3, Calendar, RefreshCw, Download, AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { format, subDays, startOfDay, endOfDay, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { format, subDays, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from "recharts";
-
-// Color palette for charts
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondary))', '#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
 
 type PeriodType = '7d' | '14d' | '30d' | '90d' | 'month' | 'prev-month';
 
@@ -19,64 +17,12 @@ interface AnalyticsData {
   pageViews: number;
   avgSessionDuration: number;
   bounceRate: number;
+  visits: number;
   topPages: { path: string; views: number }[];
-  dailyStats: { date: string; visitors: number; pageViews: number }[];
+  dailyStats: { date: string; visitors: number; pageViews: number; visits: number }[];
+  period: string;
+  dateRange: { date1: string; date2: string };
 }
-
-// Mock data for demonstration - in production, this would come from analytics API
-const generateMockData = (days: number): AnalyticsData => {
-  const dailyStats = [];
-  const baseVisitors = 50 + Math.floor(Math.random() * 100);
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = subDays(new Date(), i);
-    const dayOfWeek = date.getDay();
-    // Weekends have less traffic
-    const weekendMultiplier = dayOfWeek === 0 || dayOfWeek === 6 ? 0.6 : 1;
-    const visitors = Math.floor((baseVisitors + Math.random() * 80) * weekendMultiplier);
-    const pageViews = Math.floor(visitors * (1.5 + Math.random() * 2));
-    
-    dailyStats.push({
-      date: format(date, 'dd.MM', { locale: ru }),
-      visitors,
-      pageViews,
-    });
-  }
-  
-  const totalVisitors = dailyStats.reduce((sum, d) => sum + d.visitors, 0);
-  const totalPageViews = dailyStats.reduce((sum, d) => sum + d.pageViews, 0);
-  
-  return {
-    visitors: totalVisitors,
-    pageViews: totalPageViews,
-    avgSessionDuration: 120 + Math.floor(Math.random() * 180), // seconds
-    bounceRate: 30 + Math.floor(Math.random() * 30),
-    topPages: [
-      { path: '/', views: Math.floor(totalPageViews * 0.35) },
-      { path: '/specialists', views: Math.floor(totalPageViews * 0.2) },
-      { path: '/organizations', views: Math.floor(totalPageViews * 0.15) },
-      { path: '/for-parents', views: Math.floor(totalPageViews * 0.12) },
-      { path: '/for-specialists', views: Math.floor(totalPageViews * 0.1) },
-      { path: '/for-organizations', views: Math.floor(totalPageViews * 0.08) },
-    ],
-    dailyStats,
-  };
-};
-
-const getPeriodDays = (period: PeriodType): number => {
-  switch (period) {
-    case '7d': return 7;
-    case '14d': return 14;
-    case '30d': return 30;
-    case '90d': return 90;
-    case 'month': return new Date().getDate();
-    case 'prev-month': {
-      const prevMonth = subMonths(new Date(), 1);
-      return new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0).getDate();
-    }
-    default: return 30;
-  }
-};
 
 const getPeriodLabel = (period: PeriodType): string => {
   switch (period) {
@@ -87,6 +33,17 @@ const getPeriodLabel = (period: PeriodType): string => {
     case 'month': return format(new Date(), 'LLLL yyyy', { locale: ru });
     case 'prev-month': return format(subMonths(new Date(), 1), 'LLLL yyyy', { locale: ru });
     default: return 'Период';
+  }
+};
+
+const getPreviousPeriod = (period: PeriodType): PeriodType => {
+  switch (period) {
+    case '7d': return '14d';
+    case '14d': return '30d';
+    case '30d': return '90d';
+    case 'month': return 'prev-month';
+    case 'prev-month': return 'prev-month';
+    default: return '30d';
   }
 };
 
@@ -102,28 +59,41 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
+async function fetchMetrikaStats(period: PeriodType): Promise<AnalyticsData> {
+  const { data, error } = await supabase.functions.invoke('yandex-metrika-stats', {
+    body: { period },
+  });
+
+  if (error) {
+    console.error('Error fetching Metrika stats:', error);
+    throw new Error(error.message || 'Failed to fetch analytics data');
+  }
+
+  if (data.error) {
+    console.error('Metrika API error:', data.error);
+    throw new Error(data.error);
+  }
+
+  return data;
+}
+
 export function SiteAnalyticsPanel() {
   const [period, setPeriod] = useState<PeriodType>('30d');
   
-  const { data, isLoading, refetch, isFetching } = useQuery({
+  const { data, isLoading, refetch, isFetching, error } = useQuery({
     queryKey: ['site-analytics', period],
-    queryFn: async () => {
-      // In production, replace with actual analytics API call
-      // For now, using mock data
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-      return generateMockData(getPeriodDays(period));
-    },
+    queryFn: () => fetchMetrikaStats(period),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
   
-  // Calculate comparison data (previous period)
-  const comparisonData = useQuery({
+  // Fetch comparison data for previous period
+  const comparisonQuery = useQuery({
     queryKey: ['site-analytics-comparison', period],
-    queryFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return generateMockData(getPeriodDays(period));
-    },
+    queryFn: () => fetchMetrikaStats(getPreviousPeriod(period)),
     staleTime: 5 * 60 * 1000,
+    retry: 1,
+    enabled: !!data,
   });
   
   const getChangePercent = (current: number, previous: number): number => {
@@ -148,8 +118,8 @@ export function SiteAnalyticsPanel() {
   const exportToCSV = () => {
     if (!data) return;
     
-    const headers = ['Дата', 'Посетители', 'Просмотры страниц'];
-    const rows = data.dailyStats.map(d => [d.date, d.visitors, d.pageViews]);
+    const headers = ['Дата', 'Посетители', 'Просмотры страниц', 'Визиты'];
+    const rows = data.dailyStats.map(d => [d.date, d.visitors, d.pageViews, d.visits]);
     
     const csvContent = [
       headers.join(','),
@@ -170,6 +140,25 @@ export function SiteAnalyticsPanel() {
       <Card>
         <CardContent className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-3 text-muted-foreground">Загрузка данных Яндекс.Метрики...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <div className="text-center">
+            <p className="font-medium text-destructive">Ошибка загрузки аналитики</p>
+            <p className="text-sm text-muted-foreground mt-1">{(error as Error).message}</p>
+          </div>
+          <Button variant="outline" onClick={() => refetch()}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Повторить
+          </Button>
         </CardContent>
       </Card>
     );
@@ -184,10 +173,13 @@ export function SiteAnalyticsPanel() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
-                SMM Аналитика сайта
+                Аналитика сайта
+                <Badge variant="outline" className="ml-2">
+                  Яндекс.Метрика
+                </Badge>
               </CardTitle>
               <CardDescription>
-                Статистика посещаемости и поведения пользователей для продвижения
+                Реальная статистика посещаемости и поведения пользователей
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -226,7 +218,7 @@ export function SiteAnalyticsPanel() {
           <CardContent>
             <div className="flex items-center">
               <div className="text-2xl font-bold">{formatNumber(data?.visitors || 0)}</div>
-              {comparisonData.data && renderChangeIndicator(data?.visitors || 0, comparisonData.data.visitors)}
+              {comparisonQuery.data && renderChangeIndicator(data?.visitors || 0, comparisonQuery.data.visitors)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               За {getPeriodLabel(period).toLowerCase()}
@@ -242,10 +234,10 @@ export function SiteAnalyticsPanel() {
           <CardContent>
             <div className="flex items-center">
               <div className="text-2xl font-bold">{formatNumber(data?.pageViews || 0)}</div>
-              {comparisonData.data && renderChangeIndicator(data?.pageViews || 0, comparisonData.data.pageViews)}
+              {comparisonQuery.data && renderChangeIndicator(data?.pageViews || 0, comparisonQuery.data.pageViews)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {data ? (data.pageViews / data.visitors).toFixed(1) : 0} стр./сессию
+              {data && data.visitors > 0 ? (data.pageViews / data.visitors).toFixed(1) : 0} стр./посетителя
             </p>
           </CardContent>
         </Card>
@@ -258,7 +250,7 @@ export function SiteAnalyticsPanel() {
           <CardContent>
             <div className="flex items-center">
               <div className="text-2xl font-bold">{formatDuration(data?.avgSessionDuration || 0)}</div>
-              {comparisonData.data && renderChangeIndicator(data?.avgSessionDuration || 0, comparisonData.data.avgSessionDuration)}
+              {comparisonQuery.data && renderChangeIndicator(data?.avgSessionDuration || 0, comparisonQuery.data.avgSessionDuration)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Время на сайте
@@ -274,7 +266,7 @@ export function SiteAnalyticsPanel() {
           <CardContent>
             <div className="flex items-center">
               <div className="text-2xl font-bold">{data?.bounceRate || 0}%</div>
-              {comparisonData.data && renderChangeIndicator(data?.bounceRate || 0, comparisonData.data.bounceRate, true)}
+              {comparisonQuery.data && renderChangeIndicator(data?.bounceRate || 0, comparisonQuery.data.bounceRate, true)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Ушли сразу
@@ -356,7 +348,7 @@ export function SiteAnalyticsPanel() {
                     type="category" 
                     dataKey="path" 
                     tick={{ fontSize: 11 }}
-                    width={120}
+                    width={150}
                   />
                   <Tooltip 
                     contentStyle={{ 
@@ -399,7 +391,9 @@ export function SiteAnalyticsPanel() {
                 <Badge variant="outline">Фокус контента</Badge>
               </h4>
               <p className="text-sm text-muted-foreground">
-                Страница «Специалисты» — второй по популярности раздел. Продвигайте профили специалистов.
+                {data?.topPages && data.topPages.length > 1 
+                  ? `Страница «${data.topPages[1].path}» — второй по популярности раздел.`
+                  : 'Анализируйте популярные страницы для создания релевантного контента.'}
               </p>
             </div>
             
@@ -408,18 +402,20 @@ export function SiteAnalyticsPanel() {
                 <Badge variant="outline">Вовлечённость</Badge>
               </h4>
               <p className="text-sm text-muted-foreground">
-                Средняя сессия {formatDuration(data?.avgSessionDuration || 0)} — пользователи вовлечены. Добавьте CTA на ключевые страницы.
+                Средняя сессия {formatDuration(data?.avgSessionDuration || 0)} — {(data?.avgSessionDuration || 0) > 120 ? 'пользователи вовлечены' : 'есть потенциал для улучшения'}. 
+                {(data?.bounceRate || 0) > 50 && ' Снизьте показатель отказов.'}
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Note about data */}
+      {/* Data source note */}
       <Card className="border-dashed">
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground text-center">
-            📊 Данные демонстрационные. Для получения реальной статистики подключите Яндекс.Метрику или Google Analytics.
+            📊 Данные получены из Яндекс.Метрики (счётчик 106637396). 
+            Период: {data?.dateRange?.date1} — {data?.dateRange?.date2}
           </p>
         </CardContent>
       </Card>
