@@ -274,10 +274,10 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
   });
 
   // Check if user can access publication section
-  // Private specialists can always access, org employees need permission
+  // Private specialists can always access, org employees need organization permission
   const canAccessPublication = isPrivateSpecialist || 
     !profile?.organization_id || // No organization = can publish
-    (organizationSettings?.is_published && organizationSettings?.allow_employee_publishing);
+    organizationSettings?.allow_employee_publishing === true;
 
   type MenuItem = {
     id: string;
