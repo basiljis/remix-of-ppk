@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Users, GraduationCap } from "lucide-react";
+import { LogOut, User, Users, GraduationCap, HelpCircle, Building2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsDialog } from "@/components/NotificationsDialog";
 import { TestModeDialog } from "@/components/TestModeDialog";
@@ -320,8 +320,32 @@ const Index = () => {
               <SidebarTrigger />
               <div className="hidden md:block">
                 <h1 className="text-xl font-bold">universum.</h1>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <p className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
                   <span>{profile?.full_name} — {profile?.positions?.name}</span>
+                  {profile?.organizations?.name && (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="text-muted-foreground/50">•</span>
+                      {profile.organizations.name.length > 30 ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-accent/50 cursor-help">
+                                <Building2 className="h-3 w-3" />
+                                <HelpCircle className="h-3 w-3" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-xs">
+                              <p className="font-medium">{profile.organizations.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-accent/50">
+                          {profile.organizations.name}
+                        </span>
+                      )}
+                    </span>
+                  )}
                   {roles.length > 0 && (
                     <span className="inline-flex items-center gap-1">
                       <span className="text-muted-foreground/50">•</span>
