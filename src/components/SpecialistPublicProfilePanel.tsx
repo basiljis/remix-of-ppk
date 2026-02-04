@@ -445,8 +445,8 @@ export function SpecialistPublicProfilePanel() {
             </Label>
             <div className="flex gap-2">
               <div className="flex-1 flex items-center">
-                <span className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded-l-md border border-r-0">
-                  {window.location.origin}/s/
+                <span className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded-l-md border border-r-0 whitespace-nowrap">
+                  {PRODUCTION_DOMAIN}/s/
                 </span>
                 <Input
                   id="public-slug"
