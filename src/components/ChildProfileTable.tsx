@@ -23,12 +23,38 @@ export function ChildProfileTable({ protocols, onShowDetails }: Props) {
     const blockScores: { [key: string]: number } = {};
     
     protocol.checklist_data.blocks.forEach((block: any) => {
+      const blockName = block.name || block.title;
+      if (!blockName) return;
+      
+      // Collect all items from nested structure: topics -> subtopics -> items
+      const allItems: any[] = [];
+      
+      // Direct items on block
       if (block.items && Array.isArray(block.items)) {
-        const scores = block.items.map((item: any) => item.score || 0);
-        const average = scores.length > 0 
-          ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length 
-          : 0;
-        blockScores[block.name] = Math.round(average * 100);
+        allItems.push(...block.items);
+      }
+      
+      // Items in topics -> subtopics structure
+      if (block.topics && Array.isArray(block.topics)) {
+        block.topics.forEach((topic: any) => {
+          if (topic.subtopics && Array.isArray(topic.subtopics)) {
+            topic.subtopics.forEach((subtopic: any) => {
+              if (subtopic.items && Array.isArray(subtopic.items)) {
+                allItems.push(...subtopic.items);
+              }
+            });
+          }
+          // Direct items on topic
+          if (topic.items && Array.isArray(topic.items)) {
+            allItems.push(...topic.items);
+          }
+        });
+      }
+      
+      if (allItems.length > 0) {
+        const scores = allItems.map((item: any) => item.score || 0);
+        const average = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
+        blockScores[blockName] = Math.round(average * 100);
       }
     });
 
