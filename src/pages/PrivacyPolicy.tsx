@@ -1,32 +1,9 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Heart, ArrowLeft } from "lucide-react";
+import { PublicNavbar } from "@/components/PublicNavbar";
 
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Heart className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">universum.</span>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link to="/landing">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                На главную
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PublicNavbar currentPage="privacy" variant="simple" showSecondaryNav={false} />
 
       {/* Content */}
       <main className="pt-24 pb-16 px-4">
