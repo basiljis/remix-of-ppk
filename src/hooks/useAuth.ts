@@ -84,13 +84,17 @@ export const useAuth = () => {
 
       if (profileError) {
         console.error("[useAuth] Ошибка загрузки профиля:", profileError);
-        errorLogger.logError({
-          errorType: 'Profile Load Error',
-          errorMessage: profileError.message,
-          componentName: 'useAuth',
-          severity: 'error',
-          metadata: { userId, code: profileError.code }
-        });
+        // Если профиль не найден (PGRST116) - это не критическая ошибка для новых пользователей
+        const isProfileNotFound = profileError.code === 'PGRST116';
+        if (!isProfileNotFound) {
+          errorLogger.logError({
+            errorType: 'Profile Load Error',
+            errorMessage: profileError.message,
+            componentName: 'useAuth',
+            severity: 'error',
+            metadata: { userId, code: profileError.code }
+          });
+        }
         throw profileError;
       }
 
@@ -135,11 +139,20 @@ export const useAuth = () => {
       }
     } catch (error) {
       console.error("[useAuth] Критическая ошибка при загрузке данных пользователя:", error);
-      errorLogger.logCritical(
-        'Auth Data Load Failed',
-        error instanceof Error ? error.message : String(error),
-        { userId }
-      );
+      // Проверяем, является ли ошибка отсутствием профиля (ожидаемая ситуация для новых пользователей)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isProfileNotFound = error && typeof error === 'object' && 'code' in error && (error as any).code === 'PGRST116';
+      
+      if (!isProfileNotFound) {
+        // Логируем только неожиданные ошибки как критические
+        errorLogger.logError({
+          errorType: 'Auth Data Load Failed',
+          errorMessage: errorMessage,
+          componentName: 'useAuth',
+          severity: 'warning', // Понижаем до warning, так как это не всегда критично
+          metadata: { userId }
+        });
+      }
       // Не блокируем загрузку при ошибке, позволяем пользователю увидеть интерфейс
       setProfile(null);
       setRoles([]);
