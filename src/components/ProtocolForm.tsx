@@ -290,6 +290,8 @@ export const ProtocolForm = ({
       formData.childData.birthDate,
       formData.childData.age,
       formData.childData.classNumber,
+      formData.childData.gender,
+      formData.childData.address,
       formData.childData.parentName,
       formData.childData.parentPhone,
       formData.childData.whobrought
@@ -370,9 +372,17 @@ export const ProtocolForm = ({
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < 5) {
-      handleStepChange(currentStep + 1);
+      // Автосохранение черновика при переходе с первого шага
+      if (currentStep === 1 && canSaveProtocol()) {
+        await saveProtocolData(true);
+        toast({
+          title: "Черновик сохранён",
+          description: "Данные автоматически сохранены"
+        });
+      }
+      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -653,7 +663,7 @@ export const ProtocolForm = ({
   const getStepMissingRequiredFields = (stepNumber: number): boolean => {
     switch (stepNumber) {
       case 1: {
-        const requiredFields = ['fullName', 'birthDate', 'age', 'classNumber', 'parentName', 'parentPhone', 'whobrought', 'educationalOrganization'];
+        const requiredFields = ['fullName', 'birthDate', 'age', 'classNumber', 'gender', 'address', 'parentName', 'parentPhone', 'whobrought', 'educationalOrganization'];
         return requiredFields.some(field => {
           const value = formData.childData[field as keyof ChildData];
           return !value || value === '';
@@ -1020,12 +1030,12 @@ export const ProtocolForm = ({
               </div>
 
               <div>
-                <Label htmlFor="gender">Пол</Label>
+                <Label htmlFor="gender">Пол *</Label>
                 <Select
                   value={formData.childData.gender}
                   onValueChange={(value) => updateChildData('gender', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={getRequiredFieldClass(formData.childData.gender)}>
                     <SelectValue placeholder="Выберите пол" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1044,12 +1054,12 @@ export const ProtocolForm = ({
               </div>
 
               <div>
-                <Label htmlFor="classNumber">Класс/Группа</Label>
+                <Label htmlFor="classNumber">Класс/Группа *</Label>
                 <Select
                   value={formData.childData.classNumber}
                   onValueChange={(value) => updateChildData('classNumber', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={getRequiredFieldClass(formData.childData.classNumber)}>
                     <SelectValue placeholder={
                       selectedLevel === 'preschool' 
                         ? 'Выберите группу' 
@@ -1098,11 +1108,12 @@ export const ProtocolForm = ({
               </div>
 
               <div className="col-span-2">
-                <Label htmlFor="address">Адрес проживания</Label>
+                <Label htmlFor="address">Адрес проживания *</Label>
                 <Textarea
                   id="address"
                   value={formData.childData.address}
                   onChange={(e) => updateChildData("address", e.target.value)}
+                  className={getRequiredFieldClass(formData.childData.address)}
                   placeholder="г. Москва, ул. Примерная, д. 1, кв. 1"
                   rows={2}
                 />
