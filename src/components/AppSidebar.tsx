@@ -51,13 +51,15 @@ const menuItems = [
 
 // Instructions module - separate highlighted section with subsections by module
 // Filtered dynamically based on user access in the component
-const getInstructionsSubItems = (canSeePPK: boolean, canAccessSchedule: boolean, canSeeOrganization: boolean) => {
+const getInstructionsSubItems = (canSeePPK: boolean, canAccessSchedule: boolean, canSeeOrganization: boolean, isAdmin: boolean) => {
   const items = [];
   if (canSeePPK) items.push({ id: "instructions-ppk", label: "ППк" });
   if (canAccessSchedule) items.push({ id: "instructions-schedule", label: "Расписание" });
   if (canSeeOrganization) items.push({ id: "instructions-organization", label: "Организация" });
   // НПБ (legal) always visible for all users
   items.push({ id: "instructions-legal", label: "НПБ" });
+  // Business processes only for admins
+  if (isAdmin) items.push({ id: "instructions-business-processes", label: "Бизнес-процессы" });
   return items;
 };
 
@@ -449,7 +451,7 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
             <SidebarMenu>
               {(() => {
                 const canAccessScheduleMenu = subscriptionStatus.canAccessSchedule || subscriptionStatus.isTrialActive || isAdmin;
-                const instructionsSubItems = getInstructionsSubItems(canSeePPK, canAccessScheduleMenu, canSeeOrganization);
+                const instructionsSubItems = getInstructionsSubItems(canSeePPK, canAccessScheduleMenu, canSeeOrganization, isAdmin);
                 const isActive = instructionsSubItems.some(sub => activeTab === sub.id);
                 
                 return (
