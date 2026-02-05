@@ -84,17 +84,31 @@ export const useAuth = () => {
 
       if (profileError) {
         console.error("[useAuth] Ошибка загрузки профиля:", profileError);
-        // Если профиль не найден (PGRST116) - это не критическая ошибка для новых пользователей
-        const isProfileNotFound = profileError.code === 'PGRST116';
-        if (!isProfileNotFound) {
+        // Если профиль не найден (PGRST116 или Cannot coerce) - это не критическая ошибка
+        // для новых пользователей или для родителей, которые хранятся в parent_users
+        const isProfileNotFound = profileError.code === 'PGRST116' || 
+                                   profileError.message.includes('Cannot coerce');
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+        const isParentRoute = currentPath.startsWith('/parent');
+        
+        // Не логируем ошибку для родительских маршрутов — это ожидаемое поведение
+        if (!isProfileNotFound && !isParentRoute) {
           errorLogger.logError({
             errorType: 'Profile Load Error',
             errorMessage: profileError.message,
             componentName: 'useAuth',
-            severity: 'error',
+            severity: 'warning',
             metadata: { userId, code: profileError.code }
           });
         }
+        
+        // Для родительских маршрутов или отсутствия профиля не выбрасываем ошибку
+        if (isParentRoute || isProfileNotFound) {
+          console.log("[useAuth] Профиль не найден — это нормально для родителей или новых пользователей");
+          setProfile(null);
+          return;
+        }
+        
         throw profileError;
       }
 
