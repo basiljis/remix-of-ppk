@@ -7,10 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+
 import LandingFooter from "@/components/LandingFooter";
 import { ParentAuthModal } from "@/components/ParentAuthModal";
-import { SearchNavBar } from "@/components/PublicNavbar";
+import { PublicNavbar, SearchNavBar } from "@/components/PublicNavbar";
 import { Heart, Search, Building2, MapPin, Users, CalendarCheck, ArrowLeft, Loader2, Globe, Phone, Mail, MapPinned, ExternalLink, User, AlertCircle } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -403,19 +403,7 @@ export default function PublicOrganizations() {
     if (!singleOrganization) {
       return (
         <div className="min-h-screen bg-background">
-          <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container mx-auto flex h-16 items-center justify-between px-4">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                  <Heart className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold">universum.</span>
-              </Link>
-              <div className="flex items-center gap-3">
-                <ThemeToggle />
-              </div>
-            </div>
-          </header>
+          <PublicNavbar currentPage="catalog-organizations" variant="minimal" showSecondaryNav={false} />
           <div className="pt-24 text-center py-20">
             <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h1 className="text-2xl font-bold mb-2">Организация не найдена</h1>
@@ -436,23 +424,7 @@ export default function PublicOrganizations() {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto flex h-16 items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                <Heart className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">universum.</span>
-            </Link>
-            
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <Link to="/parent-auth">
-                <Button variant="outline" size="sm">Вход для родителей</Button>
-              </Link>
-            </div>
-          </div>
-        </header>
+        <PublicNavbar currentPage="catalog-organizations" variant="minimal" showSecondaryNav={false} />
 
         {/* Organization Detail */}
         <section className="pt-24 pb-8 px-4">
@@ -691,27 +663,11 @@ export default function PublicOrganizations() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Heart className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">universum.</span>
-          </Link>
-          
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link to="/parent-auth">
-              <Button variant="outline" size="sm">Вход для родителей</Button>
-            </Link>
-          </div>
-        </div>
-        </header>
+      <PublicNavbar currentPage="catalog-organizations" variant="minimal" showSecondaryNav={false} />
 
-        {/* Secondary nav bar with search links */}
-        <SearchNavBar currentPage="organizations" />
-        <section className="pt-32 pb-8 px-4">
+      {/* Secondary nav bar with search links */}
+      <SearchNavBar currentPage="organizations" />
+      <section className="pt-32 pb-8 px-4">
         <div className="container mx-auto max-w-6xl">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />

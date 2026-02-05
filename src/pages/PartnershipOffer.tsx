@@ -1,23 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { PublicNavbar } from "@/components/PublicNavbar";
 
 const PartnershipOffer = () => {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link to="/landing">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              На главную
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold">Публичная оферта о партнёрской программе</h1>
-        </div>
-      </header>
+      <PublicNavbar currentPage="partnership" variant="simple" showSecondaryNav={false} />
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
         <div className="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none">
           <h1 className="text-2xl sm:text-3xl font-bold mb-6">ПУБЛИЧНАЯ ОФЕРТА О ПАРТНЁРСКОЙ ПРОГРАММЕ</h1>
           

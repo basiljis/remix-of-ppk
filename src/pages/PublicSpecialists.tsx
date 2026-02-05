@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import LandingFooter from "@/components/LandingFooter";
 import { ParentAuthModal } from "@/components/ParentAuthModal";
-import { SearchNavBar } from "@/components/PublicNavbar";
+import { PublicNavbar, SearchNavBar } from "@/components/PublicNavbar";
 import { Heart, Search, User, MapPin, Briefcase, GraduationCap, CalendarCheck, ArrowLeft, Loader2, Building2, Wallet, Clock, MapPinned, Globe, Monitor } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 import { useAuth } from "@/hooks/useAuth";
@@ -233,23 +233,7 @@ export default function PublicSpecialists() {
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto flex h-16 items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                <Heart className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">universum.</span>
-            </Link>
-            
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <Link to="/parent-auth">
-                <Button variant="outline" size="sm">Вход для родителей</Button>
-              </Link>
-            </div>
-          </div>
-        </header>
+        <PublicNavbar currentPage="catalog-specialists" variant="minimal" showSecondaryNav={false} />
 
         {/* Secondary nav bar with search links */}
         <SearchNavBar currentPage="specialists" />
