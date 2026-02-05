@@ -8,11 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle, Info, AlertTriangle, Search, RefreshCw, Download, Eye, ChevronDown, ChevronRight, Layers } from "lucide-react";
+import { AlertCircle, CheckCircle, Info, AlertTriangle, Search, RefreshCw, Download, Eye, ChevronDown, ChevronRight, Layers, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import * as XLSX from "xlsx";
+import { Progress } from "@/components/ui/progress";
 
 interface ErrorLog {
   id: string;
@@ -146,6 +147,28 @@ export const ErrorLogsPanel = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentLogs = filteredLogs.slice(startIndex, endIndex);
+
+  // Статистика ошибок
+  const errorStats = useMemo(() => {
+    const stats = {
+      total: logs.length,
+      resolved: logs.filter(l => l.resolved).length,
+      unresolved: logs.filter(l => !l.resolved).length,
+      bySeverity: {
+        critical: logs.filter(l => l.severity === 'critical').length,
+        error: logs.filter(l => l.severity === 'error').length,
+        warning: logs.filter(l => l.severity === 'warning').length,
+        info: logs.filter(l => l.severity === 'info').length,
+      },
+      unresolvedBySeverity: {
+        critical: logs.filter(l => l.severity === 'critical' && !l.resolved).length,
+        error: logs.filter(l => l.severity === 'error' && !l.resolved).length,
+        warning: logs.filter(l => l.severity === 'warning' && !l.resolved).length,
+        info: logs.filter(l => l.severity === 'info' && !l.resolved).length,
+      }
+    };
+    return stats;
+  }, [logs]);
 
   const handleMarkResolved = async (logId: string) => {
     try {
@@ -310,6 +333,87 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* Статистика ошибок */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {/* Всего ошибок */}
+            <div className="p-3 rounded-lg border bg-card">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                <AlertCircle className="h-3 w-3" />
+                Всего
+              </div>
+              <div className="text-2xl font-bold">{errorStats.total}</div>
+            </div>
+            
+            {/* Открытые */}
+            <div className="p-3 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-xs mb-1">
+                <Clock className="h-3 w-3" />
+                Открытые
+              </div>
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{errorStats.unresolved}</div>
+            </div>
+            
+            {/* Решённые */}
+            <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-xs mb-1">
+                <CheckCircle className="h-3 w-3" />
+                Решённые
+              </div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{errorStats.resolved}</div>
+            </div>
+            
+            {/* Критические (открытые) */}
+            <div className="p-3 rounded-lg border bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs mb-1">
+                <XCircle className="h-3 w-3" />
+                Critical
+              </div>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                {errorStats.unresolvedBySeverity.critical}
+                <span className="text-xs font-normal text-muted-foreground ml-1">/ {errorStats.bySeverity.critical}</span>
+              </div>
+            </div>
+            
+            {/* Ошибки (открытые) */}
+            <div className="p-3 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+              <div className="flex items-center gap-2 text-orange-500 text-xs mb-1">
+                <AlertCircle className="h-3 w-3" />
+                Error
+              </div>
+              <div className="text-2xl font-bold text-orange-500">
+                {errorStats.unresolvedBySeverity.error}
+                <span className="text-xs font-normal text-muted-foreground ml-1">/ {errorStats.bySeverity.error}</span>
+              </div>
+            </div>
+            
+            {/* Warning + Info */}
+            <div className="p-3 rounded-lg border">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                <AlertTriangle className="h-3 w-3" />
+                Warn / Info
+              </div>
+              <div className="text-2xl font-bold">
+                <span className="text-yellow-500">{errorStats.unresolvedBySeverity.warning}</span>
+                <span className="text-muted-foreground mx-1">/</span>
+                <span className="text-blue-500">{errorStats.unresolvedBySeverity.info}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Прогресс решения */}
+          {errorStats.total > 0 && (
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-muted-foreground">Прогресс решения:</span>
+              <Progress 
+                value={(errorStats.resolved / errorStats.total) * 100} 
+                className="flex-1 h-2"
+              />
+              <span className="font-medium">
+                {Math.round((errorStats.resolved / errorStats.total) * 100)}%
+              </span>
+            </div>
+          )}
+
           {/* Фильтры */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
