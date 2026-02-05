@@ -3,6 +3,36 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
 import { FileBarChart, ClipboardList } from "lucide-react";
 
+// Сокращения для длинных названий блоков
+const blockNameAbbreviations: Record<string, string> = {
+  "I РЕЧЕВОЙ БЛОК": "Речевой",
+  "II РЕГУЛЯТИВНЫЙ БЛОК": "Регулятивный",
+  "III КОГНИТИВНЫЙ БЛОК": "Когнитивный",
+  "IV КОММУНИКАТИВНЫЙ БЛОК": "Коммуникатив.",
+  "V ПОВЕДЕНЧЕСКИЙ БЛОК": "Поведенческий",
+  // Fallback patterns
+  "РЕЧЕВОЙ БЛОК": "Речевой",
+  "РЕГУЛЯТИВНЫЙ БЛОК": "Регулятивный",
+  "КОГНИТИВНЫЙ БЛОК": "Когнитивный",
+  "КОММУНИКАТИВНЫЙ БЛОК": "Коммуникатив.",
+  "ПОВЕДЕНЧЕСКИЙ БЛОК": "Поведенческий",
+};
+
+const getShortBlockName = (fullName: string): string => {
+  // Try exact match first
+  if (blockNameAbbreviations[fullName]) {
+    return blockNameAbbreviations[fullName];
+  }
+  // Try to find a partial match
+  for (const [key, short] of Object.entries(blockNameAbbreviations)) {
+    if (fullName.toUpperCase().includes(key.toUpperCase().replace(/^[IVX]+\s+/, ''))) {
+      return short;
+    }
+  }
+  // Fallback: truncate if too long
+  return fullName.length > 15 ? fullName.substring(0, 12) + "..." : fullName;
+};
+
 interface Protocol {
   id: string;
   created_at: string;
@@ -74,7 +104,10 @@ export function ChildProfileRadarChart({ protocols }: Props) {
 
   // Prepare data for radar chart
   const radarData = Array.from(allBlocks).map(blockName => {
-    const dataPoint: any = { block: blockName };
+    const dataPoint: any = { 
+      block: getShortBlockName(blockName),
+      fullBlock: blockName 
+    };
     
     recentProtocols.forEach((protocol, index) => {
       const scores = calculateBlockScores(protocol);
@@ -125,7 +158,8 @@ export function ChildProfileRadarChart({ protocols }: Props) {
               <PolarGrid strokeDasharray="3 3" />
               <PolarAngleAxis 
                 dataKey="block" 
-                tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
+                tickLine={false}
               />
               {recentProtocols.map((_, index) => (
                 <Radar
