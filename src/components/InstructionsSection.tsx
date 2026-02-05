@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { useInstructions } from "@/hooks/useInstructions";
 import { Button } from "@/components/ui/button";
-import { BusinessProcessFlowchart, businessProcessFlows } from "@/components/BusinessProcessFlowchart";
+import { BusinessProcessTabs } from "@/components/BusinessProcessFlowchart";
 
 interface InstructionsSectionProps {
   activeSubTab?: string;
@@ -884,15 +884,9 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
         </div>
       </div>
 
-      {/* Бизнес-процессы - специальный рендеринг */}
+      {/* Бизнес-процессы - специальный рендеринг с табами */}
       {activeSubTab === "business-processes" ? (
-        <div className="space-y-6">
-          <BusinessProcessFlowchart {...businessProcessFlows.userJourney} />
-          <BusinessProcessFlowchart {...businessProcessFlows.protocolCreation} />
-          <BusinessProcessFlowchart {...businessProcessFlows.consultationBooking} />
-          <BusinessProcessFlowchart {...businessProcessFlows.parentJourney} />
-          <BusinessProcessFlowchart {...businessProcessFlows.adminWorkflow} />
-        </div>
+        <BusinessProcessTabs />
       ) : (
         <>
           {/* Поиск и фильтры */}
