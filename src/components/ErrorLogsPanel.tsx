@@ -48,7 +48,7 @@ export const ErrorLogsPanel = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
-  const [resolvedFilter, setResolvedFilter] = useState<string>("all");
+  const [resolvedFilter, setResolvedFilter] = useState<string>("unresolved");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<ErrorLog | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list');
