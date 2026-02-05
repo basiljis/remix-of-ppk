@@ -1093,6 +1093,7 @@ export const ProtocolForm = ({
                   value={formData.childData.educationalOrganization}
                   onChange={(value) => updateChildData("educationalOrganization", value)}
                   disabled={!isAdmin && !isRegionalOperator && !!profile?.organization_id}
+                  label=""
                 />
               </div>
 
