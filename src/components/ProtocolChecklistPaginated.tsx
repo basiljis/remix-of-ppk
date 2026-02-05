@@ -30,6 +30,10 @@ interface ProtocolChecklistPaginatedProps {
   savedConclusion?: string;
   parentConsent?: boolean;
   onParentConsentChange?: (consent: boolean) => void;
+  checklistStarted?: boolean;
+  checklistConfirmed?: boolean;
+  onChecklistStarted?: (started: boolean) => void;
+  onChecklistConfirmed?: (confirmed: boolean) => void;
 }
 
 export const ProtocolChecklistPaginated = ({ 
@@ -41,13 +45,40 @@ export const ProtocolChecklistPaginated = ({
   onConclusionChange,
   savedConclusion,
   parentConsent,
-  onParentConsentChange
+  onParentConsentChange,
+  checklistStarted = false,
+  checklistConfirmed = false,
+  onChecklistStarted,
+  onChecklistConfirmed
 }: ProtocolChecklistPaginatedProps) => {
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("checklist");
 
   const currentBlock = blocks[currentBlockIndex];
   const totalBlocks = blocks.length;
+
+  // Расчёт общего прогресса заполнения
+  const totalChecklistItems = blocks.reduce((sum, block) => {
+    return sum + block.topics.reduce((topicSum, topic) => {
+      return topicSum + topic.subtopics.reduce((subtopicSum, subtopic) => {
+        return subtopicSum + subtopic.items.length;
+      }, 0);
+    }, 0);
+  }, 0);
+
+  const completedChecklistItems = blocks.reduce((sum, block) => {
+    return sum + block.topics.reduce((topicSum, topic) => {
+      return topicSum + topic.subtopics.reduce((subtopicSum, subtopic) => {
+        return subtopicSum + subtopic.items.filter(item => item.score !== undefined).length;
+      }, 0);
+    }, 0);
+  }, 0);
+
+  const overallCompletionPercentage = totalChecklistItems > 0 
+    ? (completedChecklistItems / totalChecklistItems) * 100 
+    : 0;
+
+  const isFullyCompleted = overallCompletionPercentage === 100;
 
   const nextBlock = () => {
     if (currentBlockIndex < totalBlocks - 1) {
@@ -76,6 +107,40 @@ export const ProtocolChecklistPaginated = ({
     );
   }
 
+  // Экран "Приступить к заполнению" если чек-лист ещё не начат
+  if (!checklistStarted) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <List className="h-5 w-5" />
+            Чек-лист обследования
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center py-8">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <List className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Готовы начать обследование?</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Чек-лист содержит {totalChecklistItems} критериев оценки, разбитых на {totalBlocks} блоков. 
+              Нажмите кнопку ниже, чтобы приступить к заполнению.
+            </p>
+            <Button 
+              size="lg" 
+              onClick={() => onChecklistStarted?.(true)}
+              className="gap-2"
+            >
+              <ChevronRight className="h-5 w-5" />
+              Приступить к заполнению
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const blockStats = calculateBlockScore(currentBlock, educationLevel);
   const completedItems = currentBlock.topics.reduce((sum, topic) => {
     return sum + topic.subtopics.reduce((subtopicSum, subtopic) => {
@@ -93,6 +158,62 @@ export const ProtocolChecklistPaginated = ({
 
   return (
     <div className="space-y-6">
+      {/* Статус заполнения чек-листа */}
+      {checklistConfirmed ? (
+        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                  <ChevronRight className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-green-800 dark:text-green-200">Чек-лист заполнен и подтверждён</p>
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    Заполнено {completedChecklistItems} из {totalChecklistItems} критериев
+                  </p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onChecklistConfirmed?.(false)}
+                className="border-green-300 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-300"
+              >
+                Редактировать
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                  <List className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-amber-800 dark:text-amber-200">Заполнение чек-листа</p>
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                    Заполнено {completedChecklistItems} из {totalChecklistItems} ({Math.round(overallCompletionPercentage)}%)
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => onChecklistConfirmed?.(true)}
+                disabled={!isFullyCompleted}
+                className="gap-2"
+              >
+                <ChevronRight className="h-4 w-4" />
+                Подтвердить заполнение
+              </Button>
+            </div>
+            <Progress value={overallCompletionPercentage} className="mt-3" />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Навигация по блокам */}
       <Card>
         <CardHeader>
