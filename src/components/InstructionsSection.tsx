@@ -24,10 +24,12 @@ import {
   Clock,
   Calendar,
   ClipboardList,
-  Building
+  Building,
+  GitBranch
 } from "lucide-react";
 import { useInstructions } from "@/hooks/useInstructions";
 import { Button } from "@/components/ui/button";
+import { BusinessProcessFlowchart, businessProcessFlows } from "@/components/BusinessProcessFlowchart";
 
 interface InstructionsSectionProps {
   activeSubTab?: string;
@@ -749,6 +751,8 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
         return organizationInstructionsData;
       case "legal":
         return legalInstructionsData;
+      case "business-processes":
+        return []; // Business processes use flowcharts, not regular instructions
       default:
         return ppkInstructionsData;
     }
@@ -796,6 +800,8 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
         return "Инструкции по модулю Организация";
       case "legal":
         return "Нормативно-правовая база";
+      case "business-processes":
+        return "Бизнес-процессы системы";
       default:
         return "Инструкции";
     }
@@ -811,6 +817,8 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
         return Building;
       case "legal":
         return Scale;
+      case "business-processes":
+        return GitBranch;
       default:
         return BookOpen;
     }
@@ -871,11 +879,23 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
             {activeSubTab === "schedule" && "Управление занятиями, детьми и рабочим временем"}
             {activeSubTab === "organization" && "Управление сотрудниками и показателями организации"}
             {activeSubTab === "legal" && "Нормативные документы и правовые основы деятельности"}
+            {activeSubTab === "business-processes" && "Визуальные схемы ключевых процессов платформы"}
           </p>
         </div>
       </div>
 
-      {/* Поиск и фильтры */}
+      {/* Бизнес-процессы - специальный рендеринг */}
+      {activeSubTab === "business-processes" ? (
+        <div className="space-y-6">
+          <BusinessProcessFlowchart {...businessProcessFlows.userJourney} />
+          <BusinessProcessFlowchart {...businessProcessFlows.protocolCreation} />
+          <BusinessProcessFlowchart {...businessProcessFlows.consultationBooking} />
+          <BusinessProcessFlowchart {...businessProcessFlows.parentJourney} />
+          <BusinessProcessFlowchart {...businessProcessFlows.adminWorkflow} />
+        </div>
+      ) : (
+        <>
+          {/* Поиск и фильтры */}
       <Card className="border-2">
         <CardContent className="pt-6">
           <div className="space-y-4">
@@ -966,6 +986,8 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
           })
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };

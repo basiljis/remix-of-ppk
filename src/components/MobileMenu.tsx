@@ -22,7 +22,7 @@ const menuItems = [
 ];
 
 // Instructions module - separate section
-const instructionsItem = { 
+const getInstructionsItem = (isAdmin: boolean) => ({ 
   id: "instructions", 
   label: "Инструкции", 
   icon: BookOpen,
@@ -31,8 +31,9 @@ const instructionsItem = {
     { id: "instructions-schedule", label: "Расписание" },
     { id: "instructions-organization", label: "Организация" },
     { id: "instructions-legal", label: "НПБ" },
+    ...(isAdmin ? [{ id: "instructions-business-processes", label: "Бизнес-процессы" }] : []),
   ]
-};
+});
 
 // Publication item
 const publicationItem = { id: "public-profile", label: "Публичный профиль", icon: Globe };
@@ -65,6 +66,7 @@ const adminItems = {
 
 export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true, canAccessPublication = true }: MobileMenuProps) => {
   const [open, setOpen] = useState(false);
+  const instructionsItem = getInstructionsItem(isAdmin);
 
   const handleTabClick = (tabId: string) => {
     onTabChange(tabId);
