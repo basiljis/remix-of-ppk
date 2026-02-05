@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Minus, ExternalLink } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ExternalLink, TableIcon, ClipboardList } from "lucide-react";
 
 interface Protocol {
   id: string;
@@ -44,6 +44,8 @@ export function ChildProfileTable({ protocols, onShowDetails }: Props) {
 
   const blockNames = Array.from(allBlocks);
 
+  const hasData = blockNames.length > 0 && protocols.length > 0;
+
   // Calculate trends for each block
   const calculateTrend = (blockName: string, currentIndex: number) => {
     if (currentIndex === 0) return null;
@@ -78,52 +80,70 @@ export function ChildProfileTable({ protocols, onShowDetails }: Props) {
         )}
       </CardHeader>
       <CardContent className="overflow-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-[180px]">Блок</TableHead>
-              {protocols.map((protocol) => (
-                <TableHead key={protocol.id} className="text-center min-w-[120px]">
-                  <div className="flex flex-col">
-                    <span className="font-medium">№{protocol.ppk_number || "—"}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(protocol.created_at).toLocaleDateString("ru-RU")}
-                    </span>
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {blockNames.map((blockName) => (
-              <TableRow key={blockName}>
-                <TableCell className="font-medium">{blockName}</TableCell>
-                {protocols.map((protocol, index) => {
-                  const scores = calculateBlockScores(protocol);
-                  const score = scores[blockName];
-                  const trend = calculateTrend(blockName, index);
-
-                  return (
-                    <TableCell key={protocol.id} className="text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="font-medium">{score !== undefined ? `${score}%` : "—"}</span>
-                        {trend === "up" && (
-                          <TrendingUp className="h-4 w-4 text-success-foreground" />
-                        )}
-                        {trend === "down" && (
-                          <TrendingDown className="h-4 w-4 text-destructive" />
-                        )}
-                        {trend === "same" && (
-                          <Minus className="h-4 w-4 text-warning-foreground" />
-                        )}
-                      </div>
-                    </TableCell>
-                  );
-                })}
+        {hasData ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[180px]">Блок</TableHead>
+                {protocols.map((protocol) => (
+                  <TableHead key={protocol.id} className="text-center min-w-[120px]">
+                    <div className="flex flex-col">
+                      <span className="font-medium">№{protocol.ppk_number || "—"}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(protocol.created_at).toLocaleDateString("ru-RU")}
+                      </span>
+                    </div>
+                  </TableHead>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {blockNames.map((blockName) => (
+                <TableRow key={blockName}>
+                  <TableCell className="font-medium">{blockName}</TableCell>
+                  {protocols.map((protocol, index) => {
+                    const scores = calculateBlockScores(protocol);
+                    const score = scores[blockName];
+                    const trend = calculateTrend(blockName, index);
+
+                    return (
+                      <TableCell key={protocol.id} className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="font-medium">{score !== undefined ? `${score}%` : "—"}</span>
+                          {trend === "up" && (
+                            <TrendingUp className="h-4 w-4 text-success-foreground" />
+                          )}
+                          {trend === "down" && (
+                            <TrendingDown className="h-4 w-4 text-destructive" />
+                          )}
+                          {trend === "same" && (
+                            <Minus className="h-4 w-4 text-warning-foreground" />
+                          )}
+                        </div>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-lg bg-muted/20">
+            <TableIcon className="h-12 w-12 text-muted-foreground mb-4" />
+            <h4 className="text-lg font-medium text-foreground mb-2">
+              Таблица динамики пуста
+            </h4>
+            <p className="text-sm text-muted-foreground max-w-sm mb-4">
+              Здесь будут отображаться процентные показатели по всем блокам развития из протоколов ППк.
+            </p>
+            <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
+              <ClipboardList className="h-4 w-4 mt-0.5 shrink-0" />
+              <span className="text-left">
+                <strong>Как заполнить таблицу:</strong> Создайте и завершите протокол ППк с заполненными чек-листами. Данные появятся автоматически.
+              </span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
