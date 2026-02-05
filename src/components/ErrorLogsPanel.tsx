@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import * as XLSX from "xlsx";
 import { Progress } from "@/components/ui/progress";
+import { getErrorTypeInfo } from "@/data/errorTypeDescriptions";
+import { BookOpen } from "lucide-react";
 
 interface ErrorLog {
   id: string;
@@ -648,6 +650,35 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
           {selectedLog && (
             <ScrollArea className="h-[60vh]">
               <div className="space-y-4 pr-4">
+                {/* Описание типа ошибки */}
+                {(() => {
+                  const errorInfo = getErrorTypeInfo(selectedLog.error_type);
+                  if (errorInfo) {
+                    return (
+                      <div className="p-4 rounded-lg border bg-muted/30">
+                        <div className="flex items-start gap-3">
+                          <BookOpen className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                          <div className="space-y-2">
+                            <h4 className="font-medium">{errorInfo.title}</h4>
+                            <p className="text-sm text-muted-foreground">{errorInfo.description}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                              <div className="p-2 rounded bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
+                                <p className="text-xs font-medium text-orange-700 dark:text-orange-300 mb-1">⚠️ Влияние</p>
+                                <p className="text-xs text-orange-600 dark:text-orange-400">{errorInfo.impact}</p>
+                              </div>
+                              <div className="p-2 rounded bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                                <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">💡 Рекомендация</p>
+                                <p className="text-xs text-green-600 dark:text-green-400">{errorInfo.recommendation}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Основная информация */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
