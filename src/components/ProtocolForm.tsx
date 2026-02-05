@@ -77,6 +77,8 @@ interface ProtocolData {
   conclusionText?: string;
   parentConsent?: boolean;
   parentConsentAcknowledged?: boolean; // Подтверждение ознакомления с заключением
+  checklistStarted?: boolean; // Флаг начала заполнения чек-листа
+  checklistConfirmed?: boolean; // Флаг подтверждения завершения чек-листа
 }
 
 const initialDocuments: DocumentCheck[] = [
@@ -157,7 +159,9 @@ export const ProtocolForm = ({
     meetingType: "scheduled",
     conclusionText: "",
     parentConsent: false,
-    parentConsentAcknowledged: false
+    parentConsentAcknowledged: false,
+    checklistStarted: false,
+    checklistConfirmed: false
   });
 
   // Инициализация данных при редактировании
@@ -663,7 +667,14 @@ export const ProtocolForm = ({
         return requiredDocs.some(doc => !doc.present);
       }
       case 4: {
-        // Проверяем, есть ли незаполненные обязательные элементы чек-листа
+        // Чек-лист считается заполненным только если:
+        // 1. Пользователь нажал "Приступить к заполнению"
+        // 2. Все элементы заполнены
+        // 3. Пользователь нажал "Подтвердить заполнение"
+        if (!formData.checklistStarted) return true; // Не начат
+        if (!formData.checklistConfirmed) return true; // Не подтверждён
+        
+        // Проверяем полноту заполнения
         let hasIncomplete = false;
         checklistBlocks.forEach(block => {
           block.topics.forEach((topic: any) => {
@@ -1419,6 +1430,10 @@ export const ProtocolForm = ({
           blocks={checklistBlocks}
           onItemChange={updateItemScore}
           calculateBlockScore={calculateBlockScore}
+          checklistStarted={formData.checklistStarted || false}
+          checklistConfirmed={formData.checklistConfirmed || false}
+          onChecklistStarted={(started) => setFormData(prev => ({ ...prev, checklistStarted: started }))}
+          onChecklistConfirmed={(confirmed) => setFormData(prev => ({ ...prev, checklistConfirmed: confirmed }))}
         />
       )}
 
