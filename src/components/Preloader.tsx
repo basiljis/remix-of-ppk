@@ -31,10 +31,10 @@ const Preloader = () => {
       />
 
       {/* Centered content container */}
-      <div className="flex flex-col items-center justify-center gap-8 animate-fade-in">
+      <div className="flex flex-col items-center justify-center gap-6 animate-fade-in w-full">
         {/* Title text - centered above spinner */}
         <h1 
-          className="text-[clamp(0.625rem,1.5vw,0.875rem)] font-light tracking-[0.25em] text-foreground/80"
+          className="text-[clamp(0.625rem,1.5vw,0.875rem)] font-light tracking-[0.25em] text-foreground/80 text-center w-full"
           style={{
             fontFamily: 'system-ui, -apple-system, sans-serif',
             textTransform: 'uppercase',
@@ -45,9 +45,9 @@ const Preloader = () => {
         </h1>
 
         {/* Circular progress ring */}
-        <div className="relative flex items-center justify-center animate-scale-in">
+        <div className="relative flex items-center justify-center animate-scale-in w-16 h-16 mx-auto">
           <svg 
-            className="w-16 h-16 -rotate-90" 
+            className="w-16 h-16 -rotate-90 block" 
             viewBox="0 0 64 64"
           >
             {/* Background circle */}
