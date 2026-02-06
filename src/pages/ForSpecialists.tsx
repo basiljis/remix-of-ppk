@@ -27,19 +27,32 @@ const features = [
     description: "Ведите историю развития каждого ребёнка. Все протоколы, рекомендации и динамика в одном месте."
   },
   {
+    icon: Target,
+    title: "Направления работы",
+    description: "Укажите свои специализации (речь, когнитивное развитие, поведение и др.) — родители найдут вас по нужному направлению.",
+    isNew: true
+  },
+  {
+    icon: Users,
+    title: "Публичный профиль",
+    description: "Персональная страница с описанием, образованием и стоимостью услуг. Форматирование текста и множественные записи образования.",
+    isNew: true
+  },
+  {
     icon: BarChart3,
-    title: "Статистика работы",
+    title: "Статистика и KPI",
     description: "Отслеживайте свою нагрузку, количество занятий и эффективность. Готовые отчёты за любой период."
   },
   {
-    icon: Target,
-    title: "Рекомендации",
-    description: "Система автоматически предлагает рекомендации на основе результатов диагностики."
+    icon: BookOpen,
+    title: "Инструкции и НПБ",
+    description: "Методические материалы, нормативные документы и бизнес-процессы прямо в системе."
   },
   {
-    icon: BookOpen,
-    title: "Инструкции",
-    description: "Доступ к методическим материалам и нормативным документам прямо в системе."
+    icon: Target,
+    title: "Рекомендации по результатам",
+    description: "Система автоматически подбирает вас как специалиста родителям на основе выявленных проблем ребёнка.",
+    isNew: true
   }
 ];
 
@@ -133,9 +146,14 @@ export default function ForSpecialists() {
       <section className="py-16 px-4 bg-muted/30">
         <div className="container mx-auto max-w-5xl">
           <h2 className="text-2xl font-bold mb-8 text-center">Инструменты специалиста</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
-              <Card key={feature.title}>
+              <Card key={feature.title} className="relative overflow-hidden">
+                {(feature as any).isNew && (
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-green-500 hover:bg-green-600 text-white text-[10px] px-2">NEW</Badge>
+                  </div>
+                )}
                 <CardHeader>
                   <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center mb-2">
                     <feature.icon className="h-5 w-5 text-orange-600" />
@@ -180,6 +198,10 @@ export default function ForSpecialists() {
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     Общий журнал занятий
                   </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Стоимость услуг по решению администратора
+                  </li>
                 </ul>
               </CardContent>
             </Card>
@@ -193,16 +215,20 @@ export default function ForSpecialists() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Ведите собственную практику. Личный кабинет с расписанием, картами детей и статистикой.
+                  Ведите собственную практику. Личный кабинет с расписанием, картами детей и публичным профилем.
                 </p>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    Личное расписание
+                    Публичный профиль с описанием и образованием
                   </li>
                   <li className="flex items-center gap-2 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    Карты детей
+                    Направления работы и специализации
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Стоимость услуг на публичной странице
                   </li>
                   <li className="flex items-center gap-2 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600" />

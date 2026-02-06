@@ -7,14 +7,20 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 import { 
   Baby, Calendar, ClipboardList, FileText, 
   Bell, CheckCircle, ArrowRight, ChevronLeft,
-  Phone, Shield, BookOpen, BarChart3
+  Phone, Shield, BookOpen, BarChart3, Target, UserCheck, Gamepad2
 } from "lucide-react";
 
 const features = [
   {
+    icon: Target,
+    title: "Подбор специалиста",
+    description: "Система рекомендует педагогов на основе результатов диагностики — точно по проблематике вашего ребёнка.",
+    isNew: true
+  },
+  {
     icon: Calendar,
     title: "Запись на консультацию",
-    description: "Выбирайте удобное время для встречи со специалистом. Поиск по организациям или конкретным педагогам."
+    description: "Выбирайте удобное время для встречи со специалистом. Поиск по организациям, направлениям работы или конкретным педагогам."
   },
   {
     icon: ClipboardList,
@@ -22,19 +28,21 @@ const features = [
     description: "Проходите диагностические тесты для оценки развития ребёнка. Результаты доступны специалистам по вашему согласию."
   },
   {
-    icon: FileText,
-    title: "Расписание занятий",
-    description: "Следите за расписанием занятий вашего ребёнка в образовательной организации."
+    icon: Gamepad2,
+    title: "Игровая ребёнка",
+    description: "Развивающие игры и упражнения, подобранные под возраст ребёнка, с отслеживанием прогресса.",
+    isNew: true
   },
   {
     icon: Bell,
     title: "Уведомления",
-    description: "Получайте напоминания о предстоящих занятиях и консультациях."
+    description: "Получайте напоминания о предстоящих занятиях, готовых протоколах и рекомендациях."
   },
   {
     icon: BookOpen,
-    title: "Рекомендации",
-    description: "Читайте рекомендации специалистов и инструкции по работе с системой."
+    title: "Библиотека материалов",
+    description: "Статьи и рекомендации, подобранные для возраста и особенностей развития вашего ребёнка.",
+    isNew: true
   },
   {
     icon: Shield,
@@ -143,7 +151,12 @@ export default function ForParents() {
           <h2 className="text-2xl font-bold mb-8 text-center">Возможности личного кабинета</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature) => (
-              <Card key={feature.title}>
+              <Card key={feature.title} className="relative overflow-hidden">
+                {(feature as any).isNew && (
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-green-500 hover:bg-green-600 text-white text-[10px] px-2">NEW</Badge>
+                  </div>
+                )}
                 <CardHeader>
                   <div className="h-10 w-10 rounded-lg bg-pink-500/10 flex items-center justify-center mb-2">
                     <feature.icon className="h-5 w-5 text-pink-600" />
@@ -173,6 +186,13 @@ export default function ForParents() {
                 <li className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <div>
+                    <span className="font-medium">По проблеме ребёнка</span>
+                    <p className="text-sm text-muted-foreground">Система подберёт специалистов, работающих с выявленной проблематикой на основе ваших тестов и протоколов</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
                     <span className="font-medium">По организации</span>
                     <p className="text-sm text-muted-foreground">Выберите школу или центр и посмотрите доступных специалистов</p>
                   </div>
@@ -181,14 +201,7 @@ export default function ForParents() {
                   <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-medium">По специалисту</span>
-                    <p className="text-sm text-muted-foreground">Найдите конкретного психолога, логопеда или дефектолога</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-medium">По специальности</span>
-                    <p className="text-sm text-muted-foreground">Фильтруйте по типу специалиста: психолог, логопед, дефектолог</p>
+                    <p className="text-sm text-muted-foreground">Откройте профиль педагога с описанием, образованием и направлениями работы</p>
                   </div>
                 </li>
               </ul>

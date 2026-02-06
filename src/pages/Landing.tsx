@@ -11,7 +11,8 @@ import {
   ClipboardList, Calendar, FileText, Shield, 
   CheckCircle, ArrowRight,
   BarChart3, UserCheck, Heart, Gamepad2, 
-  BookOpen, CalendarCheck, Bell, Users, Target
+  BookOpen, CalendarCheck, Bell, Users, Target,
+  Compass
 } from "lucide-react";
 
 const features = [
@@ -47,6 +48,20 @@ const features = [
     description: "Родители записываются к специалистам напрямую, управление слотами",
     isNew: true,
     audience: ["org", "specialist", "private", "parent"]
+  },
+  {
+    icon: Target,
+    title: "Направления работы",
+    description: "Педагоги указывают специализации, система подбирает специалистов под проблематику ребёнка",
+    isNew: true,
+    audience: ["specialist", "private", "parent"]
+  },
+  {
+    icon: UserCheck,
+    title: "Подбор специалиста",
+    description: "Рекомендации специалистов на основе результатов ППк и тестов развития ребёнка",
+    isNew: true,
+    audience: ["parent"]
   },
   {
     icon: BookOpen,
@@ -93,7 +108,7 @@ const userTypes = [
       { text: "Управление сотрудниками и KPI", isNew: true },
       { text: "Протоколы ППк" },
       { text: "Групповые и серийные занятия", isNew: true },
-      { text: "Сравнительная аналитика", isNew: true }
+      { text: "Управление видимостью стоимости услуг", isNew: true }
     ],
     link: "/for-organizations",
     authLink: "/auth",
@@ -105,10 +120,10 @@ const userTypes = [
     title: "Для педагогов",
     description: "Психологи, логопеды, дефектологи, частная практика",
     features: [
-      { text: "Личный кабинет и расписание" },
-      { text: "Протоколы и карты детей" },
+      { text: "Публичный профиль с портфолио", isNew: true },
+      { text: "Направления работы и специализации", isNew: true },
       { text: "Онлайн-запись клиентов", isNew: true },
-      { text: "Персональный KPI", isNew: true }
+      { text: "Протоколы и карты детей" }
     ],
     link: "/for-specialists",
     authLink: "/auth",
@@ -120,7 +135,7 @@ const userTypes = [
     title: "Для родителей",
     description: "Личный кабинет законного представителя",
     features: [
-      { text: "Запись на консультацию", isNew: true },
+      { text: "Подбор специалиста по проблеме", isNew: true },
       { text: "Тесты развития и результаты ППк" },
       { text: "Игровая ребёнка", isNew: true },
       { text: "Персональные рекомендации", isNew: true }

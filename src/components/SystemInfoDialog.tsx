@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Info, Users, FileText, Calendar, BarChart3, ClipboardCheck, TrendingUp } from "lucide-react";
+import { Info, Users, FileText, Calendar, BarChart3, ClipboardCheck, TrendingUp, Target, UserCheck, Gamepad2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,12 +50,17 @@ export const SystemInfoDialog = () => {
                 <li>Создание и ведение электронных протоколов ППК</li>
                 <li>Структурированная оценка развития обучающихся по чек-листам</li>
                 <li>Автоматическое формирование заключений и рекомендаций</li>
+                <li>Направления работы специалистов — система подбирает педагогов под проблематику ребёнка</li>
+                <li>Публичные профили специалистов с описанием, образованием и стоимостью услуг</li>
+                <li>Рекомендации педагогов родителям на основе результатов ППк и тестов</li>
+                <li>Управление видимостью стоимости услуг (администратор / специалист)</li>
                 <li>Контроль за наличием необходимых документов</li>
-                <li>Статистика и аналитика по протоколам</li>
+                <li>Статистика и аналитика по протоколам, KPI специалистов</li>
                 <li>Экспорт протоколов в PDF и Excel</li>
                 <li>Управление доступом для разных уровней пользователей</li>
                 <li>Ведение карточек детей с историей протоколов и динамикой развития</li>
                 <li>Планирование и учёт занятий в расписании</li>
+                <li>Интерактивные бизнес-процессы и инструкции для всех ролей</li>
               </ul>
             </section>
 
@@ -101,11 +106,11 @@ export const SystemInfoDialog = () => {
                 <Card className="bg-muted/50 border-muted">
                   <CardContent className="p-3 flex items-start gap-3">
                     <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                      <Calendar className="h-4 w-4" />
+                      <Target className="h-4 w-4" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-sm text-foreground">Расписание занятий</h4>
-                      <p className="text-xs text-muted-foreground">Планирование индивидуальных и групповых занятий</p>
+                      <h4 className="font-medium text-sm text-foreground">Подбор специалистов</h4>
+                      <p className="text-xs text-muted-foreground">Рекомендации педагогов на основе выявленных проблем и направлений работы</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -127,7 +132,7 @@ export const SystemInfoDialog = () => {
                     </div>
                     <div>
                       <h4 className="font-medium text-sm text-foreground">Рекомендации</h4>
-                      <p className="text-xs text-muted-foreground">Персонализированные рекомендации на основе оценок</p>
+                      <p className="text-xs text-muted-foreground">Персонализированные рекомендации и запись к педагогам по направлениям</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -138,16 +143,20 @@ export const SystemInfoDialog = () => {
               <h3 className="font-semibold text-base mb-2">Роли пользователей</h3>
               <div className="space-y-2 text-muted-foreground">
                 <div>
-                  <strong>Специалист ППК:</strong> Создание и редактирование протоколов своей организации, 
-                  просмотр статистики
+                  <strong>Специалист ППК:</strong> Создание протоколов, ведение расписания, публичный профиль с направлениями работы, 
+                  управление стоимостью услуг
+                </div>
+                <div>
+                  <strong>Администратор организации:</strong> Управление сотрудниками, настройка видимости стоимости услуг, 
+                  KPI и аналитика по организации
                 </div>
                 <div>
                   <strong>Региональный оператор:</strong> Просмотр протоколов всех организаций региона, 
                   аналитика по региону
                 </div>
                 <div>
-                  <strong>Администратор:</strong> Полный доступ ко всем функциям системы, управление пользователями 
-                  и организациями
+                  <strong>Администратор системы:</strong> Полный доступ ко всем функциям, управление пользователями 
+                  и организациями, бизнес-процессы
                 </div>
               </div>
             </section>

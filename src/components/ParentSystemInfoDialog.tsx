@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Info, Users, TrendingUp, BookOpen, Shield, HeartHandshake } from "lucide-react";
+import { Info, Users, TrendingUp, BookOpen, Shield, HeartHandshake, Target, Gamepad2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -34,6 +34,10 @@ export const ParentSystemInfoDialog = () => {
                   <p className="mt-1">Удобный доступ к информации о развитии вашего ребёнка и взаимодействие со специалистами.</p>
                 </div>
                 <div className="border-l-2 border-primary pl-3">
+                  <strong className="text-foreground">Подбор специалиста</strong>
+                  <p className="mt-1">Система автоматически рекомендует педагогов на основе результатов диагностики и тестов — по направлениям работы, соответствующим проблематике ребёнка.</p>
+                </div>
+                <div className="border-l-2 border-primary pl-3">
                   <strong className="text-foreground">Рекомендации специалистов</strong>
                   <p className="mt-1">Получайте персонализированные рекомендации от педагогов-психологов, логопедов и дефектологов.</p>
                 </div>
@@ -46,11 +50,22 @@ export const ParentSystemInfoDialog = () => {
                 <Card className="bg-muted/50 border-muted">
                   <CardContent className="p-3 flex items-start gap-3">
                     <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      <Target className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">Подбор специалиста</h4>
+                      <p className="text-xs text-muted-foreground">Рекомендации педагогов на основе результатов ППк и тестов развития ребёнка, с учётом направлений работы</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
                       <Users className="h-4 w-4" />
                     </div>
                     <div>
                       <h4 className="font-medium text-sm text-foreground">Профиль ребёнка</h4>
-                      <p className="text-xs text-muted-foreground">Регистрация детей с присвоением уникального идентификатора для взаимодействия со специалистами</p>
+                      <p className="text-xs text-muted-foreground">Регистрация детей с уникальным идентификатором для взаимодействия со специалистами</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -61,7 +76,18 @@ export const ParentSystemInfoDialog = () => {
                     </div>
                     <div>
                       <h4 className="font-medium text-sm text-foreground">Отслеживание прогресса</h4>
-                      <p className="text-xs text-muted-foreground">Наблюдайте за динамикой развития ребёнка</p>
+                      <p className="text-xs text-muted-foreground">Наблюдайте за динамикой развития ребёнка, результатами тестов и протоколов</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/50 border-muted">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+                      <Gamepad2 className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">Игровая ребёнка</h4>
+                      <p className="text-xs text-muted-foreground">Развивающие игры и упражнения, подобранные для возраста ребёнка</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -71,8 +97,8 @@ export const ParentSystemInfoDialog = () => {
                       <BookOpen className="h-4 w-4" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-sm text-foreground">Материалы по возрасту</h4>
-                      <p className="text-xs text-muted-foreground">Доступ к рекомендациям и материалам, подобранным для возраста вашего ребёнка</p>
+                      <h4 className="font-medium text-sm text-foreground">Библиотека материалов</h4>
+                      <p className="text-xs text-muted-foreground">Рекомендации и статьи, подобранные для возраста и особенностей вашего ребёнка</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -83,7 +109,7 @@ export const ParentSystemInfoDialog = () => {
                     </div>
                     <div>
                       <h4 className="font-medium text-sm text-foreground">Связь со специалистами</h4>
-                      <p className="text-xs text-muted-foreground">Упрощённое взаимодействие с педагогами-психологами и другими специалистами</p>
+                      <p className="text-xs text-muted-foreground">Просмотр публичных профилей педагогов и запись на консультации</p>
                     </div>
                   </CardContent>
                 </Card>
