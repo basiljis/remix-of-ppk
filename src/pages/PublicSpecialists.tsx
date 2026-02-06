@@ -351,7 +351,7 @@ export default function PublicSpecialists() {
                     const slotStatus = getSlotStatus(specialist.id, specialist.work_format);
                     
                     return (
-                      <Card key={specialist.id} className="overflow-hidden hover:shadow-lg transition-all group">
+                      <Card key={specialist.id} className="overflow-hidden hover:shadow-lg transition-all group cursor-pointer" onClick={() => specialist.public_slug ? navigate(`/s/${specialist.public_slug}`) : null}>
                         <CardHeader className="pb-4 pt-6">
                           {/* Photo centered at top */}
                           <div className="flex justify-center mb-4">

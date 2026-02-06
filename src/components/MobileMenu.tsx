@@ -129,7 +129,24 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true, canAccessPu
 
           <Separator className="my-3" />
 
-          {/* Instructions section */}
+          {/* Publication section */}
+          {canAccessPublication && (
+            <>
+              <p className="text-xs font-medium text-muted-foreground px-3">Публикация</p>
+              <Button
+                variant={activeTab === publicationItem.id ? "default" : "ghost"}
+                className="w-full justify-start gap-3"
+                onClick={() => handleTabClick(publicationItem.id)}
+              >
+                <publicationItem.icon className="h-4 w-4" />
+                {publicationItem.label}
+              </Button>
+            </>
+          )}
+
+          <Separator className="my-3" />
+
+          {/* Instructions section - moved to bottom before admin */}
           <p className="text-xs font-medium text-muted-foreground px-3">Справка</p>
           <Collapsible
             defaultOpen={activeTab.startsWith("instructions-")}
@@ -163,22 +180,6 @@ export const MobileMenu = ({ activeTab, onTabChange, isAdmin = true, canAccessPu
               })}
             </CollapsibleContent>
           </Collapsible>
-
-          {/* Publication section */}
-          {canAccessPublication && (
-            <>
-              <Separator className="my-3" />
-              <p className="text-xs font-medium text-muted-foreground px-3">Публикация</p>
-              <Button
-                variant={activeTab === publicationItem.id ? "default" : "ghost"}
-                className="w-full justify-start gap-3"
-                onClick={() => handleTabClick(publicationItem.id)}
-              >
-                <publicationItem.icon className="h-4 w-4" />
-                {publicationItem.label}
-              </Button>
-            </>
-          )}
 
           {/* Admin section */}
           {isAdmin && (
