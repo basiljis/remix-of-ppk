@@ -19,7 +19,7 @@ export default function LandingFooter() {
           </div>
           
           <div>
-            <h4 className="font-medium mb-4">Продукт</h4>
+            <h3 className="font-medium mb-4 text-base">Продукт</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link to="/for-organizations" className="hover:text-foreground transition-colors">Организациям</Link></li>
               <li><Link to="/for-specialists" className="hover:text-foreground transition-colors">Педагогам</Link></li>
@@ -28,7 +28,7 @@ export default function LandingFooter() {
           </div>
           
           <div>
-            <h4 className="font-medium mb-4">Контакты</h4>
+            <h3 className="font-medium mb-4 text-base">Контакты</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 flex-shrink-0" />
@@ -47,7 +47,7 @@ export default function LandingFooter() {
           </div>
           
           <div>
-            <h4 className="font-medium mb-4">Документы</h4>
+            <h3 className="font-medium mb-4 text-base">Документы</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link 
