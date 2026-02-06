@@ -91,9 +91,11 @@ const Index = () => {
   const hasOrganizationAccess = hasOrganizationSubscription || employeePermissions?.org_view || false;
   
   // Check if user can access publication section
+  // Private specialists and users without organization can always access
+  // Organization employees need allow_employee_publishing permission
   const canAccessPublication = isPrivateSpecialist || 
     !profile?.organization_id || 
-    (organizationSettings?.is_published && organizationSettings?.allow_employee_publishing);
+    organizationSettings?.allow_employee_publishing === true;
   
   // Автоматический таймаут сессии 15 минут
   useSessionTimeout();
