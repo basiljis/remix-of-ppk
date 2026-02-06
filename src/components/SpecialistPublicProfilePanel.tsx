@@ -86,6 +86,7 @@ export function SpecialistPublicProfilePanel() {
           specializations, is_private_practice, show_pricing,
           consultation_price, consultation_duration, session_packages,
           work_format, work_district, work_directions,
+          online_payment_enabled, payment_mode,
           organization:organizations(is_published, allow_employee_publishing, allow_employee_pricing)
         `)
         .eq("id", user.id)
@@ -736,7 +737,104 @@ export function SpecialistPublicProfilePanel() {
               />
             </div>
 
-            {/* Single consultation */}
+            {/* Online Payment Settings */}
+            <div className="border rounded-lg p-4 space-y-4 bg-accent/30">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2 font-medium">
+                    <Wallet className="h-4 w-4" />
+                    Оплата онлайн
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Включить приём платежей напрямую от родителей через ЮKassa
+                  </p>
+                </div>
+                <Switch
+                  id="online-payment-enabled"
+                  checked={profileData?.online_payment_enabled || false}
+                  onCheckedChange={async (checked) => {
+                    try {
+                      await supabase
+                        .from('profiles')
+                        .update({ online_payment_enabled: checked })
+                        .eq('id', user?.id);
+                      
+                      if (profileData) {
+                        profileData.online_payment_enabled = checked;
+                      }
+                      toast({
+                        title: checked ? "Оплата онлайн включена" : "Оплата онлайн отключена",
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Ошибка",
+                        description: "Не удалось обновить настройки",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                />
+              </div>
+
+              {profileData?.online_payment_enabled && (
+                <div className="space-y-4 border-t pt-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Режим оплаты
+                    </Label>
+                    <RadioGroup 
+                      value={profileData?.payment_mode || "prepaid"} 
+                      onValueChange={async (mode) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ payment_mode: mode })
+                            .eq('id', user?.id);
+                          
+                          if (profileData) {
+                            profileData.payment_mode = mode;
+                          }
+                          toast({
+                            title: "Режим оплаты обновлён",
+                            description: mode === "prepaid" ? "Предоплата" : "Постоплата",
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Ошибка",
+                            description: "Не удалось обновить режим оплаты",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="prepaid" id="prepaid" />
+                        <Label htmlFor="prepaid" className="font-normal cursor-pointer flex flex-col gap-1">
+                          <span>Предоплата</span>
+                          <span className="text-xs text-muted-foreground font-normal">
+                            Родитель платит до консультации
+                          </span>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="postpaid" id="postpaid" />
+                        <Label htmlFor="postpaid" className="font-normal cursor-pointer flex flex-col gap-1">
+                          <span>Постоплата</span>
+                          <span className="text-xs text-muted-foreground font-normal">
+                            Родитель платит после консультации
+                          </span>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground p-3 bg-background rounded">
+                    💡 При выборе режима оплаты будет автоматически выставлен счёт на указанную сумму консультации. Для приёма платежей необходимо подключить реквизиты ЮKassa в разделе "Настройки оплаты".
+                  </p>
+                </div>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="consultation-price" className="flex items-center gap-2">
