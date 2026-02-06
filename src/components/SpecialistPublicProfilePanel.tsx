@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { EducationEntriesEditor, type EducationEntry } from "@/components/EducationEntriesEditor";
 import { WorkDirectionsSelector } from "@/components/WorkDirectionsSelector";
+import { CertificateImagesUploader } from "@/components/CertificateImagesUploader";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,6 +51,7 @@ export function SpecialistPublicProfilePanel() {
   const [education, setEducation] = useState("");
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
   const [achievements, setAchievements] = useState("");
+  const [certificateImages, setCertificateImages] = useState<string[]>([]);
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [newSpecialization, setNewSpecialization] = useState("");
   const [copied, setCopied] = useState(false);
@@ -79,7 +81,8 @@ export function SpecialistPublicProfilePanel() {
         .from("profiles")
         .select(`
           id, full_name, is_published, public_slug, public_bio, 
-          public_photo_url, work_experience, education, education_entries, achievements, 
+          public_photo_url, work_experience, education, education_entries, achievements,
+          certificate_images,
           specializations, is_private_practice, show_pricing,
           consultation_price, consultation_duration, session_packages,
           work_format, work_district, work_directions,
@@ -108,6 +111,11 @@ export function SpecialistPublicProfilePanel() {
           : []
       );
       setAchievements(profileData.achievements || "");
+      setCertificateImages(
+        Array.isArray(profileData.certificate_images) 
+          ? profileData.certificate_images as unknown as string[]
+          : []
+      );
       setSpecializations(profileData.specializations || []);
       setConsultationPrice(profileData.consultation_price || "");
       setConsultationDuration(profileData.consultation_duration || 60);
@@ -159,6 +167,7 @@ export function SpecialistPublicProfilePanel() {
           education_entries: educationEntries.length > 0 ? JSON.parse(JSON.stringify(educationEntries)) : [],
           achievements: achievements || null,
           specializations: specializations.length > 0 ? specializations : null,
+          certificate_images: certificateImages.length > 0 ? certificateImages : [],
           consultation_price: consultationPrice || null,
           consultation_duration: consultationDuration,
           session_packages: sessionPackages.length > 0 ? JSON.parse(JSON.stringify(sessionPackages)) : [],
@@ -675,6 +684,15 @@ export function SpecialistPublicProfilePanel() {
               rows={3}
             />
           </div>
+
+          {/* Certificate Images */}
+          {user?.id && (
+            <CertificateImagesUploader
+              userId={user.id}
+              images={certificateImages}
+              onChange={setCertificateImages}
+            />
+          )}
         </CardContent>
       </Card>
 

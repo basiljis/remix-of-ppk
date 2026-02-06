@@ -6,12 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import LandingFooter from "@/components/LandingFooter";
 import { ParentAuthModal } from "@/components/ParentAuthModal";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import {
   User, ArrowLeft, Loader2, Briefcase, GraduationCap, Award, MapPin,
-  CalendarCheck, Building2, Wallet, Clock, Globe, Monitor, Package, Target,
+  CalendarCheck, Building2, Wallet, Clock, Globe, Monitor, Package, Target, ZoomIn,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getDirectionBySlug } from "@/constants/workDirections";
@@ -39,6 +44,7 @@ interface SpecialistProfile {
   education: string | null;
   education_entries: EducationEntry[] | null;
   achievements: string | null;
+  certificate_images: string[] | null;
   specializations: string[] | null;
   work_directions: string[] | null;
   is_private_practice: boolean;
@@ -57,6 +63,7 @@ export default function SpecialistDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const { data: specialist, isLoading } = useQuery({
     queryKey: ["specialist-detail", slug],
@@ -68,6 +75,7 @@ export default function SpecialistDetail() {
         .select(`
           id, full_name, public_bio, public_photo_url, public_slug,
           work_experience, education, education_entries, achievements,
+          certificate_images,
           specializations, work_directions, is_private_practice, show_pricing,
           consultation_price, consultation_duration, session_packages,
           work_format, work_district,
@@ -325,7 +333,7 @@ export default function SpecialistDetail() {
               )}
 
               {/* Achievements */}
-              {specialist.achievements && (
+              {(specialist.achievements || (specialist.certificate_images && specialist.certificate_images.length > 0)) && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -333,8 +341,33 @@ export default function SpecialistDetail() {
                       Достижения и сертификаты
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm whitespace-pre-line">{specialist.achievements}</p>
+                  <CardContent className="space-y-4">
+                    {specialist.achievements && (
+                      <p className="text-sm whitespace-pre-line">{specialist.achievements}</p>
+                    )}
+                    {specialist.certificate_images && specialist.certificate_images.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {specialist.certificate_images.map((url, i) => (
+                          <div
+                            key={i}
+                            className="relative group rounded-lg overflow-hidden border bg-muted aspect-[4/3] cursor-pointer"
+                            onClick={() => setPreviewImage(url)}
+                          >
+                            <img
+                              src={url}
+                              alt={`Сертификат ${i + 1}`}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder.svg";
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <ZoomIn className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -430,6 +463,20 @@ export default function SpecialistDetail() {
         onSuccess={handleAuthSuccess}
         specialistName={specialist?.full_name}
       />
+
+      {/* Certificate preview dialog */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          <DialogTitle className="sr-only">Просмотр сертификата</DialogTitle>
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Просмотр сертификата"
+              className="w-full h-auto rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
