@@ -9,12 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { EducationEntriesEditor, type EducationEntry } from "@/components/EducationEntriesEditor";
+import { WorkDirectionsSelector } from "@/components/WorkDirectionsSelector";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera, Wallet, Clock, Percent, Package, MapPin, Monitor, Globe, Upload, Trash2 } from "lucide-react";
+import { Loader2, Save, Link as LinkIcon, Copy, Check, User, Eye, EyeOff, Plus, X, Camera, Wallet, Clock, Percent, Package, MapPin, Monitor, Globe, Upload, Trash2, Target } from "lucide-react";
 import { MOSCOW_DISTRICTS } from "@/constants/moscowDistricts";
 
 const COMMON_SPECIALIZATIONS = [
@@ -62,6 +63,9 @@ export function SpecialistPublicProfilePanel() {
   const [sessionPackages, setSessionPackages] = useState<SessionPackage[]>([]);
   const [showPricing, setShowPricing] = useState(false);
   
+  // Work directions
+  const [workDirections, setWorkDirections] = useState<string[]>([]);
+  
   // Work format fields
   const [workFormat, setWorkFormat] = useState<string>("offline");
   const [workDistrict, setWorkDistrict] = useState<string>("");
@@ -78,7 +82,7 @@ export function SpecialistPublicProfilePanel() {
           public_photo_url, work_experience, education, education_entries, achievements, 
           specializations, is_private_practice, show_pricing,
           consultation_price, consultation_duration, session_packages,
-          work_format, work_district,
+          work_format, work_district, work_directions,
           organization:organizations(is_published, allow_employee_publishing, allow_employee_pricing)
         `)
         .eq("id", user.id)
@@ -111,6 +115,7 @@ export function SpecialistPublicProfilePanel() {
       setWorkFormat(profileData.work_format || "offline");
       setWorkDistrict(profileData.work_district || "");
       setShowPricing(profileData.show_pricing || false);
+      setWorkDirections(Array.isArray(profileData.work_directions) ? profileData.work_directions : []);
     }
   }, [profileData]);
 
@@ -160,6 +165,7 @@ export function SpecialistPublicProfilePanel() {
           work_format: workFormat,
           work_district: workFormat === "online" ? null : (workDistrict || null),
           show_pricing: showPricing,
+          work_directions: workDirections.length > 0 ? workDirections : [],
         })
         .eq("id", user.id);
 
@@ -620,6 +626,21 @@ export function SpecialistPublicProfilePanel() {
                 </Badge>
               ))}
             </div>
+          </div>
+
+          {/* Work Directions */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Направления работы
+            </Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Выберите области, с которыми вы работаете. Это поможет родителям найти вас по результатам диагностики ребёнка.
+            </p>
+            <WorkDirectionsSelector
+              selected={workDirections}
+              onChange={setWorkDirections}
+            />
           </div>
 
           {/* Work experience */}
