@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
 import { 
   Building2, Users, ClipboardList, Calendar, BarChart3, 
   Shield, FileText, UserCheck, CheckCircle, ArrowRight,
-  Settings, Bell, ChevronLeft
+  Settings, Bell, ChevronLeft, PlayCircle
 } from "lucide-react";
 
 const features = [
@@ -254,13 +255,11 @@ export default function ForOrganizations() {
           <p className="text-muted-foreground mb-6">
             Свяжитесь с нами для получения коммерческого предложения или демонстрации системы
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to="/auth">
               <Button size="lg">Зарегистрировать организацию</Button>
             </Link>
-            <a href="mailto:info@profilaktika.site">
-              <Button size="lg" variant="outline">Написать нам</Button>
-            </a>
+            <CommercialOfferRequestForm />
           </div>
         </div>
       </section>
