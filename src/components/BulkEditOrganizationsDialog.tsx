@@ -146,6 +146,8 @@ export const BulkEditOrganizationsDialog: React.FC<BulkEditOrganizationsDialogPr
                     <SelectItem value="Образовательный комплекс">Образовательный комплекс</SelectItem>
                     <SelectItem value="Колледж">Колледж</SelectItem>
                     <SelectItem value="Техникум">Техникум</SelectItem>
+                    <SelectItem value="Психологический центр">Психологический центр</SelectItem>
+                    <SelectItem value="Центр реабилитации">Центр реабилитации</SelectItem>
                   </SelectContent>
                 </Select>
                 {updates.type && (
