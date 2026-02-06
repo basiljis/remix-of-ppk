@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Ban, CheckCircle, Shield, User, Users, Edit, Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { CreateUserDialog } from "./CreateUserDialog";
@@ -19,6 +20,7 @@ interface UserData {
   email: string;
   phone: string;
   is_blocked: boolean;
+  is_private_practice: boolean | null;
   position_id: string;
   region_id: string;
   organization_id: string | null;
@@ -191,6 +193,8 @@ export const UserManagementEnhanced = () => {
     if (!editingUser) return;
 
     try {
+      const isPrivate = editingUser.is_private_practice === true;
+
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -199,11 +203,30 @@ export const UserManagementEnhanced = () => {
           phone: editingUser.phone,
           position_id: editingUser.position_id,
           region_id: editingUser.region_id,
-          organization_id: editingUser.organization_id,
+          organization_id: isPrivate ? null : editingUser.organization_id,
+          is_private_practice: isPrivate,
         })
         .eq("id", editingUser.id);
 
       if (error) throw error;
+
+      // Manage private_specialist role
+      if (isPrivate) {
+        // Add private_specialist role if not exists
+        await supabase
+          .from("user_roles")
+          .upsert(
+            { user_id: editingUser.id, role: "private_specialist" as any },
+            { onConflict: "user_id,role" }
+          );
+      } else {
+        // Remove private_specialist role
+        await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", editingUser.id)
+          .eq("role", "private_specialist" as any);
+      }
 
       toast({
         title: "Успешно",
@@ -527,24 +550,46 @@ export const UserManagementEnhanced = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Организация</Label>
-                <Select
-                  value={editingUser.organization_id || ""}
-                  onValueChange={(value) => setEditingUser({ ...editingUser, organization_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="col-span-2 flex items-center space-x-2 py-2">
+                <Checkbox
+                  id="edit_is_private_practice"
+                  checked={editingUser.is_private_practice === true}
+                  onCheckedChange={(checked) => {
+                    setEditingUser({
+                      ...editingUser,
+                      is_private_practice: checked === true,
+                      organization_id: checked ? null : editingUser.organization_id,
+                    });
+                  }}
+                />
+                <Label htmlFor="edit_is_private_practice" className="text-sm font-medium leading-none">
+                  Частная практика
+                </Label>
+                <span className="text-xs text-muted-foreground">
+                  (без организации, доступен «Публичный профиль»)
+                </span>
               </div>
+
+              {editingUser.is_private_practice !== true && (
+                <div className="space-y-2">
+                  <Label>Организация</Label>
+                  <Select
+                    value={editingUser.organization_id || ""}
+                    onValueChange={(value) => setEditingUser({ ...editingUser, organization_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           )}
 
