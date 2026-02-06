@@ -26,7 +26,7 @@ export function PublicNavbar({
     <>
       {/* Main Header */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <div className="container mx-auto flex h-16 items-center px-4">
           <Link to="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
               <Heart className="h-4 w-4 text-primary-foreground" />
@@ -34,7 +34,7 @@ export function PublicNavbar({
             <span className="text-xl font-bold">universum.</span>
           </Link>
           
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
             <Link 
               to="/for-organizations" 
               className={`text-sm ${currentPage === 'organizations' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors`}
@@ -53,11 +53,14 @@ export function PublicNavbar({
             >
               Родителям
             </Link>
+          </nav>
+
+          <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
             <Link to={authLink}>
               <Button size="sm">Вход</Button>
             </Link>
-          </nav>
+          </div>
           
           {/* Mobile Menu - гамбургер для всех вариантов */}
           <div className="flex items-center gap-2 md:hidden">
