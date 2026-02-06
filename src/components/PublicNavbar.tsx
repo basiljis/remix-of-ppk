@@ -102,14 +102,14 @@ export function PublicNavbar({
                     <p className="text-xs font-medium text-muted-foreground px-3">Каталог</p>
                     <Link 
                       to="/specialists" 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isSpecialistsCatalog ? 'bg-muted font-medium' : 'hover:bg-muted'}`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isSpecialistsCatalog ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'}`}
                     >
                       <GraduationCap className="h-4 w-4" />
                       Найти специалиста
                     </Link>
                     <Link 
                       to="/organizations" 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isOrganizationsCatalog ? 'bg-muted font-medium' : 'hover:bg-muted'}`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isOrganizationsCatalog ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'}`}
                     >
                       <Building2 className="h-4 w-4" />
                       Найти организацию
@@ -120,21 +120,21 @@ export function PublicNavbar({
                     <p className="text-xs font-medium text-muted-foreground px-3">Информация</p>
                     <Link 
                       to="/for-organizations" 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${currentPage === 'organizations' ? 'bg-muted font-medium' : 'hover:bg-muted'}`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${currentPage === 'organizations' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'}`}
                     >
                       <Building2 className="h-4 w-4" />
                       Организациям
                     </Link>
                     <Link 
                       to="/for-specialists" 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${currentPage === 'specialists' ? 'bg-muted font-medium' : 'hover:bg-muted'}`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${currentPage === 'specialists' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'}`}
                     >
                       <GraduationCap className="h-4 w-4" />
                       Педагогам
                     </Link>
                     <Link 
                       to="/for-parents" 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${currentPage === 'parents' ? 'bg-muted font-medium' : 'hover:bg-muted'}`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${currentPage === 'parents' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'}`}
                     >
                       <Heart className="h-4 w-4" />
                       Родителям
