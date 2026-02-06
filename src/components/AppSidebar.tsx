@@ -86,6 +86,13 @@ const scheduleItem = {
   ]
 };
 
+// Payment Settings for private specialists
+const paymentSettingsItem = { 
+  id: "payment-settings", 
+  label: "Настройки оплаты", 
+  icon: Wallet
+};
+
 // Organization module - for org admins and directors
 const organizationItem = { 
   id: "organization-module", 
@@ -703,6 +710,40 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
                     </TooltipTrigger>
                     <TooltipContent side="right">
                       <p>Мой публичный профиль</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Payment Settings section - only for private specialists */}
+        {isPrivateSpecialist && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Wallet className="h-3 w-3" />
+              Финансы
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton
+                        onClick={() => onTabChange("payment-settings")}
+                        className={`w-full justify-start gap-3 ${
+                          activeTab === "payment-settings" 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                      >
+                        <Wallet className="h-4 w-4" />
+                        {state !== "collapsed" && <span>Настройки оплаты</span>}
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Настройки оплаты</p>
                     </TooltipContent>
                   </Tooltip>
                 </SidebarMenuItem>
