@@ -351,6 +351,8 @@ export const OrganizationsManagement = () => {
                         <SelectItem value="Образовательный комплекс">Образовательный комплекс</SelectItem>
                         <SelectItem value="Колледж">Колледж</SelectItem>
                         <SelectItem value="Техникум">Техникум</SelectItem>
+                        <SelectItem value="Психологический центр">Психологический центр</SelectItem>
+                        <SelectItem value="Центр реабилитации">Центр реабилитации</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -756,6 +758,8 @@ export const OrganizationsManagement = () => {
                   <SelectItem value="Образовательный комплекс">Образовательный комплекс</SelectItem>
                   <SelectItem value="Колледж">Колледж</SelectItem>
                   <SelectItem value="Техникум">Техникум</SelectItem>
+                  <SelectItem value="Психологический центр">Психологический центр</SelectItem>
+                  <SelectItem value="Центр реабилитации">Центр реабилитации</SelectItem>
                 </SelectContent>
               </Select>
             </div>
