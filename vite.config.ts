@@ -79,7 +79,7 @@ export default defineConfig(({ mode }) => ({
   // CRITICAL: Force Vite to pre-bundle React dependencies together
   // This prevents multiple React instances causing "dispatcher.useEffect" errors
   optimizeDeps: {
-    // Force re-optimization to clear corrupted cache
+    // Force re-optimization to clear corrupted cache (updated: 2026-02-06)
     force: true,
     include: [
       'react',
