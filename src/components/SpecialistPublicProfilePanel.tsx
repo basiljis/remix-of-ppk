@@ -57,6 +57,7 @@ export function SpecialistPublicProfilePanel() {
   const [consultationPrice, setConsultationPrice] = useState<number | "">("");
   const [consultationDuration, setConsultationDuration] = useState<number>(60);
   const [sessionPackages, setSessionPackages] = useState<SessionPackage[]>([]);
+  const [showPricing, setShowPricing] = useState(false);
   
   // Work format fields
   const [workFormat, setWorkFormat] = useState<string>("offline");
@@ -72,10 +73,10 @@ export function SpecialistPublicProfilePanel() {
         .select(`
           id, full_name, is_published, public_slug, public_bio, 
           public_photo_url, work_experience, education, achievements, 
-          specializations, is_private_practice,
+          specializations, is_private_practice, show_pricing,
           consultation_price, consultation_duration, session_packages,
           work_format, work_district,
-          organization:organizations(is_published, allow_employee_publishing)
+          organization:organizations(is_published, allow_employee_publishing, allow_employee_pricing)
         `)
         .eq("id", user.id)
         .single();
@@ -101,6 +102,7 @@ export function SpecialistPublicProfilePanel() {
       setSessionPackages(Array.isArray(profileData.session_packages) ? profileData.session_packages as unknown as SessionPackage[] : []);
       setWorkFormat(profileData.work_format || "offline");
       setWorkDistrict(profileData.work_district || "");
+      setShowPricing(profileData.show_pricing || false);
     }
   }, [profileData]);
 
@@ -148,6 +150,7 @@ export function SpecialistPublicProfilePanel() {
           session_packages: sessionPackages.length > 0 ? JSON.parse(JSON.stringify(sessionPackages)) : [],
           work_format: workFormat,
           work_district: workFormat === "online" ? null : (workDistrict || null),
+          show_pricing: showPricing,
         })
         .eq("id", user.id);
 
@@ -657,8 +660,8 @@ export function SpecialistPublicProfilePanel() {
         </CardContent>
       </Card>
 
-      {/* Pricing Card - Only for private practice */}
-      {profileData?.is_private_practice && (
+      {/* Pricing Card - For private practice or when org allows */}
+      {(profileData?.is_private_practice || profileData?.organization?.allow_employee_pricing) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -670,6 +673,33 @@ export function SpecialistPublicProfilePanel() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Show pricing on public page toggle */}
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  {showPricing ? (
+                    <Eye className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <Label htmlFor="show-pricing" className="font-medium">
+                    Показывать на сайте
+                  </Label>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {showPricing 
+                    ? "Цены видны на вашей публичной странице"
+                    : "Цены скрыты от посетителей сайта"
+                  }
+                </p>
+              </div>
+              <Switch
+                id="show-pricing"
+                checked={showPricing}
+                onCheckedChange={setShowPricing}
+              />
+            </div>
+
             {/* Single consultation */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
