@@ -14,6 +14,7 @@ interface CreateUserRequest {
   region_id: string;
   organization_id: string | null;
   role: "admin" | "regional_operator" | "user";
+  is_private_practice?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -75,6 +76,7 @@ Deno.serve(async (req) => {
     const body: CreateUserRequest = await req.json();
     console.log("Creating user with data:", { ...body, password: "[REDACTED]" });
 
+    const isPrivatePractice = body.is_private_practice === true;
     // Validate required fields
     if (!body.email || !body.password || !body.full_name || !body.phone || !body.position_id || !body.region_id || !body.role) {
       return new Response(
@@ -118,8 +120,9 @@ Deno.serve(async (req) => {
       phone: body.phone,
       position_id: body.position_id,
       region_id: body.region_id,
-      organization_id: body.organization_id || null,
+      organization_id: isPrivatePractice ? null : (body.organization_id || null),
       is_blocked: false,
+      is_private_practice: isPrivatePractice,
     });
 
     if (profileError) {
@@ -149,6 +152,21 @@ Deno.serve(async (req) => {
     }
 
     console.log("Role assigned:", body.role);
+
+    // If private practice, also assign private_specialist role
+    if (isPrivatePractice) {
+      const { error: privateRoleError } = await admin.from("user_roles").insert({
+        user_id: authData.user.id,
+        role: "private_specialist",
+      });
+
+      if (privateRoleError) {
+        console.error("Private specialist role error:", privateRoleError);
+        // Non-critical, log but don't fail
+      } else {
+        console.log("Private specialist role assigned");
+      }
+    }
 
     return new Response(
       JSON.stringify({ 

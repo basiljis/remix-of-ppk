@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserPlus } from "lucide-react";
@@ -16,6 +17,7 @@ interface CreateUserDialogProps {
 export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPrivatePractice, setIsPrivatePractice] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -79,8 +81,9 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
           phone: formData.phone,
           position_id: formData.position_id,
           region_id: formData.region_id,
-          organization_id: formData.organization_id || null,
+          organization_id: isPrivatePractice ? null : (formData.organization_id || null),
           role: formData.role,
+          is_private_practice: isPrivatePractice,
         },
       });
 
@@ -94,6 +97,7 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
 
       toast.success("Пользователь успешно создан");
       setOpen(false);
+      setIsPrivatePractice(false);
       setFormData({
         email: "",
         password: "",
@@ -220,24 +224,45 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="organization">Организация</Label>
-            <Select
-              value={formData.organization_id}
-              onValueChange={(value) => setFormData({ ...formData, organization_id: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите организацию (необязательно)" />
-              </SelectTrigger>
-              <SelectContent className="z-[9999] bg-background max-h-60">
-                {organizations?.map((org) => (
-                  <SelectItem key={org.id} value={org.id}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center space-x-2 py-2">
+            <Checkbox
+              id="is_private_practice"
+              checked={isPrivatePractice}
+              onCheckedChange={(checked) => {
+                setIsPrivatePractice(checked === true);
+                if (checked) {
+                  setFormData({ ...formData, organization_id: "" });
+                }
+              }}
+            />
+            <Label htmlFor="is_private_practice" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Частная практика
+            </Label>
+            <span className="text-xs text-muted-foreground ml-2">
+              (специалист работает без организации, доступен раздел «Публичный профиль»)
+            </span>
           </div>
+
+          {!isPrivatePractice && (
+            <div className="space-y-2">
+              <Label htmlFor="organization">Организация</Label>
+              <Select
+                value={formData.organization_id}
+                onValueChange={(value) => setFormData({ ...formData, organization_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите организацию (необязательно)" />
+                </SelectTrigger>
+                <SelectContent className="z-[9999] bg-background max-h-60">
+                  {organizations?.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="role">Роль *</Label>
