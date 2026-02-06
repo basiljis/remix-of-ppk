@@ -229,12 +229,12 @@ export default function ForOrganizations() {
                     </li>
                   ))}
                 </ul>
-                <a href="mailto:info@profilaktika.site?subject=Установка на серверы организации">
-                  <Button size="lg" className="gap-2">
-                    Запросить предложение
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </a>
+                <div className="flex flex-col gap-3">
+                  <CommercialOfferRequestForm />
+                  <p className="text-xs text-muted-foreground">
+                    Или свяжитесь с нами по email: <a href="mailto:info@profilaktika.site" className="underline hover:text-foreground">info@profilaktika.site</a>
+                  </p>
+                </div>
               </div>
               <div className="md:w-1/3 bg-primary/5 p-8 flex flex-col items-center justify-center text-center">
                 <Shield className="h-12 w-12 text-primary mb-4" />
