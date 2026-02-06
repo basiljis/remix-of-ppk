@@ -80,7 +80,7 @@ export const SupportDialog = () => {
 
             <section className="pt-4 border-t">
               <p className="text-center text-muted-foreground italic">
-                Благодарим, что используете АИС ППк
+                Благодарим, что используете universum.
               </p>
             </section>
           </div>
