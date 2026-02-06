@@ -209,7 +209,7 @@ function FeaturesSection() {
             <Card key={feature.title} className="hover:shadow-md transition-all relative overflow-hidden animate-in fade-in-0 duration-300">
               {feature.isNew && (
                 <div className="absolute top-3 right-3">
-                  <Badge className="bg-green-500 hover:bg-green-600 text-white text-[10px] px-2">
+                  <Badge variant="success" className="text-[10px] px-2">
                     NEW
                   </Badge>
                 </div>
@@ -310,7 +310,7 @@ export default function Landing() {
                         <span className="flex items-center gap-1.5">
                           {typeof feature === 'string' ? feature : feature.text}
                           {typeof feature === 'object' && feature.isNew && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                            <Badge variant="success" className="text-[10px] px-1.5 py-0">
                               NEW
                             </Badge>
                           )}
