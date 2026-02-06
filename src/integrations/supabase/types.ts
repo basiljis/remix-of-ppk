@@ -1985,6 +1985,7 @@ export type Database = {
         Row: {
           achievements: string | null
           avatar_url: string | null
+          certificate_images: Json | null
           consultation_duration: number | null
           consultation_price: number | null
           created_at: string
@@ -2017,6 +2018,7 @@ export type Database = {
         Insert: {
           achievements?: string | null
           avatar_url?: string | null
+          certificate_images?: Json | null
           consultation_duration?: number | null
           consultation_price?: number | null
           created_at?: string
@@ -2049,6 +2051,7 @@ export type Database = {
         Update: {
           achievements?: string | null
           avatar_url?: string | null
+          certificate_images?: Json | null
           consultation_duration?: number | null
           consultation_price?: number | null
           created_at?: string
