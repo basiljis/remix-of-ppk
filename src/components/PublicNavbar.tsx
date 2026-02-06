@@ -3,14 +3,13 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { 
-  Heart, Menu, GraduationCap, Building2, Home, ArrowLeft 
+  Heart, Menu, GraduationCap, Building2, Home 
 } from "lucide-react";
 
 interface PublicNavbarProps {
   showHomeButton?: boolean;
   currentPage?: 'organizations' | 'specialists' | 'parents' | 'auth' | 'landing' | 'catalog-specialists' | 'catalog-organizations' | 'privacy' | 'partnership' | 'other';
   showSecondaryNav?: boolean;
-  variant?: 'full' | 'minimal' | 'simple';
   authLink?: string;
 }
 
@@ -18,7 +17,6 @@ export function PublicNavbar({
   showHomeButton = true, 
   currentPage, 
   showSecondaryNav = true,
-  variant = 'full',
   authLink = '/auth'
 }: PublicNavbarProps) {
   const isSpecialistsCatalog = currentPage === 'catalog-specialists';
@@ -36,53 +34,30 @@ export function PublicNavbar({
             <span className="text-xl font-bold">universum.</span>
           </Link>
           
-          {variant === 'full' && (
-            <nav className="hidden md:flex items-center gap-6">
-              <Link 
-                to="/for-organizations" 
-                className={`text-sm ${currentPage === 'organizations' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors`}
-              >
-                Организациям
-              </Link>
-              <Link 
-                to="/for-specialists" 
-                className={`text-sm ${currentPage === 'specialists' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors`}
-              >
-                Педагогам
-              </Link>
-              <Link 
-                to="/for-parents" 
-                className={`text-sm ${currentPage === 'parents' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors`}
-              >
-                Родителям
-              </Link>
-              <ThemeToggle />
-              <Link to={authLink}>
-                <Button size="sm">Вход</Button>
-              </Link>
-            </nav>
-          )}
-
-          {variant === 'minimal' && (
-            <div className="hidden md:flex items-center gap-3">
-              <ThemeToggle />
-              <Link to="/parent-auth">
-                <Button variant="outline" size="sm">Вход для родителей</Button>
-              </Link>
-            </div>
-          )}
-
-          {variant === 'simple' && (
-            <div className="hidden md:flex items-center gap-3">
-              <ThemeToggle />
-              <Link to="/">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  На главную
-                </Button>
-              </Link>
-            </div>
-          )}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link 
+              to="/for-organizations" 
+              className={`text-sm ${currentPage === 'organizations' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors`}
+            >
+              Организациям
+            </Link>
+            <Link 
+              to="/for-specialists" 
+              className={`text-sm ${currentPage === 'specialists' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors`}
+            >
+              Педагогам
+            </Link>
+            <Link 
+              to="/for-parents" 
+              className={`text-sm ${currentPage === 'parents' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors`}
+            >
+              Родителям
+            </Link>
+            <ThemeToggle />
+            <Link to={authLink}>
+              <Button size="sm">Вход</Button>
+            </Link>
+          </nav>
           
           {/* Mobile Menu - гамбургер для всех вариантов */}
           <div className="flex items-center gap-2 md:hidden">
@@ -151,7 +126,7 @@ export function PublicNavbar({
                   )}
                   
                   <div className="border-t pt-4">
-                    <Link to={variant === 'minimal' ? "/parent-auth" : authLink} className="block">
+                    <Link to={authLink} className="block">
                       <Button className="w-full">Вход</Button>
                     </Link>
                   </div>

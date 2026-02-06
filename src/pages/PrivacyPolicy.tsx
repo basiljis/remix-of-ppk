@@ -3,10 +3,10 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-background">
-      <PublicNavbar currentPage="privacy" variant="simple" showSecondaryNav={false} />
+      <PublicNavbar currentPage="privacy" />
 
       {/* Content */}
-      <main className="pt-24 pb-16 px-4">
+      <main className="pt-32 pb-16 px-4">
         <div className="container mx-auto max-w-4xl">
           <h1 className="text-3xl font-bold mb-8">ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ</h1>
           

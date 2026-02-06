@@ -3,9 +3,9 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 const PartnershipOffer = () => {
   return (
     <div className="min-h-screen bg-background">
-      <PublicNavbar currentPage="partnership" variant="simple" showSecondaryNav={false} />
+      <PublicNavbar currentPage="partnership" />
 
-      <main className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 pt-32 max-w-4xl">
         <div className="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none">
           <h1 className="text-2xl sm:text-3xl font-bold mb-6">ПУБЛИЧНАЯ ОФЕРТА О ПАРТНЁРСКОЙ ПРОГРАММЕ</h1>
           

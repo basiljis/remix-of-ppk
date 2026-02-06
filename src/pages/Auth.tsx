@@ -530,7 +530,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <PublicNavbar currentPage="auth" variant="simple" showSecondaryNav={true} />
+      <PublicNavbar currentPage="auth" />
       
       <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4 pt-32">
         

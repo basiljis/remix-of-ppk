@@ -403,8 +403,8 @@ export default function PublicOrganizations() {
     if (!singleOrganization) {
       return (
         <div className="min-h-screen bg-background">
-          <PublicNavbar currentPage="catalog-organizations" variant="full" showSecondaryNav={false} />
-          <div className="pt-24 text-center py-20">
+          <PublicNavbar currentPage="catalog-organizations" />
+          <div className="pt-32 text-center py-20">
             <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h1 className="text-2xl font-bold mb-2">Организация не найдена</h1>
             <p className="text-muted-foreground mb-6">Возможно, она была удалена или ещё не опубликована</p>
@@ -424,7 +424,7 @@ export default function PublicOrganizations() {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <PublicNavbar currentPage="catalog-organizations" variant="full" showSecondaryNav={false} />
+          <PublicNavbar currentPage="catalog-organizations" />
 
         {/* Organization Detail */}
         <section className="pt-24 pb-8 px-4">
@@ -663,10 +663,7 @@ export default function PublicOrganizations() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <PublicNavbar currentPage="catalog-organizations" variant="full" showSecondaryNav={false} />
-
-      {/* Secondary nav bar with search links */}
-      <SearchNavBar currentPage="organizations" />
+      <PublicNavbar currentPage="catalog-organizations" />
       <section className="pt-32 pb-8 px-4">
         <div className="container mx-auto max-w-6xl">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
