@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { NavbarBackground } from "@/components/NavbarBackground";
 import { 
   Heart, Menu, GraduationCap, Building2, Home 
 } from "lucide-react";
@@ -26,7 +27,8 @@ export function PublicNavbar({
     <>
       {/* Main Header */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center px-4">
+        <NavbarBackground />
+        <div className="container mx-auto flex h-16 items-center px-4 relative z-10">
           <Link to="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
               <Heart className="h-4 w-4 text-primary-foreground" />
