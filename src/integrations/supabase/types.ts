@@ -1556,6 +1556,7 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          allow_employee_pricing: boolean | null
           allow_employee_publishing: boolean | null
           allow_parent_registration: boolean
           coordinates_lat: number | null
@@ -1590,6 +1591,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          allow_employee_pricing?: boolean | null
           allow_employee_publishing?: boolean | null
           allow_parent_registration?: boolean
           coordinates_lat?: number | null
@@ -1624,6 +1626,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          allow_employee_pricing?: boolean | null
           allow_employee_publishing?: boolean | null
           allow_parent_registration?: boolean
           coordinates_lat?: number | null
@@ -2002,6 +2005,7 @@ export type Database = {
           public_slug: string | null
           region_id: string
           session_packages: Json | null
+          show_pricing: boolean | null
           specializations: string[] | null
           updated_at: string
           work_district: string | null
@@ -2031,6 +2035,7 @@ export type Database = {
           public_slug?: string | null
           region_id: string
           session_packages?: Json | null
+          show_pricing?: boolean | null
           specializations?: string[] | null
           updated_at?: string
           work_district?: string | null
@@ -2060,6 +2065,7 @@ export type Database = {
           public_slug?: string | null
           region_id?: string
           session_packages?: Json | null
+          show_pricing?: boolean | null
           specializations?: string[] | null
           updated_at?: string
           work_district?: string | null

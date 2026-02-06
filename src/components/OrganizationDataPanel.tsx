@@ -22,6 +22,7 @@ export function OrganizationDataPanel() {
   const [publicSlug, setPublicSlug] = useState("");
   const [publicDescription, setPublicDescription] = useState("");
   const [allowEmployeePublishing, setAllowEmployeePublishing] = useState(true);
+  const [allowEmployeePricing, setAllowEmployeePricing] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [slugError, setSlugError] = useState("");
@@ -37,7 +38,7 @@ export function OrganizationDataPanel() {
       
       const { data, error } = await supabase
         .from("organizations")
-        .select("id, name, is_published, public_slug, public_description, allow_employee_publishing, logo_url")
+        .select("id, name, is_published, public_slug, public_description, allow_employee_publishing, allow_employee_pricing, logo_url")
         .eq("id", organizationId)
         .single();
 
@@ -53,6 +54,7 @@ export function OrganizationDataPanel() {
       setPublicSlug(organization.public_slug || "");
       setPublicDescription(organization.public_description || "");
       setAllowEmployeePublishing(organization.allow_employee_publishing ?? true);
+      setAllowEmployeePricing(organization.allow_employee_pricing ?? false);
       setLogoUrl(organization.logo_url || "");
     }
   }, [organization]);
@@ -88,6 +90,7 @@ export function OrganizationDataPanel() {
           public_slug: publicSlug || null,
           public_description: publicDescription || null,
           allow_employee_publishing: allowEmployeePublishing,
+          allow_employee_pricing: allowEmployeePricing,
           logo_url: logoUrl || null,
         })
         .eq("id", organizationId);
@@ -395,7 +398,7 @@ export function OrganizationDataPanel() {
             Управление видимостью профилей сотрудников на сайте
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="space-y-0.5">
               <Label htmlFor="allow-employee-publishing" className="font-medium">
@@ -412,6 +415,25 @@ export function OrganizationDataPanel() {
               id="allow-employee-publishing"
               checked={allowEmployeePublishing}
               onCheckedChange={setAllowEmployeePublishing}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="space-y-0.5">
+              <Label htmlFor="allow-employee-pricing" className="font-medium">
+                Разрешить отображение стоимости услуг
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {allowEmployeePricing
+                  ? "Сотрудники могут указывать стоимость услуг на публичной странице"
+                  : "Блок «Стоимость услуг» скрыт для сотрудников"
+                }
+              </p>
+            </div>
+            <Switch
+              id="allow-employee-pricing"
+              checked={allowEmployeePricing}
+              onCheckedChange={setAllowEmployeePricing}
             />
           </div>
         </CardContent>
