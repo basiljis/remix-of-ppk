@@ -98,3 +98,9 @@ verify_jwt = false
 
 [functions.yandex-metrika-stats]
 verify_jwt = false
+
+[functions.create-specialist-payment]
+verify_jwt = false
+
+[functions.specialist-payment-webhook]
+verify_jwt = false

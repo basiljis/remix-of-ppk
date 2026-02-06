@@ -33,6 +33,9 @@ const ScheduleModule = lazy(() => import("@/components/ScheduleModule").then(m =
 const OrganizationModule = lazy(() => import("@/components/OrganizationModule").then(m => ({ default: m.OrganizationModule })));
 const ChildCardSection = lazy(() => import("@/components/ChildCardSection").then(m => ({ default: m.ChildCardSection })));
 const SpecialistPublicProfilePanel = lazy(() => import("@/components/SpecialistPublicProfilePanel").then(m => ({ default: m.SpecialistPublicProfilePanel })));
+const SpecialistPaymentSettingsPanel = lazy(() => import("@/components/SpecialistPaymentSettingsPanel").then(m => ({ default: m.SpecialistPaymentSettingsPanel })));
+const SpecialistFinancePanel = lazy(() => import("@/components/SpecialistFinancePanel").then(m => ({ default: m.SpecialistFinancePanel })));
+const AdminFinanceStatisticsPanel = lazy(() => import("@/components/AdminFinanceStatisticsPanel").then(m => ({ default: m.AdminFinanceStatisticsPanel })));
 const InstallPrompt = lazy(() => import("@/components/InstallPrompt"));
 
 const Index = () => {
@@ -294,13 +297,28 @@ const Index = () => {
             <p className="text-muted-foreground">У вас нет доступа к этому разделу</p>
           </div>
         );
+      case "administration-finance-stats":
+        return isAdmin ? (
+          <Suspense fallback={loadingFallback}>
+            <AdminFinanceStatisticsPanel />
+          </Suspense>
+        ) : (
+          <div className="text-center p-8">
+            <p className="text-muted-foreground">У вас нет доступа к этому разделу</p>
+          </div>
+        );
       case "schedule-module":
       case "schedule-calendar":
       case "schedule-children":
       case "schedule-statistics":
+      case "schedule-finance":
         return (
           <Suspense fallback={loadingFallback}>
-            <ScheduleModule activeSubTab={activeTab.startsWith("schedule-") ? activeTab.replace("schedule-", "") : "calendar"} />
+            {activeTab === "schedule-finance" ? (
+              <SpecialistFinancePanel />
+            ) : (
+              <ScheduleModule activeSubTab={activeTab.startsWith("schedule-") ? activeTab.replace("schedule-", "") : "calendar"} />
+            )}
           </Suspense>
         );
       case "organization-module":
@@ -336,6 +354,12 @@ const Index = () => {
         return (
           <Suspense fallback={loadingFallback}>
             <SpecialistPublicProfilePanel />
+          </Suspense>
+        );
+      case "payment-settings":
+        return (
+          <Suspense fallback={loadingFallback}>
+            <SpecialistPaymentSettingsPanel />
           </Suspense>
         );
       default:
