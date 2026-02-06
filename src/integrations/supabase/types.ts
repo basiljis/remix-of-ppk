@@ -2009,6 +2009,7 @@ export type Database = {
           show_pricing: boolean | null
           specializations: string[] | null
           updated_at: string
+          work_directions: string[] | null
           work_district: string | null
           work_experience: string | null
           work_format: string | null
@@ -2040,6 +2041,7 @@ export type Database = {
           show_pricing?: boolean | null
           specializations?: string[] | null
           updated_at?: string
+          work_directions?: string[] | null
           work_district?: string | null
           work_experience?: string | null
           work_format?: string | null
@@ -2071,6 +2073,7 @@ export type Database = {
           show_pricing?: boolean | null
           specializations?: string[] | null
           updated_at?: string
+          work_directions?: string[] | null
           work_district?: string | null
           work_experience?: string | null
           work_format?: string | null

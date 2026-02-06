@@ -803,6 +803,11 @@ export default function ParentDashboard() {
                             <ChildPPKResultsCard 
                               childId={child.id}
                               childName={child.full_name}
+                              regionId={profile?.region_id}
+                              onBookSpecialist={(specialistId) => {
+                                setPreselectedSpecialistId(specialistId);
+                                setBookDialogOpen(true);
+                              }}
                             />
                           </div>
                           

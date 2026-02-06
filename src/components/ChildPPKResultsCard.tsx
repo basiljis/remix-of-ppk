@@ -32,10 +32,14 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { matchDirectionsToProblems } from "@/constants/workDirections";
+import { RecommendedSpecialists } from "@/components/RecommendedSpecialists";
 
 interface ChildPPKResultsCardProps {
   childId: string;
   childName: string;
+  regionId?: string | null;
+  onBookSpecialist?: (specialistId: string) => void;
 }
 
 interface Protocol {
@@ -224,7 +228,7 @@ const generateRecommendations = (blockScores: BlockScore[]): { text: string; sph
   return recommendations;
 };
 
-export function ChildPPKResultsCard({ childId, childName }: ChildPPKResultsCardProps) {
+export function ChildPPKResultsCard({ childId, childName, regionId, onBookSpecialist }: ChildPPKResultsCardProps) {
   const navigate = useNavigate();
 
   // First check if child is linked to any organization
@@ -340,6 +344,12 @@ export function ChildPPKResultsCard({ childId, childName }: ChildPPKResultsCardP
   const blockScores = calculateBlockScores(latestProtocol.checklist_data);
   const recommendations = generateRecommendations(blockScores);
   
+  // Get problem directions for specialist matching
+  const problemBlocks = blockScores
+    .filter((b) => b.group && b.group >= 2)
+    .map((b) => ({ blockTitle: b.name, group: b.group! }));
+  const problemDirections = matchDirectionsToProblems(problemBlocks);
+  
   // Get overall status
   const maxGroup = blockScores.reduce((max, block) => 
     block.group && block.group > (max || 0) ? block.group : max, null as 1 | 2 | 3 | null
@@ -441,6 +451,20 @@ export function ChildPPKResultsCard({ childId, childName }: ChildPPKResultsCardP
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+          </>
+        )}
+
+        {/* Recommended specialists based on PPK results */}
+        {problemDirections.length > 0 && regionId && (
+          <>
+            <Separator />
+            <RecommendedSpecialists
+              problemDirections={problemDirections}
+              regionId={regionId}
+              onBookSpecialist={onBookSpecialist}
+              maxVisible={2}
+              compact
+            />
           </>
         )}
 

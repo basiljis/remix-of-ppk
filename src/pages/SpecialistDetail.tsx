@@ -11,9 +11,10 @@ import { ParentAuthModal } from "@/components/ParentAuthModal";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import {
   User, ArrowLeft, Loader2, Briefcase, GraduationCap, Award, MapPin,
-  CalendarCheck, Building2, Wallet, Clock, Globe, Monitor, Package,
+  CalendarCheck, Building2, Wallet, Clock, Globe, Monitor, Package, Target,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { getDirectionBySlug } from "@/constants/workDirections";
 
 interface SessionPackage {
   sessions: number;
@@ -39,6 +40,7 @@ interface SpecialistProfile {
   education_entries: EducationEntry[] | null;
   achievements: string | null;
   specializations: string[] | null;
+  work_directions: string[] | null;
   is_private_practice: boolean;
   show_pricing: boolean | null;
   consultation_price: number | null;
@@ -66,7 +68,7 @@ export default function SpecialistDetail() {
         .select(`
           id, full_name, public_bio, public_photo_url, public_slug,
           work_experience, education, education_entries, achievements,
-          specializations, is_private_practice, show_pricing,
+          specializations, work_directions, is_private_practice, show_pricing,
           consultation_price, consultation_duration, session_packages,
           work_format, work_district,
           position:positions(id, name),
@@ -231,6 +233,21 @@ export default function SpecialistDetail() {
                       {spec}
                     </Badge>
                   ))}
+                </div>
+              )}
+
+              {/* Work directions */}
+              {specialist.work_directions && specialist.work_directions.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {specialist.work_directions.map((slug) => {
+                    const dir = getDirectionBySlug(slug);
+                    return dir ? (
+                      <Badge key={slug} variant="outline" className="text-xs gap-1">
+                        <Target className="h-3 w-3" />
+                        {dir.label}
+                      </Badge>
+                    ) : null;
+                  })}
                 </div>
               )}
             </div>
