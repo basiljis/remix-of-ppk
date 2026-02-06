@@ -366,7 +366,7 @@ const ParentAuth = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <PublicNavbar currentPage="parents" variant="simple" showSecondaryNav={true} authLink="/parent-auth" />
+      <PublicNavbar currentPage="parents" authLink="/parent-auth" />
       
       <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-100 dark:from-pink-950/20 dark:to-purple-950/30 p-4 pt-32">
         

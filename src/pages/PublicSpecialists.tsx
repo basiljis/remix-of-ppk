@@ -233,10 +233,7 @@ export default function PublicSpecialists() {
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <PublicNavbar currentPage="catalog-specialists" variant="full" showSecondaryNav={false} />
-
-        {/* Secondary nav bar with search links */}
-        <SearchNavBar currentPage="specialists" />
+        <PublicNavbar currentPage="catalog-specialists" />
         <section className="pt-32 pb-8 px-4">
           <div className="container mx-auto max-w-6xl">
             <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors mb-6">
