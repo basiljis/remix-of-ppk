@@ -82,6 +82,7 @@ const scheduleItem = {
     { id: "schedule-calendar", label: "Моё расписание" },
     { id: "schedule-children", label: "Дети" },
     { id: "schedule-statistics", label: "Статистика" },
+    { id: "schedule-finance", label: "Финансы" },
   ]
 };
 
@@ -124,6 +125,7 @@ const adminItems = [
       { id: "administration-commercial-offers", label: "КП заявки" },
       { id: "administration-subscriptions", label: "Подписки" },
       { id: "administration-payment-logs", label: "Логи платежей" },
+      { id: "administration-finance-stats", label: "Финансовая статистика" },
     ]
   },
   { 

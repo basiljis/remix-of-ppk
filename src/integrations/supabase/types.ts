@@ -1999,7 +1999,9 @@ export type Database = {
           is_private_practice: boolean | null
           is_published: boolean | null
           notifications_enabled: boolean | null
+          online_payment_enabled: boolean | null
           organization_id: string | null
+          payment_mode: string | null
           phone: string
           position_id: string
           public_bio: string | null
@@ -2032,7 +2034,9 @@ export type Database = {
           is_private_practice?: boolean | null
           is_published?: boolean | null
           notifications_enabled?: boolean | null
+          online_payment_enabled?: boolean | null
           organization_id?: string | null
+          payment_mode?: string | null
           phone: string
           position_id: string
           public_bio?: string | null
@@ -2065,7 +2069,9 @@ export type Database = {
           is_private_practice?: boolean | null
           is_published?: boolean | null
           notifications_enabled?: boolean | null
+          online_payment_enabled?: boolean | null
           organization_id?: string | null
+          payment_mode?: string | null
           phone?: string
           position_id?: string
           public_bio?: string | null
@@ -2410,6 +2416,62 @@ export type Database = {
         }
         Relationships: []
       }
+      session_payments: {
+        Row: {
+          amount: number
+          confirmation_url: string | null
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          paid_at: string | null
+          payment_mode: string
+          session_id: string
+          specialist_id: string
+          status: string
+          updated_at: string
+          yukassa_payment_id: string | null
+        }
+        Insert: {
+          amount: number
+          confirmation_url?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_mode?: string
+          session_id: string
+          specialist_id: string
+          status?: string
+          updated_at?: string
+          yukassa_payment_id?: string | null
+        }
+        Update: {
+          amount?: number
+          confirmation_url?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_mode?: string
+          session_id?: string
+          specialist_id?: string
+          status?: string
+          updated_at?: string
+          yukassa_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_payments_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_statuses: {
         Row: {
           color: string | null
@@ -2649,6 +2711,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      specialist_payment_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_configured: boolean
+          online_payment_enabled: boolean
+          payment_mode: string
+          updated_at: string
+          user_id: string
+          yukassa_secret_key: string | null
+          yukassa_shop_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_configured?: boolean
+          online_payment_enabled?: boolean
+          payment_mode?: string
+          updated_at?: string
+          user_id: string
+          yukassa_secret_key?: string | null
+          yukassa_shop_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_configured?: boolean
+          online_payment_enabled?: boolean
+          payment_mode?: string
+          updated_at?: string
+          user_id?: string
+          yukassa_secret_key?: string | null
+          yukassa_shop_id?: string | null
+        }
+        Relationships: []
       }
       specialist_rates: {
         Row: {
