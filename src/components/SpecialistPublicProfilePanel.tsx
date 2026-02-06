@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { EducationEntriesEditor, type EducationEntry } from "@/components/EducationEntriesEditor";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,6 +47,7 @@ export function SpecialistPublicProfilePanel() {
   const [publicPhotoUrl, setPublicPhotoUrl] = useState("");
   const [workExperience, setWorkExperience] = useState("");
   const [education, setEducation] = useState("");
+  const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
   const [achievements, setAchievements] = useState("");
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [newSpecialization, setNewSpecialization] = useState("");
@@ -72,7 +75,7 @@ export function SpecialistPublicProfilePanel() {
         .from("profiles")
         .select(`
           id, full_name, is_published, public_slug, public_bio, 
-          public_photo_url, work_experience, education, achievements, 
+          public_photo_url, work_experience, education, education_entries, achievements, 
           specializations, is_private_practice, show_pricing,
           consultation_price, consultation_duration, session_packages,
           work_format, work_district,
@@ -95,6 +98,11 @@ export function SpecialistPublicProfilePanel() {
       setPublicPhotoUrl(profileData.public_photo_url || "");
       setWorkExperience(profileData.work_experience || "");
       setEducation(profileData.education || "");
+      setEducationEntries(
+        Array.isArray(profileData.education_entries) 
+          ? profileData.education_entries as unknown as EducationEntry[]
+          : []
+      );
       setAchievements(profileData.achievements || "");
       setSpecializations(profileData.specializations || []);
       setConsultationPrice(profileData.consultation_price || "");
@@ -143,6 +151,7 @@ export function SpecialistPublicProfilePanel() {
           public_photo_url: publicPhotoUrl || null,
           work_experience: workExperience || null,
           education: education || null,
+          education_entries: educationEntries.length > 0 ? JSON.parse(JSON.stringify(educationEntries)) : [],
           achievements: achievements || null,
           specializations: specializations.length > 0 ? specializations : null,
           consultation_price: consultationPrice || null,
@@ -553,15 +562,11 @@ export function SpecialistPublicProfilePanel() {
 
           {/* Bio */}
           <div className="space-y-2">
-            <Label htmlFor="public-bio">
-              О себе
-            </Label>
-            <Textarea
-              id="public-bio"
-              value={publicBio}
-              onChange={(e) => setPublicBio(e.target.value)}
+            <Label>О себе</Label>
+            <RichTextEditor
+              content={publicBio}
+              onChange={setPublicBio}
               placeholder="Расскажите о себе, своём опыте и подходе к работе..."
-              rows={4}
             />
           </div>
 
@@ -630,19 +635,11 @@ export function SpecialistPublicProfilePanel() {
             />
           </div>
 
-          {/* Education */}
-          <div className="space-y-2">
-            <Label htmlFor="education">
-              Образование
-            </Label>
-            <Textarea
-              id="education"
-              value={education}
-              onChange={(e) => setEducation(e.target.value)}
-              placeholder="Укажите ваше образование и квалификацию..."
-              rows={3}
-            />
-          </div>
+          {/* Education entries */}
+          <EducationEntriesEditor
+            entries={educationEntries}
+            onChange={setEducationEntries}
+          />
 
           {/* Achievements */}
           <div className="space-y-2">

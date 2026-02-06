@@ -35,6 +35,7 @@ const RootGate = lazy(() => import("./pages/RootGate").then(m => ({ default: m.d
 const OfflineIndicator = lazy(() => import("@/components/OfflineIndicator"));
 const PublicSpecialists = lazy(() => import("./pages/PublicSpecialists"));
 const PublicOrganizations = lazy(() => import("./pages/PublicOrganizations"));
+const SpecialistDetail = lazy(() => import("./pages/SpecialistDetail"));
 
 const queryClient = new QueryClient();
 
@@ -65,7 +66,7 @@ const App = () => (
                       <Route path="/for-parents" element={<ForParents />} />
                       <Route path="/specialists" element={<PublicSpecialists />} />
                       <Route path="/organizations" element={<PublicOrganizations />} />
-                      <Route path="/s/:slug" element={<PublicSpecialists />} />
+                      <Route path="/s/:slug" element={<SpecialistDetail />} />
                       <Route path="/o/:slug" element={<PublicOrganizations />} />
                       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/partnership-offer" element={<PartnershipOffer />} />

@@ -441,87 +441,6 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
           </SidebarGroup>
         )}
 
-        {/* Instructions module - separate section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2">
-            <BookOpen className="h-3 w-3" />
-            Справка
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {(() => {
-                const canAccessScheduleMenu = subscriptionStatus.canAccessSchedule || subscriptionStatus.isTrialActive || isAdmin;
-                const instructionsSubItems = getInstructionsSubItems(canSeePPK, canAccessScheduleMenu, canSeeOrganization, isAdmin);
-                const isActive = instructionsSubItems.some(sub => activeTab === sub.id);
-                
-                return (
-                  <Collapsible
-                    key={instructionsItem.id}
-                    asChild
-                    defaultOpen={isActive}
-                    className="group/collapsible"
-                  >
-                    <SidebarMenuItem>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <CollapsibleTrigger asChild>
-                            <SidebarMenuButton
-                              className={`w-full justify-start gap-3 ${
-                                isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
-                              }`}
-                            >
-                              <instructionsItem.icon className="h-4 w-4" />
-                              {state !== "collapsed" && (
-                                <>
-                                  <span>{instructionsItem.label}</span>
-                                  <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                                </>
-                              )}
-                            </SidebarMenuButton>
-                          </CollapsibleTrigger>
-                        </TooltipTrigger>
-                        {state === "collapsed" && (
-                          <TooltipContent side="right" className="flex flex-col gap-1">
-                            <p className="font-medium">{instructionsItem.label}</p>
-                            {instructionsSubItems.map((subItem) => (
-                              <button
-                                key={subItem.id}
-                                onClick={() => onTabChange(subItem.id)}
-                                className="text-left text-sm hover:text-primary transition-colors"
-                              >
-                                • {subItem.label}
-                              </button>
-                            ))}
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {instructionsSubItems.map((subItem) => {
-                            const isSubActive = activeTab === subItem.id;
-                            return (
-                              <SidebarMenuSubItem key={subItem.id}>
-                                <SidebarMenuSubButton
-                                  onClick={() => onTabChange(subItem.id)}
-                                  className={
-                                    isSubActive ? "bg-primary/10 text-primary font-medium" : ""
-                                  }
-                                >
-                                  <span>{subItem.label}</span>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            );
-                          })}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
-                );
-              })()}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
         {/* Schedule module - separate section */}
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2">
@@ -789,6 +708,87 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {/* Instructions module - moved to bottom */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center gap-2">
+            <BookOpen className="h-3 w-3" />
+            Справка
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {(() => {
+                const canAccessScheduleMenu = subscriptionStatus.canAccessSchedule || subscriptionStatus.isTrialActive || isAdmin;
+                const instructionsSubItems = getInstructionsSubItems(canSeePPK, canAccessScheduleMenu, canSeeOrganization, isAdmin);
+                const isActive = instructionsSubItems.some(sub => activeTab === sub.id);
+                
+                return (
+                  <Collapsible
+                    key={instructionsItem.id}
+                    asChild
+                    defaultOpen={isActive}
+                    className="group/collapsible"
+                  >
+                    <SidebarMenuItem>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              className={`w-full justify-start gap-3 ${
+                                isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                              }`}
+                            >
+                              <instructionsItem.icon className="h-4 w-4" />
+                              {state !== "collapsed" && (
+                                <>
+                                  <span>{instructionsItem.label}</span>
+                                  <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                </>
+                              )}
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                        </TooltipTrigger>
+                        {state === "collapsed" && (
+                          <TooltipContent side="right" className="flex flex-col gap-1">
+                            <p className="font-medium">{instructionsItem.label}</p>
+                            {instructionsSubItems.map((subItem) => (
+                              <button
+                                key={subItem.id}
+                                onClick={() => onTabChange(subItem.id)}
+                                className="text-left text-sm hover:text-primary transition-colors"
+                              >
+                                • {subItem.label}
+                              </button>
+                            ))}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {instructionsSubItems.map((subItem) => {
+                            const isSubActive = activeTab === subItem.id;
+                            return (
+                              <SidebarMenuSubItem key={subItem.id}>
+                                <SidebarMenuSubButton
+                                  onClick={() => onTabChange(subItem.id)}
+                                  className={
+                                    isSubActive ? "bg-primary/10 text-primary font-medium" : ""
+                                  }
+                                >
+                                  <span>{subItem.label}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                );
+              })()}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {/* Admin section */}
         {isAdmin && (

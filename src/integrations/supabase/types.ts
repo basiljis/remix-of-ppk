@@ -1989,6 +1989,7 @@ export type Database = {
           consultation_price: number | null
           created_at: string
           education: string | null
+          education_entries: Json | null
           email: string
           email_notifications: boolean | null
           full_name: string
@@ -2019,6 +2020,7 @@ export type Database = {
           consultation_price?: number | null
           created_at?: string
           education?: string | null
+          education_entries?: Json | null
           email: string
           email_notifications?: boolean | null
           full_name: string
@@ -2049,6 +2051,7 @@ export type Database = {
           consultation_price?: number | null
           created_at?: string
           education?: string | null
+          education_entries?: Json | null
           email?: string
           email_notifications?: boolean | null
           full_name?: string
