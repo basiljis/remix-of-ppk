@@ -403,7 +403,7 @@ export default function PublicOrganizations() {
     if (!singleOrganization) {
       return (
         <div className="min-h-screen bg-background">
-          <PublicNavbar currentPage="catalog-organizations" variant="minimal" showSecondaryNav={false} />
+          <PublicNavbar currentPage="catalog-organizations" variant="full" showSecondaryNav={false} />
           <div className="pt-24 text-center py-20">
             <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h1 className="text-2xl font-bold mb-2">Организация не найдена</h1>
@@ -424,7 +424,7 @@ export default function PublicOrganizations() {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <PublicNavbar currentPage="catalog-organizations" variant="minimal" showSecondaryNav={false} />
+        <PublicNavbar currentPage="catalog-organizations" variant="full" showSecondaryNav={false} />
 
         {/* Organization Detail */}
         <section className="pt-24 pb-8 px-4">
@@ -663,7 +663,7 @@ export default function PublicOrganizations() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <PublicNavbar currentPage="catalog-organizations" variant="minimal" showSecondaryNav={false} />
+      <PublicNavbar currentPage="catalog-organizations" variant="full" showSecondaryNav={false} />
 
       {/* Secondary nav bar with search links */}
       <SearchNavBar currentPage="organizations" />

@@ -233,7 +233,7 @@ export default function PublicSpecialists() {
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <PublicNavbar currentPage="catalog-specialists" variant="minimal" showSecondaryNav={false} />
+        <PublicNavbar currentPage="catalog-specialists" variant="full" showSecondaryNav={false} />
 
         {/* Secondary nav bar with search links */}
         <SearchNavBar currentPage="specialists" />
