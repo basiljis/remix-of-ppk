@@ -196,6 +196,57 @@ export default function ForOrganizations() {
         </div>
       </section>
 
+      {/* On-premise */}
+      <section className="py-16 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-4xl">
+          <Card className="border-2 border-primary/20 overflow-hidden">
+            <div className="md:flex">
+              <div className="md:w-2/3 p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Settings className="h-6 w-6 text-primary" />
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Индивидуальное решение</Badge>
+                </div>
+                <h2 className="text-2xl font-bold mb-3">Установка на серверы организации</h2>
+                <p className="text-muted-foreground mb-6">
+                  Разворачиваем систему universum. на вашей инфраструктуре — полный контроль данных, 
+                  соответствие внутренним политикам безопасности и требованиям ФЗ-152.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  {[
+                    "Весь функционал платформы без ограничений",
+                    "Все обновления и новые функции на весь период лицензии",
+                    "Данные хранятся только на серверах организации",
+                    "Индивидуальная настройка и брендирование",
+                    "Техническая поддержка и сопровождение",
+                    "Интеграция с внутренними системами (ЕКИС, АИС и др.)"
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <a href="mailto:info@profilaktika.site?subject=Установка на серверы организации">
+                  <Button size="lg" className="gap-2">
+                    Запросить предложение
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </a>
+              </div>
+              <div className="md:w-1/3 bg-primary/5 p-8 flex flex-col items-center justify-center text-center">
+                <Shield className="h-12 w-12 text-primary mb-4" />
+                <p className="font-semibold text-lg mb-2">Полный контроль</p>
+                <p className="text-sm text-muted-foreground">
+                  Ваши данные остаются внутри периметра организации. Никакой передачи на внешние серверы.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-16 px-4 bg-blue-500/5">
         <div className="container mx-auto max-w-2xl text-center">
