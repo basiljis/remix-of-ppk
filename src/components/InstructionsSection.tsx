@@ -25,7 +25,9 @@ import {
   Calendar,
   ClipboardList,
   Building,
-  GitBranch
+  GitBranch,
+  Wallet,
+  Briefcase
 } from "lucide-react";
 import { useInstructions } from "@/hooks/useInstructions";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,8 @@ const contentTypes = {
 
 export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectionProps) => {
   const { instructions: customInstructions, loading: customLoading } = useInstructions('custom');
+  const { instructions: legalDbInstructions } = useInstructions('legal');
+  const { instructions: workDbInstructions } = useInstructions('work');
   
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -740,6 +744,135 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
     },
   ];
 
+  // Инструкции для частной практики
+  const privatePracticeInstructionsData = [
+    {
+      id: "getting-started-private",
+      category: "Начало работы",
+      icon: Briefcase,
+      items: [
+        {
+          title: "Настройка профиля",
+          type: "step",
+          content: `Для начала работы как частный специалист:
+• Перейдите в раздел "Публикация" → "Мой публичный профиль"
+• Заполните информацию о себе, образование и опыт работы
+• Загрузите профессиональное фото и сертификаты
+• Укажите стоимость консультаций
+• Включите публикацию в каталоге специалистов`,
+          note: "Чем подробнее заполнен профиль, тем выше доверие родителей.",
+          noteType: "tip"
+        },
+        {
+          title: "Формат работы",
+          type: "info",
+          content: `Выберите удобный формат:
+• **Офлайн** — очные консультации (укажите округ Москвы)
+• **Онлайн** — дистанционные консультации
+• **Оба формата** — гибкий подход к работе`,
+        },
+      ]
+    },
+    {
+      id: "payment-settings",
+      category: "Настройка оплаты",
+      icon: Wallet,
+      items: [
+        {
+          title: "Подключение ЮKassa",
+          type: "step",
+          content: `Для приёма платежей напрямую от родителей:
+1. Зарегистрируйтесь в ЮKassa (yookassa.ru)
+2. Получите Shop ID и Secret Key в личном кабинете
+3. Перейдите в "Финансы" → "Настройки оплаты"
+4. Введите полученные реквизиты
+5. Включите опцию "Оплата онлайн"`,
+          note: "Каждому специалисту выделяется своя касса — средства поступают напрямую на ваш счёт.",
+          noteType: "success"
+        },
+        {
+          title: "Режимы оплаты",
+          type: "info",
+          content: `Выберите режим оплаты консультаций:
+
+**Предоплата** — родитель платит до консультации. Рекомендуется для снижения рисков неявки.
+
+**Постоплата** — родитель платит после консультации. Подходит для постоянных клиентов.`,
+        },
+        {
+          title: "Webhook для уведомлений",
+          type: "tip",
+          content: `Для автоматического обновления статуса оплаты:
+1. Скопируйте URL webhook из настроек оплаты
+2. Добавьте его в личном кабинете ЮKassa
+3. Система будет автоматически отслеживать платежи`,
+        },
+      ]
+    },
+    {
+      id: "finance-stats",
+      category: "Финансовая статистика",
+      icon: TrendingUp,
+      items: [
+        {
+          title: "Просмотр статистики",
+          type: "step",
+          content: `В разделе "Расписание" → "Финансы" доступна статистика:
+• Количество проведённых занятий
+• Количество оплаченных занятий
+• Общая сумма заработка за период
+• Средняя стоимость занятия
+• Детальный список транзакций`,
+        },
+        {
+          title: "Фильтрация по периодам",
+          type: "info",
+          content: `Анализируйте данные за разные периоды:
+• Текущий месяц
+• Квартал (3 месяца)
+• Год
+• Всё время работы`,
+        },
+      ]
+    },
+    {
+      id: "legal-status",
+      category: "Правовой статус",
+      icon: Scale,
+      items: [
+        {
+          title: "Самозанятый (НПД)",
+          type: "info",
+          content: `**Налог на профессиональный доход:**
+• 4% — при работе с физ. лицами
+• 6% — при работе с юр. лицами
+• Лимит дохода: 2,4 млн ₽/год
+• Регистрация через приложение "Мой налог"`,
+        },
+        {
+          title: "Индивидуальный предприниматель",
+          type: "info",
+          content: `**Налоговые режимы для ИП:**
+• УСН "Доходы" — 6%
+• УСН "Доходы минус расходы" — 15%
+• Патентная система (ПСН)
+
+**Обязательства:** онлайн-касса, страховые взносы, декларации`,
+        },
+        {
+          title: "ООО",
+          type: "info",
+          content: `**Для организаций:**
+• УСН "Доходы" — 6%
+• УСН "Доходы минус расходы" — 15%
+• ОСНО — общая система
+
+**Обязательства:** полный бухучёт, онлайн-касса, квартальная отчётность`,
+        },
+      ]
+    },
+  ];
+
   // Выбор данных по текущей вкладке
   const getCurrentInstructionsData = () => {
     switch (activeSubTab) {
@@ -751,6 +884,8 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
         return organizationInstructionsData;
       case "legal":
         return legalInstructionsData;
+      case "private-practice":
+        return privatePracticeInstructionsData;
       case "business-processes":
         return []; // Business processes use flowcharts, not regular instructions
       default:
@@ -800,6 +935,8 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
         return "Инструкции по модулю Организация";
       case "legal":
         return "Нормативно-правовая база";
+      case "private-practice":
+        return "Частная практика и оплата";
       case "business-processes":
         return "Бизнес-процессы системы";
       default:
@@ -817,6 +954,8 @@ export const InstructionsSection = ({ activeSubTab = "ppk" }: InstructionsSectio
         return Building;
       case "legal":
         return Scale;
+      case "private-practice":
+        return Briefcase;
       case "business-processes":
         return GitBranch;
       default:

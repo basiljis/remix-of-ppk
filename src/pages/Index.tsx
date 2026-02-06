@@ -259,6 +259,7 @@ const Index = () => {
       case "instructions-organization":
       case "instructions-legal":
       case "instructions-business-processes":
+      case "instructions-private-practice":
         return (
           <Suspense fallback={loadingFallback}>
             <InstructionsSection activeSubTab={activeTab.replace("instructions-", "")} />
