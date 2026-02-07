@@ -186,6 +186,15 @@ export const errorLogger = new ErrorLogger();
 // Установка глобального обработчика необработанных ошибок
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
+    // Skip ServiceWorker and PWA-related errors (they are expected on custom domains)
+    if (event.message?.includes('ServiceWorker') || 
+        event.message?.includes('sw.js') ||
+        event.filename?.includes('registerSW') ||
+        event.filename?.includes('sw.js')) {
+      console.log('[ErrorLogger] Пропущена ошибка ServiceWorker:', event.message);
+      return;
+    }
+
     errorLogger.logError({
       errorType: 'Uncaught Error',
       errorMessage: event.message,
@@ -202,10 +211,23 @@ if (typeof window !== 'undefined') {
 
   // Обработчик необработанных промисов
   window.addEventListener('unhandledrejection', (event) => {
+    const message = event.reason?.message || String(event.reason);
+    const stack = event.reason?.stack || '';
+    
+    // Skip ServiceWorker registration errors (common on custom domains with different SW setups)
+    if (stack.includes('registerSW') || 
+        stack.includes('serviceWorker.register') ||
+        message === 'Rejected' ||
+        message.includes('ServiceWorker') ||
+        message.includes('sw.js')) {
+      console.log('[ErrorLogger] Пропущена ошибка ServiceWorker:', message);
+      return;
+    }
+
     errorLogger.logError({
       errorType: 'Unhandled Promise Rejection',
-      errorMessage: event.reason?.message || String(event.reason),
-      errorStack: event.reason?.stack,
+      errorMessage: message,
+      errorStack: stack,
       componentName: 'Global',
       severity: 'error',
       metadata: {

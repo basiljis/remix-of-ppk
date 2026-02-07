@@ -712,7 +712,7 @@ export default function PublicOrganizations() {
             
             {/* District filter - only for Moscow region */}
             {selectedRegion === MOSCOW_REGION_ID && (
-              <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
+              <Select value={selectedDistrict || "all"} onValueChange={(v) => setSelectedDistrict(v === "all" ? null : v)}>
                 <SelectTrigger className="w-full sm:w-[280px]">
                   <div className="flex items-center gap-2">
                     <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
@@ -728,7 +728,7 @@ export default function PublicOrganizations() {
               </Select>
             )}
             
-            <Select value={selectedType || ""} onValueChange={(v) => setSelectedType(v || null)}>
+            <Select value={selectedType || "all"} onValueChange={(v) => setSelectedType(v === "all" ? null : v)}>
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Тип организации" />
               </SelectTrigger>

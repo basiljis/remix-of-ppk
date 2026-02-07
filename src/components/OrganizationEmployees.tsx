@@ -1438,8 +1438,9 @@ export function OrganizationEmployees() {
                           </TableCell>
                           <TableCell>
                             <Select
-                              value={positions.find(p => p.name.toLowerCase().trim() === emp.position_name.toLowerCase().trim())?.id || ""}
+                              value={positions.find(p => p.name.toLowerCase().trim() === emp.position_name.toLowerCase().trim())?.id || "not_selected"}
                               onValueChange={(v) => {
+                                if (v === "not_selected") return;
                                 const pos = positions.find(p => p.id === v);
                                 if (pos) updateParsedEmployee(index, 'position_name', pos.name);
                               }}
@@ -1449,6 +1450,7 @@ export function OrganizationEmployees() {
                                 <SelectValue placeholder={emp.position_name || "Выберите"} />
                               </SelectTrigger>
                               <SelectContent>
+                                <SelectItem value="not_selected" disabled>Выберите должность</SelectItem>
                                 {positions.map((pos) => (
                                   <SelectItem key={pos.id} value={pos.id}>
                                     {pos.name}
