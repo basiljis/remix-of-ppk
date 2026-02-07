@@ -297,7 +297,7 @@ export default function PublicSpecialists() {
               
               {/* District filter - only for offline mode and Moscow region */}
               {workFormat === "offline" && selectedRegion === MOSCOW_REGION_ID && (
-                <Select value={selectedDistrict || ""} onValueChange={(v) => setSelectedDistrict(v || null)}>
+                <Select value={selectedDistrict || "all"} onValueChange={(v) => setSelectedDistrict(v === "all" ? null : v)}>
                   <SelectTrigger className="w-full sm:w-[280px]">
                     <div className="flex items-center gap-2">
                       <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
@@ -313,7 +313,7 @@ export default function PublicSpecialists() {
                 </Select>
               )}
               
-              <Select value={selectedPosition || ""} onValueChange={(v) => setSelectedPosition(v || null)}>
+              <Select value={selectedPosition || "all"} onValueChange={(v) => setSelectedPosition(v === "all" ? null : v)}>
                 <SelectTrigger className="w-full sm:w-[220px]">
                   <SelectValue placeholder="Специалист" />
                 </SelectTrigger>
