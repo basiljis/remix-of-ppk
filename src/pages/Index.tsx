@@ -11,7 +11,9 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Users, GraduationCap, HelpCircle, Building2 } from "lucide-react";
+import { LogOut, User } from "lucide-react";
+import { AdminViewSwitcher, ViewMode } from "@/components/AdminViewSwitcher";
+import { AdminTestDataBanner } from "@/components/AdminTestDataBanner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsDialog } from "@/components/NotificationsDialog";
 import { TestModeDialog } from "@/components/TestModeDialog";
@@ -21,8 +23,8 @@ import { useSubscriptionAccess } from "@/hooks/useSubscriptionAccess";
 import { useOrganizationSubscription } from "@/hooks/useOrganizationSubscription";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Building2 } from "lucide-react";
 // Lazy load heavy components for better FCP
 const InstructionsSection = lazy(() => import("@/components/InstructionsSection").then(m => ({ default: m.InstructionsSection })));
 const ProtocolForm = lazy(() => import("@/components/ProtocolForm").then(m => ({ default: m.ProtocolForm })));
@@ -44,7 +46,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("protocol");
   const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
   const [editingProtocol, setEditingProtocol] = useState<any>(null);
-  const [adminViewParent, setAdminViewParent] = useState(false);
+  const [adminViewMode, setAdminViewMode] = useState<ViewMode>("specialist");
   const { toast } = useToast();
   const { user, loading, isAdmin, signOut, profile, hasAccessRequest, roles } = useAuth();
   const isDirector = roles.some(r => r.role === "director");
@@ -434,33 +436,12 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <TrialPeriodIndicator />
               
-              {/* Admin cabinet switcher */}
+              {/* Admin view mode switcher */}
               {isAdmin && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
-                        <GraduationCap className={`h-4 w-4 transition-colors ${!adminViewParent ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <Switch
-                          checked={adminViewParent}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              navigate("/parent");
-                            }
-                          }}
-                          className="data-[state=checked]:bg-blue-500"
-                        />
-                        <Users className={`h-4 w-4 transition-colors ${adminViewParent ? 'text-blue-500' : 'text-muted-foreground'}`} />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-medium">Переключение кабинетов</p>
-                      <p className="text-xs text-muted-foreground">
-                        {adminViewParent ? "Кабинет родителей" : "Кабинет педагогов"}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <AdminViewSwitcher 
+                  currentView={adminViewMode} 
+                  onViewChange={setAdminViewMode}
+                />
               )}
               
               <div className="h-8 w-px bg-border hidden lg:block" />
@@ -514,6 +495,14 @@ const Index = () => {
         <Suspense fallback={null}>
           <InstallPrompt />
         </Suspense>
+        
+        {/* Admin test mode banner */}
+        {isAdmin && (
+          <AdminTestDataBanner 
+            viewMode={adminViewMode} 
+            onReset={() => setAdminViewMode("specialist")} 
+          />
+        )}
       </div>
     </SidebarProvider>
   );

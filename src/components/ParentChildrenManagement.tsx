@@ -1,14 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Search, Users, Baby } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Search, Users, Baby, Eye, ExternalLink } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ParentProfile {
   id: string;
@@ -41,6 +44,7 @@ const educationLevelLabels: Record<string, string> = {
 };
 
 export function ParentChildrenManagement() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: parents, isLoading: parentsLoading } = useQuery({
@@ -109,6 +113,26 @@ export function ParentChildrenManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Admin view mode hint */}
+      <Alert className="border-primary/30 bg-primary/5">
+        <Eye className="h-4 w-4" />
+        <AlertTitle>Режим просмотра интерфейсов</AlertTitle>
+        <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
+          <span className="text-sm">
+            Используйте переключатель в верхнем меню для просмотра интерфейса родительского кабинета с тестовыми данными.
+          </span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate("/parent")}
+            className="gap-2 whitespace-nowrap"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Открыть кабинет родителя
+          </Button>
+        </AlertDescription>
+      </Alert>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Родители и дети</h2>
@@ -167,7 +191,7 @@ export function ParentChildrenManagement() {
                   ) : (
                     filteredChildren.map((child) => (
                       <TableRow key={child.id}>
-                        <TableCell className="font-mono text-xs text-pink-600">
+                        <TableCell className="font-mono text-xs text-primary">
                           {child.child_unique_id}
                         </TableCell>
                         <TableCell className="font-medium">{child.full_name}</TableCell>
@@ -233,7 +257,7 @@ export function ParentChildrenManagement() {
                           {parent.is_blocked ? (
                             <Badge variant="destructive">Заблокирован</Badge>
                           ) : (
-                            <Badge variant="secondary" className="bg-green-100 text-green-800">Активен</Badge>
+                            <Badge variant="secondary" className="bg-accent text-accent-foreground">Активен</Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
