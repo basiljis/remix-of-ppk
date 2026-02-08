@@ -47,12 +47,15 @@ export function ParentChildrenManagement() {
     queryKey: ["admin-parents"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("parent_profiles" as any)
+        .from("parent_profiles")
         .select("*")
-        .order("created_at", { ascending: false }) as { data: ParentProfile[] | null; error: any };
+        .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error("Error fetching parent_profiles:", error);
+        throw error;
+      }
+      return (data || []) as ParentProfile[];
     },
   });
 
@@ -60,12 +63,15 @@ export function ParentChildrenManagement() {
     queryKey: ["admin-parent-children"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("parent_children" as any)
+        .from("parent_children")
         .select("*")
-        .order("created_at", { ascending: false }) as { data: ParentChild[] | null; error: any };
+        .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error("Error fetching parent_children:", error);
+        throw error;
+      }
+      return (data || []) as ParentChild[];
     },
   });
 
