@@ -214,11 +214,18 @@ const Index = () => {
   const renderTabContent = () => {
     const loadingFallback = <div className="flex items-center justify-center p-8">Загрузка...</div>;
     
+    // When admin is testing a view mode, apply role overrides
+    const isInAdminViewMode = isAdmin && adminViewMode !== "specialist";
+    const effectiveIsPrivateSpecialist = isInAdminViewMode && adminViewMode === "private" ? true : isPrivateSpecialist;
+    const effectiveIsOrgAdmin = isInAdminViewMode && adminViewMode === "org_admin" ? true : isOrgAdmin;
+    const effectiveIsDirector = isInAdminViewMode && adminViewMode === "director" ? true : isDirector;
+    const showAdminSection = isAdmin && !isInAdminViewMode;
+    
     switch (activeTab) {
       case "protocol":
       case "list":
         // Private specialists cannot access PPK module
-        if (isPrivateSpecialist) {
+        if (effectiveIsPrivateSpecialist) {
           return (
             <div className="text-center p-8">
               <p className="text-muted-foreground">Раздел ППК недоступен для частной практики.</p>
@@ -291,7 +298,7 @@ const Index = () => {
       case "administration-org-admins":
       case "administration-parent-tests":
       case "administration-parent-children":
-        return isAdmin ? (
+        return showAdminSection ? (
           <Suspense fallback={loadingFallback}>
             <Administration activeSubTab={activeTab.replace("administration-", "")} />
           </Suspense>
@@ -301,7 +308,7 @@ const Index = () => {
           </div>
         );
       case "administration-finance-stats":
-        return isAdmin ? (
+        return showAdminSection ? (
           <Suspense fallback={loadingFallback}>
             <AdminFinanceStatisticsPanel />
           </Suspense>
@@ -336,7 +343,7 @@ const Index = () => {
       case "organization-holiday-requests":
       case "organization-settings":
         // Private specialists cannot access Organization module
-        if (isPrivateSpecialist) {
+        if (effectiveIsPrivateSpecialist) {
           return (
             <div className="text-center p-8">
               <p className="text-muted-foreground">Раздел «Организация» недоступен для частной практики.</p>
@@ -344,7 +351,7 @@ const Index = () => {
             </div>
           );
         }
-        return (isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess) ? (
+        return (effectiveIsOrgAdmin || effectiveIsDirector || showAdminSection || hasOrganizationAccess) ? (
           <Suspense fallback={loadingFallback}>
             <OrganizationModule activeSubTab={activeTab.startsWith("organization-") ? activeTab.replace("organization-", "") : "employees"} />
           </Suspense>
@@ -479,6 +486,7 @@ const Index = () => {
             isDirector={isDirector}
             hasOrganizationAccess={hasOrganizationAccess}
             isPrivateSpecialist={isPrivateSpecialist}
+            adminViewMode={adminViewMode}
           />
         </div>
         

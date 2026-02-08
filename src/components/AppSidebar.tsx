@@ -33,6 +33,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, differenceInDays } from "date-fns";
 
+type AdminViewMode = "specialist" | "parent" | "private" | "org_admin" | "director";
+
 interface AppSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -41,6 +43,7 @@ interface AppSidebarProps {
   isDirector?: boolean;
   hasOrganizationAccess?: boolean;
   isPrivateSpecialist?: boolean;
+  adminViewMode?: AdminViewMode;
 }
 
 const menuItems = [
@@ -177,13 +180,23 @@ const adminItems = [
   },
 ];
 
-export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false, hasOrganizationAccess = false, isPrivateSpecialist = false }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin = false, isDirector = false, hasOrganizationAccess = false, isPrivateSpecialist = false, adminViewMode }: AppSidebarProps) {
   const { state } = useSidebar();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const subscriptionStatus = useSubscriptionStatus();
-  const canSeeOrganization = !isPrivateSpecialist && (isOrgAdmin || isDirector || isAdmin || hasOrganizationAccess);
-  const canSeePPK = !isPrivateSpecialist;
+  
+  // When admin is in view mode, hide admin-only UI and show role-specific interface
+  const isInAdminViewMode = isAdmin && adminViewMode && adminViewMode !== "specialist";
+  const showAdminSection = isAdmin && !isInAdminViewMode;
+  
+  // Apply view mode overrides for admin testing
+  const effectiveIsPrivateSpecialist = isInAdminViewMode && adminViewMode === "private" ? true : isPrivateSpecialist;
+  const effectiveIsOrgAdmin = isInAdminViewMode && adminViewMode === "org_admin" ? true : isOrgAdmin;
+  const effectiveIsDirector = isInAdminViewMode && adminViewMode === "director" ? true : isDirector;
+  
+  const canSeeOrganization = !effectiveIsPrivateSpecialist && (effectiveIsOrgAdmin || effectiveIsDirector || (!isInAdminViewMode && isAdmin) || hasOrganizationAccess);
+  const canSeePPK = !effectiveIsPrivateSpecialist;
 
   // Fetch session counts for sidebar badges
   const today = new Date();
@@ -294,7 +307,7 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
 
   // Check if user can access publication section
   // Private specialists can always access, org employees need organization permission
-  const canAccessPublication = isPrivateSpecialist || 
+  const canAccessPublication = effectiveIsPrivateSpecialist || 
     !profile?.organization_id || // No organization = can publish
     organizationSettings?.allow_employee_publishing === true;
 
@@ -721,7 +734,7 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
         )}
 
         {/* Payment Settings section - only for private specialists */}
-        {isPrivateSpecialist && (
+        {effectiveIsPrivateSpecialist && (
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-2">
               <Wallet className="h-3 w-3" />
@@ -763,8 +776,8 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
           <SidebarGroupContent>
             <SidebarMenu>
               {(() => {
-                const canAccessScheduleMenu = subscriptionStatus.canAccessSchedule || subscriptionStatus.isTrialActive || isAdmin;
-                const instructionsSubItems = getInstructionsSubItems(canSeePPK, canAccessScheduleMenu, canSeeOrganization, isAdmin, isPrivateSpecialist);
+                const canAccessScheduleMenu = subscriptionStatus.canAccessSchedule || subscriptionStatus.isTrialActive || showAdminSection;
+                const instructionsSubItems = getInstructionsSubItems(canSeePPK, canAccessScheduleMenu, canSeeOrganization, showAdminSection, effectiveIsPrivateSpecialist);
                 const isActive = instructionsSubItems.some(sub => activeTab === sub.id);
                 
                 return (
@@ -835,8 +848,8 @@ export function AppSidebar({ activeTab, onTabChange, isAdmin = false, isOrgAdmin
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Admin section */}
-        {isAdmin && (
+        {/* Admin section - hidden when admin is viewing as another role */}
+        {showAdminSection && (
           <SidebarGroup>
             <SidebarGroupLabel>Управление</SidebarGroupLabel>
             <SidebarGroupContent>
