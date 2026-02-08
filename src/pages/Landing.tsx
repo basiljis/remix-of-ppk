@@ -415,6 +415,45 @@ export default function Landing() {
       </section>
 
 
+      {/* Partners Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold mb-2">Наши партнёры</h2>
+            <p className="text-muted-foreground">
+              Сотрудничаем с ведущими организациями в сфере образования и развития
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-16">
+            <a 
+              href="https://info.youcanread.ru" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group transition-all hover:scale-105"
+            >
+              <img 
+                src="/assets/partners/youcanread-logo.svg" 
+                alt="Читай сам" 
+                className="h-10 md:h-12 w-auto opacity-70 group-hover:opacity-100 transition-opacity dark:invert"
+              />
+            </a>
+            <a 
+              href="https://лабсс.рф" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group transition-all hover:scale-105"
+            >
+              <img 
+                src="/assets/partners/labss-logo.png" 
+                alt="ЛАБСС" 
+                className="h-14 md:h-16 w-auto opacity-80 group-hover:opacity-100 transition-opacity"
+              />
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary/5">
         <div className="container mx-auto max-w-2xl text-center">
