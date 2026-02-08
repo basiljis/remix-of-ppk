@@ -419,10 +419,7 @@ export default function Landing() {
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold mb-2">Наши партнёры</h2>
-            <p className="text-muted-foreground">
-              Сотрудничаем с ведущими организациями в сфере образования и развития
-            </p>
+            <h2 className="text-2xl font-bold mb-8">Наши партнёры</h2>
           </div>
           
           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-16">
