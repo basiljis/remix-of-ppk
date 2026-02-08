@@ -188,10 +188,23 @@ export default function ParentDashboard() {
         .from("parent_profiles" as any)
         .select("id, full_name, email, phone, region_id")
         .eq("id", user.id)
-        .single() as { data: ParentProfile | null; error: any };
+        .maybeSingle() as { data: ParentProfile | null; error: any };
 
-      if (profileError) throw profileError;
-      setProfile(profileData as ParentProfile);
+      // For admins, missing parent profile is OK - they're just viewing
+      if (profileError && !hasAdminRole) throw profileError;
+      
+      // If admin has no parent profile, create a mock profile for viewing
+      if (!profileData && hasAdminRole) {
+        setProfile({
+          id: user.id,
+          full_name: "Режим просмотра",
+          email: user.email || "",
+          phone: "",
+          region_id: null,
+        });
+      } else {
+        setProfile(profileData as ParentProfile);
+      }
       setEditedRegionId(profileData?.region_id || "");
 
       // Load all regions for profile editing
@@ -220,7 +233,8 @@ export default function ParentDashboard() {
         .eq("parent_user_id", user.id)
         .order("created_at", { ascending: false }) as { data: ParentChild[] | null; error: any };
 
-      if (childrenError) throw childrenError;
+      // For admins, no children is OK
+      if (childrenError && !hasAdminRole) throw childrenError;
       setChildren((childrenData as ParentChild[]) || []);
     } catch (error: any) {
       console.error("Error loading data:", error);
@@ -959,31 +973,45 @@ export default function ParentDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {/* Admin cabinet switcher */}
+              {/* Admin return button - show prominent button for admins viewing parent dashboard */}
               {isAdmin && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
-                        <Users className="h-4 w-4 text-blue-500" />
-                        <Switch
-                          checked={false}
-                          onCheckedChange={(checked) => {
-                            if (!checked) {
-                              navigate("/app");
-                            }
-                          }}
-                          className="data-[state=unchecked]:bg-primary"
-                        />
-                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-medium">Переключиться на кабинет педагогов</p>
-                      <p className="text-xs text-muted-foreground">Вы просматриваете кабинет родителей</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/app")}
+                    className="gap-2 border-primary/30 bg-gradient-to-r from-primary/5 to-blue-500/5 hover:from-primary/10 hover:to-blue-500/10"
+                  >
+                    <Shield className="h-4 w-4 text-primary" />
+                    <span className="hidden sm:inline">Вернуться в админку</span>
+                    <span className="sm:hidden">Админка</span>
+                  </Button>
+                  
+                  {/* Legacy switcher - hidden on mobile */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
+                          <Users className="h-4 w-4 text-blue-500" />
+                          <Switch
+                            checked={false}
+                            onCheckedChange={(checked) => {
+                              if (!checked) {
+                                navigate("/app");
+                              }
+                            }}
+                            className="data-[state=unchecked]:bg-primary"
+                          />
+                          <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-medium">Переключиться на кабинет педагогов</p>
+                        <p className="text-xs text-muted-foreground">Вы просматриваете кабинет родителей</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>
               )}
               
               <div className="h-8 w-px bg-border hidden lg:block" />
