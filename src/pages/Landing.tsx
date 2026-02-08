@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import CookieConsent from "@/components/CookieConsent";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { ChildCardDiagram } from "@/components/landing/ChildCardDiagram";
 import { 
   GraduationCap, Building2, Baby, 
   ClipboardList, Calendar, FileText, Shield, 
@@ -340,79 +341,8 @@ export default function Landing() {
       {/* Features Section */}
       <FeaturesSection />
 
-      {/* Screenshots/Preview Section */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Как это работает</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Интуитивный интерфейс для организаций, специалистов и родителей
-            </p>
-          </div>
-          
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center">
-                <div className="text-center p-4">
-                  <ClipboardList className="h-12 w-12 mx-auto mb-3 text-blue-500/70" />
-                  <p className="text-base font-medium">Протоколы ППк</p>
-                  <p className="text-xs text-muted-foreground">Для организаций</p>
-                </div>
-              </div>
-              <CardContent className="p-3">
-                <p className="text-xs text-muted-foreground">
-                  Автоматическое формирование заключений на основе чек-листов
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-to-br from-orange-500/20 to-orange-500/5 flex items-center justify-center">
-                <div className="text-center p-4">
-                  <CalendarCheck className="h-12 w-12 mx-auto mb-3 text-orange-500/70" />
-                  <p className="text-base font-medium">Онлайн-запись</p>
-                  <p className="text-xs text-muted-foreground">Для специалистов</p>
-                </div>
-              </div>
-              <CardContent className="p-3">
-                <p className="text-xs text-muted-foreground">
-                  Клиенты записываются напрямую, управление слотами и расписанием
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-to-br from-pink-500/20 to-pink-500/5 flex items-center justify-center">
-                <div className="text-center p-4">
-                  <Gamepad2 className="h-12 w-12 mx-auto mb-3 text-pink-500/70" />
-                  <p className="text-base font-medium">Игровая ребёнка</p>
-                  <p className="text-xs text-muted-foreground">Для родителей</p>
-                </div>
-              </div>
-              <CardContent className="p-3">
-                <p className="text-xs text-muted-foreground">
-                  Развивающие игры и упражнения с отслеживанием прогресса
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center">
-                <div className="text-center p-4">
-                  <FileText className="h-12 w-12 mx-auto mb-3 text-green-500/70" />
-                  <p className="text-base font-medium">Карта ребёнка</p>
-                  <p className="text-xs text-muted-foreground">Для всех</p>
-                </div>
-              </div>
-              <CardContent className="p-3">
-                <p className="text-xs text-muted-foreground">
-                  Единая история развития, синхронизация между специалистами и родителями
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      {/* Child Card Diagram Section */}
+      <ChildCardDiagram />
 
 
       {/* CTA Section */}
