@@ -415,42 +415,6 @@ export default function Landing() {
       </section>
 
 
-      {/* Partners Section */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold mb-8">Наши партнёры</h2>
-          </div>
-          
-          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-16">
-            <a 
-              href="https://info.youcanread.ru" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="group transition-all hover:scale-105"
-            >
-              <img 
-                src="/assets/partners/youcanread-logo.svg" 
-                alt="Читай сам" 
-                className="h-10 md:h-12 w-auto opacity-70 group-hover:opacity-100 transition-opacity dark:invert"
-              />
-            </a>
-            <a 
-              href="https://лабсс.рф" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="group transition-all hover:scale-105"
-            >
-              <img 
-                src="/assets/partners/labss-logo.png" 
-                alt="ЛАБСС" 
-                className="h-14 md:h-16 w-auto opacity-80 group-hover:opacity-100 transition-opacity"
-              />
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary/5">
         <div className="container mx-auto max-w-2xl text-center">
@@ -477,6 +441,39 @@ export default function Landing() {
                 Для родителей
               </Button>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Partners Section */}
+      <section className="py-10 px-4 border-t">
+        <div className="container mx-auto max-w-4xl">
+          <p className="text-center text-sm text-muted-foreground mb-6">Наши партнёры</p>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+            <a 
+              href="https://info.youcanread.ru" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group transition-all hover:scale-105"
+            >
+              <img 
+                src="/assets/partners/youcanread-logo.svg" 
+                alt="Читай сам" 
+                className="h-6 md:h-8 w-auto opacity-60 group-hover:opacity-100 transition-opacity dark:invert"
+              />
+            </a>
+            <a 
+              href="https://лабсс.рф" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group transition-all hover:scale-105"
+            >
+              <img 
+                src="/assets/partners/labss-logo.png" 
+                alt="ЛАБСС" 
+                className="h-8 md:h-10 w-auto opacity-60 group-hover:opacity-100 transition-opacity"
+              />
+            </a>
           </div>
         </div>
       </section>
