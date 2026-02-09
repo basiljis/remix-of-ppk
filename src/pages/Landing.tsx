@@ -6,15 +6,37 @@ import { Badge } from "@/components/ui/badge";
 import CookieConsent from "@/components/CookieConsent";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
-import { ChildCardDiagram } from "@/components/landing/ChildCardDiagram";
 import { 
   GraduationCap, Building2, Baby, 
   ClipboardList, Calendar, FileText, Shield, 
   CheckCircle, ArrowRight,
-  BarChart3, UserCheck, Heart, Gamepad2, 
+  BarChart3, UserCheck, Gamepad2, 
   BookOpen, CalendarCheck, Bell, Users, Target,
-  Compass
+  Zap
 } from "lucide-react";
+
+const howItWorks = [
+  {
+    icon: FileText,
+    title: "Карточка ребёнка",
+    description: "Единый профиль с полной историей развития, тестами и рекомендациями"
+  },
+  {
+    icon: ClipboardList,
+    title: "Протоколы и заключения",
+    description: "Автоматизация ППк с генерацией документов по результатам обследования"
+  },
+  {
+    icon: Calendar,
+    title: "Планирование занятий",
+    description: "Гибкое расписание с учётом нагрузки специалистов и онлайн-записью"
+  },
+  {
+    icon: BarChart3,
+    title: "Аналитика результатов",
+    description: "Отслеживание динамики развития и эффективности коррекционной работы"
+  }
+];
 
 const features = [
   {
@@ -341,8 +363,39 @@ export default function Landing() {
       {/* Features Section */}
       <FeaturesSection />
 
-      {/* Child Card Diagram Section */}
-      <ChildCardDiagram />
+      {/* How It Works Section */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Как это работает</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Четыре ключевых модуля для комплексного сопровождения развития ребёнка
+            </p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {howItWorks.map((item, index) => (
+              <Card key={item.title} className="relative overflow-hidden hover:shadow-lg transition-all group text-center">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/60 to-primary/20" />
+                <CardHeader className="pb-2">
+                  <div className="mx-auto h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <item.icon className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="absolute top-4 right-4 h-8 w-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
+                    {index + 1}
+                  </div>
+                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-sm">
+                    {item.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
 
       {/* CTA Section */}
