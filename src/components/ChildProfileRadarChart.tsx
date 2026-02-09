@@ -46,6 +46,8 @@ interface Props {
 
 export function ChildProfileRadarChart({ protocols }: Props) {
   // Calculate block scores for each protocol
+  // Uses formula: yesCount / sumWeight1Criteria * 100
+  // Where score=1 means "yes" (problem detected), score=0 means "no"
   const calculateBlockScores = (protocol: Protocol) => {
     if (!protocol.checklist_data?.blocks) return null;
 
@@ -81,9 +83,17 @@ export function ChildProfileRadarChart({ protocols }: Props) {
       }
       
       if (allItems.length > 0) {
-        const scores = allItems.map((item: any) => item.score || 0);
-        const average = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
-        blockScores[blockName] = Math.round(average * 100);
+        // Count items with score=1 (yes) and weight=1
+        const yesCount = allItems.filter((item: any) => item.score === 1).length;
+        const sumWeight1Criteria = allItems.filter((item: any) => item.weight === 1).length || allItems.length;
+        
+        // Calculate percentage of "yes" answers (problems detected)
+        // Higher percentage = more problems, Lower = better development
+        const percentage = sumWeight1Criteria > 0 
+          ? Math.round((yesCount / sumWeight1Criteria) * 100) 
+          : 0;
+        
+        blockScores[blockName] = percentage;
       }
     });
 
@@ -146,7 +156,7 @@ export function ChildProfileRadarChart({ protocols }: Props) {
         <CardTitle>Радар динамики по блокам</CardTitle>
         <CardDescription>
           {hasData 
-            ? `Сравнение последних ${recentProtocols.length} протоколов по всем сферам развития`
+            ? `Сравнение последних ${recentProtocols.length} протоколов. Показатель = % выявленных трудностей (ниже — лучше)`
             : "Визуализация данных протоколов ППк"
           }
         </CardDescription>
