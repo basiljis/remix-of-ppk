@@ -76,6 +76,15 @@ export default function LandingFooter() {
                   <span>Сертификация и безопасность</span>
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/installation" 
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
+                >
+                  <FileText className="h-4 w-4 flex-shrink-0 group-hover:text-primary transition-colors" />
+                  <span>Установка</span>
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
