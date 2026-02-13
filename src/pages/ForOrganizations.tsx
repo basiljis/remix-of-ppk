@@ -230,18 +230,7 @@ export default function ForOrganizations() {
                   ))}
                 </ul>
                 <div className="flex flex-col gap-3">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <CommercialOfferRequestForm />
-                    <Link to="/installation">
-                      <Button variant="outline" className="gap-2 w-full">
-                        <FileText className="h-4 w-4" />
-                        Документация для установки
-                      </Button>
-                    </Link>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Руководства по установке, системные требования и рекомендации по безопасности
-                  </p>
+                  <CommercialOfferRequestForm />
                   <p className="text-xs text-muted-foreground">
                     Или свяжитесь с нами по email: <a href="mailto:info@profilaktika.site" className="underline hover:text-foreground">info@profilaktika.site</a>
                   </p>
@@ -256,6 +245,18 @@ export default function ForOrganizations() {
               </div>
             </div>
           </Card>
+
+          <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 px-2">
+            <Link to="/installation">
+              <Button variant="outline" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Документация для установки
+              </Button>
+            </Link>
+            <p className="text-sm text-muted-foreground">
+              Руководства по установке, системные требования и рекомендации по безопасности
+            </p>
+          </div>
         </div>
       </section>
 
