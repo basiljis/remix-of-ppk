@@ -230,7 +230,18 @@ export default function ForOrganizations() {
                   ))}
                 </ul>
                 <div className="flex flex-col gap-3">
-                  <CommercialOfferRequestForm />
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <CommercialOfferRequestForm />
+                    <Link to="/installation">
+                      <Button variant="outline" className="gap-2 w-full">
+                        <FileText className="h-4 w-4" />
+                        Документация для установки
+                      </Button>
+                    </Link>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Руководства по установке, системные требования и рекомендации по безопасности
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Или свяжитесь с нами по email: <a href="mailto:info@profilaktika.site" className="underline hover:text-foreground">info@profilaktika.site</a>
                   </p>
