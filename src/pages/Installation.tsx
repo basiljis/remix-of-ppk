@@ -5,6 +5,7 @@ import { ScrollText, ChevronRight, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
 
 const documentationItems = [
   {
@@ -200,15 +201,11 @@ export default function Installation() {
             </div>
 
             <Card className="border-border/60 bg-muted/30 mt-6">
-              <CardContent className="py-4 px-5">
+              <CardContent className="py-4 px-5 flex flex-col sm:flex-row sm:items-center gap-3">
                 <p className="text-sm text-muted-foreground">
-                  Для получения полного комплекта документации и условий поставки On-premise свяжитесь
-                  с нами через форму{" "}
-                  <a href="/organizations" className="text-primary hover:underline">
-                    коммерческого предложения
-                  </a>
-                  .
+                  Для получения полного комплекта документации и условий поставки On-premise свяжитесь с нами:
                 </p>
+                <CommercialOfferRequestForm />
               </CardContent>
             </Card>
           </section>
