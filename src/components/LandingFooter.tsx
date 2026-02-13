@@ -59,12 +59,21 @@ export default function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <Link 
+              <Link 
                   to="/partnership-offer" 
                   className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
                 >
                   <FileText className="h-4 w-4 flex-shrink-0 group-hover:text-primary transition-colors" />
                   <span>Партнёрская программа</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/documents" 
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
+                >
+                  <FileText className="h-4 w-4 flex-shrink-0 group-hover:text-primary transition-colors" />
+                  <span>Сертификация и безопасность</span>
                 </Link>
               </li>
             </ul>
