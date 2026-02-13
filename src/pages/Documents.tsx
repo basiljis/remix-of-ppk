@@ -172,6 +172,66 @@ export default function Documents() {
               </CardContent>
             </Card>
           </section>
+
+          <Separator className="mb-12" />
+
+          {/* On-premise documentation section */}
+          <section className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <ScrollText className="h-5 w-5 text-primary" />
+              <h2 className="text-2xl font-semibold">Документация для установки ПО</h2>
+            </div>
+
+            <Card className="border-border/60">
+              <CardContent className="py-5 px-5">
+                <Badge variant="outline" className="mb-4 text-xs">
+                  Для образовательных организаций и учреждений
+                </Badge>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Настоящий раздел содержит информацию, предназначенную для образовательных организаций
+                  и иных учреждений, заинтересованных в установке программного обеспечения{" "}
+                  <span className="font-medium text-foreground">АИС ППк</span> на собственные серверы
+                  (вариант On-premise).
+                </p>
+
+                <div className="rounded-lg border border-border/60 bg-muted/20 p-4 mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    В соответствии с пунктом 4 «ж»{" "}
+                    <a
+                      href="https://base.garant.ru/71252170/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      Правил, утверждённых постановлением Правительства РФ от 16.11.2015 № 1236
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    , заявляемое программное обеспечение должно сопровождаться документацией, содержащей
+                    информацию, необходимую для его установки и эксплуатации.
+                  </p>
+                </div>
+
+                <p className="text-sm font-medium mb-3">Предоставляемая документация включает:</p>
+                <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                  <li>Руководство по установке и настройке серверной части АИС ППк</li>
+                  <li>Системные требования к аппаратному и программному обеспечению</li>
+                  <li>Руководство администратора по управлению пользователями и правами доступа</li>
+                  <li>Руководство пользователя для специалистов (педагоги-психологи, логопеды, дефектологи)</li>
+                  <li>Порядок обновления и технической поддержки</li>
+                  <li>Рекомендации по обеспечению информационной безопасности и соответствию ФЗ-152</li>
+                </ul>
+
+                <p className="text-sm text-muted-foreground mt-4">
+                  Для получения полного комплекта документации и условий поставки On-premise свяжитесь
+                  с нами через форму{" "}
+                  <a href="/organizations" className="text-primary hover:underline">
+                    коммерческого предложения
+                  </a>
+                  .
+                </p>
+              </CardContent>
+            </Card>
+          </section>
         </div>
       </main>
 
