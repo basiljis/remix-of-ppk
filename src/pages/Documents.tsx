@@ -1,9 +1,38 @@
+import { useState } from "react";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import LandingFooter from "@/components/LandingFooter";
-import { Shield, Server, FileCheck, ScrollText, Building2, Lock, ExternalLink } from "lucide-react";
+import { Shield, Server, FileCheck, ScrollText, Building2, Lock, ExternalLink, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+const documentationItems = [
+  {
+    title: "Руководство по установке и настройке серверной части АИС ППк",
+    description: "Документ содержит пошаговые инструкции по развёртыванию серверной части системы АИС ППк на собственной инфраструктуре организации. Включает требования к операционной системе, настройку базы данных, веб-сервера, SSL-сертификатов, а также процедуру первоначальной инициализации системы и проверку работоспособности всех модулей.",
+  },
+  {
+    title: "Системные требования к аппаратному и программному обеспечению",
+    description: "Перечень минимальных и рекомендуемых системных требований для корректной работы АИС ППк: характеристики процессора, объём оперативной памяти, дискового пространства, требования к сетевой инфраструктуре, поддерживаемые операционные системы, версии СУБД и дополнительного программного обеспечения.",
+  },
+  {
+    title: "Руководство администратора по управлению пользователями и правами доступа",
+    description: "Описание процедур создания, редактирования и блокировки учётных записей пользователей. Настройка ролевой модели доступа, управление правами специалистов и администраторов организаций, настройка двухфакторной аутентификации и IP-фильтрации в соответствии с требованиями ФЗ-152.",
+  },
+  {
+    title: "Руководство пользователя для специалистов",
+    description: "Подробное руководство для педагогов-психологов, логопедов и дефектологов по работе с основными модулями системы: ведение карточек детей, проведение и фиксация результатов ППк, формирование протоколов, заключений и рекомендаций, работа с расписанием занятий и отчётностью.",
+  },
+  {
+    title: "Порядок обновления и технической поддержки",
+    description: "Регламент получения и установки обновлений системы, описание каналов технической поддержки, порядок обращения при возникновении неисправностей, SLA по времени реакции и устранению инцидентов, процедура резервного копирования и восстановления данных.",
+  },
+  {
+    title: "Рекомендации по обеспечению информационной безопасности и соответствию ФЗ-152",
+    description: "Комплекс организационных и технических мер по защите персональных данных при эксплуатации АИС ППк: настройка шифрования данных, ведение журналов доступа, порядок обработки и хранения специальных категорий ПДн (сведения о здоровье), рекомендации по прохождению аттестации ИСПДн на соответствие требуемому уровню защищённости.",
+  },
+];
 
 const certifications = [
   {
@@ -56,6 +85,8 @@ const licenses = [
 ];
 
 export default function Documents() {
+  const [selectedDoc, setSelectedDoc] = useState<typeof documentationItems[0] | null>(null);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <PublicNavbar currentPage="other" showSecondaryNav={false} />
@@ -194,32 +225,19 @@ export default function Documents() {
                   (вариант On-premise).
                 </p>
 
-                <div className="rounded-lg border border-border/60 bg-muted/20 p-4 mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    В соответствии с пунктом 4 «ж»{" "}
-                    <a
-                      href="https://base.garant.ru/71252170/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      Правил, утверждённых постановлением Правительства РФ от 16.11.2015 № 1236
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                    , заявляемое программное обеспечение должно сопровождаться документацией, содержащей
-                    информацию, необходимую для его установки и эксплуатации.
-                  </p>
-                </div>
-
                 <p className="text-sm font-medium mb-3">Предоставляемая документация включает:</p>
-                <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
-                  <li>Руководство по установке и настройке серверной части АИС ППк</li>
-                  <li>Системные требования к аппаратному и программному обеспечению</li>
-                  <li>Руководство администратора по управлению пользователями и правами доступа</li>
-                  <li>Руководство пользователя для специалистов (педагоги-психологи, логопеды, дефектологи)</li>
-                  <li>Порядок обновления и технической поддержки</li>
-                  <li>Рекомендации по обеспечению информационной безопасности и соответствию ФЗ-152</li>
-                </ul>
+                <div className="space-y-2">
+                  {documentationItems.map((item) => (
+                    <button
+                      key={item.title}
+                      onClick={() => setSelectedDoc(item)}
+                      className="w-full flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-left text-sm text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors group"
+                    >
+                      <span>{item.title}</span>
+                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                    </button>
+                  ))}
+                </div>
 
                 <p className="text-sm text-muted-foreground mt-4">
                   Для получения полного комплекта документации и условий поставки On-premise свяжитесь
@@ -229,6 +247,17 @@ export default function Documents() {
                   </a>
                   .
                 </p>
+
+      <Dialog open={!!selectedDoc} onOpenChange={(open) => !open && setSelectedDoc(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg leading-tight">{selectedDoc?.title}</DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+            {selectedDoc?.description}
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
               </CardContent>
             </Card>
           </section>
