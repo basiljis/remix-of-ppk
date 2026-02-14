@@ -92,8 +92,8 @@ export default function LandingFooter() {
         <div className="border-t mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} universum. Все права защищены.</p>
           <div className="flex gap-4">
-            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Конфиденциальность</Link>
-            <Link to="/partnership-offer" className="hover:text-foreground transition-colors">Партнёрство</Link>
+            <Link to="/patents" className="hover:text-foreground transition-colors">Патенты</Link>
+            <Link to="/registry" className="hover:text-foreground transition-colors">Реестр отечественного ПО</Link>
           </div>
         </div>
       </div>
