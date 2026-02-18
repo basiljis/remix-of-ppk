@@ -188,41 +188,27 @@ interface PricingPlan {
 const pricingPlans: Record<string, PricingPlan[]> = {
   org: [
     {
-      name: "АИС ППк",
-      subtitle: "Психолого-педагогические консилиумы",
+      name: "universum. для организаций",
+      subtitle: "Полный комплекс автоматизации для образовательных организаций",
       monthlyPrice: 2500,
       yearlyPrice: 25500,
-      yearlySaving: "скидка 15%",
-      highlight: false,
-      features: [
-        "Протоколы ППк и заключения",
-        "Карточки детей (неограниченно)",
-        "Управление сотрудниками",
-        "KPI специалистов",
-        "Аналитика и отчёты",
-        "Хранение данных по ФЗ-152",
-        "Email-уведомления",
-        "Поддержка по email",
-      ],
-      cta: "Начать 7 дней бесплатно",
-      ctaLink: "/auth"
-    },
-    {
-      name: "АИС СПТ",
-      subtitle: "Расписание и сопровождение",
-      monthlyPrice: 2500,
-      yearlyPrice: 25500,
-      yearlySaving: "скидка 15%",
+      yearlySaving: "скидка 15%, ~2 125₽/мес",
       highlight: true,
-      badge: "Популярный",
+      badge: "Всё включено",
       features: [
-        "Всё из АИС ППк",
+        "Протоколы ППк и заключения (неограниченно)",
+        "Карточки детей (неограниченно)",
         "Журнал учёта занятий",
         "Групповые и серийные сессии",
+        "Управление сотрудниками организации",
+        "KPI специалистов и аналитика",
         "Онлайн-запись родителей",
         "Праздничные дни организации",
-        "Пуш-уведомления",
         "Публичный профиль организации",
+        "Подключение специалистов — без доп. платы",
+        "Пуш и Email-уведомления",
+        "Хранение данных по ФЗ-152",
+        "Оплата по счёту (44-ФЗ, 223-ФЗ)",
         "Приоритетная поддержка",
       ],
       cta: "Начать 7 дней бесплатно",
@@ -231,37 +217,40 @@ const pricingPlans: Record<string, PricingPlan[]> = {
   ],
   specialist: [
     {
-      name: "Базовый",
-      subtitle: "Для начала практики",
+      name: "В составе организации",
+      subtitle: "Педагог, подключённый к организации с подпиской",
       monthlyPrice: null,
       yearlyPrice: null,
-      freeLabel: "Бесплатно",
+      freeLabel: "Входит в тариф организации",
       highlight: false,
       features: [
-        "Карточки до 5 детей",
-        "Протоколы ППк (в составе организации)",
-        "Личный профиль",
-        "Email-уведомления",
+        "Доступ ко всем модулям организации",
+        "Журнал учёта занятий",
+        "Карточки прикреплённых детей",
+        "Протоколы ППк",
+        "KPI и аналитика",
+        "Email и пуш-уведомления",
       ],
-      cta: "Зарегистрироваться",
+      cta: "Войти в кабинет",
       ctaLink: "/auth"
     },
     {
-      name: "Профессиональный",
-      subtitle: "Полный функционал для частной практики",
+      name: "Частная практика",
+      subtitle: "Для педагогов, работающих самостоятельно",
       monthlyPrice: 2500,
       yearlyPrice: 25500,
-      yearlySaving: "скидка 15%",
+      yearlySaving: "скидка 15%, ~2 125₽/мес",
       highlight: true,
-      badge: "Рекомендуем",
+      badge: "Частная практика",
       features: [
         "Карточки детей (неограниченно)",
         "Публичный профиль с портфолио",
-        "Направления работы",
+        "Направления работы и специализации",
         "Онлайн-запись клиентов",
-        "Журнал занятий",
+        "Журнал занятий и серии сессий",
         "Аналитика загруженности",
         "Финансовые отчёты",
+        "Пуш и Email-уведомления",
         "Приоритетная поддержка",
       ],
       cta: "Начать 7 дней бесплатно",
@@ -309,13 +298,13 @@ function PricingCard({ plan, billingPeriod }: { plan: typeof pricingPlans.org[0]
         <CardDescription className="text-sm">{plan.subtitle}</CardDescription>
         <div className="mt-4">
           {"freeLabel" in plan && plan.freeLabel ? (
-            <div className="text-3xl font-bold text-primary">{plan.freeLabel}</div>
+            <div className="text-lg font-bold text-primary leading-tight">{plan.freeLabel}</div>
           ) : price !== null ? (
             <div>
               <span className="text-3xl font-bold">{price.toLocaleString("ru-RU")}₽</span>
               <span className="text-muted-foreground text-sm ml-1">/ {priceLabel}</span>
               {"yearlySaving" in plan && plan.yearlySaving && billingPeriod === "yearly" && (
-                <div className="text-xs text-green-600 dark:text-green-400 mt-1">{plan.yearlySaving}</div>
+                <div className="text-xs text-success mt-1">{plan.yearlySaving}</div>
               )}
             </div>
           ) : null}
@@ -325,7 +314,7 @@ function PricingCard({ plan, billingPeriod }: { plan: typeof pricingPlans.org[0]
         <ul className="space-y-2 flex-1">
           {plan.features.map((f) => (
             <li key={f} className="flex items-start gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
               <span>{f}</span>
             </li>
           ))}
@@ -365,32 +354,34 @@ function PricingSection() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${billingPeriod === "yearly" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
             >
               Годовая
-              <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full">−15%</span>
+              <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded-full">−15%</span>
             </button>
           </div>
         </div>
 
         <Tabs defaultValue="org" className="w-full">
-          <TabsList className="mb-8 max-w-md mx-auto">
-            <TabsTrigger value="org" className="flex items-center gap-1.5 flex-1">
+          <TabsList className="mb-8 w-full max-w-lg mx-auto grid grid-cols-3">
+            <TabsTrigger value="org" className="flex items-center justify-center gap-1.5">
               <Building2 className="h-4 w-4" />
               Организации
             </TabsTrigger>
-            <TabsTrigger value="specialist" className="flex items-center gap-1.5 flex-1">
+            <TabsTrigger value="specialist" className="flex items-center justify-center gap-1.5">
               <GraduationCap className="h-4 w-4" />
               Педагоги
             </TabsTrigger>
-            <TabsTrigger value="parent" className="flex items-center gap-1.5 flex-1">
+            <TabsTrigger value="parent" className="flex items-center justify-center gap-1.5">
               <Baby className="h-4 w-4" />
               Родители
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="org">
-            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              {pricingPlans.org.map((plan) => (
-                <PricingCard key={plan.name} plan={plan} billingPeriod={billingPeriod} />
-              ))}
+            <div className="flex justify-center">
+              <div className="w-full max-w-xl">
+                {pricingPlans.org.map((plan) => (
+                  <PricingCard key={plan.name} plan={plan} billingPeriod={billingPeriod} />
+                ))}
+              </div>
             </div>
             <p className="text-center text-xs text-muted-foreground mt-6">
               Для государственных учреждений — оплата по счёту, 44-ФЗ и 223-ФЗ. <Link to="/for-organizations" className="underline">Подробнее →</Link>
@@ -398,13 +389,18 @@ function PricingSection() {
           </TabsContent>
 
           <TabsContent value="specialist">
+            <div className="mb-4 text-center">
+              <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+                Педагоги, подключённые к организации с активной подпиской, получают полный доступ автоматически — без дополнительной оплаты.
+              </p>
+            </div>
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {pricingPlans.specialist.map((plan) => (
                 <PricingCard key={plan.name} plan={plan} billingPeriod={billingPeriod} />
               ))}
             </div>
             <p className="text-center text-xs text-muted-foreground mt-6">
-              При работе в составе организации с подпиской — функционал уже включён. <Link to="/for-specialists" className="underline">Подробнее →</Link>
+              <Link to="/for-specialists" className="underline">Подробнее о тарифах для педагогов →</Link>
             </p>
           </TabsContent>
 
@@ -608,7 +604,7 @@ export default function Landing() {
                   <ul className="space-y-2">
                     {type.features.map((feature) => (
                       <li key={typeof feature === 'string' ? feature : feature.text} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
                         <span className="flex items-center gap-1.5">
                           {typeof feature === 'string' ? feature : feature.text}
                           {typeof feature === 'object' && feature.isNew && (
