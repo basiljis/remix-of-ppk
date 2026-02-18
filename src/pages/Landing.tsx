@@ -11,7 +11,7 @@ import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { 
   GraduationCap, Building2, Baby, 
   ClipboardList, Calendar, FileText, Shield, 
-  CheckCircle, ArrowRight,
+  CheckCircle, ArrowRight, Clock,
   BarChart3, UserCheck, Gamepad2, 
   BookOpen, CalendarCheck, Bell, Users, Target
 } from "lucide-react";
@@ -181,6 +181,7 @@ interface PricingPlan {
   highlight: boolean;
   badge?: string;
   features: string[];
+  comingSoon?: string[];
   cta: string;
   ctaLink: string;
 }
@@ -253,6 +254,11 @@ const pricingPlans: Record<string, PricingPlan[]> = {
         "Пуш и Email-уведомления",
         "Приоритетная поддержка",
       ],
+      comingSoon: [
+        "Персональная страница-портфолио специалиста",
+        "Публикация профессиональных статей и кейсов",
+        "SEO-продвижение профиля в поиске",
+      ],
       cta: "Начать 7 дней бесплатно",
       ctaLink: "/auth"
     }
@@ -319,7 +325,23 @@ function PricingCard({ plan, billingPeriod }: { plan: typeof pricingPlans.org[0]
             </li>
           ))}
         </ul>
-        <Link to={plan.ctaLink} className="mt-4">
+        {"comingSoon" in plan && plan.comingSoon && plan.comingSoon.length > 0 && (
+          <div className="border border-dashed border-muted-foreground/30 rounded-lg p-3 bg-muted/30">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">В разработке</span>
+            </div>
+            <ul className="space-y-1.5">
+              {plan.comingSoon.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <span className="h-4 w-4 flex items-center justify-center flex-shrink-0 mt-0.5 text-muted-foreground/50">·</span>
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <Link to={plan.ctaLink} className="mt-2">
           <Button className="w-full" variant={plan.highlight ? "default" : "outline"}>
             {plan.cta}
           </Button>
