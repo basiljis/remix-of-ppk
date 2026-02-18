@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChecklistCard } from "@/components/ChecklistCard";
 import { EducationLevelSelector, EducationLevel } from "@/components/EducationLevelSelector";
 import { MobileMenu } from "@/components/MobileMenu";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Footer } from "@/components/Footer";
 import { useChecklistData } from "@/hooks/useChecklistData";
 import { useToast } from "@/hooks/use-toast";
@@ -491,7 +492,7 @@ const Index = () => {
         </div>
         
         {/* Main content */}
-        <main className="flex-1 w-full pt-16">
+        <main className="flex-1 w-full pt-16 pb-16 md:pb-0">
           <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
             {renderTabContent()}
           </div>
@@ -511,6 +512,15 @@ const Index = () => {
             onReset={() => setAdminViewMode("specialist")} 
           />
         )}
+
+        {/* Mobile bottom tab bar */}
+        <MobileBottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          isAdmin={isAdmin}
+          canAccessPublication={canAccessPublication}
+          isPrivateSpecialist={isPrivateSpecialist}
+        />
       </div>
     </SidebarProvider>
   );
