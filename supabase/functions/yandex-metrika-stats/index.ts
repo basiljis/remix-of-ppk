@@ -68,6 +68,15 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Token length: ${token.length}, starts with: ${token.substring(0, 10)}`);
+    
+    // Get list of available counters to help diagnose access issues
+    const countersResponse = await fetch('https://api-metrika.yandex.net/management/v1/counters', {
+      headers: { 'Authorization': `OAuth ${token}` }
+    });
+    const countersData = await countersResponse.json();
+    console.log('Available counters:', JSON.stringify(countersData).substring(0, 500));
+
     // Parse request body
     const { period = '30d' } = await req.json().catch(() => ({}));
     
