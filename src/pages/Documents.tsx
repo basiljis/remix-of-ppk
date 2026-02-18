@@ -1,5 +1,6 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import LandingFooter from "@/components/LandingFooter";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { Shield, Server, FileCheck, ScrollText, Building2, Lock, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +57,13 @@ const licenses = [
 ];
 
 export default function Documents() {
+  useSeoMeta({
+    title: "Сертификация и безопасность — ФЗ-152, УЗ-1, Cloud.ru | universum.",
+    description: "Документы и сертификаты безопасности платформы universum.: соответствие ФЗ-152 (УЗ-1), размещение в ЦОД Tier III, сертификаты ФСТЭК. Защита персональных данных детей.",
+    canonical: "/documents",
+    keywords: "ФЗ-152 УЗ-1, персональные данные, ФСТЭК, ЦОД Tier III, cloud.ru, безопасность образовательной платформы",
+  });
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <PublicNavbar currentPage="other" showSecondaryNav={false} />

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { 
   GraduationCap, ClipboardList, Calendar, FileText, 
   BarChart3, CheckCircle, ArrowRight, ChevronLeft,
@@ -76,6 +77,13 @@ const roles = [
 ];
 
 export default function ForSpecialists() {
+  useSeoMeta({
+    title: "Для педагогов-психологов, логопедов и дефектологов — universum.",
+    description: "Инструменты для специалистов ППС: протоколы ППк, журнал учёта занятий, карты детей, KPI и публичный профиль. Частная практика и работа в организации. Соответствие приказу ДОНМ №666.",
+    canonical: "/for-specialists",
+    keywords: "педагог-психолог, логопед, дефектолог, социальный педагог, протоколы ППк, журнал занятий, частная практика, ЦППМСП, ОВЗ",
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar currentPage="specialists" />
