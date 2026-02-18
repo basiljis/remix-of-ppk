@@ -36,23 +36,23 @@ serve(async (req) => {
       );
     }
 
-    // Check if user has admin role using correct function signature
-    const { data: roleData, error: roleError } = await supabaseClient.rpc('has_role', { _role: 'admin', _user_id: user.id });
+    // Check admin role using service role client (bypasses RLS)
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const { data: rolesData, error: roleError } = await serviceClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
     if (roleError) {
       console.error('Role check error:', roleError);
-      // Fallback: check user_roles table directly
-      const { data: rolesData } = await supabaseClient
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin');
-      if (!rolesData || rolesData.length === 0) {
-        return new Response(
-          JSON.stringify({ error: 'Access denied. Admin role required.' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else if (!roleData) {
+    }
+
+    if (!rolesData) {
       return new Response(
         JSON.stringify({ error: 'Access denied. Admin role required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
