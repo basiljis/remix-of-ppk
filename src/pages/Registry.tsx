@@ -1,10 +1,18 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import LandingFooter from "@/components/LandingFooter";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { ExternalLink, CheckCircle, Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function Registry() {
+  useSeoMeta({
+    title: "Реестр отечественного ПО — АИС СПТ №3607428 | universum.",
+    description: "Сведения о включении АИС СПТ (АИС социально-психологического тестирования) в Единый реестр российского ПО Минцифры России. Реестровая запись №3607428.",
+    canonical: "/registry",
+    keywords: "реестр отечественного ПО, Минцифры, АИС СПТ, российское программное обеспечение, образование, 3607428",
+  });
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <PublicNavbar currentPage="other" showSecondaryNav={false} />

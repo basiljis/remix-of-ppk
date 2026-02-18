@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { 
   Baby, Calendar, ClipboardList, FileText, 
   Bell, CheckCircle, ArrowRight, ChevronLeft,
@@ -75,6 +76,13 @@ const steps = [
 ];
 
 export default function ForParents() {
+  useSeoMeta({
+    title: "Личный кабинет родителя — следите за развитием ребёнка | universum.",
+    description: "Личный кабинет для родителей: подбор специалиста, запись на консультацию, тесты развития ребёнка, доступ к результатам ППк. Полностью бесплатно.",
+    canonical: "/for-parents",
+    keywords: "личный кабинет родителя, развитие ребёнка, запись к логопеду, тест развития дошкольника, психолог для ребёнка, ОВЗ родителям",
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar currentPage="parents" />

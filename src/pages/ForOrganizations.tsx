@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { 
   Building2, Users, ClipboardList, Calendar, BarChart3, 
   Shield, FileText, UserCheck, CheckCircle, ArrowRight,
@@ -79,6 +80,13 @@ const pricing = [
 ];
 
 export default function ForOrganizations() {
+  useSeoMeta({
+    title: "Автоматизация ППк для школ и ППМС-центров — universum.",
+    description: "Цифровая система для психолого-педагогических служб: протоколы ППк по приказу ДОНМ №666, журнал занятий, управление сотрудниками. Соответствие ФЗ-152. On-premise и облако.",
+    canonical: "/for-organizations",
+    keywords: "ППк автоматизация, ЦППМСП, ППМС-центр, психолого-педагогический консилиум, школа Москва, протоколы ППк, ФЗ-152, ОВЗ, приказ ДОНМ 666",
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar currentPage="organizations" />

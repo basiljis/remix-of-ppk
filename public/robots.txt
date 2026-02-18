@@ -1,14 +1,17 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+Disallow: /app
+Disallow: /auth
+Disallow: /parent
+Disallow: /parent-auth
+Disallow: /child-playground
+Disallow: /child-workspace
+Disallow: /child-login
+Disallow: /profile
+Disallow: /child-profile
+Disallow: /reset-password
+Disallow: /install
+Disallow: /access-status
+
+Sitemap: https://ppk.lovable.app/sitemap.xml
+

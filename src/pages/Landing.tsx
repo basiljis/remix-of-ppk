@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import CookieConsent from "@/components/CookieConsent";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { 
   GraduationCap, Building2, Baby, 
   ClipboardList, Calendar, FileText, Shield, 
   CheckCircle, ArrowRight,
   BarChart3, UserCheck, Gamepad2, 
-  BookOpen, CalendarCheck, Bell, Users, Target,
-  Zap
+  BookOpen, CalendarCheck, Bell, Users, Target
 } from "lucide-react";
 
 const howItWorks = [
@@ -274,6 +274,29 @@ function FeaturesSection() {
 }
 
 export default function Landing() {
+  useSeoMeta({
+    title: "universum. — Автоматизация ППк, расписание и сопровождение детей",
+    description: "Платформа для психолого-педагогических консилиумов, специалистов (психолог, логопед, дефектолог) и родителей. Протоколы ППк, расписание занятий, карты детей — в одном месте. Соответствие ФЗ-152.",
+    canonical: "/landing",
+    keywords: "ППк, психолого-педагогический консилиум, ЦППМСП, ППМС-центр, протоколы ППк, психолог школы, логопед, дефектолог, расписание занятий, сопровождение детей",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "universum.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "url": "https://ppk.lovable.app",
+        "description": "Платформа комплексной поддержки и развития детей: автоматизация ППк, расписание специалистов, карты детей, тесты развития.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "universum.",
+          "url": "https://ppk.lovable.app"
+        }
+      }
+    ]
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar currentPage="landing" />
