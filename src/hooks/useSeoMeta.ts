@@ -60,21 +60,26 @@ export function useSeoMeta({
     }
     canonicalEl.setAttribute("href", canonical ? `${BASE_URL}${canonical}` : window.location.href);
 
-    // JSON-LD
-    const existingJsonLd = document.getElementById("seo-json-ld");
-    if (existingJsonLd) existingJsonLd.remove();
+    // JSON-LD — remove all previous
+    document.querySelectorAll('[id^="seo-json-ld"]').forEach(el => el.remove());
 
     if (jsonLd) {
-      const script = document.createElement("script");
-      script.id = "seo-json-ld";
-      script.type = "application/ld+json";
-      script.textContent = JSON.stringify(Array.isArray(jsonLd) ? jsonLd : [jsonLd]);
-      document.head.appendChild(script);
+      const items = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
+      items.forEach((item, idx) => {
+        const script = document.createElement("script");
+        script.id = `seo-json-ld-${idx}`;
+        script.type = "application/ld+json";
+        try {
+          script.textContent = JSON.stringify(item);
+        } catch {
+          return;
+        }
+        document.head.appendChild(script);
+      });
     }
 
     return () => {
-      const s = document.getElementById("seo-json-ld");
-      if (s) s.remove();
+      document.querySelectorAll('[id^="seo-json-ld"]').forEach(el => el.remove());
     };
   }, [title, description, canonical, keywords, ogImage, noIndex, jsonLd]);
 }
