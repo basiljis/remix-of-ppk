@@ -447,7 +447,7 @@ export function SiteAnalyticsPanel() {
       <Card className="border-dashed">
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground text-center">
-            📊 Данные получены из Яндекс.Метрики (счётчик 106637396). 
+            📊 Данные получены из Яндекс.Метрики (счётчик 106893944). 
             Период: {data?.dateRange?.date1} — {data?.dateRange?.date2}
           </p>
         </CardContent>
