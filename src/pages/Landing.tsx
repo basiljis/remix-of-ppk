@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CookieConsent from "@/components/CookieConsent";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -169,6 +170,261 @@ const userTypes = [
     borderColor: "border-pink-500/30"
   }
 ];
+
+interface PricingPlan {
+  name: string;
+  subtitle: string;
+  monthlyPrice: number | null;
+  yearlyPrice: number | null;
+  yearlySaving?: string;
+  freeLabel?: string;
+  highlight: boolean;
+  badge?: string;
+  features: string[];
+  cta: string;
+  ctaLink: string;
+}
+
+const pricingPlans: Record<string, PricingPlan[]> = {
+  org: [
+    {
+      name: "АИС ППк",
+      subtitle: "Психолого-педагогические консилиумы",
+      monthlyPrice: 2500,
+      yearlyPrice: 25500,
+      yearlySaving: "скидка 15%",
+      highlight: false,
+      features: [
+        "Протоколы ППк и заключения",
+        "Карточки детей (неограниченно)",
+        "Управление сотрудниками",
+        "KPI специалистов",
+        "Аналитика и отчёты",
+        "Хранение данных по ФЗ-152",
+        "Email-уведомления",
+        "Поддержка по email",
+      ],
+      cta: "Начать 7 дней бесплатно",
+      ctaLink: "/auth"
+    },
+    {
+      name: "АИС СПТ",
+      subtitle: "Расписание и сопровождение",
+      monthlyPrice: 2500,
+      yearlyPrice: 25500,
+      yearlySaving: "скидка 15%",
+      highlight: true,
+      badge: "Популярный",
+      features: [
+        "Всё из АИС ППк",
+        "Журнал учёта занятий",
+        "Групповые и серийные сессии",
+        "Онлайн-запись родителей",
+        "Праздничные дни организации",
+        "Пуш-уведомления",
+        "Публичный профиль организации",
+        "Приоритетная поддержка",
+      ],
+      cta: "Начать 7 дней бесплатно",
+      ctaLink: "/auth"
+    }
+  ],
+  specialist: [
+    {
+      name: "Базовый",
+      subtitle: "Для начала практики",
+      monthlyPrice: null,
+      yearlyPrice: null,
+      freeLabel: "Бесплатно",
+      highlight: false,
+      features: [
+        "Карточки до 5 детей",
+        "Протоколы ППк (в составе организации)",
+        "Личный профиль",
+        "Email-уведомления",
+      ],
+      cta: "Зарегистрироваться",
+      ctaLink: "/auth"
+    },
+    {
+      name: "Профессиональный",
+      subtitle: "Полный функционал для частной практики",
+      monthlyPrice: 2500,
+      yearlyPrice: 25500,
+      yearlySaving: "скидка 15%",
+      highlight: true,
+      badge: "Рекомендуем",
+      features: [
+        "Карточки детей (неограниченно)",
+        "Публичный профиль с портфолио",
+        "Направления работы",
+        "Онлайн-запись клиентов",
+        "Журнал занятий",
+        "Аналитика загруженности",
+        "Финансовые отчёты",
+        "Приоритетная поддержка",
+      ],
+      cta: "Начать 7 дней бесплатно",
+      ctaLink: "/auth"
+    }
+  ],
+  parent: [
+    {
+      name: "Для родителей",
+      subtitle: "Всё для развития вашего ребёнка",
+      monthlyPrice: null,
+      yearlyPrice: null,
+      freeLabel: "Бесплатно",
+      highlight: true,
+      badge: "Без оплаты",
+      features: [
+        "Личный кабинет родителя",
+        "Профили детей",
+        "Тесты развития",
+        "Результаты ППк и заключения",
+        "Игровая комната ребёнка",
+        "Подбор специалиста",
+        "Библиотека рекомендаций",
+        "Онлайн-запись к специалисту",
+      ],
+      cta: "Создать аккаунт",
+      ctaLink: "/parent-auth"
+    }
+  ]
+};
+
+function PricingCard({ plan, billingPeriod }: { plan: typeof pricingPlans.org[0]; billingPeriod: "monthly" | "yearly" }) {
+  const price = billingPeriod === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+  const priceLabel = billingPeriod === "yearly" ? "год" : "месяц";
+
+  return (
+    <Card className={`relative flex flex-col transition-all hover:shadow-lg ${plan.highlight ? "border-primary border-2 shadow-md" : ""}`}>
+      {plan.badge && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <Badge className="px-3 py-1 text-xs">{plan.badge}</Badge>
+        </div>
+      )}
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl">{plan.name}</CardTitle>
+        <CardDescription className="text-sm">{plan.subtitle}</CardDescription>
+        <div className="mt-4">
+          {"freeLabel" in plan && plan.freeLabel ? (
+            <div className="text-3xl font-bold text-primary">{plan.freeLabel}</div>
+          ) : price !== null ? (
+            <div>
+              <span className="text-3xl font-bold">{price.toLocaleString("ru-RU")}₽</span>
+              <span className="text-muted-foreground text-sm ml-1">/ {priceLabel}</span>
+              {"yearlySaving" in plan && plan.yearlySaving && billingPeriod === "yearly" && (
+                <div className="text-xs text-green-600 dark:text-green-400 mt-1">{plan.yearlySaving}</div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col gap-4">
+        <ul className="space-y-2 flex-1">
+          {plan.features.map((f) => (
+            <li key={f} className="flex items-start gap-2 text-sm">
+              <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+        <Link to={plan.ctaLink} className="mt-4">
+          <Button className="w-full" variant={plan.highlight ? "default" : "outline"}>
+            {plan.cta}
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PricingSection() {
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+
+  return (
+    <section className="py-20 px-4" id="pricing">
+      <div className="container mx-auto max-w-6xl">
+        <div className="text-center mb-10">
+          <Badge variant="secondary" className="mb-3">Тарифы</Badge>
+          <h2 className="text-3xl font-bold mb-4">Прозрачные цены</h2>
+          <p className="text-muted-foreground max-w-xl mx-auto mb-6">
+            7 дней бесплатного доступа ко всем функциям — без привязки карты
+          </p>
+          {/* Billing toggle */}
+          <div className="inline-flex items-center gap-2 bg-muted rounded-full px-2 py-1">
+            <button
+              onClick={() => setBillingPeriod("monthly")}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${billingPeriod === "monthly" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
+            >
+              Помесячно
+            </button>
+            <button
+              onClick={() => setBillingPeriod("yearly")}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${billingPeriod === "yearly" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
+            >
+              Годовая
+              <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full">−15%</span>
+            </button>
+          </div>
+        </div>
+
+        <Tabs defaultValue="org" className="w-full">
+          <TabsList className="mb-8 max-w-md mx-auto">
+            <TabsTrigger value="org" className="flex items-center gap-1.5 flex-1">
+              <Building2 className="h-4 w-4" />
+              Организации
+            </TabsTrigger>
+            <TabsTrigger value="specialist" className="flex items-center gap-1.5 flex-1">
+              <GraduationCap className="h-4 w-4" />
+              Педагоги
+            </TabsTrigger>
+            <TabsTrigger value="parent" className="flex items-center gap-1.5 flex-1">
+              <Baby className="h-4 w-4" />
+              Родители
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="org">
+            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              {pricingPlans.org.map((plan) => (
+                <PricingCard key={plan.name} plan={plan} billingPeriod={billingPeriod} />
+              ))}
+            </div>
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              Для государственных учреждений — оплата по счёту, 44-ФЗ и 223-ФЗ. <Link to="/for-organizations" className="underline">Подробнее →</Link>
+            </p>
+          </TabsContent>
+
+          <TabsContent value="specialist">
+            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              {pricingPlans.specialist.map((plan) => (
+                <PricingCard key={plan.name} plan={plan} billingPeriod={billingPeriod} />
+              ))}
+            </div>
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              При работе в составе организации с подпиской — функционал уже включён. <Link to="/for-specialists" className="underline">Подробнее →</Link>
+            </p>
+          </TabsContent>
+
+          <TabsContent value="parent">
+            <div className="flex justify-center">
+              <div className="w-full max-w-sm">
+                {pricingPlans.parent.map((plan) => (
+                  <PricingCard key={plan.name} plan={plan} billingPeriod={billingPeriod} />
+                ))}
+              </div>
+            </div>
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              Для родителей кабинет всегда бесплатен. Доступ к заключениям и рекомендациям — без подписки. <Link to="/for-parents" className="underline">Подробнее →</Link>
+            </p>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </section>
+  );
+}
 
 function FeaturesSection() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -420,6 +676,8 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary/5">
