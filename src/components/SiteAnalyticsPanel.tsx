@@ -66,10 +66,20 @@ async function fetchMetrikaStats(period: PeriodType): Promise<AnalyticsData> {
 
   if (error) {
     console.error('Error fetching Metrika stats:', error);
-    throw new Error(error.message || 'Failed to fetch analytics data');
+    // Parse FunctionsHttpError body
+    const body = (error as any)?.context;
+    if (body) {
+      try {
+        const parsed = typeof body === 'string' ? JSON.parse(body) : await body.json?.();
+        if (parsed?.error) throw new Error(parsed.error);
+      } catch (e) {
+        if (e instanceof Error && e.message !== 'Failed to execute') throw e;
+      }
+    }
+    throw new Error(error.message || 'Ошибка получения данных аналитики');
   }
 
-  if (data.error) {
+  if (data?.error) {
     console.error('Metrika API error:', data.error);
     throw new Error(data.error);
   }
@@ -147,13 +157,36 @@ export function SiteAnalyticsPanel() {
   }
 
   if (error) {
+    const errorMsg = (error as Error).message;
+    const isAccessDenied = errorMsg.includes('Access denied') || errorMsg.includes('Admin role');
+    const isMetrikaError = errorMsg.includes('Metrika') || errorMsg.includes('token');
+    
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
           <AlertTriangle className="h-12 w-12 text-destructive" />
-          <div className="text-center">
-            <p className="font-medium text-destructive">Ошибка загрузки аналитики</p>
-            <p className="text-sm text-muted-foreground mt-1">{(error as Error).message}</p>
+          <div className="text-center max-w-md">
+            <p className="font-medium text-destructive mb-2">
+              {isAccessDenied ? 'Нет доступа к аналитике' : 'Ошибка загрузки аналитики'}
+            </p>
+            {isAccessDenied && (
+              <div className="text-sm text-muted-foreground space-y-1 text-left bg-muted/50 rounded-lg p-4">
+                <p className="font-medium text-foreground mb-2">Для работы SMM аналитики необходимо:</p>
+                <p>✅ Быть авторизованным с ролью <strong>admin</strong></p>
+                <p>✅ Настроен токен <strong>YANDEX_METRIKA_TOKEN</strong></p>
+                <p>✅ Счётчик Яндекс.Метрики <strong>106637396</strong> должен быть активен</p>
+              </div>
+            )}
+            {isMetrikaError && (
+              <div className="text-sm text-muted-foreground space-y-1 text-left bg-muted/50 rounded-lg p-4">
+                <p className="font-medium text-foreground mb-2">Проблема с Яндекс.Метрикой:</p>
+                <p>• Проверьте токен <strong>YANDEX_METRIKA_TOKEN</strong> в настройках Supabase</p>
+                <p>• Токен должен иметь доступ к счётчику <strong>106637396</strong></p>
+              </div>
+            )}
+            {!isAccessDenied && !isMetrikaError && (
+              <p className="text-sm text-muted-foreground mt-1">{errorMsg}</p>
+            )}
           </div>
           <Button variant="outline" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-2" />
