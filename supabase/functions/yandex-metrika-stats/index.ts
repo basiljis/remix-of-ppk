@@ -36,10 +36,23 @@ serve(async (req) => {
       );
     }
 
-    // Check if user has admin role
-    const { data: roleData, error: roleError } = await supabaseClient.rpc('has_role', { role_name: 'admin' });
-    if (roleError || !roleData) {
+    // Check if user has admin role using correct function signature
+    const { data: roleData, error: roleError } = await supabaseClient.rpc('has_role', { _role: 'admin', _user_id: user.id });
+    if (roleError) {
       console.error('Role check error:', roleError);
+      // Fallback: check user_roles table directly
+      const { data: rolesData } = await supabaseClient
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin');
+      if (!rolesData || rolesData.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Access denied. Admin role required.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (!roleData) {
       return new Response(
         JSON.stringify({ error: 'Access denied. Admin role required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
