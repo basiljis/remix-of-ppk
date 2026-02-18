@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const COUNTER_ID = '106637396';
+const COUNTER_ID = '106893944';
 const METRIKA_API_BASE = 'https://api-metrika.yandex.net/stat/v1/data';
 
 serve(async (req) => {
