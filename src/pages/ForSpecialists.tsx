@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -103,20 +103,25 @@ export default function ForSpecialists() {
             <div>
               <Badge variant="secondary" className="mb-2">Для педагогов</Badge>
               <h1 className="text-3xl md:text-4xl font-bold">
-                Всё для работы специалиста ППС
+                Платформа для педагогов и частных специалистов
               </h1>
             </div>
           </div>
           
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl">
-            Психологи, логопеды, дефектологи и социальные педагоги используют universum. 
-            для ведения документации и эффективной работы с детьми.
+            Для специалистов ППС в организациях и частных практиков — единая система ведения документации, расписания и карт развития детей.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
             <Link to="/auth">
               <Button size="lg" className="gap-2 bg-orange-600 hover:bg-orange-700">
                 Войти как специалист
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/auth?type=private">
+              <Button size="lg" variant="outline" className="gap-2 border-orange-500/40 hover:bg-orange-500/10">
+                Частная практика
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
