@@ -239,8 +239,8 @@ const pricingPlans: Record<string, PricingPlan[]> = {
       name: "Частная практика",
       subtitle: "Для педагогов, работающих самостоятельно",
       monthlyPrice: 750,
-      yearlyPrice: 7650,
-      yearlySaving: "скидка 15%, ~638₽/мес",
+      yearlyPrice: 6750,
+      yearlySaving: "скидка 25%, ~563₽/мес",
       highlight: true,
       badge: "Частная практика",
       features: [
@@ -309,9 +309,14 @@ function PricingCard({ plan, billingPeriod }: { plan: typeof pricingPlans.org[0]
             <div>
               <span className="text-3xl font-bold">{price.toLocaleString("ru-RU")}₽</span>
               <span className="text-muted-foreground text-sm ml-1">/ {priceLabel}</span>
-              {"yearlySaving" in plan && plan.yearlySaving && billingPeriod === "yearly" && (
-                <div className="text-xs text-success mt-1">{plan.yearlySaving}</div>
-              )}
+              {"yearlySaving" in plan && plan.yearlySaving && billingPeriod === "yearly" && plan.monthlyPrice ? (
+                <>
+                  <div className="text-xs text-success mt-1 font-medium">{plan.yearlySaving}</div>
+                  <div className="text-xs text-muted-foreground/60 mt-0.5 line-through">
+                    без скидки: {(plan.monthlyPrice * 12).toLocaleString("ru-RU")}₽/год
+                  </div>
+                </>
+              ) : null}
             </div>
           ) : null}
         </div>
