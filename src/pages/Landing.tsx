@@ -238,9 +238,9 @@ const pricingPlans: Record<string, PricingPlan[]> = {
     {
       name: "Частная практика",
       subtitle: "Для педагогов, работающих самостоятельно",
-      monthlyPrice: 750,
-      yearlyPrice: 6750,
-      yearlySaving: "скидка 25%, ~563₽/мес",
+      monthlyPrice: 550,
+      yearlyPrice: 4950,
+      yearlySaving: "скидка 25%, ~413₽/мес",
       highlight: true,
       badge: "Частная практика",
       features: [
