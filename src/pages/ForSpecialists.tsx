@@ -73,6 +73,14 @@ const roles = [
   {
     title: "Социальный педагог",
     tasks: ["Сопровождение семей", "Профилактика", "Работа с документами", "Консультирование"]
+  },
+  {
+    title: "Нейропсихолог",
+    tasks: ["Нейропсихологическая диагностика", "Коррекция ВПФ", "Работа с вниманием и памятью", "Консультирование семей"]
+  },
+  {
+    title: "Специалист АФК",
+    tasks: ["Адаптивная физкультура", "Двигательная коррекция", "Работа с детьми с ОВЗ", "Сенсомоторное развитие"]
   }
 ];
 
@@ -133,7 +141,7 @@ export default function ForSpecialists() {
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-5xl">
           <h2 className="text-2xl font-bold mb-8 text-center">Для кого создана система</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {roles.map((role) => (
               <Card key={role.title}>
                 <CardHeader className="pb-2">
