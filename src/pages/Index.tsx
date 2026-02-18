@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChecklistCard } from "@/components/ChecklistCard";
 import { EducationLevelSelector, EducationLevel } from "@/components/EducationLevelSelector";
 import { MobileMenu } from "@/components/MobileMenu";
@@ -43,8 +43,12 @@ const InstallPrompt = lazy(() => import("@/components/InstallPrompt"));
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel>("elementary");
-  const [activeTab, setActiveTab] = useState("protocol");
+  const activeTab = searchParams.get("tab") || "protocol";
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab }, { replace: true });
+  };
   const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
   const [editingProtocol, setEditingProtocol] = useState<any>(null);
   const [adminViewMode, setAdminViewMode] = useState<ViewMode>("specialist");
