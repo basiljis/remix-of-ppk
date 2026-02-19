@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -10,34 +10,48 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 // Preloader MUST be imported synchronously to avoid infinite loading state
 import Preloader from "@/components/Preloader";
 
+// Helper: retry lazy import once on chunk load failure (handles stale build cache)
+const lazyWithRetry = <T extends React.ComponentType<unknown>>(
+  importFn: () => Promise<{ default: T }>
+) =>
+  lazy(() =>
+    importFn().catch(() => {
+      // Clear module cache hint and retry
+      return new Promise<{ default: T }>((resolve) =>
+        setTimeout(() => resolve(importFn()), 300)
+      );
+    })
+  );
+
 // Lazy load route components for better FCP
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const ParentAuth = lazy(() => import("./pages/ParentAuth"));
-const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
-const ParentMaterials = lazy(() => import("./pages/ParentMaterials"));
-const ChildPlayground = lazy(() => import("./pages/ChildPlayground"));
-const ChildWorkspace = lazy(() => import("./pages/ChildWorkspace"));
-const ChildLogin = lazy(() => import("./pages/ChildLogin"));
-const Profile = lazy(() => import("./pages/Profile"));
-const ChildProfile = lazy(() => import("./pages/ChildProfile"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Install = lazy(() => import("./pages/Install"));
-const Landing = lazy(() => import("./pages/Landing"));
-const ForOrganizations = lazy(() => import("./pages/ForOrganizations"));
-const ForSpecialists = lazy(() => import("./pages/ForSpecialists"));
-const ForParents = lazy(() => import("./pages/ForParents"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const PartnershipOffer = lazy(() => import("./pages/PartnershipOffer"));
-const Documents = lazy(() => import("./pages/Documents"));
-const Installation = lazy(() => import("./pages/Installation"));
-const Registry = lazy(() => import("./pages/Registry"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const ParentAuth = lazyWithRetry(() => import("./pages/ParentAuth"));
+const ParentDashboard = lazyWithRetry(() => import("./pages/ParentDashboard"));
+const ParentMaterials = lazyWithRetry(() => import("./pages/ParentMaterials"));
+const ChildPlayground = lazyWithRetry(() => import("./pages/ChildPlayground"));
+const ChildWorkspace = lazyWithRetry(() => import("./pages/ChildWorkspace"));
+const ChildLogin = lazyWithRetry(() => import("./pages/ChildLogin"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const ChildProfile = lazyWithRetry(() => import("./pages/ChildProfile"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const Install = lazyWithRetry(() => import("./pages/Install"));
+const Landing = lazyWithRetry(() => import("./pages/Landing"));
+const ForOrganizations = lazyWithRetry(() => import("./pages/ForOrganizations"));
+const ForSpecialists = lazyWithRetry(() => import("./pages/ForSpecialists"));
+const ForParents = lazyWithRetry(() => import("./pages/ForParents"));
+const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
+const PartnershipOffer = lazyWithRetry(() => import("./pages/PartnershipOffer"));
+const Documents = lazyWithRetry(() => import("./pages/Documents"));
+const Installation = lazyWithRetry(() => import("./pages/Installation"));
+const Registry = lazyWithRetry(() => import("./pages/Registry"));
 const AccessRequestStatus = lazy(() => import("@/components/AccessRequestStatus").then(m => ({ default: m.AccessRequestStatus })));
 const RootGate = lazy(() => import("./pages/RootGate").then(m => ({ default: m.default })));
 const OfflineIndicator = lazy(() => import("@/components/OfflineIndicator"));
-const PublicSpecialists = lazy(() => import("./pages/PublicSpecialists"));
-const PublicOrganizations = lazy(() => import("./pages/PublicOrganizations"));
+const PublicSpecialists = lazyWithRetry(() => import("./pages/PublicSpecialists"));
+const PublicOrganizations = lazyWithRetry(() => import("./pages/PublicOrganizations"));
+
 const SpecialistDetail = lazy(() => import("./pages/SpecialistDetail"));
 
 const queryClient = new QueryClient();
