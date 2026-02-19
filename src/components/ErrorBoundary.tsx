@@ -40,6 +40,28 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     console.error("[ErrorBoundary] Перехвачена ошибка:", error);
     console.error("[ErrorBoundary] Информация об ошибке:", errorInfo);
 
+    // Автоматически перезагружаем страницу при ошибке загрузки chunk (lazy import failed)
+    const isChunkError = 
+      error.message?.includes("Importing a module script failed") ||
+      error.message?.includes("Failed to fetch dynamically imported module") ||
+      error.message?.includes("Loading chunk") ||
+      error.message?.includes("Loading CSS chunk");
+
+    if (isChunkError) {
+      console.warn("[ErrorBoundary] Обнаружена ошибка загрузки модуля — перезагружаем страницу...");
+      // Задержка чтобы не войти в бесконечный цикл
+      const reloadKey = "chunk_reload_attempt";
+      const lastAttempt = sessionStorage.getItem(reloadKey);
+      const now = Date.now();
+      if (!lastAttempt || now - Number(lastAttempt) > 10000) {
+        sessionStorage.setItem(reloadKey, String(now));
+        window.location.reload();
+        return;
+      } else {
+        console.error("[ErrorBoundary] Перезагрузка уже выполнялась, показываем ошибку");
+      }
+    }
+
     // Сохраняем информацию об ошибке в состояние
     this.setState({
       error,
