@@ -132,7 +132,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </div>
 
               {/* Детали для разработчиков (в режиме разработки) */}
-              {process.env.NODE_ENV === "development" && this.state.errorInfo && (
+              {import.meta.env.DEV && this.state.errorInfo && (
                 <details className="space-y-2">
                   <summary className="cursor-pointer font-semibold text-sm hover:text-primary">
                     Техническая информация (для разработчиков)
