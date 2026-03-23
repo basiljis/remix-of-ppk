@@ -53,6 +53,9 @@ const PublicSpecialists = lazyWithRetry(() => import("./pages/PublicSpecialists"
 const PublicOrganizations = lazyWithRetry(() => import("./pages/PublicOrganizations"));
 
 const SpecialistDetail = lazy(() => import("./pages/SpecialistDetail"));
+const About = lazyWithRetry(() => import("./pages/About"));
+const Features = lazyWithRetry(() => import("./pages/Features"));
+const Pricing = lazyWithRetry(() => import("./pages/Pricing"));
 
 const queryClient = new QueryClient();
 
@@ -78,6 +81,9 @@ const App = () => (
                     <Routes>
                       <Route path="/" element={<RootGate />} />
                       <Route path="/landing" element={<Landing />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/features" element={<Features />} />
+                      <Route path="/pricing" element={<Pricing />} />
                       <Route path="/for-organizations" element={<ForOrganizations />} />
                       <Route path="/for-specialists" element={<ForSpecialists />} />
                       <Route path="/for-parents" element={<ForParents />} />
