@@ -21,6 +21,7 @@ interface UserData {
   phone: string;
   is_blocked: boolean;
   is_private_practice: boolean | null;
+  created_at: string;
   position_id: string;
   region_id: string;
   organization_id: string | null;
