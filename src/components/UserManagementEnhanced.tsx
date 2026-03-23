@@ -21,6 +21,7 @@ interface UserData {
   phone: string;
   is_blocked: boolean;
   is_private_practice: boolean | null;
+  created_at: string;
   position_id: string;
   region_id: string;
   organization_id: string | null;
@@ -59,6 +60,7 @@ export const UserManagementEnhanced = () => {
       'Организация': user.organizations?.name || 'Не указана',
       'Роль': getRoleLabel(user.user_roles[0]?.role || 'user'),
       'Статус': user.is_blocked ? 'Заблокирован' : 'Активен',
+      'Дата регистрации': new Date(user.created_at).toLocaleDateString('ru-RU'),
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -389,19 +391,20 @@ export const UserManagementEnhanced = () => {
                 <TableHead>Регион</TableHead>
                 <TableHead>Роль</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Дата регистрации</TableHead>
                 <TableHead>Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                    <TableCell colSpan={10} className="text-center">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                  <TableCell colSpan={10} className="text-center">
                     Пользователи не найдены
                   </TableCell>
                 </TableRow>
@@ -442,6 +445,9 @@ export const UserManagementEnhanced = () => {
                       ) : (
                         <Badge variant="default">Активен</Badge>
                       )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString('ru-RU')}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">

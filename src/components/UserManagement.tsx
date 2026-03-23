@@ -15,6 +15,7 @@ interface UserData {
   email: string;
   phone: string;
   is_blocked: boolean;
+  created_at: string;
   positions?: { name: string };
   regions?: { name: string };
   organizations?: { name: string };
@@ -213,19 +214,20 @@ export const UserManagement = () => {
                 <TableHead>Регион</TableHead>
                 <TableHead>Роль</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Дата регистрации</TableHead>
                 <TableHead>Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                   <TableCell colSpan={10} className="text-center">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                  <TableCell colSpan={10} className="text-center">
                     Пользователи не найдены
                   </TableCell>
                 </TableRow>
@@ -266,6 +268,9 @@ export const UserManagement = () => {
                       ) : (
                         <Badge variant="default">Активен</Badge>
                       )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString('ru-RU')}
                     </TableCell>
                     <TableCell>
                       <Button
