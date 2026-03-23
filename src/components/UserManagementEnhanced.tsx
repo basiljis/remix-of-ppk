@@ -445,6 +445,9 @@ export const UserManagementEnhanced = () => {
                         <Badge variant="default">Активен</Badge>
                       )}
                     </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString('ru-RU')}
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button

@@ -269,6 +269,9 @@ export const UserManagement = () => {
                         <Badge variant="default">Активен</Badge>
                       )}
                     </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString('ru-RU')}
+                    </TableCell>
                     <TableCell>
                       <Button
                         variant={user.is_blocked ? "default" : "destructive"}
