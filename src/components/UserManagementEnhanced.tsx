@@ -403,7 +403,7 @@ export const UserManagementEnhanced = () => {
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                  <TableCell colSpan={10} className="text-center">
                     Пользователи не найдены
                   </TableCell>
                 </TableRow>
