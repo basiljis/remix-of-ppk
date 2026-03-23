@@ -221,7 +221,7 @@ export const UserManagement = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                   <TableCell colSpan={10} className="text-center">
                     Загрузка...
                   </TableCell>
                 </TableRow>
