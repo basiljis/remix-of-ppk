@@ -60,6 +60,7 @@ export const UserManagementEnhanced = () => {
       'Организация': user.organizations?.name || 'Не указана',
       'Роль': getRoleLabel(user.user_roles[0]?.role || 'user'),
       'Статус': user.is_blocked ? 'Заблокирован' : 'Активен',
+      'Дата регистрации': new Date(user.created_at).toLocaleDateString('ru-RU'),
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
