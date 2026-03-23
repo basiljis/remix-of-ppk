@@ -214,6 +214,7 @@ export const UserManagement = () => {
                 <TableHead>Регион</TableHead>
                 <TableHead>Роль</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Дата регистрации</TableHead>
                 <TableHead>Действия</TableHead>
               </TableRow>
             </TableHeader>
