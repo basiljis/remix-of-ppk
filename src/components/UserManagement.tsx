@@ -15,6 +15,7 @@ interface UserData {
   email: string;
   phone: string;
   is_blocked: boolean;
+  created_at: string;
   positions?: { name: string };
   regions?: { name: string };
   organizations?: { name: string };
