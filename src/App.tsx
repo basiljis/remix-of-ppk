@@ -53,6 +53,9 @@ const PublicSpecialists = lazyWithRetry(() => import("./pages/PublicSpecialists"
 const PublicOrganizations = lazyWithRetry(() => import("./pages/PublicOrganizations"));
 
 const SpecialistDetail = lazy(() => import("./pages/SpecialistDetail"));
+const About = lazyWithRetry(() => import("./pages/About"));
+const Features = lazyWithRetry(() => import("./pages/Features"));
+const Pricing = lazyWithRetry(() => import("./pages/Pricing"));
 
 const queryClient = new QueryClient();
 
