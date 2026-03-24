@@ -688,6 +688,20 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Lead Magnet Section */}
+      <section className="py-16 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-2xl">
+          <div className="text-center mb-6">
+            <Badge variant="secondary" className="mb-3">Полезные материалы</Badge>
+            <h2 className="text-2xl font-bold mb-2">Бесплатные материалы для специалистов</h2>
+            <p className="text-muted-foreground text-sm">
+              Скачайте и используйте в работе — без регистрации в системе
+            </p>
+          </div>
+          <PpkChecklistLeadMagnet />
+        </div>
+      </section>
+
       {/* User Types Section */}
       <section id="user-types" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
