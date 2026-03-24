@@ -8,6 +8,7 @@ import CookieConsent from "@/components/CookieConsent";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { PpkChecklistLeadMagnet } from "@/components/PpkChecklistLeadMagnet";
 import { 
   GraduationCap, Building2, Baby, 
   ClipboardList, Calendar, FileText, Shield, 
