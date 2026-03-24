@@ -603,6 +603,90 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Personalized Journey Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-10">
+            <Badge variant="secondary" className="mb-3">Начните прямо сейчас</Badge>
+            <h2 className="text-3xl font-bold mb-3">Что вы хотите сделать?</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Выберите свой путь — и получите результат за 2 минуты
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {/* Director — Calculator */}
+            <Link to="/for-organizations#calculator" className="group">
+              <Card className="h-full border-2 border-blue-500/20 hover:border-blue-500/50 hover:shadow-xl transition-all overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <CardHeader className="relative pb-3">
+                  <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Для директора</p>
+                  <CardTitle className="text-lg leading-snug">Рассчитать экономию для вашей школы</CardTitle>
+                </CardHeader>
+                <CardContent className="relative pt-0">
+                  <CardDescription className="mb-4">
+                    Узнайте, сколько часов и средств сэкономит автоматизация ППк в вашей организации
+                  </CardDescription>
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:gap-2.5 transition-all">
+                    Открыть калькулятор
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Psychologist — Demo */}
+            <Link to="/for-specialists#demo" className="group">
+              <Card className="h-full border-2 border-orange-500/20 hover:border-orange-500/50 hover:shadow-xl transition-all overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <CardHeader className="relative pb-3">
+                  <div className="h-12 w-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <ClipboardList className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <p className="text-xs font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wide">Для психолога</p>
+                  <CardTitle className="text-lg leading-snug">Попробовать протокол ППк за 2 минуты</CardTitle>
+                </CardHeader>
+                <CardContent className="relative pt-0">
+                  <CardDescription className="mb-4">
+                    Интерактивная демонстрация: заполните протокол и получите готовое заключение
+                  </CardDescription>
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-600 dark:text-orange-400 group-hover:gap-2.5 transition-all">
+                    Попробовать демо
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Parent — Free test */}
+            <Link to="/parent-auth" className="group">
+              <Card className="h-full border-2 border-pink-500/20 hover:border-pink-500/50 hover:shadow-xl transition-all overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <CardHeader className="relative pb-3">
+                  <div className="h-12 w-12 rounded-xl bg-pink-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Baby className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                  </div>
+                  <p className="text-xs font-medium text-pink-600 dark:text-pink-400 uppercase tracking-wide">Для родителя</p>
+                  <CardTitle className="text-lg leading-snug">Проверить развитие ребёнка</CardTitle>
+                </CardHeader>
+                <CardContent className="relative pt-0">
+                  <CardDescription className="mb-4">
+                    Бесплатный тест развития по возрасту — результат и рекомендации сразу
+                  </CardDescription>
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-pink-600 dark:text-pink-400 group-hover:gap-2.5 transition-all">
+                    Пройти бесплатный тест
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* User Types Section */}
       <section id="user-types" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
