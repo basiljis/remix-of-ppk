@@ -1317,6 +1317,36 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_magnet_downloads: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          magnet_slug: string
+          organization_name: string | null
+          position: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          magnet_slug: string
+          organization_name?: string | null
+          position?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          magnet_slug?: string
+          organization_name?: string | null
+          position?: string | null
+        }
+        Relationships: []
+      }
       linked_parent_children: {
         Row: {
           created_at: string
