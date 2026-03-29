@@ -9,6 +9,8 @@ import { CheckCircle, Download, FileCheck, Shield, ClipboardCheck, Mail } from "
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
+import { robotoRegularBase64 } from "@/assets/fonts/roboto-regular-base64";
+import { robotoBoldBase64 } from "@/assets/fonts/roboto-bold-base64";
 
 const checklistItems = [
   {
@@ -71,14 +73,20 @@ function generatePDF() {
   const contentWidth = pageWidth - margin * 2;
   let y = 25;
 
+  // Register Cyrillic fonts
+  doc.addFileToVFS("Roboto-Regular.ttf", robotoRegularBase64);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  doc.addFileToVFS("Roboto-Bold.ttf", robotoBoldBase64);
+  doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
+
   // Title
   doc.setFontSize(18);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("Roboto", "bold");
   doc.text("Чек-лист: Готовность ППк к проверке", margin, y);
   y += 10;
 
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("Roboto", "normal");
   doc.setTextColor(120, 120, 120);
   doc.text("Составлено на основе Приказа ДОНМ Москвы № 666 и методических рекомендаций", margin, y);
   y += 5;
@@ -95,7 +103,7 @@ function generatePDF() {
 
     // Category header
     doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Roboto", "bold");
     doc.setFillColor(240, 245, 250);
     doc.roundedRect(margin, y - 5, contentWidth, 9, 2, 2, "F");
     doc.text(section.category, margin + 4, y + 1);
@@ -103,7 +111,7 @@ function generatePDF() {
 
     // Items
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Roboto", "normal");
     section.items.forEach((item) => {
       if (y > 275) {
         doc.addPage();
