@@ -86,7 +86,7 @@ function generatePDF() {
   y += 10;
 
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("Roboto", "normal");
   doc.setTextColor(120, 120, 120);
   doc.text("Составлено на основе Приказа ДОНМ Москвы № 666 и методических рекомендаций", margin, y);
   y += 5;
@@ -103,7 +103,7 @@ function generatePDF() {
 
     // Category header
     doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Roboto", "bold");
     doc.setFillColor(240, 245, 250);
     doc.roundedRect(margin, y - 5, contentWidth, 9, 2, 2, "F");
     doc.text(section.category, margin + 4, y + 1);
@@ -111,7 +111,7 @@ function generatePDF() {
 
     // Items
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Roboto", "normal");
     section.items.forEach((item) => {
       if (y > 275) {
         doc.addPage();
