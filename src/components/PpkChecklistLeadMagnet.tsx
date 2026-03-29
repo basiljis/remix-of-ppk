@@ -101,7 +101,7 @@ function generatePDF() {
   doc.setTextColor(120, 120, 120);
   doc.text("Составлено на основе Приказа ДОНМ Москвы № 666 и методических рекомендаций", margin, y);
   y += 5;
-  doc.text("universum. — платформа автоматизации ППк | ppk.lovable.app", margin, y);
+  doc.text("universum. — платформа автоматизации ППк | unvrsm.ru", margin, y);
   doc.setTextColor(0, 0, 0);
   y += 12;
 
