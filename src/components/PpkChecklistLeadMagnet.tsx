@@ -148,7 +148,11 @@ function generatePDF() {
   doc.setTextColor(100, 100, 100);
   doc.text("Автоматизируйте ведение ППк с платформой universum.", margin, y);
   y += 5;
-  doc.text("Бесплатный пробный период — 7 дней. ppk.lovable.app", margin, y);
+  doc.text("Бесплатный пробный период — 7 дней.", margin, y);
+  y += 5;
+  doc.setTextColor(41, 98, 255);
+  doc.textWithLink("https://unvrsm.ru/", margin, y, { url: "https://unvrsm.ru/" });
+  doc.setTextColor(0, 0, 0);
 
   doc.save("checklist-ppk-proverka.pdf");
 }
