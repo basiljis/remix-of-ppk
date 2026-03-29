@@ -73,9 +73,15 @@ function generatePDF() {
   const contentWidth = pageWidth - margin * 2;
   let y = 25;
 
+  // Register Cyrillic fonts
+  doc.addFileToVFS("Roboto-Regular.ttf", robotoRegularBase64);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  doc.addFileToVFS("Roboto-Bold.ttf", robotoBoldBase64);
+  doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
+
   // Title
   doc.setFontSize(18);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("Roboto", "bold");
   doc.text("Чек-лист: Готовность ППк к проверке", margin, y);
   y += 10;
 
