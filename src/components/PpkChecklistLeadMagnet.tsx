@@ -9,6 +9,8 @@ import { CheckCircle, Download, FileCheck, Shield, ClipboardCheck, Mail } from "
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
+import { robotoRegularBase64 } from "@/assets/fonts/roboto-regular-base64";
+import { robotoBoldBase64 } from "@/assets/fonts/roboto-bold-base64";
 
 const checklistItems = [
   {
