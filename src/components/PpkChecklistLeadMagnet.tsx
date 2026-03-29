@@ -218,7 +218,7 @@ export function PpkChecklistLeadMagnet() {
         </CardHeader>
         <CardContent className="pt-0">
           <CardDescription className="mb-3">
-            28 пунктов по 5 направлениям: документация, состав, работа с детьми, родители, защита данных.
+            37 пунктов по 5 направлениям: документация, состав, работа с детьми, родители, защита данных.
             На основе Приказа ДОНМ № 666.
           </CardDescription>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
