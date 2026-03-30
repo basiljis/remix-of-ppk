@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Download } from "lucide-react";
 import jsPDF from "jspdf";
+import { robotoRegularBase64 } from "@/assets/fonts/roboto-regular-base64";
+import { robotoBoldBase64 } from "@/assets/fonts/roboto-bold-base64";
 
 interface ConsentFormData {
   childName: string;
@@ -38,35 +40,37 @@ export const ConsentForm = () => {
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    
-    // Настройка шрифта для корректного отображения кириллицы
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    
-    // Заголовок
+
+    // Регистрируем шрифты для кириллицы
+    doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+    doc.addFileToVFS('Roboto-Bold.ttf', robotoBoldBase64);
+    doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+
+    doc.setFont("Roboto", "bold");
     doc.setFontSize(16);
     doc.text("СОГЛАСИЕ РОДИТЕЛЯ (ЗАКОННОГО ПРЕДСТАВИТЕЛЯ)", 105, 30, { align: "center" });
     doc.text("НА ПРОВЕДЕНИЕ ПСИХОЛОГО-ПЕДАГОГИЧЕСКОГО", 105, 40, { align: "center" });
     doc.text("ОБСЛЕДОВАНИЯ РЕБЕНКА", 105, 50, { align: "center" });
     
+    doc.setFont("Roboto", "normal");
     doc.setFontSize(12);
-    doc.text("Дата: " + new Date().toLocaleDateString(), 20, 70);
+    doc.text("Дата: " + new Date().toLocaleDateString('ru-RU'), 20, 70);
     
-    // Основной текст
     const mainText = `Я, ${formData.parentName || "___________________"}, являясь родителем (законным представителем) ребенка ${formData.childName || "___________________"}, ${formData.childAge || "__"} лет, обучающегося в ${formData.childClass || "____"} классе, даю согласие на проведение психолого-педагогического обследования моего ребенка в рамках деятельности психолого-педагогического консилиума образовательной организации.`;
     
     const splitText = doc.splitTextToSize(mainText, 170);
     doc.text(splitText, 20, 90);
     
-    // Дополнительные разделы
+    doc.setFont("Roboto", "bold");
     doc.text("Цель обследования:", 20, 130);
+    doc.setFont("Roboto", "normal");
     const reasonText = formData.consultationReason || "Определение особых образовательных потребностей обучающегося и выработка рекомендаций по организации психолого-педагогического сопровождения.";
     const splitReason = doc.splitTextToSize(reasonText, 170);
     doc.text(splitReason, 20, 140);
     
     doc.text("Дата проведения консилиума: " + (formData.consultationDate || "___________________"), 20, 170);
     
-    // Права родителей
     const rightsText = `Я ознакомлен(а) с тем, что:
 - имею право получить информацию о результатах обследования;
 - имею право присутствовать при обследовании;
@@ -76,13 +80,11 @@ export const ConsentForm = () => {
     const splitRights = doc.splitTextToSize(rightsText, 170);
     doc.text(splitRights, 20, 190);
     
-    // Подпись
     doc.text("Родитель (законный представитель): _________________ / " + (formData.parentName || "___________________") + " /", 20, 240);
     doc.text("Телефон: " + (formData.parentPhone || "___________________"), 20, 250);
     doc.text("Дата: ___________________", 20, 260);
     
-    // Сохранение файла
-    doc.save(`Согласие_${formData.childName || 'ребенок'}_${new Date().toLocaleDateString()}.pdf`);
+    doc.save(`Согласие_${formData.childName || 'ребенок'}_${new Date().toLocaleDateString('ru-RU')}.pdf`);
     
     toast({
       title: "PDF сгенерирован",
