@@ -63,15 +63,26 @@ export default function Blog() {
 
   const totalViews = viewsTotal;
 
-  const filtered = useMemo(() => {
+  const { filtered, newsPosts } = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return posts.filter((p) => {
+    const articles = posts.filter(p => p.category !== "news");
+    const news = posts.filter(p => p.category === "news");
+
+    const filteredArticles = articles.filter((p) => {
       if (category !== "all" && p.category !== category) return false;
       if (!term) return true;
       const loc = localizedPost(p, lang);
       const hay = [loc.title, loc.excerpt, p.keywords.join(" ")].join(" ").toLowerCase();
       return hay.includes(term);
     });
+
+    const filteredNews = news.filter(p => {
+      if (!term) return true;
+      const loc = localizedPost(p, lang);
+      return loc.title.toLowerCase().includes(term) || loc.excerpt.toLowerCase().includes(term);
+    });
+
+    return { filtered: filteredArticles, newsPosts: filteredNews };
   }, [posts, q, category, lang]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
