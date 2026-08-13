@@ -185,7 +185,7 @@
       "q3": "Can I switch plans?",
       "a3": "Yes, you can change your plan at any time. When upgrading, the difference is calculated automatically.",
       "q4": "Where is data stored?",
-      "a4": "All data is stored on servers in Russia in compliance with FZ-152. We use encryption and regular backups."
+      "a4": "All data is stored on Timeweb Cloud servers in Russia in compliance with FZ-152. We use encryption and regular backups."
     }
   },
   "features": {
@@ -476,7 +476,7 @@
       },
       {
         "q": "Where is children's personal data stored?",
-        "a": "Data is stored only on SberCloud servers in the Moscow region, security level UZ‑1 per Government Decree No. 1119. The platform is registered with Roskomnadzor as a personal data operator and supports Row-Level Security, two-factor authentication and trusted IP filtering."
+        "a": "Data is stored only on Timeweb Cloud servers in the Moscow region, security level UZ‑1 per Government Decree No. 1119. The platform is registered with Roskomnadzor as a personal data operator and supports Row-Level Security, two-factor authentication and trusted IP filtering."
       },
       {
         "q": "Can an individual specialist join, rather than a whole organization?",
