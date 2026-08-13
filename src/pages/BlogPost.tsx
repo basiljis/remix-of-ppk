@@ -338,9 +338,13 @@ export default function BlogPost() {
                     dangerouslySetInnerHTML={{ __html: contentWithIds }}
                   />
 
+                  {hasSptTimeline && <SptCalendarExport />}
+
                   {slug && INTERACTIVE_SLUGS.has(slug) && (
                     <DevelopmentBlocksComparison />
                   )}
+
+
 
 
                   {post.keywords.length > 0 && (
