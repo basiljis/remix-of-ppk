@@ -16,7 +16,6 @@ const PALETTES: Record<BlogCategory, Palette> = {
   specialists: { bgFrom: "#0F2A44", bgTo: "#1E4C7A", accent: "#F59E0B", ink: "#FFFFFF", sub: "#BFD3E6" },
   admins:      { bgFrom: "#1B2432", bgTo: "#2E3D55", accent: "#38BDF8", ink: "#FFFFFF", sub: "#B7C4D6" },
   parents:     { bgFrom: "#2B1B3F", bgTo: "#4E2C6E", accent: "#FBBF24", ink: "#FFFFFF", sub: "#D5C4E4" },
-  product:     { bgFrom: "#0B1F1C", bgTo: "#144E48", accent: "#F59E0B", ink: "#FFFFFF", sub: "#B7D3CE" },
   news:        { bgFrom: "#3B0A1E", bgTo: "#7A1436", accent: "#FDA4AF", ink: "#FFFFFF", sub: "#E7C3CE" },
 };
 
@@ -62,7 +61,7 @@ export async function renderZenCover(post: BlogPost): Promise<Blob> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context недоступен");
 
-  const p = PALETTES[post.category] ?? PALETTES.product;
+  const p = PALETTES[post.category] ?? PALETTES.news;
 
   // Фон: диагональный градиент
   const grad = ctx.createLinearGradient(0, 0, W, H);
