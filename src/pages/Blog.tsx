@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Rss, Search, ChevronLeft, ChevronRight, Clock, Eye, Users, FileText, ThumbsUp } from "lucide-react";
+import { Rss, Search, ChevronLeft, ChevronRight, Clock, Eye, Users, FileText, ThumbsUp, Newspaper, X } from "lucide-react";
 import { useBlogViewStats } from "@/hooks/useBlogViews";
 import { useBlogPostLikeStats } from "@/hooks/useBlogPostLikes";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PAGE_SIZE = 6;
 const BASE_URL = "https://unvrsm.ru";
@@ -28,6 +29,7 @@ export default function Blog() {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<BlogCategory | "all">("all");
   const [page, setPage] = useState(1);
+  const [selectedNews, setSelectedNews] = useState<BlogPost | null>(null);
   const { stats } = useBlogViewStats();
   const { likes: postLikes } = useBlogPostLikeStats();
   const [likesTotal, setLikesTotal] = useState<number>(0);
