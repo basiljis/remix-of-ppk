@@ -31,14 +31,18 @@ const RootGate = () => {
       }
     }, 2500);
 
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
+    const checkAuth = async () => {
+      try {
+        // We use a race to prevent hanging on network issues
+        const { data } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000))
+        ]) as any;
+
         if (!mounted) return;
         setStage("Загрузка данных...");
         setProgress(80);
         
-        // Brief delay for visual feedback of success
         setTimeout(() => {
           if (!mounted) return;
           clearTimeout(maxTimeout);
@@ -46,17 +50,21 @@ const RootGate = () => {
           setProgress(100);
           setTimeout(() => setChecked(true), 200);
         }, 400);
-      })
-      .catch(() => {
+      } catch (err) {
         if (!mounted) return;
-        setStage("Ошибка подключения. Пробуем снова...");
+        console.error("Auth check failed:", err);
+        setStage("Ошибка подключения. Вход в гостевой режим...");
+        setProgress(90);
         setTimeout(() => {
           if (!mounted) return;
           clearTimeout(maxTimeout);
           setIsAuthed(false);
           setChecked(true);
-        }, 1000);
-      });
+        }, 800);
+      }
+    };
+
+    checkAuth();
 
     return () => {
       mounted = false;
