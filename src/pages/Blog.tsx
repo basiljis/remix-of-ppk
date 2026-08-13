@@ -253,6 +253,11 @@ export default function Blog() {
                   {new Date(n.published_at || "").toLocaleDateString(isEn ? "en-US" : "ru-RU")}
                 </div>
                 <h4 className="font-medium text-sm line-clamp-2 leading-snug">{n.title}</h4>
+                {unreadCount > 0 && !readNewsIds.has(n.id) && user && (
+                  <Badge variant="destructive" className="mt-2 text-[10px] py-0 px-1.5 h-4">
+                    NEW
+                  </Badge>
+                )}
               </div>
             ))}
           </div>
