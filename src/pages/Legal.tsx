@@ -73,7 +73,7 @@ export default function Legal() {
       <PublicNavbar currentPage="legal" showSecondaryNav={false} />
 
       <main className="flex-1 pt-24 pb-16 px-4">
-        <div className="container mx-auto max-w-4xl">
+        <div className="container mx-auto max-w-6xl">
           <div className="mb-10">
             <h1 className="text-3xl md:text-4xl font-bold mb-3">
               Нормативно-правовая база
