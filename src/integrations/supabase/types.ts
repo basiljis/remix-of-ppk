@@ -3711,7 +3711,7 @@ export type Database = {
         | "director"
         | "parent"
         | "private_specialist"
-      blog_category: "specialists" | "admins" | "parents" | "product" | "news"
+      blog_category: "specialists" | "admins" | "parents" | "news"
       blog_comment_status: "pending" | "approved" | "rejected" | "spam"
     }
     CompositeTypes: {
@@ -3849,7 +3849,7 @@ export const Constants = {
         "parent",
         "private_specialist",
       ],
-      blog_category: ["specialists", "admins", "parents", "product", "news"],
+      blog_category: ["specialists", "admins", "parents", "news"],
       blog_comment_status: ["pending", "approved", "rejected", "spam"],
     },
   },
