@@ -16,6 +16,7 @@ import * as XLSX from "xlsx";
 import { Progress } from "@/components/ui/progress";
 import { getErrorTypeInfo } from "@/data/errorTypeDescriptions";
 import { BookOpen } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ErrorLog {
   id: string;
@@ -46,6 +47,7 @@ interface GroupedError {
 }
 
 export const ErrorLogsPanel = () => {
+  const { toast } = useToast();
   const [logs, setLogs] = useState<ErrorLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
