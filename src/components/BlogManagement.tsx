@@ -654,6 +654,41 @@ export function BlogManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Dialog open={zenDialogOpen} onOpenChange={setZenDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Интеграция с Яндекс Дзен</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="zenToken">Access Token (API Ключ)</Label>
+              <Input 
+                id="zenToken" 
+                type="password" 
+                value={zenTokenInput} 
+                onChange={(e) => setZenTokenInput(e.target.value)} 
+                placeholder="Введите ваш токен доступа Дзен"
+              />
+              <p className="text-xs text-muted-foreground">
+                Получить токен можно в личном кабинете Дзена (раздел для разработчиков).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="zenChannel">ID канала (Channel ID)</Label>
+              <Input 
+                id="zenChannel" 
+                value={zenChannelInput} 
+                onChange={(e) => setZenChannelInput(e.target.value)} 
+                placeholder="ID вашего канала"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setZenDialogOpen(false)}>Отмена</Button>
+            <Button onClick={saveZenConfig}>Сохранить настройки</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
