@@ -141,6 +141,13 @@ export default function BlogPost() {
     [post, localized.content]
   );
 
+  /** Показываем экспорт календаря в статьях, где описан таймлайн СПТ. */
+  const hasSptTimeline = useMemo(
+    () => /таймлайн\s+СПТ|СПТ/i.test(localized.content) && /сентябр/i.test(localized.content),
+    [localized.content]
+  );
+
+
   const canonical = `${BASE_URL}/blog/${slug}`;
   const tags = useMemo(() => (post ? postTags(post, lang) : []), [post, lang]);
   const seoTitleOverride = post ? (isEn ? post.seo_title_en : post.seo_title) : null;
