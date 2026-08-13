@@ -67,6 +67,11 @@ export function BlogManagement() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [zenSettings, setZenSettings] = useState<ZenSettings | null>(null);
+  const [zenDialogOpen, setZenDialogOpen] = useState(false);
+  const [zenTokenInput, setZenTokenInput] = useState("");
+  const [zenChannelInput, setZenChannelInput] = useState("");
+  const [publishingZenId, setPublishingZenId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
