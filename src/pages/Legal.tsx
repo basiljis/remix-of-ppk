@@ -11,6 +11,12 @@ import {
   ChevronRight,
   Eye,
   Users,
+  Filter,
+  Scale,
+  BookOpen,
+  Shield,
+  GraduationCap,
+  History,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,11 +29,9 @@ import {
   type LegalSection,
 } from "@/data/legalSections";
 import { useLogLegalView, useLegalViewStats } from "@/hooks/useLegalViews";
-
 import { LegalSubscriptionForm } from "@/components/LegalSubscriptionForm";
 import { LegalUpdatesHistory } from "@/components/LegalUpdatesHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, Scale, BookOpen, Shield, GraduationCap, History } from "lucide-react";
 
 function matchesQuery(doc: LegalDoc, q: string): boolean {
   const term = q.trim().toLowerCase();
@@ -58,7 +62,7 @@ export default function Legal() {
     const q = query.trim().toLowerCase();
     
     let base = legalSections;
-    if (activeTab !== "all") {
+    if (activeTab !== "all" && activeTab !== "history") {
       base = legalSections.filter(s => s.id === activeTab);
     }
 
@@ -107,8 +111,6 @@ export default function Legal() {
             </div>
           </div>
 
-
-
           <LegalSubscriptionForm />
           
           <Separator className="my-10" />
@@ -122,12 +124,6 @@ export default function Legal() {
                 </TabsTrigger>
                 <TabsTrigger value="donm" className="py-2 px-4 gap-2">
                   <BookOpen className="h-3.5 w-3.5" /> Приказы
-                </TabsTrigger>
-                <TabsTrigger value="standards" className="py-2 px-4 gap-2">
-                  <GraduationCap className="h-3.5 w-3.5" /> Стандарты
-                </TabsTrigger>
-                <TabsTrigger value="security" className="py-2 px-4 gap-2">
-                  <Shield className="h-3.5 w-3.5" /> Безопасность
                 </TabsTrigger>
                 <TabsTrigger value="history" className="py-2 px-4 gap-2">
                   <History className="h-3.5 w-3.5" /> Журнал изменений
@@ -162,92 +158,97 @@ export default function Legal() {
             </TabsContent>
 
             <TabsContent value={activeTab} className="mt-0">
-              {hasQuery && (
-                <p className="mb-6 text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-primary" />
-                  Найдено {totalDocs}{" "}
-                  {totalDocs === 1
-                    ? "документ"
-                    : totalDocs >= 2 && totalDocs <= 4
-                    ? "документа"
-                    : "документов"}{" "}
-                  в {filteredSections.length}{" "}
-                  {filteredSections.length === 1 ? "разделе" : "разделах"}
-                </p>
-              )}
+              {activeTab !== "history" && (
+                <>
+                  {hasQuery && (
+                    <p className="mb-6 text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg flex items-center gap-2">
+                      <Filter className="h-4 w-4 text-primary" />
+                      Найдено {totalDocs}{" "}
+                      {totalDocs === 1
+                        ? "документ"
+                        : totalDocs >= 2 && totalDocs <= 4
+                        ? "документа"
+                        : "документов"}{" "}
+                      в {filteredSections.length}{" "}
+                      {filteredSections.length === 1 ? "разделе" : "разделах"}
+                    </p>
+                  )}
 
-
-          {filteredSections.length === 0 ? (
-            <div className="text-center py-16">
-              <Search className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground text-lg mb-2">
-                По запросу «{query.trim()}» ничего не найдено
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Попробуйте изменить запрос или сбросить фильтр
-              </p>
-              <Button variant="outline" className="mt-4" onClick={() => setQuery("")}>
-                Сбросить поиск
-              </Button>
-            </div>
-          ) : (
-            filteredSections.map((section, idx) => {
-              const Icon = section.icon;
-              return (
-                <section key={section.id} id={section.id} className="mb-12 scroll-mt-24">
-                  <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <Icon className="h-5 w-5 text-primary" />
-                      <h2 className="text-2xl font-semibold">{section.title}</h2>
+                  {filteredSections.length === 0 ? (
+                    <div className="text-center py-16">
+                      <Search className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground text-lg mb-2">
+                        По запросу «{query.trim()}» ничего не найдено
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Попробуйте изменить запрос или сбросить фильтр
+                      </p>
+                      <Button variant="outline" className="mt-4" onClick={() => { setQuery(""); setActiveTab("all"); }}>
+                        Сбросить фильтры
+                      </Button>
                     </div>
-                    <Button asChild variant="outline" size="sm">
-                      <Link to={`/legal/${section.id}`}>
-                        Открыть раздел
-                        <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                      </Link>
-                    </Button>
-                  </div>
-                  <p className="text-muted-foreground mb-6">{section.intro}</p>
-
-                  <div className="space-y-3">
-                    {section.docs.map((doc) => (
-                      <Card key={doc.title} className="border-border/60">
-                        <CardHeader className="pb-2">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3 min-w-0">
-                              <FileText className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                              <CardTitle className="text-base leading-snug">
-                                <a
-                                  href={doc.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="hover:text-primary transition-colors inline-flex items-start gap-1"
-                                >
-                                  <span>{doc.title}</span>
-                                  <ExternalLink className="h-3.5 w-3.5 mt-1 flex-shrink-0 opacity-60" />
-                                </a>
-                              </CardTitle>
+                  ) : (
+                    filteredSections.map((section, idx) => {
+                      const Icon = section.icon;
+                      return (
+                        <section key={section.id} id={section.id} className="mb-12 scroll-mt-24">
+                          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <Icon className="h-5 w-5 text-primary" />
+                              <h2 className="text-2xl font-semibold">{section.title}</h2>
                             </div>
-                            {doc.badge && (
-                              <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                                {doc.badge}
-                              </Badge>
-                            )}
+                            <Button asChild variant="outline" size="sm">
+                              <Link to={`/legal/${section.id}`}>
+                                Открыть раздел
+                                <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                              </Link>
+                            </Button>
                           </div>
-                        </CardHeader>
-                        <CardContent className="pt-0 pl-12">
-                          {doc.meta && (
-                            <p className="text-xs text-muted-foreground mb-1">{doc.meta}</p>
-                          )}
-                          <p className="text-sm text-muted-foreground">{doc.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                          <p className="text-muted-foreground mb-6">{section.intro}</p>
 
-                  {idx < filteredSections.length - 1 && <Separator className="mt-12" />}
-                </section>
-              );
+                          <div className="space-y-3">
+                            {section.docs.map((doc) => (
+                              <Card key={doc.title} className="border-border/60">
+                                <CardHeader className="pb-2">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-start gap-3 min-w-0">
+                                      <FileText className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                                      <CardTitle className="text-base leading-snug">
+                                        <a
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="hover:text-primary transition-colors inline-flex items-start gap-1"
+                                        >
+                                          <span>{doc.title}</span>
+                                          <ExternalLink className="h-3.5 w-3.5 mt-1 flex-shrink-0 opacity-60" />
+                                        </a>
+                                      </CardTitle>
+                                    </div>
+                                    {doc.badge && (
+                                      <Badge variant="secondary" className="flex-shrink-0 text-xs">
+                                        {doc.badge}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="pt-0 pl-12">
+                                  {doc.meta && (
+                                    <p className="text-xs text-muted-foreground mb-1">{doc.meta}</p>
+                                  )}
+                                  <p className="text-sm text-muted-foreground">{doc.description}</p>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+
+                          {idx < filteredSections.length - 1 && <Separator className="mt-12" />}
+                        </section>
+                      );
+                    })
+                  )}
+                </>
+              )}
             </TabsContent>
           </Tabs>
 
