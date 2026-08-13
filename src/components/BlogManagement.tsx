@@ -349,6 +349,9 @@ export function BlogManagement() {
             <Button variant="outline" size="sm" onClick={copyRss}>
               <Rss className="h-4 w-4 mr-2" /> RSS
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setZenDialogOpen(true)} title="Настроить интеграцию с Яндекс Дзен">
+              <Settings className="h-4 w-4 mr-2" /> Дзен API
+            </Button>
             <Button onClick={openCreate}>
               <Plus className="h-4 w-4 mr-2" /> Новая статья
             </Button>
