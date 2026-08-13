@@ -18,7 +18,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Copy, ExternalLink, Rss, ImageDown, BarChart3, MessageSquare, CalendarClock, Map, Languages } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, ExternalLink, Rss, ImageDown, BarChart3, MessageSquare, CalendarClock, Map, Languages, Share, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { downloadZenCover } from "@/lib/zen-cover";
 import {
@@ -27,6 +27,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BlogAnalyticsDashboard } from "@/components/BlogAnalyticsDashboard";
 import { BlogCommentsModeration } from "@/components/BlogCommentsModeration";
+import { getZenSettings, saveZenSettings, publishToZen, ZenSettings } from "@/lib/zen-api";
 
 const empty = {
   slug: "",
@@ -66,6 +67,11 @@ export function BlogManagement() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [zenSettings, setZenSettings] = useState<ZenSettings | null>(null);
+  const [zenDialogOpen, setZenDialogOpen] = useState(false);
+  const [zenTokenInput, setZenTokenInput] = useState("");
+  const [zenChannelInput, setZenChannelInput] = useState("");
+  const [publishingZenId, setPublishingZenId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -81,7 +87,16 @@ export function BlogManagement() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    getZenSettings().then(s => {
+      if (s) {
+        setZenSettings(s);
+        setZenTokenInput(s.token);
+        setZenChannelInput(s.channelId || "");
+      }
+    });
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -197,6 +212,39 @@ export function BlogManagement() {
     }
   };
 
+  const handlePublishToZen = async (p: BlogPost) => {
+    if (!zenSettings?.token) {
+      setZenDialogOpen(true);
+      return;
+    }
+
+    setPublishingZenId(p.id);
+    try {
+      await publishToZen(p, zenSettings);
+      toast({ title: "Статья отправлена в Дзен", description: "Проверьте черновики в кабинете Дзена." });
+    } catch (e) {
+      toast({ 
+        title: "Ошибка публикации в Дзен", 
+        description: e instanceof Error ? e.message : "Убедитесь, что Edge Function 'publish-to-zen' развернута.",
+        variant: "destructive" 
+      });
+    } finally {
+      setPublishingZenId(null);
+    }
+  };
+
+  const saveZenConfig = async () => {
+    try {
+      const s = { token: zenTokenInput, channelId: zenChannelInput };
+      await saveZenSettings(s);
+      setZenSettings(s);
+      setZenDialogOpen(false);
+      toast({ title: "Настройки Дзена сохранены" });
+    } catch (e) {
+      toast({ title: "Ошибка сохранения", description: String(e), variant: "destructive" });
+    }
+  };
+
   const downloadCover = async (p: BlogPost) => {
     try {
       await downloadZenCover(p);
@@ -301,6 +349,9 @@ export function BlogManagement() {
             <Button variant="outline" size="sm" onClick={copyRss}>
               <Rss className="h-4 w-4 mr-2" /> RSS
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setZenDialogOpen(true)} title="Настроить интеграцию с Яндекс Дзен">
+              <Settings className="h-4 w-4 mr-2" /> Дзен API
+            </Button>
             <Button onClick={openCreate}>
               <Plus className="h-4 w-4 mr-2" /> Новая статья
             </Button>
@@ -353,6 +404,15 @@ export function BlogManagement() {
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => copyForZen(p)} title="Копировать для Яндекс Дзен (HTML + текст со ссылками)">
                       <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handlePublishToZen(p)} 
+                      disabled={publishingZenId === p.id}
+                      title="Опубликовать напрямую в Яндекс Дзен"
+                    >
+                      <Share className={`h-4 w-4 ${publishingZenId === p.id ? "animate-spin" : ""}`} />
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => downloadCover(p)} title="Сгенерировать и скачать обложку для Дзена (1200×630)">
                       <ImageDown className="h-4 w-4" />
@@ -594,6 +654,41 @@ export function BlogManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Dialog open={zenDialogOpen} onOpenChange={setZenDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Интеграция с Яндекс Дзен</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="zenToken">Access Token (API Ключ)</Label>
+              <Input 
+                id="zenToken" 
+                type="password" 
+                value={zenTokenInput} 
+                onChange={(e) => setZenTokenInput(e.target.value)} 
+                placeholder="Введите ваш токен доступа Дзен"
+              />
+              <p className="text-xs text-muted-foreground">
+                Получить токен можно в личном кабинете Дзена (раздел для разработчиков).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="zenChannel">ID канала (Channel ID)</Label>
+              <Input 
+                id="zenChannel" 
+                value={zenChannelInput} 
+                onChange={(e) => setZenChannelInput(e.target.value)} 
+                placeholder="ID вашего канала"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setZenDialogOpen(false)}>Отмена</Button>
+            <Button onClick={saveZenConfig}>Сохранить настройки</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
