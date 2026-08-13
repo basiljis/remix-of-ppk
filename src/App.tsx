@@ -9,6 +9,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 // Preloader MUST be imported synchronously to avoid infinite loading state
 import Preloader from "@/components/Preloader";
+import { HomeSkeleton } from "@/components/skeletons/HomeSkeleton";
+import { IndexSkeleton } from "@/components/skeletons/IndexSkeleton";
 import RootGate from "./pages/RootGate";
 import Home from "./pages/Home";
 import { SessionTimeoutGuard } from "@/components/SessionTimeoutGuard";
@@ -94,7 +96,14 @@ const App = () => {
                   <Suspense fallback={<Preloader />}>
                     <Routes>
                       <Route path="/" element={<RootGate />} />
-                      <Route path="/home" element={<Home />} />
+                      <Route 
+                        path="/home" 
+                        element={
+                          <Suspense fallback={<HomeSkeleton />}>
+                            <Home />
+                          </Suspense>
+                        } 
+                      />
                       <Route path="/landing" element={<Landing />} />
                       <Route path="/about" element={<About />} />
                       <Route path="/features" element={<Features />} />
@@ -118,7 +127,14 @@ const App = () => {
                       <Route path="/guides/pmpk-preparation" element={<PmpkPreparation />} />
                       <Route path="/blog" element={<Blog />} />
                       <Route path="/blog/:slug" element={<BlogPost />} />
-                      <Route path="/app" element={<Index />} />
+                      <Route 
+                        path="/app" 
+                        element={
+                          <Suspense fallback={<IndexSkeleton />}>
+                            <Index />
+                          </Suspense>
+                        } 
+                      />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/parent-auth" element={<ParentAuth />} />
