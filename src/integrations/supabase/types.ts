@@ -1601,6 +1601,63 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_subscriptions: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          push_subscription: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          push_subscription?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          push_subscription?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      legal_updates: {
+        Row: {
+          changes: Json
+          created_at: string | null
+          description: string
+          id: string
+          is_major: boolean | null
+          title: string
+          version_label: string
+        }
+        Insert: {
+          changes?: Json
+          created_at?: string | null
+          description: string
+          id?: string
+          is_major?: boolean | null
+          title: string
+          version_label: string
+        }
+        Update: {
+          changes?: Json
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_major?: boolean | null
+          title?: string
+          version_label?: string
+        }
+        Relationships: []
+      }
       legal_views: {
         Row: {
           created_at: string
