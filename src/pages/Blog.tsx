@@ -192,6 +192,23 @@ export default function Blog() {
           </div>
         </div>
 
+        <div className="lg:hidden mb-6 overflow-x-auto pb-2 scrollbar-none">
+          <div className="flex gap-4 min-w-max">
+            {newsPosts.slice(0, 5).map((n) => (
+              <div 
+                key={n.id} 
+                onClick={() => setSelectedNews(n)}
+                className="bg-card border rounded-lg p-3 w-64 shrink-0 cursor-pointer hover:border-primary transition-colors shadow-sm"
+              >
+                <div className="text-xs text-muted-foreground mb-1">
+                  {new Date(n.published_at || "").toLocaleDateString(isEn ? "en-US" : "ru-RU")}
+                </div>
+                <h4 className="font-medium text-sm line-clamp-2 leading-snug">{n.title}</h4>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
           <div className="min-w-0">
 
@@ -282,7 +299,7 @@ export default function Blog() {
           )}
           </div>
 
-          <aside className="space-y-6 sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+          <aside className="hidden lg:block space-y-6 sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             <div className="flex items-center justify-between font-semibold text-lg border-b pb-2 sticky top-0 bg-background z-10">
               <div className="flex items-center gap-2">
                 <Newspaper className="h-5 w-5 text-primary" />
