@@ -196,90 +196,156 @@ export default function Blog() {
           <div className="min-w-0">
 
 
-        {loading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-56 w-full" />
-            ))}
-          </div>
-        ) : paged.length === 0 ? (
-          <p className="text-muted-foreground text-center py-12">{t("blogPage.notFound")}</p>
-        ) : (
-          <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paged.map((p) => {
-                const loc = localizedPost(p, lang);
-                return (
-                <Link key={p.id} to={`/blog/${p.slug}`} className="group">
-                  <Card className="h-full transition-shadow group-hover:shadow-md overflow-hidden relative">
-                    <span
-                      aria-hidden
-                      className={`absolute left-0 top-0 h-full w-1 ${blogCategoryDot(p.category)}`}
-                    />
-                    <CardHeader>
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge className={`gap-1.5 hover:opacity-90 ${blogCategoryClass(p.category)}`}>
-                          <span className={`h-2 w-2 rounded-full ${blogCategoryDot(p.category)}`} />
-                          {blogCategoryLabel(p.category, lang)}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {p.reading_minutes} {t("blogPage.minutes")}
-                        </span>
-                      </div>
-                      <CardTitle className="text-lg leading-snug group-hover:text-primary transition-colors">
-                        {loc.title}
-                      </CardTitle>
-                      <CardDescription className="line-clamp-3">{loc.excerpt}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                        <span>
-                          {new Date(p.published_at).toLocaleDateString(dateLocale, {
-                            day: "numeric", month: "long", year: "numeric",
-                          })}
-                        </span>
-                        <span className="inline-flex items-center gap-3">
-                          <span className="inline-flex items-center gap-1" title={t("blogPage.totalViews")}>
-                            <Eye className="h-3.5 w-3.5" /> {stats[p.slug]?.total_views ?? 0}
-                          </span>
-                          <span className="inline-flex items-center gap-1" title={t("blogPage.uniqueViews")}>
-                            <Users className="h-3.5 w-3.5" /> {stats[p.slug]?.unique_views ?? 0}
-                          </span>
-                          <span className="inline-flex items-center gap-1" title={t("blogPage.helpfulVotes")}>
-                            <ThumbsUp className="h-3.5 w-3.5" /> {postLikes[p.slug] ?? 0}
-                          </span>
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-                );
-              })}
+          {loading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-56 w-full" />
+              ))}
             </div>
+          ) : paged.length === 0 ? (
+            <p className="text-muted-foreground text-center py-12">{t("blogPage.notFound")}</p>
+          ) : (
+            <>
+              <div className="grid md:grid-cols-2 gap-6">
+                {paged.map((p) => {
+                  const loc = localizedPost(p, lang);
+                  return (
+                  <Link key={p.id} to={`/blog/${p.slug}`} className="group">
+                    <Card className="h-full transition-shadow group-hover:shadow-md overflow-hidden relative">
+                      <span
+                        aria-hidden
+                        className={`absolute left-0 top-0 h-full w-1 ${blogCategoryDot(p.category)}`}
+                      />
+                      <CardHeader>
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className={`gap-1.5 hover:opacity-90 ${blogCategoryClass(p.category)}`}>
+                            <span className={`h-2 w-2 rounded-full ${blogCategoryDot(p.category)}`} />
+                            {blogCategoryLabel(p.category, lang)}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {p.reading_minutes} {t("blogPage.minutes")}
+                          </span>
+                        </div>
+                        <CardTitle className="text-lg leading-snug group-hover:text-primary transition-colors">
+                          {loc.title}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-3">{loc.excerpt}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                          <span>
+                            {new Date(p.published_at).toLocaleDateString(dateLocale, {
+                              day: "numeric", month: "long", year: "numeric",
+                            })}
+                          </span>
+                          <span className="inline-flex items-center gap-3">
+                            <span className="inline-flex items-center gap-1" title={t("blogPage.totalViews")}>
+                              <Eye className="h-3.5 w-3.5" /> {stats[p.slug]?.total_views ?? 0}
+                            </span>
+                            <span className="inline-flex items-center gap-1" title={t("blogPage.uniqueViews")}>
+                              <Users className="h-3.5 w-3.5" /> {stats[p.slug]?.unique_views ?? 0}
+                            </span>
+                            <span className="inline-flex items-center gap-1" title={t("blogPage.helpfulVotes")}>
+                              <ThumbsUp className="h-3.5 w-3.5" /> {postLikes[p.slug] ?? 0}
+                            </span>
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                  );
+                })}
+              </div>
 
-            {totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-2">
-                <Button
-                  variant="outline" size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setPage(currentPage - 1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {currentPage} / {totalPages}
-                </span>
-                <Button
-                  variant="outline" size="sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setPage(currentPage + 1)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+              {totalPages > 1 && (
+                <div className="mt-8 flex items-center justify-center gap-2">
+                  <Button
+                    variant="outline" size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setPage(currentPage - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline" size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setPage(currentPage + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+          </div>
+
+          <aside className="space-y-6">
+            <div className="flex items-center gap-2 font-semibold text-lg border-b pb-2">
+              <Newspaper className="h-5 w-5 text-primary" />
+              {isEn ? "News" : "Новости"}
+            </div>
+            {newsPosts.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">
+                {isEn ? "No news yet" : "Новостей пока нет"}
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {newsPosts.slice(0, 10).map((n) => {
+                  const loc = localizedPost(n, lang);
+                  return (
+                    <button
+                      key={n.id}
+                      onClick={() => setSelectedNews(n)}
+                      className="w-full text-left group"
+                    >
+                      <Card className="hover:border-primary/50 transition-colors bg-accent/5">
+                        <CardContent className="p-4">
+                          <div className="text-xs text-muted-foreground mb-1">
+                            {new Date(n.published_at).toLocaleDateString(dateLocale)}
+                          </div>
+                          <h4 className="font-medium text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                            {loc.title}
+                          </h4>
+                        </CardContent>
+                      </Card>
+                    </button>
+                  );
+                })}
               </div>
             )}
-          </>
-        )}
+          </aside>
+        </div>
+
+        <Dialog open={!!selectedNews} onOpenChange={(open) => !open && setSelectedNews(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline" className="font-normal">
+                  {isEn ? "News" : "Новости"}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {selectedNews && new Date(selectedNews.published_at).toLocaleDateString(dateLocale, {
+                    day: "numeric", month: "long", year: "numeric",
+                  })}
+                </span>
+              </div>
+              <DialogTitle className="text-2xl font-bold">
+                {selectedNews && localizedPost(selectedNews, lang).title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4">
+              {selectedNews && (
+                <div 
+                  className="prose prose-sm dark:prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: localizedPost(selectedNews, lang).content }}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
       <LandingFooter />
     </div>
