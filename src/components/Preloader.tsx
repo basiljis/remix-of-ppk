@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react';
 
-const Preloader = () => {
+interface PreloaderProps {
+  progress?: number;
+  stage?: string;
+}
+
+const Preloader = ({ progress: externalProgress, stage }: PreloaderProps) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    if (externalProgress !== undefined) {
+      setProgress(externalProgress);
+      return;
+    }
+
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
+        if (prev >= 90) {
           clearInterval(interval);
-          return 100;
+          return 90;
         }
-        return prev + Math.random() * 8;
+        return prev + Math.random() * 5;
       });
-    }, 120);
+    }, 150);
     return () => clearInterval(interval);
-  }, []);
+  }, [externalProgress]);
 
   const displayProgress = Math.min(Math.round(progress), 100);
 
@@ -81,7 +91,7 @@ const Preloader = () => {
               universum.
             </h1>
             <p className="text-[9px] font-light text-muted-foreground tracking-[0.3em] uppercase opacity-70">
-              educational platform
+              {stage || 'educational platform'}
             </p>
           </div>
           
