@@ -192,7 +192,7 @@ export default function Blog() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_300px] gap-8">
+        <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
           <div className="min-w-0">
 
 
@@ -282,17 +282,22 @@ export default function Blog() {
           )}
           </div>
 
-          <aside className="space-y-6">
-            <div className="flex items-center gap-2 font-semibold text-lg border-b pb-2">
-              <Newspaper className="h-5 w-5 text-primary" />
-              {isEn ? "News" : "Новости"}
+          <aside className="space-y-6 sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+            <div className="flex items-center justify-between font-semibold text-lg border-b pb-2 sticky top-0 bg-background z-10">
+              <div className="flex items-center gap-2">
+                <Newspaper className="h-5 w-5 text-primary" />
+                {isEn ? "News" : "Новости"}
+              </div>
+              <Badge variant="secondary" className="lg:hidden">
+                {newsPosts.length}
+              </Badge>
             </div>
             {newsPosts.length === 0 ? (
               <p className="text-sm text-muted-foreground italic">
                 {isEn ? "No news yet" : "Новостей пока нет"}
               </p>
             ) : (
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                 {newsPosts.slice(0, 10).map((n) => {
                   const loc = localizedPost(n, lang);
                   return (
