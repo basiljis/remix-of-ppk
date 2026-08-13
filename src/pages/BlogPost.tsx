@@ -20,6 +20,7 @@ import { useBlogPostRating } from "@/hooks/useBlogPostLikes";
 import { toast } from "sonner";
 import DevelopmentBlocksComparison from "@/components/blog/DevelopmentBlocksComparison";
 import BlogComments from "@/components/blog/BlogComments";
+import SptCalendarExport from "@/components/blog/SptCalendarExport";
 
 const INTERACTIVE_SLUGS = new Set(["5-blokov-razvitiya-rebenka"]);
 
@@ -139,6 +140,13 @@ export default function BlogPost() {
     () => (post ? withHeadingIds(localized.content) : { html: "", headings: [] as Heading[] }),
     [post, localized.content]
   );
+
+  /** Показываем экспорт календаря в статьях, где описан таймлайн СПТ. */
+  const hasSptTimeline = useMemo(
+    () => /таймлайн\s+СПТ|СПТ/i.test(localized.content) && /сентябр/i.test(localized.content),
+    [localized.content]
+  );
+
 
   const canonical = `${BASE_URL}/blog/${slug}`;
   const tags = useMemo(() => (post ? postTags(post, lang) : []), [post, lang]);
@@ -330,9 +338,13 @@ export default function BlogPost() {
                     dangerouslySetInnerHTML={{ __html: contentWithIds }}
                   />
 
+                  {hasSptTimeline && <SptCalendarExport />}
+
                   {slug && INTERACTIVE_SLUGS.has(slug) && (
                     <DevelopmentBlocksComparison />
                   )}
+
+
 
 
                   {post.keywords.length > 0 && (
