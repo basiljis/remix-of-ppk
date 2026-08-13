@@ -123,6 +123,11 @@ export default function Blog() {
     return { filtered: filteredArticles, newsPosts: filteredNews };
   }, [posts, q, category, lang]);
 
+  const unreadCount = useMemo(() => {
+    if (!user) return 0;
+    return newsPosts.filter(n => !readNewsIds.has(n.id)).length;
+  }, [newsPosts, readNewsIds, user]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
