@@ -348,6 +348,11 @@ export default function Blog() {
               <div className="flex items-center gap-2">
                 <Newspaper className="h-5 w-5 text-primary" />
                 {isEn ? "News" : "Новости"}
+                {unreadCount > 0 && user && (
+                  <Badge variant="destructive" className="ml-2 animate-pulse rounded-full px-2 py-0.5 text-[10px]">
+                    +{unreadCount}
+                  </Badge>
+                )}
               </div>
               <Badge variant="secondary" className="lg:hidden">
                 {newsPosts.length}
