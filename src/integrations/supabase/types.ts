@@ -3544,6 +3544,32 @@ export type Database = {
         }
         Relationships: []
       }
+      user_read_news: {
+        Row: {
+          news_id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          news_id: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          news_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_read_news_news_id_fkey"
+            columns: ["news_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

@@ -12,10 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Rss, Search, ChevronLeft, ChevronRight, Clock, Eye, Users, FileText, ThumbsUp, Newspaper, X } from "lucide-react";
+import { Rss, Search, ChevronLeft, ChevronRight, Clock, Eye, Users, FileText, ThumbsUp, Newspaper, X, CheckCircle2 } from "lucide-react";
 import { useBlogViewStats } from "@/hooks/useBlogViews";
 import { useBlogPostLikeStats } from "@/hooks/useBlogPostLikes";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 const PAGE_SIZE = 6;
 const BASE_URL = "https://unvrsm.ru";
@@ -30,6 +31,9 @@ export default function Blog() {
   const [category, setCategory] = useState<BlogCategory | "all">("all");
   const [page, setPage] = useState(1);
   const [selectedNews, setSelectedNews] = useState<BlogPost | null>(null);
+  const [readNewsIds, setReadNewsIds] = useState<Set<string>>(new Set());
+  const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
   const { stats } = useBlogViewStats();
   const { likes: postLikes } = useBlogPostLikeStats();
   const [likesTotal, setLikesTotal] = useState<number>(0);
@@ -37,6 +41,22 @@ export default function Blog() {
   const [viewsTotal, setViewsTotal] = useState<number>(0);
 
   useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        const { data: readData } = await supabase
+          .from("user_read_news")
+          .select("news_id")
+          .eq("user_id", user.id);
+        
+        if (readData) {
+          setReadNewsIds(new Set(readData.map(r => r.news_id)));
+        }
+      }
+    })();
+
     (async () => {
       setLoading(true);
       const { data } = await supabase
@@ -60,6 +80,24 @@ export default function Blog() {
       setLikesTotal(Number(t.post_likes) || 0);
     })();
   }, []);
+
+  const markAsRead = async (newsId: string) => {
+    if (!user) return;
+    if (readNewsIds.has(newsId)) return;
+
+    const { error } = await supabase
+      .from("user_read_news")
+      .insert({ user_id: user.id, news_id: newsId });
+
+    if (!error) {
+      setReadNewsIds(prev => new Set(prev).add(newsId));
+    }
+  };
+
+  const handleNewsClick = (news: BlogPost) => {
+    setSelectedNews(news);
+    markAsRead(news.id);
+  };
 
   const totalViews = viewsTotal;
 
@@ -197,9 +235,15 @@ export default function Blog() {
             {newsPosts.slice(0, 5).map((n) => (
               <div 
                 key={n.id} 
-                onClick={() => setSelectedNews(n)}
-                className="bg-card border rounded-lg p-3 w-64 shrink-0 cursor-pointer hover:border-primary transition-colors shadow-sm"
+                onClick={() => handleNewsClick(n)}
+                className={`bg-card border rounded-lg p-3 w-64 shrink-0 cursor-pointer hover:border-primary transition-colors shadow-sm relative ${readNewsIds.has(n.id) ? "opacity-75" : ""}`}
               >
+                {!readNewsIds.has(n.id) && user && (
+                  <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full" />
+                )}
+                {readNewsIds.has(n.id) && user && (
+                  <CheckCircle2 className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/40" />
+                )}
                 <div className="text-xs text-muted-foreground mb-1">
                   {new Date(n.published_at || "").toLocaleDateString(isEn ? "en-US" : "ru-RU")}
                 </div>
@@ -320,10 +364,16 @@ export default function Blog() {
                   return (
                     <button
                       key={n.id}
-                      onClick={() => setSelectedNews(n)}
+                      onClick={() => handleNewsClick(n)}
                       className="w-full text-left group"
                     >
-                      <Card className="hover:border-primary/50 transition-colors bg-accent/5">
+                      <Card className={`hover:border-primary/50 transition-colors bg-accent/5 relative ${readNewsIds.has(n.id) ? "opacity-75" : ""}`}>
+                        {!readNewsIds.has(n.id) && user && (
+                          <span className="absolute top-3 right-3 h-2 w-2 bg-primary rounded-full" />
+                        )}
+                        {readNewsIds.has(n.id) && user && (
+                          <CheckCircle2 className="absolute top-3 right-3 h-3.5 w-3.5 text-muted-foreground/40" />
+                        )}
                         <CardContent className="p-4">
                           <div className="text-xs text-muted-foreground mb-1">
                             {new Date(n.published_at).toLocaleDateString(dateLocale)}
