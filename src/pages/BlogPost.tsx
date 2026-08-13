@@ -20,6 +20,7 @@ import { useBlogPostRating } from "@/hooks/useBlogPostLikes";
 import { toast } from "sonner";
 import DevelopmentBlocksComparison from "@/components/blog/DevelopmentBlocksComparison";
 import BlogComments from "@/components/blog/BlogComments";
+import SptCalendarExport from "@/components/blog/SptCalendarExport";
 
 const INTERACTIVE_SLUGS = new Set(["5-blokov-razvitiya-rebenka"]);
 
