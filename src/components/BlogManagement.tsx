@@ -405,6 +405,15 @@ export function BlogManagement() {
                     <Button size="sm" variant="ghost" onClick={() => copyForZen(p)} title="Копировать для Яндекс Дзен (HTML + текст со ссылками)">
                       <Copy className="h-4 w-4" />
                     </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handlePublishToZen(p)} 
+                      disabled={publishingZenId === p.id}
+                      title="Опубликовать напрямую в Яндекс Дзен"
+                    >
+                      <Share className={`h-4 w-4 ${publishingZenId === p.id ? "animate-spin" : ""}`} />
+                    </Button>
                     <Button size="sm" variant="ghost" onClick={() => downloadCover(p)} title="Сгенерировать и скачать обложку для Дзена (1200×630)">
                       <ImageDown className="h-4 w-4" />
                     </Button>
