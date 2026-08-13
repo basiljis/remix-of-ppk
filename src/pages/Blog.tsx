@@ -177,7 +177,7 @@ export default function Blog() {
             >
               {t("blogPage.all")}
             </Button>
-            {BLOG_CATEGORIES.map((c) => (
+            {BLOG_CATEGORIES.filter(c => c.value !== "news").map((c) => (
               <Button
                 key={c.value}
                 variant={category === c.value ? "default" : "outline"}
@@ -191,6 +191,10 @@ export default function Blog() {
             ))}
           </div>
         </div>
+
+        <div className="grid lg:grid-cols-[1fr_300px] gap-8">
+          <div className="min-w-0">
+
 
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
