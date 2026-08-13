@@ -1,6 +1,11 @@
 import './index.css';
 import { registerServiceWorker } from './service-worker-registration';
 
+// Redirect unvrsm.ru:8080 to unvrsm.ru
+if (window.location.port === '8080' && window.location.hostname === 'unvrsm.ru') {
+  window.location.href = window.location.protocol + '//' + window.location.hostname + window.location.pathname + window.location.search;
+}
+
 // One-time purge of legacy workbox caches that previously broke the site.
 // We keep our own asset cache (`assets-v1`); only workbox-* caches are removed.
 const purgeLegacyWorkboxCaches = async () => {
