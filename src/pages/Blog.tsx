@@ -123,6 +123,11 @@ export default function Blog() {
     return { filtered: filteredArticles, newsPosts: filteredNews };
   }, [posts, q, category, lang]);
 
+  const unreadCount = useMemo(() => {
+    if (!user) return 0;
+    return newsPosts.filter(n => !readNewsIds.has(n.id)).length;
+  }, [newsPosts, readNewsIds, user]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -248,6 +253,11 @@ export default function Blog() {
                   {new Date(n.published_at || "").toLocaleDateString(isEn ? "en-US" : "ru-RU")}
                 </div>
                 <h4 className="font-medium text-sm line-clamp-2 leading-snug">{n.title}</h4>
+                {unreadCount > 0 && !readNewsIds.has(n.id) && user && (
+                  <Badge variant="destructive" className="mt-2 text-[10px] py-0 px-1.5 h-4">
+                    NEW
+                  </Badge>
+                )}
               </div>
             ))}
           </div>
@@ -348,6 +358,11 @@ export default function Blog() {
               <div className="flex items-center gap-2">
                 <Newspaper className="h-5 w-5 text-primary" />
                 {isEn ? "News" : "Новости"}
+                {unreadCount > 0 && user && (
+                  <Badge variant="destructive" className="ml-2 animate-pulse rounded-full px-2 py-0.5 text-[10px]">
+                    +{unreadCount}
+                  </Badge>
+                )}
               </div>
               <Badge variant="secondary" className="lg:hidden">
                 {newsPosts.length}
