@@ -271,7 +271,7 @@
     "openInRegistry": "Open in the Ministry of Digital Development registry"
   },
   "documents": {
-    "seoTitle": "Certification and security — FZ-152, UZ-1, Cloud.ru | universum.",
+    "seoTitle": "Certification and security — FZ-152, UZ-1, Timeweb Cloud | universum.",
     "seoDescription": "universum. security documents and certificates: compliance with FZ-152 (UZ-1), hosting in Tier III data centres, FSTEC certificates. Protection of children's personal data.",
     "title": "Documents",
     "subtitle": "Certifications, licences and regulatory compliance of the platform",
@@ -280,12 +280,13 @@
     "introSuffix": " platform, which includes a multi-layered information protection system meeting Russian legislation and global cybersecurity best practices.",
     "cert1Title": "152-FZ UZ-1 — Personal data protection",
     "cert1Badge": "Highest level",
-    "cert1Desc": "The Cloud.ru Evolution platform is certified at UZ-1 — the maximum level of personal data protection under Federal Law No. 152-FZ \"On Personal Data\". Certificates are issued by the relevant authorities and confirm full infrastructure compliance.",
+    "cert1Desc": "The Timeweb Cloud platform is certified at UZ-1 — the maximum level of personal data protection under Federal Law No. 152-FZ \"On Personal Data\". Certificates are issued by the relevant authorities and confirm full infrastructure compliance.",
     "cert2Title": "Hosting data centre certificates",
     "cert2Badge": "Tier III",
     "cert2Desc": "The data centres hosting the platform meet Uptime Institute Tier III Design, Tier III Facility and Tier III Operation standards — guaranteeing fault tolerance and availability.",
+    "certSectionTitle": "Certification and security",
     "licensesTitle": "Licences",
-    "licensesIntro": "Cloud.ru holds licences issued by the relevant regulators for telecommunications services and for working with various means of confidential information protection.",
+    "licensesIntro": "Timeweb Cloud holds licences issued by the relevant regulators for telecommunications services and for working with various means of confidential information protection.",
     "licenses": {
       "l1Name": "Roskomnadzor licence No. 171948",
       "l1Scope": "Provision of communication channels services",
@@ -302,7 +303,7 @@
     },
     "fromDate": "as of {{date}}",
     "clientSectionTitle": "Client attestations",
-    "clientNote": "Compliance of the Evolution cloud platform with regulations and the presence of certificates does not relieve the client of the obligation to carry out attestations and certifications of their own infrastructure built on top of the cloud platform, where required."
+    "clientNote": "Compliance of the Timeweb Cloud platform with regulations and the presence of certificates does not relieve the client of the obligation to carry out attestations and certifications of their own infrastructure built on top of the cloud platform, where required."
   },
   "partnership": {
     "title": "PUBLIC OFFER FOR THE PARTNER PROGRAM",
