@@ -12,7 +12,7 @@ const certifications = [
     icon: Shield,
     badge: "Высший уровень",
     description:
-      "Платформа Cloud.ru Evolution имеет уровень защиты УЗ-1 — максимальный уровень защищённости персональных данных согласно Федеральному закону №152-ФЗ «О персональных данных». Сертификаты выданы контролирующими органами и подтверждают соответствие инфраструктуры всем требованиям.",
+      "Платформа Timeweb Cloud имеет уровень защиты УЗ-1 — максимальный уровень защищённости персональных данных согласно Федеральному закону №152-ФЗ «О персональных данных». Сертификаты выданы контролирующими органами и подтверждают соответствие инфраструктуры всем требованиям.",
   },
   {
     title: "Сертификаты ЦОДов размещения",
@@ -58,10 +58,10 @@ const licenses = [
 
 export default function Documents() {
   useSeoMeta({
-    title: "Сертификация и безопасность — ФЗ-152, УЗ-1, Cloud.ru | universum.",
+    title: "Сертификация и безопасность — ФЗ-152, УЗ-1, Timeweb Cloud | universum.",
     description: "Документы и сертификаты безопасности платформы universum.: соответствие ФЗ-152 (УЗ-1), размещение в ЦОД Tier III, сертификаты ФСТЭК. Защита персональных данных детей.",
     canonical: "/documents",
-    keywords: "ФЗ-152 УЗ-1, персональные данные, ФСТЭК, ЦОД Tier III, cloud.ru, безопасность образовательной платформы",
+    keywords: "ФЗ-152 УЗ-1, персональные данные, ФСТЭК, ЦОД Tier III, timeweb, безопасность образовательной платформы",
   });
 
   return (
@@ -88,12 +88,12 @@ export default function Documents() {
             <p className="text-muted-foreground mb-6">
               Инфраструктура universum. размещена на платформе{" "}
               <a
-                href="https://cloud.ru/docs/evolution/overview/topics/security__compliance"
+                href="https://timeweb.cloud/security"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline inline-flex items-center gap-1"
               >
-                Cloud.ru Evolution
+                Timeweb Cloud
                 <ExternalLink className="h-3 w-3" />
               </a>
               , которая включает многоуровневую систему защиты информации, соответствующую требованиям
@@ -137,7 +137,7 @@ export default function Documents() {
             </div>
 
             <p className="text-muted-foreground mb-6">
-              Cloud.ru имеет лицензии, выданные соответствующими регуляторами, на оказание услуг связи
+              Timeweb Cloud имеет лицензии, выданные соответствующими регуляторами, на оказание услуг связи
               и на работу с различными средствами защиты конфиденциальной информации.
             </p>
 
@@ -172,7 +172,7 @@ export default function Documents() {
             <Card className="border-border/60 bg-muted/30">
               <CardContent className="py-5 px-5">
                 <p className="text-sm text-muted-foreground">
-                  Соответствие облачной платформы Evolution нормативным актам и наличие сертификатов
+                  Соответствие облачной платформы Timeweb Cloud нормативным актам и наличие сертификатов
                   не снимает с клиента обязательства по проведению аттестаций и сертификаций
                   в отношении собственной инфраструктуры, построенной поверх инфраструктуры
                   облачной платформы, в случаях, когда это необходимо.
