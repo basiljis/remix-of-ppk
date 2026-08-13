@@ -212,6 +212,39 @@ export function BlogManagement() {
     }
   };
 
+  const handlePublishToZen = async (p: BlogPost) => {
+    if (!zenSettings?.token) {
+      setZenDialogOpen(true);
+      return;
+    }
+
+    setPublishingZenId(p.id);
+    try {
+      await publishToZen(p, zenSettings);
+      toast({ title: "Статья отправлена в Дзен", description: "Проверьте черновики в кабинете Дзена." });
+    } catch (e) {
+      toast({ 
+        title: "Ошибка публикации в Дзен", 
+        description: e instanceof Error ? e.message : "Убедитесь, что Edge Function 'publish-to-zen' развернута.",
+        variant: "destructive" 
+      });
+    } finally {
+      setPublishingZenId(null);
+    }
+  };
+
+  const saveZenConfig = async () => {
+    try {
+      const s = { token: zenTokenInput, channelId: zenChannelInput };
+      await saveZenSettings(s);
+      setZenSettings(s);
+      setZenDialogOpen(false);
+      toast({ title: "Настройки Дзена сохранены" });
+    } catch (e) {
+      toast({ title: "Ошибка сохранения", description: String(e), variant: "destructive" });
+    }
+  };
+
   const downloadCover = async (p: BlogPost) => {
     try {
       await downloadZenCover(p);
