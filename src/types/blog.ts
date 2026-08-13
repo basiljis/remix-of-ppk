@@ -1,4 +1,4 @@
-export type BlogCategory = "specialists" | "admins" | "parents" | "product" | "news";
+export type BlogCategory = "specialists" | "admins" | "parents" | "news";
 
 export interface BlogPost {
   id: string;
@@ -37,14 +37,11 @@ const BLOG_CATEGORIES_EN: Record<BlogCategory, string> = {
   specialists: "For specialists",
   admins: "For administrators",
   parents: "For parents",
-  // Legacy category — merged into News
-  product: "News",
   news: "News",
 };
 
 export const blogCategoryLabel = (c: BlogCategory, lang?: string): string => {
   if (lang && lang.toLowerCase().startsWith("en")) return BLOG_CATEGORIES_EN[c] ?? c;
-  if (c === "product") return "Новости";
   return BLOG_CATEGORIES.find((x) => x.value === c)?.label ?? c;
 };
 
@@ -53,7 +50,6 @@ const BLOG_CATEGORY_CLASSES: Record<BlogCategory, string> = {
   specialists: "bg-cat-specialists-soft text-cat-specialists border border-cat-specialists/25",
   admins: "bg-cat-admins-soft text-cat-admins border border-cat-admins/25",
   parents: "bg-cat-parents-soft text-cat-parents border border-cat-parents/25",
-  product: "bg-cat-news-soft text-cat-news border border-cat-news/25",
   news: "bg-cat-news-soft text-cat-news border border-cat-news/25",
 };
 
@@ -65,7 +61,6 @@ const BLOG_CATEGORY_DOTS: Record<BlogCategory, string> = {
   specialists: "bg-cat-specialists",
   admins: "bg-cat-admins",
   parents: "bg-cat-parents",
-  product: "bg-cat-news",
   news: "bg-cat-news",
 };
 

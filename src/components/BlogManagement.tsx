@@ -33,7 +33,7 @@ const empty = {
   title: "",
   excerpt: "",
   content: "",
-  category: "specialists" as BlogCategory,
+  category: "news" as BlogCategory,
   keywords: "",
   cover_url: "",
   author: "Команда universum.",
