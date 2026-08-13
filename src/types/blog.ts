@@ -30,7 +30,6 @@ export const BLOG_CATEGORIES: { value: BlogCategory; label: string }[] = [
   { value: "specialists", label: "Для специалистов" },
   { value: "admins", label: "Для администраторов" },
   { value: "parents", label: "Для родителей" },
-  { value: "product", label: "О продукте" },
   { value: "news", label: "Новости" },
 ];
 
