@@ -87,7 +87,16 @@ export function BlogManagement() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    getZenSettings().then(s => {
+      if (s) {
+        setZenSettings(s);
+        setZenTokenInput(s.token);
+        setZenChannelInput(s.channelId || "");
+      }
+    });
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
