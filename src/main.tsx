@@ -63,5 +63,10 @@ const bootstrap = async () => {
 
 void bootstrap().catch((error) => {
   console.error('[bootstrap] Failed to start application', error);
+  // Ensure we are not on a specific port that might be causing issues
+  if (window.location.port === '8080' && window.location.hostname === 'unvrsm.ru') {
+    window.location.href = 'http://unvrsm.ru/';
+    return;
+  }
   showBootstrapError();
 });

@@ -95,7 +95,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   handleGoHome = () => {
     console.log("[ErrorBoundary] Переход на главную страницу");
-    window.location.href = "/";
+    window.location.href = window.location.origin;
   };
 
   render() {

@@ -49,9 +49,13 @@ const RootGate = () => {
       })
       .catch(() => {
         if (!mounted) return;
-        clearTimeout(maxTimeout);
-        setIsAuthed(false);
-        setChecked(true);
+        setStage("Ошибка подключения. Пробуем снова...");
+        setTimeout(() => {
+          if (!mounted) return;
+          clearTimeout(maxTimeout);
+          setIsAuthed(false);
+          setChecked(true);
+        }, 1000);
       });
 
     return () => {
