@@ -819,8 +819,9 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
             </div>
           )}
 
-          <div className="text-sm text-muted-foreground">
-            Показано {currentLogs.length} из {filteredLogs.length} логов
+            <div className="text-sm text-muted-foreground">
+              Показано {currentLogs.length} из {filteredLogs.length} логов
+            </div>
           </div>
         )}
       </CardContent>
