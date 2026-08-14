@@ -80,8 +80,9 @@ export function BlogManagement() {
   const [showLogsDialog, setShowLogsDialog] = useState(false);
 
   const loadZenLogs = async () => {
-    const { data } = await supabase
-      .from("zen_publication_logs")
+    // Используем dynamic cast через any, чтобы избежать ошибок типизации до обновления types.ts
+    const { data } = await (supabase
+      .from("zen_publication_logs" as any) as any)
       .select("*, blog_posts(title)")
       .order("created_at", { ascending: false })
       .limit(50);
