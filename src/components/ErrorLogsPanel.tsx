@@ -47,6 +47,32 @@ interface GroupedError {
 }
 
 export const ErrorLogsPanel = () => {
+  const [activeTab, setActiveTab] = useState<'system' | 'zen'>('system');
+  const [zenLogs, setZenLogs] = useState<any[]>([]);
+  const [zenLoading, setZenLoading] = useState(false);
+
+  const loadZenLogs = async () => {
+    try {
+      setZenLoading(true);
+      const { data, error } = await (supabase
+        .from("zen_publication_logs" as any) as any)
+        .select("*, blog_posts(title)")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      setZenLogs(data || []);
+    } catch (err) {
+      console.error("Error loading zen logs:", err);
+    } finally {
+      setZenLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'zen') loadZenLogs();
+  }, [activeTab]);
+
   const { toast } = useToast();
   const [logs, setLogs] = useState<ErrorLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -368,39 +394,138 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Логи ошибок</CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleResolveAllAddressable}
-              className="text-green-600 border-green-200 hover:bg-green-50"
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <CardTitle>Логирование системы</CardTitle>
+            <div className="flex gap-2">
+              {activeTab === 'system' && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleResolveAllAddressable}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Исправить системные
+                  </Button>
+                  <Button 
+                    variant={viewMode === 'grouped' ? 'default' : 'outline'} 
+                    size="sm" 
+                    onClick={() => setViewMode(viewMode === 'list' ? 'grouped' : 'list')}
+                  >
+                    <Layers className="h-4 w-4 mr-2" />
+                    {viewMode === 'grouped' ? 'Список' : 'Группировка'}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={loadErrorLogs}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Обновить
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleExport}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Экспорт
+                  </Button>
+                </>
+              )}
+              {activeTab === 'zen' && (
+                <Button variant="outline" size="sm" onClick={loadZenLogs}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Обновить
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex border-b">
+            <button
+              className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === 'system' 
+                  ? 'border-primary text-primary' 
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setActiveTab('system')}
             >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Исправить системные
-            </Button>
-            <Button 
-              variant={viewMode === 'grouped' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setViewMode(viewMode === 'list' ? 'grouped' : 'list')}
+              Системные ошибки
+            </button>
+            <button
+              className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === 'zen' 
+                  ? 'border-primary text-primary' 
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setActiveTab('zen')}
             >
-              <Layers className="h-4 w-4 mr-2" />
-              {viewMode === 'grouped' ? 'Список' : 'Группировка'}
-            </Button>
-            <Button variant="outline" size="sm" onClick={loadErrorLogs}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Обновить
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Экспорт
-            </Button>
+              Логи публикаций Дзен
+            </button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        {activeTab === 'zen' ? (
+          <div className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg text-sm mb-4">
+              <p className="font-medium text-foreground">
+                '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
+              </p>
+              <p className="mt-2 text-muted-foreground">
+                Веди подробный лог попыток публикации с текстом ошибок и временем выполнения.
+              </p>
+            </div>
+
+            {zenLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : zenLogs.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
+                Записей в логе пока нет
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Статья</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead>Время</TableHead>
+                    <TableHead>Ошибка</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {zenLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="font-medium">
+                        {log.blog_posts?.title || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          log.status === 'success' ? 'default' : 
+                          log.status === 'error' ? 'destructive' : 'secondary'
+                        }>
+                          {log.status === 'success' ? 'Успех' : 
+                           log.status === 'error' ? 'Ошибка' : 'В процессе'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {format(new Date(log.created_at), "dd.MM.yyyy HH:mm:ss")}
+                      </TableCell>
+                      <TableCell className="max-w-[300px]">
+                        {log.error_message ? (
+                          <span className="text-xs text-destructive font-mono break-words">
+                            {log.error_message}
+                          </span>
+                        ) : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+
           {/* Статистика ошибок */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {/* Всего ошибок */}
@@ -694,10 +819,11 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
             </div>
           )}
 
-          <div className="text-sm text-muted-foreground">
-            Показано {currentLogs.length} из {filteredLogs.length} логов
+            <div className="text-sm text-muted-foreground">
+              Показано {currentLogs.length} из {filteredLogs.length} логов
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
 
       {/* Модальное окно с детальной информацией */}

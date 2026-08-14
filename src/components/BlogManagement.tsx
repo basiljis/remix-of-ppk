@@ -28,6 +28,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BlogAnalyticsDashboard } from "@/components/BlogAnalyticsDashboard";
 import { BlogCommentsModeration } from "@/components/BlogCommentsModeration";
 import { getZenSettings, saveZenSettings, publishToZen, ZenSettings } from "@/lib/zen-api";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { History } from "lucide-react";
 
 const empty = {
   slug: "",
@@ -72,6 +76,18 @@ export function BlogManagement() {
   const [zenTokenInput, setZenTokenInput] = useState("");
   const [zenChannelInput, setZenChannelInput] = useState("");
   const [publishingZenId, setPublishingZenId] = useState<string | null>(null);
+  const [zenLogs, setZenLogs] = useState<any[]>([]);
+  const [showLogsDialog, setShowLogsDialog] = useState(false);
+
+  const loadZenLogs = async () => {
+    // Используем dynamic cast через any, чтобы избежать ошибок типизации до обновления types.ts
+    const { data } = await (supabase
+      .from("zen_publication_logs" as any) as any)
+      .select("*, blog_posts(title)")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setZenLogs(data);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -222,12 +238,14 @@ export function BlogManagement() {
     try {
       await publishToZen(p, zenSettings);
       toast({ title: "Статья отправлена в Дзен", description: "Проверьте черновики в кабинете Дзена." });
+      loadZenLogs();
     } catch (e) {
       toast({ 
         title: "Ошибка публикации в Дзен", 
         description: e instanceof Error ? e.message : "Убедитесь, что Edge Function 'publish-to-zen' развернута.",
         variant: "destructive" 
       });
+      loadZenLogs();
     } finally {
       setPublishingZenId(null);
     }
@@ -351,6 +369,9 @@ export function BlogManagement() {
             </Button>
             <Button variant="outline" size="sm" onClick={() => setZenDialogOpen(true)} title="Настроить интеграцию с Яндекс Дзен">
               <Settings className="h-4 w-4 mr-2" /> Дзен API
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => { loadZenLogs(); setShowLogsDialog(true); }} title="История публикаций в Дзен">
+              <History className="h-4 w-4 mr-2" /> Логи Дзен
             </Button>
             <Button onClick={openCreate}>
               <Plus className="h-4 w-4 mr-2" /> Новая статья
@@ -639,6 +660,43 @@ export function BlogManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showLogsDialog} onOpenChange={setShowLogsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Лог попыток публикации в Дзен</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[400px] mt-4 rounded-md border p-4">
+            <div className="space-y-4">
+              {zenLogs.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">История пуста</p>
+              ) : (
+                zenLogs.map((log) => (
+                  <div key={log.id} className="text-sm border-b pb-3 last:border-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-medium truncate max-w-[300px]" title={log.blog_posts?.title}>
+                        {log.blog_posts?.title || "Удаленная статья"}
+                      </span>
+                      <Badge variant={log.status === 'success' ? 'default' : log.status === 'error' ? 'destructive' : 'secondary'}>
+                        {log.status === 'success' ? 'Успех' : log.status === 'error' ? 'Ошибка' : 'В процессе'}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2 text-xs text-muted-foreground mb-1">
+                      <span>{format(new Date(log.created_at), "dd MMMM yyyy, HH:mm", { locale: ru })}</span>
+                    </div>
+                    {log.error_message && (
+                      <p className="text-xs text-destructive bg-destructive/5 p-2 rounded mt-1 font-mono">
+                        {log.error_message}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
