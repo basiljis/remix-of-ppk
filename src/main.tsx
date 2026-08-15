@@ -8,20 +8,19 @@ if (window.location.port === '8080' && (window.location.hostname === 'unvrsm.ru'
 
 // Ensure preloader doesn't hang due to CSS/Asset loading delays
 document.addEventListener('DOMContentLoaded', () => {
-  // Stuck check: 4s
+  // Even shorter check for total hang: 3.5s
   setTimeout(() => {
     const root = document.getElementById('root');
-    const preloader = document.querySelector('.preloader') || document.querySelector('#preloader') || document.body.innerText.includes('universum.');
+    const hasPreloader = document.querySelector('.preloader') || document.querySelector('#preloader') || document.body.innerText.includes('universum.');
     
-    // If root is still empty but preloader is present, something is wrong
-    if (root && root.innerHTML === '' && preloader) {
-      console.warn('App seems stuck at preloader stage, forcing recovery...');
+    if (root && root.innerHTML === '' && hasPreloader) {
+      console.warn('App seems stuck at preloader stage, forcing reload...');
       if (!sessionStorage.getItem('force_reload_stuck')) {
         sessionStorage.setItem('force_reload_stuck', 'true');
         window.location.reload();
       }
     }
-  }, 4000);
+  }, 3500);
 });
 
 // One-time purge of legacy workbox caches that previously broke the site.

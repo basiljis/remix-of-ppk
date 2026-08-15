@@ -1,5 +1,5 @@
 # Timeweb Cloud Apps — Docker Compose deployment
-# Redeploy trigger: 2026-06-07 - Timeweb optimization
+# Redeploy trigger: 2026-06-06
 
 services:
   # ---------------------------------------------------------------
@@ -11,16 +11,10 @@ services:
       context: ./edge
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8082:8080"
     depends_on:
       - app
-    restart: always
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/__edge_health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+    restart: unless-stopped
 
   # ---------------------------------------------------------------
   # Основное приложение (SPA + reverse-proxy на Supabase).
@@ -36,10 +30,4 @@ services:
         VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
     expose:
       - "8080"
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/index.html"]
-      interval: 15s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+    restart: unless-stopped
