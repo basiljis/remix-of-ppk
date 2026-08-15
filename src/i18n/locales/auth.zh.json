@@ -1,0 +1,31 @@
+{
+  "seoTitle": "登录 — universum.",
+  "brand": "universum.",
+  "tagline": "发展。为了每个人。",
+  "tabs": {
+    "login": "登录",
+    "signup": "注册"
+  },
+  "login": {
+    "title": "登录",
+    "subtitle": "输入您的凭据进行登录",
+    "emailLabel": "电子邮件",
+    "passwordLabel": "密码",
+    "submit": "登录",
+    "submitting": "登录中..."
+  },
+  "signup": {
+    "title": "创建账户",
+    "modes": {
+      "private": "私人执业",
+      "organization": "面向机构"
+    },
+    "fields": {
+      "fullName": "全名",
+      "phone": "电话",
+      "email": "电子邮件",
+      "password": "密码"
+    },
+    "submit": "注册"
+  }
+}

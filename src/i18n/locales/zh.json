@@ -1,0 +1,42 @@
+{
+  "nav": {
+    "organizations": "面向机构",
+    "specialists": "面向教育者",
+    "parents": "面向家长",
+    "instructions": "指南",
+    "legal": "法律依据",
+    "blog": "博客",
+    "login": "登录",
+    "menu": "菜单",
+    "catalog": "目录",
+    "info": "信息",
+    "findSpecialist": "寻找专家",
+    "findOrganization": "寻找机构",
+    "home": "首页"
+  },
+  "language": {
+    "switchTo": "切换语言",
+    "ru": "俄语",
+    "en": "英语",
+    "zh": "中文"
+  },
+  "protocolForm": {
+    "common": {
+      "yes": "是",
+      "no": "否",
+      "back": "返回",
+      "next": "下一步",
+      "save": "保存",
+      "cancel": "取消",
+      "saveDraft": "保存草稿",
+      "finalize": "完成协议",
+      "subscribe": "订阅",
+      "toHome": "首页",
+      "view": "查看",
+      "select": "选择",
+      "error": "错误",
+      "present": "存在",
+      "absent": "缺失"
+    }
+  }
+}
