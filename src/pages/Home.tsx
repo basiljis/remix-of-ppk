@@ -155,6 +155,7 @@ export default function Home() {
     title: t("homePage.seoTitle"),
     description: t("homePage.seoDescription"),
     canonical: "https://unvrsm.ru/",
+    keywords: t("homePage.seoKeywords", "universum, PPC automation, child development platform, educators tool, education software"),
     jsonLd,
   });
 

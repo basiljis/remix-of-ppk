@@ -98,7 +98,7 @@ const faq = [
 ];
 
 export default function Pricing() {
-  const { t } = useTranslation(["pages", "translation"]);
+  const { t, i18n } = useTranslation(["pages", "translation"]);
   const { formatCurrency } = useLocaleFormatter();
   const plans = getPlans(t, formatCurrency);
 
@@ -168,9 +168,15 @@ export default function Pricing() {
                     <CardTitle className="text-xl">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="pt-2">
-                      <span className="text-3xl font-bold">{plan.price}</span>
-                      {plan.period && (
-                        <span className="text-muted-foreground text-sm">{plan.period}</span>
+                      {i18n.resolvedLanguage === "zh" ? (
+                        <span className="text-2xl font-bold">{t("pages:pricing.plans.corporate.price", "按需报价")}</span>
+                      ) : (
+                        <>
+                          <span className="text-3xl font-bold">{plan.price}</span>
+                          {plan.period && (
+                            <span className="text-muted-foreground text-sm">{plan.period}</span>
+                          )}
+                        </>
                       )}
                     </div>
                   </CardHeader>
