@@ -1,0 +1,43 @@
+{
+  "common": {
+    "back": "返回",
+    "home": "首页",
+    "save": "保存",
+    "cancel": "取消",
+    "loading": "加载中...",
+    "saving": "保存中...",
+    "error": "错误",
+    "success": "完成",
+    "learnMore": "了解更多",
+    "tryFree": "免费试用",
+    "getStarted": "开始使用",
+    "pricing": "价格",
+    "features": "功能"
+  },
+  "about": {
+    "heroTitlePart1": "造福",
+    "heroTitleAccent": "每个孩子",
+    "heroSubtitle": "universum. 是一个将教育者、机构和家长联系在一起，全面支持每个孩子发展的平台。"
+  },
+  "pricing": {
+    "plans": {
+      "free": {
+        "name": "免费版",
+        "price": "0 ¥",
+        "description": "用于了解平台"
+      },
+      "specialist": {
+        "name": "专家版",
+        "price": "33 ¥",
+        "period": "/ 月",
+        "description": "适用于私人执业者和教育者"
+      },
+      "org": {
+        "name": "机构版",
+        "price": "250 ¥",
+        "period": "/ 月",
+        "description": "适用于学校和中心"
+      }
+    }
+  }
+}

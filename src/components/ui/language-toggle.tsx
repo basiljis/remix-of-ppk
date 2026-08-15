@@ -12,7 +12,7 @@ export function LanguageToggle() {
   const { i18n, t } = useTranslation();
   const current = (i18n.resolvedLanguage || i18n.language || "ru").slice(0, 2).toUpperCase();
 
-  const change = (lng: "ru" | "en") => {
+  const change = (lng: "ru" | "en" | "zh") => {
     void i18n.changeLanguage(lng);
     document.documentElement.lang = lng;
   };
@@ -31,6 +31,9 @@ export function LanguageToggle() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => change("en")}>
           🇬🇧 {t("language.en")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => change("zh")}>
+          🇨🇳 {t("language.zh")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
