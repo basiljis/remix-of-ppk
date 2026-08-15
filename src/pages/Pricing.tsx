@@ -6,71 +6,73 @@ import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { CheckCircle, ArrowRight, HelpCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useLocaleFormatter } from "@/hooks/useLocaleFormatter";
 
-const plans = [
+const getPlans = (t: any, formatCurrency: any) => [
   {
-    name: "Бесплатный",
-    price: "0 ₽",
+    name: t("pages:pricing.plans.free.name", "Бесплатный"),
+    price: formatCurrency(0),
     period: "",
-    description: "Для знакомства с платформой",
+    description: t("pages:pricing.plans.free.description", "Для знакомства с платформой"),
     features: [
-      "До 5 детей",
-      "Протоколы ППк",
-      "Карта ребёнка",
-      "1 специалист",
+      t("translation:protocolForm.child.limit5", "До 5 детей"),
+      t("translation:protocolForm.documents.ppk", "Протоколы ППк"),
+      t("translation:protocolForm.child.card", "Карта ребёнка"),
+      t("translation:protocolForm.specialist.count1", "1 специалист"),
     ],
-    cta: "Начать бесплатно",
+    cta: t("pages:common.getStarted", "Начать бесплатно"),
     ctaVariant: "outline" as const,
     highlighted: false,
   },
   {
-    name: "Специалист",
-    price: "330 ₽",
-    period: "/ мес",
-    description: "Для частных практиков и педагогов",
+    name: t("pages:pricing.plans.specialist.name", "Специалист"),
+    price: formatCurrency(330),
+    period: t("pages:pricing.plans.specialist.period", "/ мес"),
+    description: t("pages:pricing.plans.specialist.description", "Для частных практиков и педагогов"),
     features: [
-      "Неограниченно детей",
-      "Протоколы ППк",
-      "Журнал занятий",
-      "Онлайн-запись",
-      "Публичный профиль",
-      "Аналитика",
+      t("translation:protocolForm.child.unlimited", "Неограниченно детей"),
+      t("translation:protocolForm.documents.ppk", "Протоколы ППк"),
+      t("translation:protocolForm.documents.journal", "Журнал занятий"),
+      t("translation:protocolForm.specialist.onlineBooking", "Онлайн-запись"),
+      t("translation:protocolForm.specialist.publicProfile", "Публичный профиль"),
+      t("translation:protocolForm.specialist.analytics", "Аналитика"),
     ],
-    cta: "Выбрать тариф",
+    cta: t("pages:pricing.plans.specialist.cta", "Выбрать тариф"),
     ctaVariant: "outline" as const,
     highlighted: false,
   },
   {
-    name: "Организация",
-    price: "2 500 ₽",
-    period: "/ мес",
-    description: "Для школ, ППМС-центров и ЦППМСП",
+    name: t("pages:pricing.plans.org.name", "Организация"),
+    price: formatCurrency(2500),
+    period: t("pages:pricing.plans.org.period", "/ мес"),
+    description: t("pages:pricing.plans.org.description", "Для школ, ППМС-центров и ЦППМСП"),
     features: [
-      "Всё из «Специалист»",
-      "До 10 сотрудников",
-      "Управление ролями",
-      "KPI и статистика",
-      "Интеграция с ЕКИС",
-      "Приоритетная поддержка",
+      t("translation:protocolForm.specialist.allFromSpecialist", "Всё из «Специалист»"),
+      t("translation:protocolForm.specialist.count10", "До 10 сотрудников"),
+      t("translation:protocolForm.specialist.roleManagement", "Управление ролями"),
+      t("translation:protocolForm.specialist.kpi", "KPI и статистика"),
+      t("translation:protocolForm.specialist.integration", "Интеграция с ЕКИС"),
+      t("translation:protocolForm.specialist.prioritySupport", "Приоритетная поддержка"),
     ],
-    cta: "Подключить",
+    cta: t("pages:pricing.plans.org.cta", "Подключить"),
     ctaVariant: "default" as const,
     highlighted: true,
   },
   {
-    name: "Корпоративный",
-    price: "По запросу",
+    name: t("pages:pricing.plans.corporate.name", "Корпоративный"),
+    price: t("pages:pricing.plans.corporate.price", "По запросу"),
     period: "",
-    description: "Для сетей и региональных проектов",
+    description: t("pages:pricing.plans.corporate.description", "Для сетей и региональных проектов"),
     features: [
-      "Всё из «Организация»",
-      "Неограниченно сотрудников",
-      "SLA и выделенная поддержка",
-      "Кастомизация под процессы",
-      "Размещение на своём сервере",
-      "Обучение персонала",
+      t("translation:protocolForm.specialist.allFromOrg", "Всё из «Организация»"),
+      t("translation:protocolForm.specialist.unlimitedStaff", "Неограниченно сотрудников"),
+      t("translation:protocolForm.specialist.sla", "SLA и выделенная поддержка"),
+      t("translation:protocolForm.specialist.customization", "Кастомизация под процессы"),
+      t("translation:protocolForm.specialist.onPremise", "Размещение на своём сервере"),
+      t("translation:protocolForm.specialist.training", "Обучение персонала"),
     ],
-    cta: "Запросить КП",
+    cta: t("pages:pricing.plans.corporate.cta", "Запросить КП"),
     ctaVariant: "outline" as const,
     highlighted: false,
   },
@@ -96,25 +98,29 @@ const faq = [
 ];
 
 export default function Pricing() {
+  const { t } = useTranslation(["pages", "translation"]);
+  const { formatCurrency } = useLocaleFormatter();
+  const plans = getPlans(t, formatCurrency);
+
   useSeoMeta({
-    title: "Тарифы — universum.",
-    description: "Тарифные планы платформы universum.: бесплатный, для специалистов, организаций и корпоративных клиентов. Попробуйте бесплатно.",
+    title: t("pages:pricing.seoTitle", "Тарифы — universum."),
+    description: t("pages:pricing.seoDescription", "Тарифные планы платформы universum.: бесплатный, для специалистов, организаций и корпоративных клиентов. Попробуйте бесплатно."),
     canonical: "/pricing",
-    keywords: "тарифы universum, цена ППк, стоимость подписки, тариф для организаций, тариф для специалистов",
+    keywords: t("pages:pricing.seoKeywords", "тарифы universum, цена ППк, стоимость подписки, тариф для организаций, тариф для специалистов"),
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "WebPage",
-      name: "Тарифы universum.",
+      name: t("pages:pricing.seoTitle", "Тарифы universum."),
       url: "https://unvrsm.ru/pricing",
       mainEntity: {
         "@type": "SoftwareApplication",
         name: "universum.",
         applicationCategory: "EducationalApplication",
         operatingSystem: "Web",
-        offers: plans.filter(p => p.price !== "По запросу").map(p => ({
+        offers: plans.filter(p => typeof p.price === 'string' && !p.price.includes('запрос')).map(p => ({
           "@type": "Offer",
           name: p.name,
-          price: p.price.replace(/[^\d]/g, '') || "0",
+          price: (p.price as string).replace(/[^\d]/g, '') || "0",
           priceCurrency: "RUB",
           url: "https://unvrsm.ru/pricing"
         }))
