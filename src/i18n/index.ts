@@ -24,7 +24,12 @@ void i18n
     defaultNS: "translation",
     fallbackLng: "ru",
     supportedLngs: ["ru", "en", "zh"],
-    interpolation: { escapeValue: false },
+    interpolation: {
+      escapeValue: false,
+      // Note: Custom formatters should be registered via i18n.services.formatter.add
+      // but simple interpolation format is supported in some versions.
+      // We will handle specific formatting via a hook for better type safety.
+    },
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],

@@ -29,24 +29,37 @@
   },
   "pricing": {
     "seoTitle": "价格方案 — universum.",
+    "seoDescription": "universum. 平台的价格方案：免费版、专家版、机构版和企业版。立即免费试用。",
+    "seoKeywords": "universum 价格, PMPK 价格, 订阅费用, 机构方案, 专家方案",
     "heroTitleAccent": "价格方案",
     "plans": {
       "free": {
         "name": "免费版",
-        "price": "0 ¥",
+        "price": "0",
+        "currency": "¥",
         "description": "了解平台功能"
       },
       "specialist": {
         "name": "专家版",
-        "price": "33 ¥",
+        "price": "33",
+        "currency": "¥",
         "period": "/ 月",
+        "cta": "选择方案",
         "description": "适用于私人执业者和教育者"
       },
       "org": {
         "name": "机构版",
-        "price": "250 ¥",
+        "price": "250",
+        "currency": "¥",
         "period": "/ 月",
+        "cta": "立即开通",
         "description": "适用于学校和康复中心"
+      },
+      "corporate": {
+        "name": "企业版",
+        "price": "按需报价",
+        "cta": "获取报价方案",
+        "description": "适用于连锁机构和区域项目"
       }
     }
   },
