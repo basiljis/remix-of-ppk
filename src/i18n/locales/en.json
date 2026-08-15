@@ -17,7 +17,8 @@
   "language": {
     "switchTo": "Switch language",
     "ru": "Russian",
-    "en": "English"
+    "en": "English",
+    "zh": "Chinese"
   },
   "protocolForm": {
     "common": {

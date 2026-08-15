@@ -10,21 +10,31 @@
     "success": "完成",
     "learnMore": "了解更多",
     "tryFree": "免费试用",
-    "getStarted": "开始使用",
-    "pricing": "价格",
-    "features": "功能"
+    "getStarted": "立即开始",
+    "pricing": "价格方案",
+    "features": "核心功能"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "抱歉，您请求的页面不存在或已被移动。",
+    "homeButton": "返回首页"
   },
   "about": {
+    "seoTitle": "关于我们 — universum.",
     "heroTitlePart1": "造福",
     "heroTitleAccent": "每个孩子",
-    "heroSubtitle": "universum. 是一个将教育者、机构和家长联系在一起，全面支持每个孩子发展的平台。"
+    "heroSubtitle": "universum. 是一个连接教育者、机构和家长的平台，致力于全面支持每个孩子的发展。",
+    "missionTitle": "我们的使命",
+    "missionText": "通过自动化文案工作解放教育者，让俄罗斯的每个孩子都能获得高质量的发展支持。"
   },
   "pricing": {
+    "seoTitle": "价格方案 — universum.",
+    "heroTitleAccent": "价格方案",
     "plans": {
       "free": {
         "name": "免费版",
         "price": "0 ¥",
-        "description": "用于了解平台"
+        "description": "了解平台功能"
       },
       "specialist": {
         "name": "专家版",
@@ -36,8 +46,15 @@
         "name": "机构版",
         "price": "250 ¥",
         "period": "/ 月",
-        "description": "适用于学校和中心"
+        "description": "适用于学校和康复中心"
       }
+    }
+  },
+  "landing": {
+    "hero": {
+      "badge": "发展。为了每个人",
+      "subtitle": "创新的儿童全面支持与发展平台。为每个孩子提供技术支持。",
+      "cta": "立即开始"
     }
   }
 }

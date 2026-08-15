@@ -12,7 +12,10 @@
     "info": "信息",
     "findSpecialist": "寻找专家",
     "findOrganization": "寻找机构",
-    "home": "首页"
+    "home": "首页",
+    "register": "注册",
+    "cabinet": "进入控制台",
+    "resources": "资源"
   },
   "language": {
     "switchTo": "切换语言",
@@ -37,6 +40,32 @@
       "error": "错误",
       "present": "存在",
       "absent": "缺失"
+    },
+    "access": {
+      "restricted": "访问受限",
+      "trialEnded": "试用期已结束。创建新协议需要有效订阅。",
+      "trialEndedShort": "试用期已过期。订阅以创建新协议。",
+      "trialEndedOn": "试用期于 {{date}} 结束。创建新协议需要有效订阅。之前创建的协议可在 3 年内继续查看。",
+      "subscriptionRequired": "创建协议需要有效订阅。之前创建的协议可在 3 年内继续查看。",
+      "trialEndingSoon": "试用期将在 {{days}} {{unit}} 后结束。立即订阅。",
+      "dayOne": "天",
+      "dayFew": "天",
+      "dayMany": "天"
+    },
+    "child": {
+      "fullName": "学生姓名",
+      "birthDate": "出生日期",
+      "age": "年龄",
+      "gender": "性别",
+      "male": "男",
+      "female": "女",
+      "educationLevel": "教育阶段",
+      "classGroup": "班级/组"
+    },
+    "validation": {
+      "required": "必填项",
+      "invalidEmail": "请输入有效的电子邮件地址",
+      "invalidPhone": "请输入有效的电话号码"
     }
   }
 }
