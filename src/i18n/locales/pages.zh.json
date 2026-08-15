@@ -16,7 +16,7 @@
   },
   "notFound": {
     "title": "页面未找到",
-    "description": "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                        \n                                            \n                                            ошибка деплоя - в чем причина?",
+    "description": "抱歉，您请求的页面不存在或已被移动。",
     "homeButton": "返回首页"
   },
   "about": {
