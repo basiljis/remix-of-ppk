@@ -60,7 +60,32 @@
       "male": "男",
       "female": "女",
       "educationLevel": "教育阶段",
-      "classGroup": "班级/组"
+      "classGroup": "班级/组",
+      "limit5": "最多 5 名儿童",
+      "card": "儿童档案",
+      "unlimited": "不限儿童数量"
+    },
+    "specialist": {
+      "count1": "1 名专家",
+      "onlineBooking": "在线预约",
+      "publicProfile": "公开个人资料",
+      "analytics": "分析统计",
+      "allFromSpecialist": "包含“专家版”所有功能",
+      "count10": "最多 10 名员工",
+      "roleManagement": "角色权限管理",
+      "kpi": "KPI 与统计",
+      "integration": "系统集成",
+      "prioritySupport": "优先技术支持",
+      "allFromOrg": "包含“机构版”所有功能",
+      "unlimitedStaff": "不限员工数量",
+      "sla": "SLA 与专属支持",
+      "customization": "流程定制",
+      "onPremise": "私有化部署",
+      "training": "人员培训"
+    },
+    "documents": {
+      "ppk": "PMPK 协议",
+      "journal": "课程日志"
     },
     "validation": {
       "required": "必填项",
