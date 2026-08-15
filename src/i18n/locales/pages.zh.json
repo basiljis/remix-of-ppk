@@ -33,18 +33,21 @@
     "plans": {
       "free": {
         "name": "免费版",
-        "price": "0 ¥",
+        "price": "0",
+        "currency": "¥",
         "description": "了解平台功能"
       },
       "specialist": {
         "name": "专家版",
-        "price": "33 ¥",
+        "price": "33",
+        "currency": "¥",
         "period": "/ 月",
         "description": "适用于私人执业者和教育者"
       },
       "org": {
         "name": "机构版",
-        "price": "250 ¥",
+        "price": "250",
+        "currency": "¥",
         "period": "/ 月",
         "description": "适用于学校和康复中心"
       }

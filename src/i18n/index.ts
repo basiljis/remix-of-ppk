@@ -26,25 +26,9 @@ void i18n
     supportedLngs: ["ru", "en", "zh"],
     interpolation: {
       escapeValue: false,
-      format: (value, format, lng) => {
-        if (value instanceof Date) {
-          return new Intl.DateTimeFormat(lng, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          }).format(value);
-        }
-        if (typeof value === 'number') {
-          if (format === 'currency') {
-            return new Intl.NumberFormat(lng, {
-              style: 'currency',
-              currency: 'RUB'
-            }).format(value);
-          }
-          return new Intl.NumberFormat(lng).format(value);
-        }
-        return value;
-      }
+      // Note: Custom formatters should be registered via i18n.services.formatter.add
+      // but simple interpolation format is supported in some versions.
+      // We will handle specific formatting via a hook for better type safety.
     },
     detection: {
       order: ["localStorage", "navigator"],
