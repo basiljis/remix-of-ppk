@@ -23,13 +23,15 @@ const RootGate = () => {
       }
     }, 300);
 
-    // Hard cap: never keep the preloader longer than 2.5s.
+    // Hard cap: never keep the preloader longer than 1.8s. 
+    // Reduced from 2.5s for better UX, ensures we fall back to /home quickly.
     const maxTimeout = setTimeout(() => {
       if (mounted) {
+        console.warn("Auth check timed out, falling back to guest mode.");
         setIsAuthed(false);
         setChecked(true);
       }
-    }, 2500);
+    }, 1800);
 
     const checkAuth = async () => {
       try {
