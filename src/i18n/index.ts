@@ -24,7 +24,28 @@ void i18n
     defaultNS: "translation",
     fallbackLng: "ru",
     supportedLngs: ["ru", "en", "zh"],
-    interpolation: { escapeValue: false },
+    interpolation: {
+      escapeValue: false,
+      format: (value, format, lng) => {
+        if (value instanceof Date) {
+          return new Intl.DateTimeFormat(lng, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }).format(value);
+        }
+        if (typeof value === 'number') {
+          if (format === 'currency') {
+            return new Intl.NumberFormat(lng, {
+              style: 'currency',
+              currency: 'RUB'
+            }).format(value);
+          }
+          return new Intl.NumberFormat(lng).format(value);
+        }
+        return value;
+      }
+    },
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
