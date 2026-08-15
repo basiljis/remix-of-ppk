@@ -7,15 +7,16 @@
     "signup": "注册"
   },
   "login": {
-    "title": "登录",
-    "subtitle": "输入您的凭据进行登录",
+    "title": "系统登录",
+    "subtitle": "请输入您的凭据以登录",
     "emailLabel": "电子邮件",
     "passwordLabel": "密码",
     "submit": "登录",
-    "submitting": "登录中..."
+    "submitting": "正在登录..."
   },
   "signup": {
     "title": "创建账户",
+    "subtitle": "创建一个新账户以开始工作",
     "modes": {
       "private": "私人执业",
       "organization": "面向机构"
@@ -24,8 +25,18 @@
       "fullName": "全名",
       "phone": "电话",
       "email": "电子邮件",
-      "password": "密码"
+      "password": "密码",
+      "position": "职位",
+      "role": "角色",
+      "organization": "机构名称"
     },
-    "submit": "注册"
+    "submit": "立即注册",
+    "submitting": "正在注册..."
+  },
+  "validation": {
+    "fullNameRequired": "全名不能为空",
+    "emailInvalid": "电子邮件格式不正确",
+    "passwordMin": "密码至少包含8个字符",
+    "consentRequired": "必须同意处理个人数据"
   }
 }
