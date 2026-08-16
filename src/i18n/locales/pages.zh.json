@@ -20,7 +20,8 @@
     "homeButton": "返回首页"
   },
   "about": {
-    "seoTitle": "关于我们 — universum.",
+    "seoTitle": "关于我们 — universum. 儿童发展创新",
+    "seoDescription": "了解 universum.，这是一个支持儿童发展的综合平台。我们为教育工作者和家长提供 PMPK 协议自动化、发展卡和数据分析。",
     "heroTitlePart1": "造福",
     "heroTitleAccent": "每个孩子",
     "heroSubtitle": "universum. 是一个连接教育者、机构和家长的平台，致力于全面支持每个孩子的发展。",
@@ -28,10 +29,9 @@
     "missionText": "通过自动化文案工作解放教育者，让俄罗斯的每个孩子都能获得高质量的发展支持。"
   },
   "pricing": {
-    "seoTitle": "价格方案 — universum.",
-    "seoDescription": "universum. 平台的价格方案：免费版、专家版、机构版和企业版。立即免费试用。",
-    "seoKeywords": "universum 价格, PMPK 价格, 订阅费用, 机构方案, 专家方案",
-    "seoKeywords": "universum 价格, PMPK 价格, 订阅费用, 机构方案, 专家方案",
+    "seoTitle": "价格方案与计划 — universum. 儿童发展平台",
+    "seoDescription": "了解 universum. 为教育工作者、学校和康复中心提供的价格方案。PMPK 协议自动化、儿童发展跟踪和分析。立即免费试用。",
+    "seoKeywords": "儿童发展平台价格, PMPK 自动化成本, 教育软件定价, 学校心理学家工具, 儿童评估软件费用",
     "heroTitleAccent": "价格方案",
     "plans": {
       "free": {
@@ -64,6 +64,13 @@
       }
     }
   },
+  "features": {
+    "seoTitle": "核心功能 — PMPK 自动化、儿童卡与数据分析 | universum.",
+    "seoDescription": "探索 universum. 的功能：自动化 PMPK 协议、儿童发展卡、课程日志、分析和在线预约。为儿童专家提供的完整工具包。",
+    "heroTitlePart1": "助力",
+    "heroTitleAccent": "儿童发展",
+    "heroSubtitle": "为教育工作者、机构和家长提供的全套工具——从 PMPK 协议到互动游戏。"
+  },
   "landing": {
     "hero": {
       "badge": "发展。为了每个人",
@@ -72,8 +79,8 @@
     }
   },
   "homePage": {
-    "seoTitle": "Universum — 儿童发展平台，PMPK 自动化，心理学家和言语治疗师工具",
-    "seoDescription": "自动化心理教育委员会的工作：PMPK 协议、诊断、日程安排和报告。符合数据保护标准。为专家和机构提供全面的儿童发展支持。",
-    "seoKeywords": "universum, PMPK 自动化, 儿童发展卡, 心理学家平台, 言语治疗师工具, 教育软件"
+    "seoTitle": "universum. — 儿童发展平台 | PMPK 与 PPC 协议自动化",
+    "seoDescription": "使用 universum. 自动化心理和教育委员会 (PMPK/PPC)。为学校心理学家、言语治疗师和教育工作者提供的专业工具。儿童发展卡、数据分析和报告。",
+    "seoKeywords": "PMPK 自动化, PPC 协议, 儿童发展跟踪, 学校心理学家软件, 教育分析平台, 儿童评估工具"
   }
 }
