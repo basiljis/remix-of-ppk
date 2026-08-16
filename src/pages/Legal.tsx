@@ -262,52 +262,56 @@ export default function Legal() {
                           </div>
                           <p className="text-muted-foreground mb-6">{section.intro}</p>
 
-                          <div className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {section.docs.map((doc) => (
-                              <Card key={doc.title} className="border-border/60">
-                                <CardHeader className="pb-2">
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="flex flex-col gap-2 min-w-0">
-                                      <div className="flex items-start gap-3">
-                                        <FileText className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                                        <CardTitle className="text-base leading-snug">
-                                          <a
-                                            href={doc.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="hover:text-primary transition-colors inline-flex items-start gap-1"
-                                          >
-                                            <span>{doc.title}</span>
-                                            <ExternalLink className="h-3.5 w-3.5 mt-1 flex-shrink-0 opacity-60" />
-                                          </a>
-                                        </CardTitle>
-                                      </div>
-                                      {doc.audiences && (
-                                        <div className="flex flex-wrap gap-1.5 ml-7">
-                                          {doc.audiences.includes("parents") && (
-                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-orange-200 text-orange-700 bg-orange-50">Родителям</Badge>
-                                          )}
-                                          {doc.audiences.includes("admin") && (
-                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-blue-200 text-blue-700 bg-blue-50">Администрации</Badge>
-                                          )}
-                                          {doc.audiences.includes("specialists") && (
-                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-green-200 text-green-700 bg-green-50">Педагогам</Badge>
-                                          )}
-                                        </div>
-                                      )}
+                              <Card key={doc.title} className="group border-border/40 hover:border-primary/30 transition-all shadow-sm hover:shadow-md bg-card/50">
+                                <CardHeader className="p-4 pb-2">
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex justify-between items-start">
+                                      {doc.badge ? (
+                                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 uppercase tracking-wider font-bold">
+                                          {doc.badge}
+                                        </Badge>
+                                      ) : <div className="h-4" />}
+                                      <a
+                                        href={doc.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-muted-foreground hover:text-primary transition-colors p-1"
+                                      >
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                      </a>
                                     </div>
-                                    {doc.badge && (
-                                      <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                                        {doc.badge}
-                                      </Badge>
-                                    )}
+                                    <CardTitle className="text-sm font-semibold leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-[2.5rem]">
+                                      {doc.title}
+                                    </CardTitle>
                                   </div>
                                 </CardHeader>
-                                <CardContent className="pt-0 pl-12">
-                                  {doc.meta && (
-                                    <p className="text-xs text-muted-foreground mb-1">{doc.meta}</p>
-                                  )}
-                                  <p className="text-sm text-muted-foreground">{doc.description}</p>
+                                <CardContent className="p-4 pt-0 space-y-3">
+                                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                                    {doc.description}
+                                  </p>
+                                  
+                                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border/40 mt-auto">
+                                    {doc.audiences && (
+                                      <div className="flex -space-x-1">
+                                        {doc.audiences.includes("parents") && (
+                                          <div title="Родителям" className="w-5 h-5 rounded-full bg-orange-100 border border-background flex items-center justify-center"><Users className="w-2.5 h-2.5 text-orange-600" /></div>
+                                        )}
+                                        {doc.audiences.includes("admin") && (
+                                          <div title="Администрации" className="w-5 h-5 rounded-full bg-blue-100 border border-background flex items-center justify-center"><Shield className="w-2.5 h-2.5 text-blue-600" /></div>
+                                        )}
+                                        {doc.audiences.includes("specialists") && (
+                                          <div title="Педагогам" className="w-5 h-5 rounded-full bg-green-100 border border-background flex items-center justify-center"><GraduationCap className="w-2.5 h-2.5 text-green-600" /></div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {doc.meta && (
+                                      <span className="text-[10px] text-muted-foreground font-medium uppercase truncate max-w-[100px]">
+                                        {doc.meta}
+                                      </span>
+                                    )}
+                                  </div>
                                 </CardContent>
                               </Card>
                             ))}
@@ -322,6 +326,7 @@ export default function Legal() {
               )}
             </TabsContent>
           </Tabs>
+        </div>
 
           <Card className="border-border/60 bg-muted/30 mt-8">
             <CardContent className="py-5 px-5">
