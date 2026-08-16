@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 
 interface SeoMeta {
   title: string;
@@ -41,6 +42,7 @@ export function useSeoMeta({
   locale,
 }: SeoMeta) {
   const { i18n } = useTranslation();
+  const location = useLocation();
 
   useEffect(() => {
     // Title
@@ -130,6 +132,41 @@ export function useSeoMeta({
     }
     canonicalEl.setAttribute("href", resolvedUrl);
 
+    // Hreflang
+    const alternateLangs = ["ru", "en", "zh"];
+    document.querySelectorAll('link[rel="alternate"][hreflang]').forEach(el => el.remove());
+
+    // Construct path without current lang prefix if any
+    let baseInternalPath = location.pathname;
+    if (baseInternalPath.startsWith("/en/")) baseInternalPath = baseInternalPath.replace("/en", "");
+    else if (baseInternalPath.startsWith("/zh/")) baseInternalPath = baseInternalPath.replace("/zh", "");
+    else if (baseInternalPath === "/en") baseInternalPath = "/";
+    else if (baseInternalPath === "/zh") baseInternalPath = "/";
+
+    if (baseInternalPath.endsWith("/") && baseInternalPath.length > 1) {
+      baseInternalPath = baseInternalPath.slice(0, -1);
+    }
+
+    alternateLangs.forEach(lang => {
+      const link = document.createElement("link");
+      link.rel = "alternate";
+      link.hreflang = lang === "zh" ? "zh-Hans" : lang;
+      
+      let path = baseInternalPath;
+      if (lang === "en") path = `/en${path === "/" ? "" : path}`;
+      else if (lang === "zh") path = `/zh${path === "/" ? "" : path}`;
+      
+      link.href = `${BASE_URL}${path}`;
+      document.head.appendChild(link);
+    });
+
+    // x-default (usually the main language or a language selector)
+    const xDefault = document.createElement("link");
+    xDefault.rel = "alternate";
+    xDefault.hreflang = "x-default";
+    xDefault.href = `${BASE_URL}${baseInternalPath}`;
+    document.head.appendChild(xDefault);
+
     // JSON-LD — remove all previous
     document.querySelectorAll('[id^="seo-json-ld"]').forEach(el => el.remove());
 
@@ -150,6 +187,7 @@ export function useSeoMeta({
 
     return () => {
       document.querySelectorAll('[id^="seo-json-ld"]').forEach(el => el.remove());
+      document.querySelectorAll('link[rel="alternate"][hreflang]').forEach(el => el.remove());
     };
-  }, [title, description, canonical, keywords, ogImage, ogType, article, noIndex, jsonLd, locale]);
+  }, [title, description, canonical, keywords, ogImage, ogType, article, noIndex, jsonLd, locale, location.pathname]);
 }
