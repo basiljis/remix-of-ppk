@@ -96,18 +96,37 @@ const App = () => {
                   <Suspense fallback={<Preloader />}>
                     <Routes>
                       <Route path="/" element={<RootGate />} />
-                      <Route 
-                        path="/home" 
-                        element={
-                          <Suspense fallback={<HomeSkeleton />}>
-                            <Home />
-                          </Suspense>
-                        } 
-                      />
-                      <Route path="/landing" element={<Landing />} />
+                      
+                      {/* Русская локализация (по умолчанию) */}
+                      <Route path="/home" element={<Suspense fallback={<HomeSkeleton />}><Home /></Suspense>} />
                       <Route path="/about" element={<About />} />
                       <Route path="/features" element={<Features />} />
                       <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:slug" element={<BlogPost />} />
+                      <Route path="/legal" element={<Legal />} />
+                      <Route path="/guides/pmpk-preparation" element={<PmpkPreparation />} />
+
+                      {/* Английская локализация */}
+                      <Route path="/en" element={<RootGate />} />
+                      <Route path="/en/home" element={<Suspense fallback={<HomeSkeleton />}><Home /></Suspense>} />
+                      <Route path="/en/about" element={<About />} />
+                      <Route path="/en/features" element={<Features />} />
+                      <Route path="/en/pricing" element={<Pricing />} />
+                      <Route path="/en/blog" element={<Blog />} />
+                      <Route path="/en/blog/:slug" element={<BlogPost />} />
+
+                      {/* Китайская локализация */}
+                      <Route path="/zh" element={<RootGate />} />
+                      <Route path="/zh/home" element={<Suspense fallback={<HomeSkeleton />}><Home /></Suspense>} />
+                      <Route path="/zh/about" element={<About />} />
+                      <Route path="/zh/features" element={<Features />} />
+                      <Route path="/zh/pricing" element={<Pricing />} />
+                      <Route path="/zh/blog" element={<Blog />} />
+                      <Route path="/zh/blog/:slug" element={<BlogPost />} />
+
+                      {/* Общие маршруты */}
+                      <Route path="/landing" element={<Landing />} />
                       <Route path="/instructions" element={<Instructions />} />
                       <Route path="/for-organizations" element={<ForOrganizations />} />
                       <Route path="/for-specialists" element={<ForSpecialists />} />
@@ -122,19 +141,8 @@ const App = () => {
                       <Route path="/installation" element={<Installation />} />
                       <Route path="/registry" element={<Registry />} />
                       <Route path="/patents" element={<Patents />} />
-                      <Route path="/legal" element={<Legal />} />
                       <Route path="/legal/:sectionId" element={<LegalSection />} />
-                      <Route path="/guides/pmpk-preparation" element={<PmpkPreparation />} />
-                      <Route path="/blog" element={<Blog />} />
-                      <Route path="/blog/:slug" element={<BlogPost />} />
-                      <Route 
-                        path="/app" 
-                        element={
-                          <Suspense fallback={<IndexSkeleton />}>
-                            <Index />
-                          </Suspense>
-                        } 
-                      />
+                      <Route path="/app" element={<Suspense fallback={<IndexSkeleton />}><Index /></Suspense>} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/parent-auth" element={<ParentAuth />} />
@@ -148,7 +156,6 @@ const App = () => {
                       <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/install" element={<Install />} />
                       <Route path="/access-status" element={<AccessRequestStatus />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>

@@ -5,6 +5,8 @@ Allow: /blog/
 Allow: /legal
 Allow: /legal/
 Allow: /guides/
+Allow: /zh/
+Allow: /en/
 Disallow: /app
 Disallow: /auth
 Disallow: /register
@@ -29,6 +31,10 @@ Allow: /
 
 User-agent: Bingbot
 Allow: /
+
+User-agent: Baiduspider
+Allow: /
+Allow: /zh/
 
 Sitemap: https://unvrsm.ru/sitemap.xml
 Host: unvrsm.ru

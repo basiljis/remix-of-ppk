@@ -1,144 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
+  <!-- Главная страница -->
   <url>
     <loc>https://unvrsm.ru/</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/"/>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://unvrsm.ru/home</loc>
+    <loc>https://unvrsm.ru/en/</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/"/>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://unvrsm.ru/landing</loc>
+    <loc>https://unvrsm.ru/zh/</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/"/>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>1.0</priority>
   </url>
-  <url>
-    <loc>https://unvrsm.ru/for-organizations</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/for-specialists</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/for-parents</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/specialists</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/organizations</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
+
+  <!-- О нас -->
   <url>
     <loc>https://unvrsm.ru/about</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/about"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/about"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://unvrsm.ru/en/about</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/about"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/about"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/zh/about</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/about"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/about"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Возможности -->
   <url>
     <loc>https://unvrsm.ru/features</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/features"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/features"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/features"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://unvrsm.ru/en/features</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/features"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/features"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/features"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/zh/features</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/features"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/features"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/features"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Тарифы -->
   <url>
     <loc>https://unvrsm.ru/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/pricing"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://unvrsm.ru/instructions</loc>
+    <loc>https://unvrsm.ru/en/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/pricing"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://unvrsm.ru/documents</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/installation</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/registry</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/privacy-policy</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/partnership-offer</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/patents</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/register</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- Нормативно-правовая база -->
-  <url>
-    <loc>https://unvrsm.ru/legal</loc>
+    <loc>https://unvrsm.ru/zh/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://unvrsm.ru/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://unvrsm.ru/zh/pricing"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/legal/federal</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/legal/donm</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/legal/fgos</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/legal/health</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/legal/security</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/legal/registry</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- Гайды -->
-  <url>
-    <loc>https://unvrsm.ru/guides/pmpk-preparation</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
 
   <!-- Блог -->
@@ -147,48 +111,19 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  
+  <!-- Гайды -->
   <url>
-    <loc>https://unvrsm.ru/blog/kak-provesti-ppk-v-shkole</loc>
-    <lastmod>2026-07-19</lastmod>
+    <loc>https://unvrsm.ru/guides/pmpk-preparation</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
+
+  <!-- Нормативно-правовая база -->
   <url>
-    <loc>https://unvrsm.ru/blog/sluzhba-soprovozhdeniya-po-prikazu-666</loc>
-    <lastmod>2026-07-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/blog/podgotovka-k-pmpk</loc>
-    <lastmod>2026-07-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/blog/kak-ponyat-chto-rebenku-nuzhen-logoped</loc>
-    <lastmod>2026-07-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/blog/podgotovka-psihologicheskoy-sluzhby-k-uchebnomu-godu</loc>
-    <lastmod>2026-08-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/blog/podgotovka-rebenka-k-uchebnomu-godu-roditelyam</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://unvrsm.ru/blog/plan-raboty-sluzhby-soprovozhdeniya-na-god</loc>
-    <lastmod>2026-08-11</lastmod>
+    <loc>https://unvrsm.ru/legal</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
 </urlset>
-
