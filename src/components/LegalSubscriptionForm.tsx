@@ -30,46 +30,30 @@ export function LegalSubscriptionForm() {
   };
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2 mb-1">
-          <Bell className="h-5 w-5 text-primary" />
-          <CardTitle className="text-xl">Следите за изменениями</CardTitle>
+    <Card className="border-primary/20 bg-background shadow-none border rounded-xl overflow-hidden">
+      <CardHeader className="p-4 pb-0">
+        <div className="flex items-center gap-2">
+          <Bell className="h-4 w-4 text-primary" />
+          <CardTitle className="text-lg">Уведомления</CardTitle>
         </div>
-        <CardDescription>
-          Подпишитесь, чтобы первыми узнавать об изменениях в законодательстве и регламентах ППк/ПМПК
-        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="relative flex-1">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="email"
-              placeholder="Ваш e-mail"
-              className="pl-9"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit" disabled={subscribe.isPending} className="gap-2">
-            {subscribe.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Mail className="h-4 w-4" />
-            )}
-            Подписаться по почте
+      <CardContent className="p-4 pt-3">
+        <CardDescription className="text-sm mb-3">
+          Подпишитесь на изменения в законодательстве ППк/ПМПК
+        </CardDescription>
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <Input
+            type="email"
+            placeholder="E-mail"
+            className="h-9 text-sm"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <Button type="submit" disabled={subscribe.isPending} size="sm" className="h-9">
+            {subscribe.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Подписаться"}
           </Button>
         </form>
-        
-        <div className="flex items-center justify-between py-2 border-t border-primary/10 mt-2">
-          <span className="text-sm text-muted-foreground">Также доступны мгновенные уведомления в браузере</span>
-          <Button variant="outline" size="sm" onClick={handlePushNotification} className="gap-2">
-            <Smartphone className="h-4 w-4" />
-            Включить Push
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

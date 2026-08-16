@@ -112,105 +112,108 @@ export default function Legal() {
 
       <main className="flex-1 pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3">
-              Нормативно-правовая база
-            </h1>
-            <p className="text-muted-foreground text-lg mb-4">
-              Перечень федеральных законов, ведомственных приказов и стандартов,
-              на основании которых разработана и эксплуатируется платформа universum.
-            </p>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Badge variant="outline" className="gap-1.5 font-normal">
-                <Eye className="h-3.5 w-3.5 text-primary" />
-                Всего просмотров: <span className="font-semibold">{totals.total.toLocaleString("ru-RU")}</span>
-              </Badge>
-              <Badge variant="outline" className="gap-1.5 font-normal">
-                <Users className="h-3.5 w-3.5 text-primary" />
-                Уникальных: <span className="font-semibold">{totals.unique.toLocaleString("ru-RU")}</span>
-              </Badge>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div className="max-w-2xl">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
+                Нормативная база
+              </h1>
+              <p className="text-muted-foreground text-sm md:text-base">
+                Регламенты, законы и стандарты платформы universum., соответствующие ФЗ-152, ФЗ-273 и приказам ДОНМ.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Визиты</span>
+                <span className="text-lg font-mono font-bold text-primary leading-none">
+                  {totals.total.toLocaleString("ru-RU")}
+                </span>
+              </div>
+              <Separator orientation="vertical" className="h-8" />
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Уникальные</span>
+                <span className="text-lg font-mono font-bold text-primary leading-none">
+                  {totals.unique.toLocaleString("ru-RU")}
+                </span>
+              </div>
             </div>
           </div>
 
-          <LegalSubscriptionForm />
+          <div className="max-w-xl mx-auto">
+            <LegalSubscriptionForm />
+          </div>
           
-          <Separator className="my-10" />
+          <Separator className="my-8 opacity-50" />
 
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <TabsList className="h-auto p-1 flex-wrap justify-start bg-muted/50">
-                <TabsTrigger value="all" className="py-2 px-4">Все документы</TabsTrigger>
-                <TabsTrigger value="federal" className="py-2 px-4 gap-2">
-                  <Scale className="h-3.5 w-3.5" /> Законы
-                </TabsTrigger>
-                <TabsTrigger value="donm" className="py-2 px-4 gap-2">
-                  <BookOpen className="h-3.5 w-3.5" /> Приказы
-                </TabsTrigger>
-                <TabsTrigger value="recommendations" className="py-2 px-4 gap-2">
-                  <Clock className="h-3.5 w-3.5" /> Нормативы
-                </TabsTrigger>
-                <TabsTrigger value="history" className="py-2 px-4 gap-2">
-                  <History className="h-3.5 w-3.5" /> Журнал изменений
-                </TabsTrigger>
-              </TabsList>
+          <div className="flex flex-col gap-6">
+            {/* Toolbar: Tabs, Filters, Search */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <Tabs 
+                defaultValue="all" 
+                value={activeTab} 
+                onValueChange={setActiveTab} 
+                className="w-full lg:w-auto"
+              >
+                <TabsList className="h-9 p-0.5 bg-muted/40 w-full lg:w-auto overflow-x-auto overflow-y-hidden flex-nowrap whitespace-nowrap justify-start lg:justify-center">
+                  <TabsTrigger value="all" className="text-xs h-8 px-3">Все</TabsTrigger>
+                  <TabsTrigger value="federal" className="text-xs h-8 px-3 gap-1.5">
+                    <Scale className="h-3 w-3" /> Законы
+                  </TabsTrigger>
+                  <TabsTrigger value="donm" className="text-xs h-8 px-3 gap-1.5">
+                    <BookOpen className="h-3 w-3" /> Приказы
+                  </TabsTrigger>
+                  <TabsTrigger value="recommendations" className="text-xs h-8 px-3 gap-1.5">
+                    <Clock className="h-3 w-3" /> Нормы
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs h-8 px-3 gap-1.5">
+                    <History className="h-3 w-3" /> Журнал
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-              <div className="flex flex-wrap gap-2 mb-4 md:mb-0">
-                <Button
-                  variant={activeAudience === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("all")}
-                  className="text-xs h-8"
-                >
-                  Все
-                </Button>
-                <Button
-                  variant={activeAudience === "parents" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("parents")}
-                  className="text-xs h-8"
-                >
-                  Родителям
-                </Button>
-                <Button
-                  variant={activeAudience === "admin" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("admin")}
-                  className="text-xs h-8"
-                >
-                  Администрации
-                </Button>
-                <Button
-                  variant={activeAudience === "specialists" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("specialists")}
-                  className="text-xs h-8"
-                >
-                  Педагогам
-                </Button>
-              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                <div className="flex p-0.5 bg-muted/40 rounded-lg w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none">
+                  {[
+                    { id: "all", label: "Все" },
+                    { id: "parents", label: "Родителям" },
+                    { id: "admin", label: "Админ" },
+                    { id: "specialists", label: "Педагогам" }
+                  ].map((aud) => (
+                    <button
+                      key={aud.id}
+                      onClick={() => setActiveAudience(aud.id as any)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                        activeAudience === aud.id 
+                          ? "bg-primary text-primary-foreground shadow-sm" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      {aud.label}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  type="text"
-                  placeholder="Поиск по документам…"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="pl-9 pr-10 h-10"
-                />
-                {hasQuery && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                    onClick={() => setQuery("")}
-                    aria-label="Очистить поиск"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    type="text"
+                    placeholder="Поиск..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="pl-8 pr-8 h-9 text-sm rounded-lg"
+                  />
+                  {hasQuery && (
+                    <button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setQuery("")}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+
+            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
 
             <TabsContent value="history" className="mt-0">
               <LegalUpdatesHistory />
@@ -250,67 +253,75 @@ export default function Legal() {
                     filteredSections.map((section, idx) => {
                       const Icon = section.icon;
                       return (
-                        <section key={section.id} id={section.id} className="mb-12 scroll-mt-24">
-                          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                        <section key={section.id} id={section.id} className="mb-10 scroll-mt-24">
+                          <div className="flex items-center justify-between gap-3 mb-6 border-b border-border/40 pb-2">
                             <div className="flex items-center gap-2">
-                              <Icon className="h-5 w-5 text-primary" />
-                              <h2 className="text-2xl font-semibold">{section.title}</h2>
+                              <div className="p-1.5 rounded-md bg-primary/10">
+                                <Icon className="h-4 w-4 text-primary" />
+                              </div>
+                              <h2 className="text-xl font-bold">{section.title}</h2>
+                              <Badge variant="outline" className="ml-2 h-5 text-[10px] font-medium border-primary/20 bg-primary/5">
+                                {section.docs.length}
+                              </Badge>
                             </div>
-                            <Button asChild variant="outline" size="sm">
+                            <Button asChild variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-primary">
                               <Link to={`/legal/${section.id}`}>
-                                Открыть раздел
-                                <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                                Подробнее <ChevronRight className="h-3 w-3 ml-1" />
                               </Link>
                             </Button>
                           </div>
-                          <p className="text-muted-foreground mb-6">{section.intro}</p>
+                          {/* section.intro excluded for brevity as requested by "loconic" look */}
 
-                          <div className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {section.docs.map((doc) => (
-                              <Card key={doc.title} className="border-border/60">
-                                <CardHeader className="pb-2">
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="flex flex-col gap-2 min-w-0">
-                                      <div className="flex items-start gap-3">
-                                        <FileText className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                                        <CardTitle className="text-base leading-snug">
-                                          <a
-                                            href={doc.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="hover:text-primary transition-colors inline-flex items-start gap-1"
-                                          >
-                                            <span>{doc.title}</span>
-                                            <ExternalLink className="h-3.5 w-3.5 mt-1 flex-shrink-0 opacity-60" />
-                                          </a>
-                                        </CardTitle>
-                                      </div>
-                                      {doc.audiences && (
-                                        <div className="flex flex-wrap gap-1.5 ml-7">
-                                          {doc.audiences.includes("parents") && (
-                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-orange-200 text-orange-700 bg-orange-50">Родителям</Badge>
-                                          )}
-                                          {doc.audiences.includes("admin") && (
-                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-blue-200 text-blue-700 bg-blue-50">Администрации</Badge>
-                                          )}
-                                          {doc.audiences.includes("specialists") && (
-                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-green-200 text-green-700 bg-green-50">Педагогам</Badge>
-                                          )}
-                                        </div>
-                                      )}
+                              <Card key={doc.title} className="group border-border/40 hover:border-primary/30 transition-all shadow-sm hover:shadow-md bg-card/50">
+                                <CardHeader className="p-4 pb-2">
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex justify-between items-start">
+                                      {doc.badge ? (
+                                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 uppercase tracking-wider font-bold">
+                                          {doc.badge}
+                                        </Badge>
+                                      ) : <div className="h-4" />}
+                                      <a
+                                        href={doc.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-muted-foreground hover:text-primary transition-colors p-1"
+                                      >
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                      </a>
                                     </div>
-                                    {doc.badge && (
-                                      <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                                        {doc.badge}
-                                      </Badge>
-                                    )}
+                                    <CardTitle className="text-sm font-semibold leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-[2.5rem]">
+                                      {doc.title}
+                                    </CardTitle>
                                   </div>
                                 </CardHeader>
-                                <CardContent className="pt-0 pl-12">
-                                  {doc.meta && (
-                                    <p className="text-xs text-muted-foreground mb-1">{doc.meta}</p>
-                                  )}
-                                  <p className="text-sm text-muted-foreground">{doc.description}</p>
+                                <CardContent className="p-4 pt-0 space-y-3">
+                                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                                    {doc.description}
+                                  </p>
+                                  
+                                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border/40 mt-auto">
+                                    {doc.audiences && (
+                                      <div className="flex -space-x-1">
+                                        {doc.audiences.includes("parents") && (
+                                          <div title="Родителям" className="w-5 h-5 rounded-full bg-orange-100 border border-background flex items-center justify-center"><Users className="w-2.5 h-2.5 text-orange-600" /></div>
+                                        )}
+                                        {doc.audiences.includes("admin") && (
+                                          <div title="Администрации" className="w-5 h-5 rounded-full bg-blue-100 border border-background flex items-center justify-center"><Shield className="w-2.5 h-2.5 text-blue-600" /></div>
+                                        )}
+                                        {doc.audiences.includes("specialists") && (
+                                          <div title="Педагогам" className="w-5 h-5 rounded-full bg-green-100 border border-background flex items-center justify-center"><GraduationCap className="w-2.5 h-2.5 text-green-600" /></div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {doc.meta && (
+                                      <span className="text-[10px] text-muted-foreground font-medium uppercase truncate max-w-[100px]">
+                                        {doc.meta}
+                                      </span>
+                                    )}
+                                  </div>
                                 </CardContent>
                               </Card>
                             ))}
@@ -325,6 +336,7 @@ export default function Legal() {
               )}
             </TabsContent>
           </Tabs>
+        </div>
 
           <Card className="border-border/60 bg-muted/30 mt-8">
             <CardContent className="py-5 px-5">
