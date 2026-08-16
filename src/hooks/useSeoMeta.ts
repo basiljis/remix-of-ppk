@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 interface SeoMeta {
   title: string;
@@ -16,7 +17,7 @@ interface SeoMeta {
   };
   noIndex?: boolean;
   jsonLd?: object | object[];
-  locale?: "ru_RU" | "en_US";
+  locale?: "ru_RU" | "en_US" | "zh_CN";
 }
 
 
@@ -35,6 +36,7 @@ export function useSeoMeta({
   jsonLd,
   locale,
 }: SeoMeta) {
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     // Title
@@ -76,8 +78,13 @@ export function useSeoMeta({
     setMeta("property", "og:site_name", "universum.");
     const resolvedLocale =
       locale ||
-      ((document.documentElement.lang || "ru").toLowerCase().startsWith("en") ? "en_US" : "ru_RU");
+      (i18n.language === "zh" ? "zh_CN" : i18n.language === "en" ? "en_US" : "ru_RU");
     setMeta("property", "og:locale", resolvedLocale);
+
+    // Twitter
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@unvrsm_ru");
+    setMeta("name", "twitter:creator", "@unvrsm_ru");
 
 
     // Article-specific OG tags — clean up when not an article
