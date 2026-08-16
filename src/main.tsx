@@ -4,7 +4,9 @@ import { registerServiceWorker } from './service-worker-registration';
 // Redirect unvrsm.ru:8080 to unvrsm.ru (stripping port for production cleanup)
 if (window.location.port === '8080' && (window.location.hostname === 'unvrsm.ru' || window.location.hostname === 'www.unvrsm.ru')) {
   // Ensure we preserve the full path and query, but move to standard https
-  window.location.replace('https://' + window.location.hostname + window.location.pathname + window.location.search);
+  const newUrl = 'https://' + window.location.hostname + window.location.pathname + window.location.search;
+  console.log('Redirecting to production domain:', newUrl);
+  window.location.replace(newUrl);
 }
 
 // Ensure preloader doesn't hang due to CSS/Asset loading delays
