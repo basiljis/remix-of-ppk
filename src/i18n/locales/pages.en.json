@@ -14,6 +14,62 @@
     "pricing": "Pricing",
     "features": "Features"
   },
+  "notFound": {
+    "title": "Page not found",
+    "description": "Sorry, the requested page does not exist or has been moved.",
+    "imageAlt": "404 — Page not found",
+    "homeButton": "Go home"
+  },
+  "about": {
+    "seoTitle": "About Us — universum. Innovation in Child Development Support",
+    "seoDescription": "Learn about universum., a comprehensive platform for child development support. We automate PMPK/PPC protocols, provide development cards, and offer analytics for educators and parents.",
+    "heroTitlePart1": "Technology that benefits",
+    "heroTitleAccent": "every child",
+    "heroSubtitle": "universum. is a platform that brings together educators, organizations and parents to comprehensively support every child's development.",
+    "missionTitle": "Our mission",
+    "missionText": "Make high-quality developmental support accessible to every child in Russia by freeing educators from paperwork."
+  },
+  "pricing": {
+    "seoTitle": "Pricing and Plans — universum. Child Development Platform",
+    "seoDescription": "Explore universum. pricing plans for educators, schools, and PPMS centers. Automated PMPK protocols, child development tracking, and analytics. Try for free today.",
+    "seoKeywords": "child development platform price, PMPK automation cost, educational software pricing, school psychologist tools, child assessment software cost",
+    "heroTitlePart1": "Simple and clear",
+    "heroTitleAccent": "pricing",
+    "heroSubtitle": "Pick the plan that fits your needs. Start free — pay only when you're ready.",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "period": "",
+        "description": "Get to know the platform"
+      },
+      "specialist": {
+        "name": "Specialist",
+        "price": "$12",
+        "period": "/ mo",
+        "description": "For private practitioners and educators"
+      },
+      "org": {
+        "name": "Organization",
+        "price": "$59",
+        "period": "/ mo",
+        "description": "For schools, PPMS centres and CPPMSP"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "On request",
+        "period": "",
+        "description": "For networks and regional projects"
+      }
+    }
+  },
+  "features": {
+    "seoTitle": "Platform Features — Automated PMPK, Child Cards, and Analytics | universum.",
+    "seoDescription": "Discover universum. features: automated PMPK protocols, child development cards, session journals, analytics, and online booking. The complete toolkit for child specialists.",
+    "heroTitlePart1": "Everything for",
+    "heroTitleAccent": "child development",
+    "heroSubtitle": "A complete toolkit for educators, organizations and parents — from PMPK protocols to interactive games."
+  },
   "homePage": {
     "seoTitle": "universum. — Child Development Platform | Automated PMPK & PPC Protocols",
     "seoDescription": "Automate psychological and pedagogical councils (PMPK/PPC) with universum. Specialized tools for school psychologists, speech therapists, and educators. Child development cards, analytics, and reporting.",

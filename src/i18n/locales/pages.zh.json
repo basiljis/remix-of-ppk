@@ -46,7 +46,7 @@
         "currency": "¥",
         "period": "/ 月",
         "cta": "选择方案",
-        "description": "适用于私人执业者 and 教育者"
+        "description": "适用于私人执业者和教育者"
       },
       "org": {
         "name": "机构版",
@@ -63,6 +63,13 @@
         "description": "适用于连锁机构和区域项目"
       }
     }
+  },
+  "features": {
+    "seoTitle": "核心功能 — PMPK 自动化、儿童卡与数据分析 | universum.",
+    "seoDescription": "探索 universum. 的功能：自动化 PMPK 协议、儿童发展卡、课程日志、分析和在线预约。为儿童专家提供的完整工具包。",
+    "heroTitlePart1": "助力",
+    "heroTitleAccent": "儿童发展",
+    "heroSubtitle": "为教育工作者、机构和家长提供的全套工具——从 PMPK 协议到互动游戏。"
   },
   "landing": {
     "hero": {
