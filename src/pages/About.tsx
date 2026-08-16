@@ -57,14 +57,29 @@ export default function About() {
           "@type": "PostalAddress",
           addressCountry: "RU",
           addressLocality: "Москва"
-        }
+        },
+        sameAs: [
+          "https://t.me/universum_platform",
+          "https://vk.com/universum_platform"
+        ]
       },
       {
         "@context": "https://schema.org",
-        "@type": "WebPage",
-        name: "О платформе universum.",
-        url: "https://unvrsm.ru/about",
-        description: "Информация о платформе universum. для поддержки развития детей"
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Главная",
+            item: "https://unvrsm.ru/"
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "О платформе",
+            item: "https://unvrsm.ru/about"
+          }
+        ]
       }
     ]
   });
