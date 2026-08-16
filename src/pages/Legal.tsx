@@ -132,7 +132,9 @@ export default function Legal() {
             </div>
           </div>
 
-          <LegalSubscriptionForm />
+          <div className="max-w-xl mx-auto">
+            <LegalSubscriptionForm />
+          </div>
           
           <Separator className="my-10" />
 
