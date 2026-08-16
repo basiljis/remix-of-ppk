@@ -107,25 +107,52 @@ export default function Pricing() {
     description: t("pages:pricing.seoDescription", "Тарифные планы платформы universum.: бесплатный, для специалистов, организаций и корпоративных клиентов. Попробуйте бесплатно."),
     canonical: "/pricing",
     keywords: t("pages:pricing.seoKeywords", "тарифы universum, цена ППк, стоимость подписки, тариф для организаций, тариф для специалистов"),
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: t("pages:pricing.seoTitle", "Тарифы universum."),
-      url: "https://unvrsm.ru/pricing",
-      mainEntity: {
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": t("pages:common.home", "Главная"),
+            "item": "https://unvrsm.ru/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": t("pages:pricing.seoTitle", "Тарифы"),
+            "item": "https://unvrsm.ru/pricing"
+          }
+        ]
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faq.map(item => ({
+          "@type": "Question",
+          "name": item.q,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": item.a
+          }
+        }))
+      },
+      {
+        "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        name: "universum.",
-        applicationCategory: "EducationalApplication",
-        operatingSystem: "Web",
-        offers: plans.filter(p => typeof p.price === 'string' && !p.price.includes('запрос')).map(p => ({
+        "name": "universum.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "offers": plans.filter(p => typeof p.price === 'string' && !p.price.includes('запрос')).map(p => ({
           "@type": "Offer",
-          name: p.name,
-          price: (p.price as string).replace(/[^\d]/g, '') || "0",
-          priceCurrency: "RUB",
-          url: "https://unvrsm.ru/pricing"
+          "name": p.name,
+          "price": (p.price as string).replace(/[^\d]/g, '') || "0",
+          "priceCurrency": "RUB",
+          "url": "https://unvrsm.ru/pricing"
         }))
       }
-    }
+    ]
   });
 
   return (

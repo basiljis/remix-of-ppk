@@ -56,6 +56,26 @@ export default function Legal() {
     canonical: "/legal",
     keywords:
       "нормативно-правовая база, ФЗ-152, ФЗ-273, Приказ 666 ДОНМ, ППк, ПМПК, ФГОС ОВЗ, СанПиН, ФСТЭК, защита персональных данных",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Главная",
+            "item": "https://unvrsm.ru/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Нормативная база",
+            "item": "https://unvrsm.ru/legal"
+          }
+        ]
+      }
+    ]
   });
 
   const filteredSections = useMemo(() => {
