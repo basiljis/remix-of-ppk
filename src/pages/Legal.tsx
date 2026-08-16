@@ -27,14 +27,19 @@ import {
   legalSections,
   type LegalDoc,
   type LegalSection,
+  type LegalAudience,
 } from "@/data/legalSections";
 import { useLogLegalView, useLegalViewStats } from "@/hooks/useLegalViews";
 import { LegalSubscriptionForm } from "@/components/LegalSubscriptionForm";
 import { LegalUpdatesHistory } from "@/components/LegalUpdatesHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-function matchesQuery(doc: LegalDoc, q: string): boolean {
+function matchesQuery(doc: LegalDoc, q: string, audience: string): boolean {
   const term = q.trim().toLowerCase();
+  const audienceMatch = audience === "all" || (doc.audiences?.includes(audience as LegalAudience) ?? true);
+  
+  if (!audienceMatch) return false;
+
   return (
     doc.title.toLowerCase().includes(term) ||
     doc.description.toLowerCase().includes(term) ||
@@ -46,6 +51,7 @@ function matchesQuery(doc: LegalDoc, q: string): boolean {
 export default function Legal() {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [activeAudience, setActiveAudience] = useState<"all" | LegalAudience>("all");
   useLogLegalView(null);
   const { stats, totals } = useLegalViewStats();
 
@@ -86,21 +92,15 @@ export default function Legal() {
       base = legalSections.filter(s => s.id === activeTab);
     }
 
-    if (!q) return base;
-
     return base
       .map((section) => {
-        const sectionMatch =
-          section.title.toLowerCase().includes(q) ||
-          section.intro.toLowerCase().includes(q);
-        const matchedDocs = section.docs.filter((doc) => matchesQuery(doc, q));
+        const matchedDocs = section.docs.filter((doc) => matchesQuery(doc, q, activeAudience));
 
-        if (sectionMatch) return section;
         if (matchedDocs.length > 0) return { ...section, docs: matchedDocs };
         return null;
       })
       .filter((s): s is LegalSection => s !== null);
-  }, [query, activeTab]);
+  }, [query, activeTab, activeAudience]);
 
   const totalDocs = filteredSections.reduce((sum, s) => sum + s.docs.length, 0);
   const hasQuery = query.trim().length > 0;
@@ -145,10 +145,48 @@ export default function Legal() {
                 <TabsTrigger value="donm" className="py-2 px-4 gap-2">
                   <BookOpen className="h-3.5 w-3.5" /> Приказы
                 </TabsTrigger>
+                <TabsTrigger value="recommendations" className="py-2 px-4 gap-2">
+                  <Clock className="h-3.5 w-3.5" /> Нормативы
+                </TabsTrigger>
                 <TabsTrigger value="history" className="py-2 px-4 gap-2">
                   <History className="h-3.5 w-3.5" /> Журнал изменений
                 </TabsTrigger>
               </TabsList>
+
+              <div className="flex flex-wrap gap-2 mb-4 md:mb-0">
+                <Button
+                  variant={activeAudience === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveAudience("all")}
+                  className="text-xs h-8"
+                >
+                  Все
+                </Button>
+                <Button
+                  variant={activeAudience === "parents" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveAudience("parents")}
+                  className="text-xs h-8"
+                >
+                  Родителям
+                </Button>
+                <Button
+                  variant={activeAudience === "admin" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveAudience("admin")}
+                  className="text-xs h-8"
+                >
+                  Администрации
+                </Button>
+                <Button
+                  variant={activeAudience === "specialists" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveAudience("specialists")}
+                  className="text-xs h-8"
+                >
+                  Педагогам
+                </Button>
+              </div>
 
               <div className="relative w-full md:w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -231,19 +269,34 @@ export default function Legal() {
                               <Card key={doc.title} className="border-border/60">
                                 <CardHeader className="pb-2">
                                   <div className="flex items-start justify-between gap-3">
-                                    <div className="flex items-start gap-3 min-w-0">
-                                      <FileText className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                                      <CardTitle className="text-base leading-snug">
-                                        <a
-                                          href={doc.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="hover:text-primary transition-colors inline-flex items-start gap-1"
-                                        >
-                                          <span>{doc.title}</span>
-                                          <ExternalLink className="h-3.5 w-3.5 mt-1 flex-shrink-0 opacity-60" />
-                                        </a>
-                                      </CardTitle>
+                                    <div className="flex flex-col gap-2 min-w-0">
+                                      <div className="flex items-start gap-3">
+                                        <FileText className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                                        <CardTitle className="text-base leading-snug">
+                                          <a
+                                            href={doc.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:text-primary transition-colors inline-flex items-start gap-1"
+                                          >
+                                            <span>{doc.title}</span>
+                                            <ExternalLink className="h-3.5 w-3.5 mt-1 flex-shrink-0 opacity-60" />
+                                          </a>
+                                        </CardTitle>
+                                      </div>
+                                      {doc.audiences && (
+                                        <div className="flex flex-wrap gap-1.5 ml-7">
+                                          {doc.audiences.includes("parents") && (
+                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-orange-200 text-orange-700 bg-orange-50">Родителям</Badge>
+                                          )}
+                                          {doc.audiences.includes("admin") && (
+                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-blue-200 text-blue-700 bg-blue-50">Администрации</Badge>
+                                          )}
+                                          {doc.audiences.includes("specialists") && (
+                                            <Badge variant="outline" className="text-[10px] py-0 h-4 border-green-200 text-green-700 bg-green-50">Педагогам</Badge>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
                                     {doc.badge && (
                                       <Badge variant="secondary" className="flex-shrink-0 text-xs">
