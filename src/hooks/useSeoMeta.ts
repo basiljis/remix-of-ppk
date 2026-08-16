@@ -6,6 +6,8 @@ interface SeoMeta {
   description: string;
   canonical?: string;
   keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
   ogImage?: string;
   ogType?: "website" | "article";
   article?: {
@@ -29,6 +31,8 @@ export function useSeoMeta({
   description,
   canonical,
   keywords,
+  ogTitle,
+  ogDescription,
   ogImage = DEFAULT_OG_IMAGE,
   ogType = "website",
   article,
@@ -67,8 +71,8 @@ export function useSeoMeta({
     const resolvedOgImage = ogImage.startsWith("http") ? ogImage : `${BASE_URL}${ogImage}`;
 
     // Open Graph
-    setMeta("property", "og:title", title);
-    setMeta("property", "og:description", description);
+    setMeta("property", "og:title", ogTitle || title);
+    setMeta("property", "og:description", ogDescription || description);
     setMeta("property", "og:image", resolvedOgImage);
     setMeta("property", "og:image:alt", title);
     setMeta("property", "og:image:width", "1200");
@@ -112,8 +116,8 @@ export function useSeoMeta({
 
     // Twitter
     setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", title);
-    setMeta("name", "twitter:description", description);
+    setMeta("name", "twitter:title", ogTitle || title);
+    setMeta("name", "twitter:description", ogDescription || description);
     setMeta("name", "twitter:image", resolvedOgImage);
     setMeta("name", "twitter:image:alt", title);
 
