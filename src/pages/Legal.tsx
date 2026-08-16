@@ -253,20 +253,24 @@ export default function Legal() {
                     filteredSections.map((section, idx) => {
                       const Icon = section.icon;
                       return (
-                        <section key={section.id} id={section.id} className="mb-12 scroll-mt-24">
-                          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                        <section key={section.id} id={section.id} className="mb-10 scroll-mt-24">
+                          <div className="flex items-center justify-between gap-3 mb-6 border-b border-border/40 pb-2">
                             <div className="flex items-center gap-2">
-                              <Icon className="h-5 w-5 text-primary" />
-                              <h2 className="text-2xl font-semibold">{section.title}</h2>
+                              <div className="p-1.5 rounded-md bg-primary/10">
+                                <Icon className="h-4 w-4 text-primary" />
+                              </div>
+                              <h2 className="text-xl font-bold">{section.title}</h2>
+                              <Badge variant="outline" className="ml-2 h-5 text-[10px] font-medium border-primary/20 bg-primary/5">
+                                {section.docs.length}
+                              </Badge>
                             </div>
-                            <Button asChild variant="outline" size="sm">
+                            <Button asChild variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-primary">
                               <Link to={`/legal/${section.id}`}>
-                                Открыть раздел
-                                <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                                Подробнее <ChevronRight className="h-3 w-3 ml-1" />
                               </Link>
                             </Button>
                           </div>
-                          <p className="text-muted-foreground mb-6">{section.intro}</p>
+                          {/* section.intro excluded for brevity as requested by "loconic" look */}
 
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {section.docs.map((doc) => (
