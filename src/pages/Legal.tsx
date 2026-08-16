@@ -112,23 +112,29 @@ export default function Legal() {
 
       <main className="flex-1 pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3">
-              Нормативно-правовая база
-            </h1>
-            <p className="text-muted-foreground text-lg mb-4">
-              Перечень федеральных законов, ведомственных приказов и стандартов,
-              на основании которых разработана и эксплуатируется платформа universum.
-            </p>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Badge variant="outline" className="gap-1.5 font-normal">
-                <Eye className="h-3.5 w-3.5 text-primary" />
-                Всего просмотров: <span className="font-semibold">{totals.total.toLocaleString("ru-RU")}</span>
-              </Badge>
-              <Badge variant="outline" className="gap-1.5 font-normal">
-                <Users className="h-3.5 w-3.5 text-primary" />
-                Уникальных: <span className="font-semibold">{totals.unique.toLocaleString("ru-RU")}</span>
-              </Badge>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div className="max-w-2xl">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
+                Нормативная база
+              </h1>
+              <p className="text-muted-foreground text-sm md:text-base">
+                Регламенты, законы и стандарты платформы universum., соответствующие ФЗ-152, ФЗ-273 и приказам ДОНМ.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Визиты</span>
+                <span className="text-lg font-mono font-bold text-primary leading-none">
+                  {totals.total.toLocaleString("ru-RU")}
+                </span>
+              </div>
+              <Separator orientation="vertical" className="h-8" />
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Уникальные</span>
+                <span className="text-lg font-mono font-bold text-primary leading-none">
+                  {totals.unique.toLocaleString("ru-RU")}
+                </span>
+              </div>
             </div>
           </div>
 
