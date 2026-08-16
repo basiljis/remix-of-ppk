@@ -1,9 +1,10 @@
 import './index.css';
 import { registerServiceWorker } from './service-worker-registration';
 
-// Redirect unvrsm.ru:8080 to unvrsm.ru
+// Redirect unvrsm.ru:8080 to unvrsm.ru (stripping port for production cleanup)
 if (window.location.port === '8080' && (window.location.hostname === 'unvrsm.ru' || window.location.hostname === 'www.unvrsm.ru')) {
-  window.location.href = window.location.protocol + '//' + window.location.hostname + window.location.pathname + window.location.search;
+  // Ensure we preserve the full path and query, but move to standard https
+  window.location.replace('https://' + window.location.hostname + window.location.pathname + window.location.search);
 }
 
 // Ensure preloader doesn't hang due to CSS/Asset loading delays
@@ -87,7 +88,7 @@ void bootstrap().catch((error) => {
   console.error('[bootstrap] Failed to start application', error);
   // Ensure we are not on a specific port that might be causing issues
   if (window.location.port === '8080' && window.location.hostname === 'unvrsm.ru') {
-    window.location.href = 'http://unvrsm.ru/';
+    window.location.replace('https://unvrsm.ru' + window.location.pathname);
     return;
   }
   showBootstrapError();
