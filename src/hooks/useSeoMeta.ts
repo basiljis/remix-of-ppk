@@ -1,10 +1,13 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 interface SeoMeta {
   title: string;
   description: string;
   canonical?: string;
   keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
   ogImage?: string;
   ogType?: "website" | "article";
   article?: {
@@ -16,7 +19,7 @@ interface SeoMeta {
   };
   noIndex?: boolean;
   jsonLd?: object | object[];
-  locale?: "ru_RU" | "en_US";
+  locale?: "ru_RU" | "en_US" | "zh_CN";
 }
 
 
@@ -28,6 +31,8 @@ export function useSeoMeta({
   description,
   canonical,
   keywords,
+  ogTitle,
+  ogDescription,
   ogImage = DEFAULT_OG_IMAGE,
   ogType = "website",
   article,
@@ -35,6 +40,7 @@ export function useSeoMeta({
   jsonLd,
   locale,
 }: SeoMeta) {
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     // Title
@@ -65,8 +71,8 @@ export function useSeoMeta({
     const resolvedOgImage = ogImage.startsWith("http") ? ogImage : `${BASE_URL}${ogImage}`;
 
     // Open Graph
-    setMeta("property", "og:title", title);
-    setMeta("property", "og:description", description);
+    setMeta("property", "og:title", ogTitle || title);
+    setMeta("property", "og:description", ogDescription || description);
     setMeta("property", "og:image", resolvedOgImage);
     setMeta("property", "og:image:alt", title);
     setMeta("property", "og:image:width", "1200");
@@ -76,8 +82,13 @@ export function useSeoMeta({
     setMeta("property", "og:site_name", "universum.");
     const resolvedLocale =
       locale ||
-      ((document.documentElement.lang || "ru").toLowerCase().startsWith("en") ? "en_US" : "ru_RU");
+      (i18n.language === "zh" ? "zh_CN" : i18n.language === "en" ? "en_US" : "ru_RU");
     setMeta("property", "og:locale", resolvedLocale);
+
+    // Twitter
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@unvrsm_ru");
+    setMeta("name", "twitter:creator", "@unvrsm_ru");
 
 
     // Article-specific OG tags — clean up when not an article
@@ -105,8 +116,8 @@ export function useSeoMeta({
 
     // Twitter
     setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", title);
-    setMeta("name", "twitter:description", description);
+    setMeta("name", "twitter:title", ogTitle || title);
+    setMeta("name", "twitter:description", ogDescription || description);
     setMeta("name", "twitter:image", resolvedOgImage);
     setMeta("name", "twitter:image:alt", title);
 
