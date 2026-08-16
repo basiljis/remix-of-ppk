@@ -136,83 +136,78 @@ export default function Legal() {
             <LegalSubscriptionForm />
           </div>
           
-          <Separator className="my-10" />
+          <Separator className="my-8 opacity-50" />
 
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <TabsList className="h-auto p-1 flex-wrap justify-start bg-muted/50">
-                <TabsTrigger value="all" className="py-2 px-4">Все документы</TabsTrigger>
-                <TabsTrigger value="federal" className="py-2 px-4 gap-2">
-                  <Scale className="h-3.5 w-3.5" /> Законы
-                </TabsTrigger>
-                <TabsTrigger value="donm" className="py-2 px-4 gap-2">
-                  <BookOpen className="h-3.5 w-3.5" /> Приказы
-                </TabsTrigger>
-                <TabsTrigger value="recommendations" className="py-2 px-4 gap-2">
-                  <Clock className="h-3.5 w-3.5" /> Нормативы
-                </TabsTrigger>
-                <TabsTrigger value="history" className="py-2 px-4 gap-2">
-                  <History className="h-3.5 w-3.5" /> Журнал изменений
-                </TabsTrigger>
-              </TabsList>
+          <div className="flex flex-col gap-6">
+            {/* Toolbar: Tabs, Filters, Search */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <Tabs 
+                defaultValue="all" 
+                value={activeTab} 
+                onValueChange={setActiveTab} 
+                className="w-full lg:w-auto"
+              >
+                <TabsList className="h-9 p-0.5 bg-muted/40 w-full lg:w-auto overflow-x-auto overflow-y-hidden flex-nowrap whitespace-nowrap justify-start lg:justify-center">
+                  <TabsTrigger value="all" className="text-xs h-8 px-3">Все</TabsTrigger>
+                  <TabsTrigger value="federal" className="text-xs h-8 px-3 gap-1.5">
+                    <Scale className="h-3 w-3" /> Законы
+                  </TabsTrigger>
+                  <TabsTrigger value="donm" className="text-xs h-8 px-3 gap-1.5">
+                    <BookOpen className="h-3 w-3" /> Приказы
+                  </TabsTrigger>
+                  <TabsTrigger value="recommendations" className="text-xs h-8 px-3 gap-1.5">
+                    <Clock className="h-3 w-3" /> Нормы
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs h-8 px-3 gap-1.5">
+                    <History className="h-3 w-3" /> Журнал
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-              <div className="flex flex-wrap gap-2 mb-4 md:mb-0">
-                <Button
-                  variant={activeAudience === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("all")}
-                  className="text-xs h-8"
-                >
-                  Все
-                </Button>
-                <Button
-                  variant={activeAudience === "parents" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("parents")}
-                  className="text-xs h-8"
-                >
-                  Родителям
-                </Button>
-                <Button
-                  variant={activeAudience === "admin" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("admin")}
-                  className="text-xs h-8"
-                >
-                  Администрации
-                </Button>
-                <Button
-                  variant={activeAudience === "specialists" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveAudience("specialists")}
-                  className="text-xs h-8"
-                >
-                  Педагогам
-                </Button>
-              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                <div className="flex p-0.5 bg-muted/40 rounded-lg w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none">
+                  {[
+                    { id: "all", label: "Все" },
+                    { id: "parents", label: "Родителям" },
+                    { id: "admin", label: "Админ" },
+                    { id: "specialists", label: "Педагогам" }
+                  ].map((aud) => (
+                    <button
+                      key={aud.id}
+                      onClick={() => setActiveAudience(aud.id as any)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                        activeAudience === aud.id 
+                          ? "bg-primary text-primary-foreground shadow-sm" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      {aud.label}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  type="text"
-                  placeholder="Поиск по документам…"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="pl-9 pr-10 h-10"
-                />
-                {hasQuery && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                    onClick={() => setQuery("")}
-                    aria-label="Очистить поиск"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    type="text"
+                    placeholder="Поиск..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="pl-8 pr-8 h-9 text-sm rounded-lg"
+                  />
+                  {hasQuery && (
+                    <button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setQuery("")}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+
+            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
 
             <TabsContent value="history" className="mt-0">
               <LegalUpdatesHistory />
