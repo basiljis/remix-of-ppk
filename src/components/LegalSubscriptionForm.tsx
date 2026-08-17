@@ -30,30 +30,28 @@ export function LegalSubscriptionForm() {
   };
 
   return (
-    <Card className="border-primary/20 bg-background shadow-none border rounded-xl overflow-hidden">
-      <CardHeader className="p-4 pb-0">
-        <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4 text-primary" />
-          <CardTitle className="text-lg">Уведомления</CardTitle>
+    <Card className="border-primary/20 bg-primary/5 shadow-none border rounded-xl overflow-hidden">
+      <CardContent className="p-3">
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <Bell className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold whitespace-nowrap">Уведомления об обновлениях</span>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="flex-1 flex gap-2 w-full">
+            <Input
+              type="email"
+              placeholder="E-mail"
+              className="h-8 text-xs bg-background/80"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Button type="submit" disabled={subscribe.isPending} size="sm" className="h-8 text-xs px-3 shrink-0">
+              {subscribe.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Подписаться"}
+            </Button>
+          </form>
         </div>
-      </CardHeader>
-      <CardContent className="p-4 pt-3">
-        <CardDescription className="text-sm mb-3">
-          Подпишитесь на изменения в законодательстве ППк/ПМПК
-        </CardDescription>
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            type="email"
-            placeholder="E-mail"
-            className="h-9 text-sm"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Button type="submit" disabled={subscribe.isPending} size="sm" className="h-9">
-            {subscribe.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Подписаться"}
-          </Button>
-        </form>
       </CardContent>
     </Card>
   );

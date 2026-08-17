@@ -138,7 +138,7 @@ export default function Legal() {
             </div>
           </div>
 
-          <div className="max-w-xl mx-auto">
+          <div className="mb-8">
             <LegalSubscriptionForm />
           </div>
           
