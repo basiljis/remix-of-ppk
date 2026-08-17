@@ -45,11 +45,10 @@ export function useLegalSubscription() {
           },
           { onConflict: "email" }
         )
-        .select()
-        .single();
+        .select();
 
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       toast.success("Вы успешно подписались на обновления нормативной базы");
