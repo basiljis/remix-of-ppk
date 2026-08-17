@@ -302,25 +302,34 @@ export default function Legal() {
                                     {doc.description}
                                   </p>
                                   
-                                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border/40 mt-auto">
-                                    {doc.audiences && (
-                                      <div className="flex -space-x-1">
-                                        {doc.audiences.includes("parents") && (
-                                          <div title="Родителям" className="w-5 h-5 rounded-full bg-orange-100 border border-background flex items-center justify-center"><Users className="w-2.5 h-2.5 text-orange-600" /></div>
-                                        )}
-                                        {doc.audiences.includes("admin") && (
-                                          <div title="Администрации" className="w-5 h-5 rounded-full bg-blue-100 border border-background flex items-center justify-center"><Shield className="w-2.5 h-2.5 text-blue-600" /></div>
-                                        )}
-                                        {doc.audiences.includes("specialists") && (
-                                          <div title="Педагогам" className="w-5 h-5 rounded-full bg-green-100 border border-background flex items-center justify-center"><GraduationCap className="w-2.5 h-2.5 text-green-600" /></div>
-                                        )}
-                                      </div>
-                                    )}
-                                    {doc.meta && (
-                                      <span className="text-[10px] text-muted-foreground font-medium uppercase truncate max-w-[100px]">
-                                        {doc.meta}
-                                      </span>
-                                    )}
+                                  <div className="pt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border/40 mt-auto">
+                                    <div className="flex items-center gap-2">
+                                      {doc.audiences && (
+                                        <div className="flex -space-x-1">
+                                          {doc.audiences.includes("parents") && (
+                                            <div title="Родителям" className="w-5 h-5 rounded-full bg-orange-100 border border-background flex items-center justify-center shrink-0"><Users className="w-2.5 h-2.5 text-orange-600" /></div>
+                                          )}
+                                          {doc.audiences.includes("admin") && (
+                                            <div title="Администрации" className="w-5 h-5 rounded-full bg-blue-100 border border-background flex items-center justify-center shrink-0"><Shield className="w-2.5 h-2.5 text-blue-600" /></div>
+                                          )}
+                                          {doc.audiences.includes("specialists") && (
+                                            <div title="Педагогам" className="w-5 h-5 rounded-full bg-green-100 border border-background flex items-center justify-center shrink-0"><GraduationCap className="w-2.5 h-2.5 text-green-600" /></div>
+                                          )}
+                                        </div>
+                                      )}
+                                      {doc.meta && (
+                                        <span className="text-[10px] text-muted-foreground font-medium uppercase truncate max-w-[100px]">
+                                          {doc.meta}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <Button asChild variant="ghost" size="sm" className="h-7 text-[10px] px-2 text-muted-foreground hover:text-primary gap-1 group/btn">
+                                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                        Подробнее
+                                        <ChevronRight className="h-3 w-3 transition-transform group-hover/btn:translate-x-0.5" />
+                                      </a>
+                                    </Button>
                                   </div>
                                 </CardContent>
                               </Card>
