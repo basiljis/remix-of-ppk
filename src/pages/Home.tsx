@@ -10,6 +10,8 @@ import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { LeadCaptureForm } from "@/components/home/LeadCaptureForm";
 import { StickyMobileCta } from "@/components/home/StickyMobileCta";
 import { Typewriter } from "@/components/home/Typewriter";
+import { ProtocolValidationInfo } from "@/components/ProtocolValidationInfo";
+
 import {
   Building2,
   GraduationCap,
@@ -376,6 +378,14 @@ export default function Home() {
 
       {/* FAQ */}
       <FaqSection />
+
+      {/* Validation Protocol Info */}
+      <section className="px-4">
+        <div className="container mx-auto">
+          <ProtocolValidationInfo />
+        </div>
+      </section>
+
 
       {/* Lead capture form */}
       <LeadCaptureForm />
