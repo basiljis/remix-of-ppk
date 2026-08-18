@@ -468,7 +468,7 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
                 '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
                                         
                                             
-                                            Implement structured data (schema.org) where relevant to improve search appearance for the publication or legal document pages.
+                                            Add a one-click action that updates page titles, meta descriptions, and canonical tags for the pages that fail SEO checks.
               </p>
               <p className="mt-2 text-muted-foreground">
                 Веди подробный лог попыток публикации с текстом ошибок и временем выполнения.
