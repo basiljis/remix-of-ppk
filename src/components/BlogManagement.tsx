@@ -18,7 +18,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Copy, ExternalLink, Rss, ImageDown, BarChart3, MessageSquare, CalendarClock, Map, Languages, Share, Settings } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, ExternalLink, Rss, ImageDown, BarChart3, MessageSquare, CalendarClock, Map, Languages, Share, Settings, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { downloadZenCover } from "@/lib/zen-cover";
 import {
@@ -78,6 +78,8 @@ export function BlogManagement() {
   const [publishingZenId, setPublishingZenId] = useState<string | null>(null);
   const [zenLogs, setZenLogs] = useState<any[]>([]);
   const [showLogsDialog, setShowLogsDialog] = useState(false);
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
+  const [publishingBatch, setPublishingBatch] = useState(false);
 
   const loadZenLogs = async () => {
     // Используем dynamic cast через any, чтобы избежать ошибок типизации до обновления types.ts
@@ -251,6 +253,64 @@ export function BlogManagement() {
     }
   };
 
+  const handleBatchPublishToZen = async () => {
+    if (!zenSettings?.token) {
+      setZenDialogOpen(true);
+      return;
+    }
+
+    if (selectedPosts.size === 0) {
+      toast({ title: "Выберите статьи", description: "Нужно выбрать хотя бы одну статью для публикации." });
+      return;
+    }
+
+    if (selectedPosts.size > 5) {
+      toast({ title: "Слишком много статей", description: "Максимум 5 статей за один раз.", variant: "destructive" });
+      return;
+    }
+
+    setPublishingBatch(true);
+    const selectedList = posts.filter(p => selectedPosts.has(p.id));
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const p of selectedList) {
+      try {
+        await publishToZen(p, zenSettings);
+        successCount++;
+      } catch (e) {
+        failCount++;
+        console.error(`Error publishing ${p.title} to Zen:`, e);
+      }
+    }
+
+    toast({
+      title: "Пакетная публикация завершена",
+      description: `Успешно: ${successCount}, Ошибок: ${failCount}.`,
+      variant: failCount > 0 ? "destructive" : "default"
+    });
+
+    setSelectedPosts(new Set());
+    loadZenLogs();
+    setPublishingBatch(false);
+  };
+
+  const togglePostSelection = (id: string) => {
+    setSelectedPosts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (next.size >= 5) {
+          toast({ title: "Лимит выбора", description: "Можно выбрать не более 5 статей.", variant: "destructive" });
+          return prev;
+        }
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   const saveZenConfig = async () => {
     try {
       const s = { token: zenTokenInput, channelId: zenChannelInput };
@@ -378,6 +438,28 @@ export function BlogManagement() {
             </Button>
           </div>
         </CardHeader>
+        
+        {selectedPosts.size > 0 && (
+          <div className="px-6 py-2 bg-primary/5 border-b flex items-center justify-between">
+            <div className="text-sm font-medium">
+              Выбрано для Дзена: {selectedPosts.size} из 5
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setSelectedPosts(new Set())}>
+                Сбросить
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleBatchPublishToZen} 
+                disabled={publishingBatch}
+              >
+                {publishingBatch ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Share className="h-4 w-4 mr-2" />}
+                Опубликовать {selectedPosts.size} в Дзен
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Загрузка…</p>
@@ -386,7 +468,19 @@ export function BlogManagement() {
           ) : (
             <div className="space-y-3">
               {posts.map((p) => (
-                <div key={p.id} className="flex items-center justify-between gap-4 p-3 border rounded-md">
+                <div 
+                  key={p.id} 
+                  className={`flex items-center justify-between gap-4 p-3 border rounded-md transition-colors ${
+                    selectedPosts.has(p.id) ? "border-primary bg-primary/5 shadow-sm" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Switch 
+                      checked={selectedPosts.has(p.id)} 
+                      onCheckedChange={() => togglePostSelection(p.id)}
+                      title="Выбрать для публикации в Дзен"
+                    />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <Badge variant="secondary">{blogCategoryLabel(p.category)}</Badge>
