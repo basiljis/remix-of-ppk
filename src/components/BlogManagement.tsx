@@ -253,6 +253,64 @@ export function BlogManagement() {
     }
   };
 
+  const handleBatchPublishToZen = async () => {
+    if (!zenSettings?.token) {
+      setZenDialogOpen(true);
+      return;
+    }
+
+    if (selectedPosts.size === 0) {
+      toast({ title: "Выберите статьи", description: "Нужно выбрать хотя бы одну статью для публикации." });
+      return;
+    }
+
+    if (selectedPosts.size > 5) {
+      toast({ title: "Слишком много статей", description: "Максимум 5 статей за один раз.", variant: "destructive" });
+      return;
+    }
+
+    setPublishingBatch(true);
+    const selectedList = posts.filter(p => selectedPosts.has(p.id));
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const p of selectedList) {
+      try {
+        await publishToZen(p, zenSettings);
+        successCount++;
+      } catch (e) {
+        failCount++;
+        console.error(`Error publishing ${p.title} to Zen:`, e);
+      }
+    }
+
+    toast({
+      title: "Пакетная публикация завершена",
+      description: `Успешно: ${successCount}, Ошибок: ${failCount}.`,
+      variant: failCount > 0 ? "destructive" : "default"
+    });
+
+    setSelectedPosts(new Set());
+    loadZenLogs();
+    setPublishingBatch(false);
+  };
+
+  const togglePostSelection = (id: string) => {
+    setSelectedPosts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (next.size >= 5) {
+          toast({ title: "Лимит выбора", description: "Можно выбрать не более 5 статей.", variant: "destructive" });
+          return prev;
+        }
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   const saveZenConfig = async () => {
     try {
       const s = { token: zenTokenInput, channelId: zenChannelInput };
