@@ -78,6 +78,8 @@ export function BlogManagement() {
   const [publishingZenId, setPublishingZenId] = useState<string | null>(null);
   const [zenLogs, setZenLogs] = useState<any[]>([]);
   const [showLogsDialog, setShowLogsDialog] = useState(false);
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
+  const [publishingBatch, setPublishingBatch] = useState(false);
 
   const loadZenLogs = async () => {
     // Используем dynamic cast через any, чтобы избежать ошибок типизации до обновления types.ts
