@@ -438,6 +438,28 @@ export function BlogManagement() {
             </Button>
           </div>
         </CardHeader>
+        
+        {selectedPosts.size > 0 && (
+          <div className="px-6 py-2 bg-primary/5 border-b flex items-center justify-between">
+            <div className="text-sm font-medium">
+              Выбрано для Дзена: {selectedPosts.size} из 5
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setSelectedPosts(new Set())}>
+                Сбросить
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleBatchPublishToZen} 
+                disabled={publishingBatch}
+              >
+                {publishingBatch ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Share className="h-4 w-4 mr-2" />}
+                Опубликовать {selectedPosts.size} в Дзен
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Загрузка…</p>
