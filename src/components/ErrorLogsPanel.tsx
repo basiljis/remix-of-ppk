@@ -468,7 +468,7 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
                 '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
                                         
                                             
-                                            создай список тем для публикации статей до 5 штук я выберу и после создай их
+                                            Статьи успешно сгенерированы и добавлены в базу данных (5 новых тем). Теперь их можно опубликовать в Дзен одним кликом.
               </p>
               <p className="mt-2 text-muted-foreground">
                 Веди подробный лог попыток публикации с текстом ошибок и временем выполнения.
