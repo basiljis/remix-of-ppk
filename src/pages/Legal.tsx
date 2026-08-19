@@ -264,9 +264,13 @@ export default function Legal() {
                                 {section.docs.length}
                               </Badge>
                             </div>
-                            <Button asChild variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-primary">
-                              <Link to={`/legal/${section.id}`}>
-                                Подробнее <ChevronRight className="h-3 w-3 ml-1" />
+                            <Button asChild variant="default" size="sm" className="h-9 px-4 text-xs bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all hover:scale-105 active:scale-95 group/main-btn relative overflow-hidden">
+                              <Link to={`/legal/${section.id}`} className="flex items-center gap-2">
+                                <span>Перейти в раздел</span>
+                                <ChevronRight className="h-4 w-4 transition-transform group-hover/main-btn:translate-x-1" />
+                                <span className="absolute -top-12 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded shadow-xl border opacity-0 group-hover/main-btn:opacity-100 group-hover/main-btn:-top-8 transition-all pointer-events-none whitespace-nowrap z-20">
+                                  Больше документов и стандартов
+                                </span>
                               </Link>
                             </Button>
                           </div>
@@ -324,10 +328,13 @@ export default function Legal() {
                                       )}
                                     </div>
 
-                                    <Button asChild variant="ghost" size="sm" className="h-7 text-[10px] px-2 text-muted-foreground hover:text-primary gap-1 group/btn">
-                                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                    <Button asChild variant="secondary" size="sm" className="h-8 text-[11px] px-3 font-semibold hover:bg-primary hover:text-primary-foreground transition-all gap-1.5 group/btn border border-primary/10 shadow-sm relative overflow-visible">
+                                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center">
                                         Подробнее
-                                        <ChevronRight className="h-3 w-3 transition-transform group-hover/btn:translate-x-0.5" />
+                                        <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
+                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 scale-0 group-hover/btn:scale-100 transition-all origin-bottom bg-slate-900 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-slate-900">
+                                          Читать полный текст документа
+                                        </div>
                                       </a>
                                     </Button>
                                   </div>
