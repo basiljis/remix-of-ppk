@@ -468,7 +468,19 @@ export function BlogManagement() {
           ) : (
             <div className="space-y-3">
               {posts.map((p) => (
-                <div key={p.id} className="flex items-center justify-between gap-4 p-3 border rounded-md">
+                <div 
+                  key={p.id} 
+                  className={`flex items-center justify-between gap-4 p-3 border rounded-md transition-colors ${
+                    selectedPosts.has(p.id) ? "border-primary bg-primary/5 shadow-sm" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Switch 
+                      checked={selectedPosts.has(p.id)} 
+                      onCheckedChange={() => togglePostSelection(p.id)}
+                      title="Выбрать для публикации в Дзен"
+                    />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <Badge variant="secondary">{blogCategoryLabel(p.category)}</Badge>
