@@ -468,7 +468,7 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
                 '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
                                         
                                             
-                                            Статьи успешно сгенерированы и добавлены в базу данных (5 новых тем). Теперь их можно опубликовать в Дзен одним кликом.
+                                            Автоматическая публикация статей с шагом в 2 дня настроена. Очередь публикаций обновлена.
               </p>
               <p className="mt-2 text-muted-foreground">
                 Веди подробный лог попыток публикации с текстом ошибок и временем выполнения.
