@@ -42,7 +42,7 @@ export default function Register() {
   useSeoMeta({
     title: "Регистрация — universum.",
     description:
-      "Выберите тип аккаунта: родитель, педагог или организация. Регистрация в universum. — платформе поддержки развития детей.",
+      "Выберите роль: родитель, педагог или организация. universum. — экосистема поддержки развития детей для школ, центров и семей.",
     canonical: "https://unvrsm.ru/register",
   });
 
