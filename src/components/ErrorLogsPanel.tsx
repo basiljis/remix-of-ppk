@@ -468,7 +468,7 @@ ${JSON.stringify(log.metadata, null, 2)}` : ''}
                 '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
                                         
                                             
-                                            SEO-описание сайта обновлено: теперь оно учитывает, что universum. является экосистемой не только для ППк, но и для родителей, образовательных центров и государственных структур. Обновлены мета-теги на русском, английском и китайском языках для главных страниц.
+                                            создай 5 новых статей для блога - публикуй их раз в два дня автоматически
               </p>
               <p className="mt-2 text-muted-foreground">
                 Веди подробный лог попыток публикации с текстом ошибок и временем выполнения.
