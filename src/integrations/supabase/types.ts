@@ -179,13 +179,6 @@ export type Database = {
             referencedRelation: "blog_comments"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "blog_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "public_blog_comments"
-            referencedColumns: ["id"]
-          },
         ]
       }
       blog_comments: {
@@ -240,13 +233,6 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "blog_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_comments_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "public_blog_comments"
             referencedColumns: ["id"]
           },
           {
@@ -3681,58 +3667,7 @@ export type Database = {
       }
     }
     Views: {
-      public_blog_comments: {
-        Row: {
-          author_name: string | null
-          content: string | null
-          created_at: string | null
-          id: string | null
-          is_author_reply: boolean | null
-          parent_id: string | null
-          post_id: string | null
-        }
-        Insert: {
-          author_name?: string | null
-          content?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_author_reply?: boolean | null
-          parent_id?: string | null
-          post_id?: string | null
-        }
-        Update: {
-          author_name?: string | null
-          content?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_author_reply?: boolean | null
-          parent_id?: string | null
-          post_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_comments_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "blog_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_comments_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "public_blog_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "blog_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       assign_parent_role: { Args: { _user_id: string }; Returns: undefined }
@@ -3746,6 +3681,18 @@ export type Database = {
       generate_protocol_number: { Args: never; Returns: string }
       generate_telegram_link_code: { Args: never; Returns: string }
       generate_verification_code: { Args: never; Returns: string }
+      get_approved_blog_comments: {
+        Args: { p_post_id: string }
+        Returns: {
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          is_author_reply: boolean
+          parent_id: string
+          post_id: string
+        }[]
+      }
       get_blog_analytics: {
         Args: never
         Returns: {
