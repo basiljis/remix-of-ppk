@@ -3681,6 +3681,18 @@ export type Database = {
       generate_protocol_number: { Args: never; Returns: string }
       generate_telegram_link_code: { Args: never; Returns: string }
       generate_verification_code: { Args: never; Returns: string }
+      get_approved_blog_comments: {
+        Args: { p_post_id: string }
+        Returns: {
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          is_author_reply: boolean
+          parent_id: string
+          post_id: string
+        }[]
+      }
       get_blog_analytics: {
         Args: never
         Returns: {
