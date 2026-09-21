@@ -98,11 +98,7 @@ export default function BlogComments({ postId, isEn = false }: Props) {
     (async () => {
       setLoading(true);
       const { data, error } = await (supabase as any)
-        .from("blog_comments")
-        .select("id,post_id,parent_id,author_name,content,is_author_reply,created_at")
-        .eq("post_id", postId)
-        .eq("status", "approved")
-        .order("created_at", { ascending: true });
+        .rpc("get_approved_blog_comments", { p_post_id: postId });
       if (!cancelled) {
         if (!error && data) {
           setComments(data as Comment[]);
