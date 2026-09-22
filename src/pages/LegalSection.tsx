@@ -193,7 +193,7 @@ function DocCard({ doc, id }: { doc: import("@/data/legalSections").LegalDoc; id
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-3">
-              {doc.excerpts!.map((ex) => (
+              {doc.excerpts?.map((ex) => (
                 <div
                   key={ex.label}
                   className="rounded-md border border-border/60 bg-muted/30 p-3"
