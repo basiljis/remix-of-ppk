@@ -277,7 +277,7 @@ export default function Legal() {
                           {/* section.intro excluded for brevity as requested by "loconic" look */}
 
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {section.docs.map((doc) => (
+                            {section.docs.map((doc, docIndex) => (
                               <Card key={doc.title} className="group border-border/40 hover:border-primary/30 transition-all shadow-sm hover:shadow-md bg-card/50">
                                 <CardHeader className="p-4 pb-2">
                                   <div className="flex flex-col gap-2">
@@ -328,15 +328,20 @@ export default function Legal() {
                                       )}
                                     </div>
 
-                                    <Button asChild variant="secondary" size="sm" className="h-8 text-[11px] px-3 font-semibold hover:bg-primary hover:text-primary-foreground transition-all gap-1.5 group/btn border border-primary/10 shadow-sm relative overflow-visible">
-                                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center">
-                                        Подробнее
-                                        <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
-                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 scale-0 group-hover/btn:scale-100 transition-all origin-bottom bg-slate-900 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-slate-900">
-                                          Читать полный текст документа
-                                        </div>
-                                      </a>
-                                    </Button>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Button asChild variant="secondary" size="sm" className="h-8 text-[11px] px-3 font-semibold hover:bg-primary hover:text-primary-foreground transition-colors gap-1.5 border border-primary/10 shadow-sm">
+                                        <Link to={`/legal/${section.id}#document-${docIndex + 1}`} className="flex items-center">
+                                          Подробнее
+                                          <ChevronRight className="h-3.5 w-3.5" />
+                                        </Link>
+                                      </Button>
+                                      <Button asChild variant="outline" size="sm" className="h-8 text-[11px] px-3 font-semibold gap-1.5">
+                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                                          Исходник
+                                          <ExternalLink className="h-3.5 w-3.5" />
+                                        </a>
+                                      </Button>
+                                    </div>
                                   </div>
                                 </CardContent>
                               </Card>
