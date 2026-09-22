@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import LandingFooter from "@/components/LandingFooter";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
@@ -13,10 +13,17 @@ import { useLogLegalView, useLegalViewStats } from "@/hooks/useLegalViews";
 
 export default function LegalSection() {
   const { sectionId = "" } = useParams<{ sectionId: string }>();
+  const { hash } = useLocation();
   const section = getLegalSection(sectionId);
   useLogLegalView(section ? section.id : null);
   const { stats } = useLegalViewStats();
   const sectionStats = section ? stats[section.id] : undefined;
+
+  useEffect(() => {
+    if (!hash || !section) return;
+    const target = document.getElementById(hash.slice(1));
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [hash, section]);
 
   useSeoMeta({
     title: section
@@ -90,8 +97,8 @@ export default function LegalSection() {
 
 
           <div className="space-y-3 mb-12">
-            {section.docs.map((doc) => (
-              <DocCard key={doc.title} doc={doc} />
+            {section.docs.map((doc, docIndex) => (
+              <DocCard key={doc.title} doc={doc} id={`document-${docIndex + 1}`} />
             ))}
           </div>
 
@@ -129,12 +136,12 @@ export default function LegalSection() {
   );
 }
 
-function DocCard({ doc }: { doc: import("@/data/legalSections").LegalDoc }) {
+function DocCard({ doc, id }: { doc: import("@/data/legalSections").LegalDoc; id: string }) {
   const [open, setOpen] = useState(false);
   const hasExcerpts = !!doc.excerpts?.length;
 
   return (
-    <Card className="border-border/60">
+    <Card id={id} className="border-border/60 scroll-mt-24">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
@@ -161,6 +168,13 @@ function DocCard({ doc }: { doc: import("@/data/legalSections").LegalDoc }) {
       <CardContent className="pt-0 pl-12">
         {doc.meta && <p className="text-xs text-muted-foreground mb-1">{doc.meta}</p>}
         <p className="text-sm text-muted-foreground">{doc.description}</p>
+
+        <Button asChild variant="outline" size="sm" className="mt-3 h-8 gap-2 text-xs">
+          <a href={doc.url} target="_blank" rel="noopener noreferrer">
+            Исходник документа
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </Button>
 
         {hasExcerpts && (
           <Collapsible open={open} onOpenChange={setOpen} className="mt-3">
