@@ -30,10 +30,10 @@ const staticEntries: Entry[] = [
   { path: "/pricing", changefreq: "monthly", priority: "0.8", localized: true },
   { path: "/for-specialists", changefreq: "monthly", priority: "0.9" },
   { path: "/for-organizations", changefreq: "monthly", priority: "0.9" },
+  { path: "/for-parents", changefreq: "monthly", priority: "0.9" },
   { path: "/blog", changefreq: "daily", priority: "0.9" },
   { path: "/legal", changefreq: "weekly", priority: "0.8" },
   { path: "/guides/pmpk-preparation", changefreq: "monthly", priority: "0.9" },
-  { path: "/register", changefreq: "yearly", priority: "0.6" },
 ];
 
 async function fetchPosts(): Promise<Entry[]> {
