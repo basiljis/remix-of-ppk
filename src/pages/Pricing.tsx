@@ -210,7 +210,15 @@ export default function Pricing() {
                           )}
                         </>
                       )}
+                      {(plan as any).oldPrice && (
+                        <span className="ml-2 text-sm text-muted-foreground line-through">
+                          {(plan as any).oldPrice}
+                        </span>
+                      )}
                     </div>
+                    {(plan as any).promoNote && (
+                      <p className="text-xs font-medium text-primary pt-1">{(plan as any).promoNote}</p>
+                    )}
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col">
                     <ul className="space-y-3 flex-1 mb-6">
