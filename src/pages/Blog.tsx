@@ -396,6 +396,13 @@ export default function Blog() {
                           <h4 className="font-medium text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
                             {loc.title}
                           </h4>
+                          <Link
+                            to={`/blog/${n.slug}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="sr-only"
+                          >
+                            {loc.title}
+                          </Link>
                         </CardContent>
                       </Card>
                     </button>
@@ -431,6 +438,17 @@ export default function Blog() {
                 />
               )}
             </div>
+            {selectedNews && (
+              <div className="mt-6 pt-4 border-t">
+                <Link
+                  to={`/blog/${selectedNews.slug}`}
+                  className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  {isEn ? "Open the full news page" : "Открыть страницу новости"}
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </main>
