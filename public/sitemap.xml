@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-
-  <!-- Главная страница -->
   <url>
     <loc>https://unvrsm.ru/</loc>
     <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/"/>
@@ -26,8 +24,6 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- О нас -->
   <url>
     <loc>https://unvrsm.ru/about</loc>
     <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/about"/>
@@ -52,8 +48,6 @@
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
-
-  <!-- Возможности -->
   <url>
     <loc>https://unvrsm.ru/features</loc>
     <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/features"/>
@@ -78,8 +72,6 @@
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
-
-  <!-- Тарифы -->
   <url>
     <loc>https://unvrsm.ru/pricing</loc>
     <xhtml:link rel="alternate" hreflang="ru" href="https://unvrsm.ru/pricing"/>
@@ -104,26 +96,166 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-
-  <!-- Блог -->
   <url>
-    <loc>https://unvrsm.ru/blog</loc>
-    <changefreq>weekly</changefreq>
+    <loc>https://unvrsm.ru/for-specialists</loc>
+    <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  <!-- Гайды -->
+  <url>
+    <loc>https://unvrsm.ru/for-organizations</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/for-parents</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/legal</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://unvrsm.ru/guides/pmpk-preparation</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
-
-  <!-- Нормативно-правовая база -->
   <url>
-    <loc>https://unvrsm.ru/legal</loc>
+    <loc>https://unvrsm.ru/blog/skidka-50-dlya-organizacij-do-konca-goda</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/besplatnyj-god-dlya-pedagogov-vne-organizacii</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/analitika-ppk-dlya-regionalnogo-upravleniya-obrazovaniem</loc>
+    <lastmod>2026-09-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-
+  <url>
+    <loc>https://unvrsm.ru/blog/kak-prohodit-zasedanie-ppk-pamyatka-dlya-roditelej</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/lokalnoe-polozhenie-o-ppk-v-2026-godu-chek-list</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/ppk-i-ppms-centr-vzaimodejstvie-bez-poteri-informacii</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/ppk-i-pmpk-v-chyom-raznica-i-pochemu-shkola-predlagaet-konsilium</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/update-legal-section-2026</loc>
+    <lastmod>2026-08-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/blog-launch-news</loc>
+    <lastmod>2026-08-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/plan-raboty-sluzhby-soprovozhdeniya-na-god</loc>
+    <lastmod>2026-08-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/podgotovka-rebenka-k-uchebnomu-godu-roditelyam</loc>
+    <lastmod>2026-08-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/podgotovka-psihologicheskoy-sluzhby-k-uchebnomu-godu</loc>
+    <lastmod>2026-08-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/roditel-v-universum-besplatnyy-kabinet</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/skvoznoy-marshrut-dannykh-v-universum</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/universum-tsifrovoy-pomoshnik-pedagoga</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/universum-dlya-rukovoditelya-ppms</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/normy-rabochego-vremeni-specialistov</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/5-blokov-razvitiya-rebenka</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/kak-provesti-ppk-v-shkole</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/sluzhba-soprovozhdeniya-po-prikazu-666</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/podgotovka-k-pmpk</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://unvrsm.ru/blog/kak-ponyat-chto-rebenku-nuzhen-logoped</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

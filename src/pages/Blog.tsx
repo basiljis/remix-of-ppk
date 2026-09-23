@@ -406,6 +406,19 @@ export default function Blog() {
           </aside>
         </div>
 
+        {/* Ссылки на страницы новостей — для поисковых систем и навигации без JS */}
+        {newsPosts.length > 0 && (
+          <nav aria-label={isEn ? "All news" : "Все новости"} className="sr-only">
+            <ul>
+              {newsPosts.map((n) => (
+                <li key={`seo-${n.id}`}>
+                  <Link to={`/blog/${n.slug}`}>{localizedPost(n, lang).title}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
         <Dialog open={!!selectedNews} onOpenChange={(open) => !open && setSelectedNews(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -431,6 +444,17 @@ export default function Blog() {
                 />
               )}
             </div>
+            {selectedNews && (
+              <div className="mt-6 pt-4 border-t">
+                <Link
+                  to={`/blog/${selectedNews.slug}`}
+                  className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  {isEn ? "Open the full news page" : "Открыть страницу новости"}
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </main>
