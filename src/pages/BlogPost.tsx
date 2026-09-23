@@ -398,6 +398,29 @@ export default function BlogPost() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Перелинковка: полезные материалы */}
+                  <nav className="mt-10" aria-label={t("blogPost.usefulLinks", "Полезные материалы")}>
+                    <h2 className="text-lg font-semibold mb-3">
+                      {t("blogPost.usefulLinks", "Полезные материалы")}
+                    </h2>
+                    <ul className="grid sm:grid-cols-2 gap-2 text-sm">
+                      {[
+                        { to: "/templates", label: t("blogPost.linkTemplates", "Шаблоны документов ППк") },
+                        { to: "/guides/ppk-conclusion", label: t("blogPost.linkConclusion", "Как оформить заключение ППк") },
+                        { to: "/guides/ppk-protocol", label: t("blogPost.linkProtocol", "Протокол заседания ППк") },
+                        { to: "/guides/pmpk-preparation", label: t("blogPost.linkPmpk", "Подготовка к ПМПК") },
+                        { to: "/guides/workload-norms", label: t("blogPost.linkWorkload", "Нормы часов и нагрузка") },
+                        { to: "/legal", label: t("blogPost.linkLegal", "Нормативно-правовая база") },
+                      ].map((l) => (
+                        <li key={l.to}>
+                          <Link to={l.to} className="text-primary hover:underline">
+                            {l.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
                 </article>
 
                 {/* Sidebar: TOC + share */}
