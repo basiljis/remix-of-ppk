@@ -208,6 +208,29 @@ export default function Home() {
             </Button>
           </div>
 
+          {/* Free year for private specialists */}
+          <div className="max-w-3xl mx-auto mb-4 rounded-xl border border-primary/30 bg-primary/5 p-4 md:p-5 text-left">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold px-2 py-0.5">
+                    {t("homePage.freeYear.badge")}
+                  </span>
+                  <span className="font-semibold">{t("homePage.freeYear.title")}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("homePage.freeYear.text")}
+                </p>
+              </div>
+              <Button asChild variant="secondary" className="shrink-0">
+                <Link to="/blog/besplatnyj-god-dlya-pedagogov-vne-organizacii">
+                  {t("homePage.freeYear.cta")}
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
           {/* Stats */}
           <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             {stats.map((s) => (
