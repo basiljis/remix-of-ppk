@@ -39,6 +39,7 @@ const SpecialistPaymentSettingsPanel = lazy(() => import("@/components/Specialis
 const SpecialistFinancePanel = lazy(() => import("@/components/SpecialistFinancePanel").then(m => ({ default: m.SpecialistFinancePanel })));
 const AdminFinanceStatisticsPanel = lazy(() => import("@/components/AdminFinanceStatisticsPanel").then(m => ({ default: m.AdminFinanceStatisticsPanel })));
 const InstallPrompt = lazy(() => import("@/components/InstallPrompt"));
+const LoginNewsDialog = lazy(() => import("@/components/LoginNewsDialog"));
 
 const Index = () => {
   const navigate = useNavigate();
