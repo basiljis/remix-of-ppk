@@ -83,7 +83,7 @@ const pricing = [
 const organizationsFaq = [
   {
     q: "Сколько стоит подписка для организации?",
-    a: "От 2 500 ₽/мес или 25 500 ₽/год за всю организацию. Подписка распространяется на всех сотрудников. Доступен бесплатный пробный период на 7 дней."
+    a: "Базовая стоимость — 2 500 ₽/мес или 25 500 ₽/год за всю организацию. До 31 декабря 2026 года действует скидка 50%: 1 250 ₽/мес или 12 750 ₽/год. Подписка распространяется на всех сотрудников, доступен бесплатный пробный период на 7 дней."
   },
   {
     q: "Можно ли установить universum. на серверы организации (on-premise)?",
@@ -103,7 +103,7 @@ export default function ForOrganizations() {
   const promoActive = isOrgPromoActive();
   useSeoMeta({
     title: "Автоматизация ППк для школ, ППМС-центров и ДОУ | universum.",
-    description: "Платформа для психолого-педагогических служб: протоколы ППк по приказу ДОНМ №666, журнал занятий, KPI специалистов, аналитика. ФЗ-152, on-premise и облако. От 2 500 ₽/мес.",
+    description: "Платформа для психолого-педагогических служб: протоколы ППк по приказу ДОНМ №666, журнал занятий, KPI специалистов, аналитика. ФЗ-152, on-premise и облако. Скидка 50% до конца 2026 года — от 1 250 ₽/мес.",
     canonical: "/for-organizations",
     keywords: "ППк автоматизация, ЦППМСП, ППМС-центр, психолого-педагогический консилиум, протоколы ППк школа, журнал занятий школьного психолога, ФЗ-152 школа, ОВЗ автоматизация, приказ ДОНМ 666, on-premise образование",
     jsonLd: [
@@ -117,7 +117,7 @@ export default function ForOrganizations() {
           {
             "@type": "Offer",
             name: "Ежемесячная подписка",
-            price: "2500",
+            price: "1250",
             priceCurrency: "RUB",
             url: "https://unvrsm.ru/for-organizations#pricing",
             availability: "https://schema.org/InStock"
@@ -125,7 +125,7 @@ export default function ForOrganizations() {
           {
             "@type": "Offer",
             name: "Годовая подписка",
-            price: "25500",
+            price: "12750",
             priceCurrency: "RUB",
             url: "https://unvrsm.ru/for-organizations#pricing",
             availability: "https://schema.org/InStock"
