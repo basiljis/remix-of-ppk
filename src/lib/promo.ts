@@ -31,3 +31,21 @@ export const formatPromoDeadline = (): string =>
     year: "numeric",
     timeZone: "Europe/Moscow",
   });
+
+/**
+ * Бесплатный год для педагогов вне организации.
+ * Акция действует до марта 2027 года: все, кто зарегистрировался до этой даты,
+ * сохраняют год бесплатного доступа с момента регистрации.
+ */
+export const FREE_YEAR_DEADLINE = new Date("2027-03-31T23:59:59+03:00");
+
+export const isFreeYearPromoActive = (now: Date = new Date()): boolean =>
+  now.getTime() <= FREE_YEAR_DEADLINE.getTime();
+
+export const formatFreeYearDeadline = (): string =>
+  FREE_YEAR_DEADLINE.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Moscow",
+  });

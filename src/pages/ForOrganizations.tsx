@@ -6,6 +6,7 @@ import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { ORG_BASE_PRICES, getOrgPrice, isOrgPromoActive, formatPromoDeadline } from "@/lib/promo";
 import { 
   Building2, Users, ClipboardList, Calendar, BarChart3, 
   Shield, FileText, UserCheck, CheckCircle, ArrowRight,
@@ -66,13 +67,13 @@ const benefits = [
 const pricing = [
   {
     title: "Ежемесячная",
-    price: "2 500 ₽",
+    plan: "monthly" as const,
     period: "/ месяц",
     description: "Оплата помесячно"
   },
   {
     title: "Годовая",
-    price: "25 500 ₽",
+    plan: "yearly" as const,
     period: "/ год",
     description: "Экономия 15%",
     badge: "Выгодно"
@@ -82,7 +83,7 @@ const pricing = [
 const organizationsFaq = [
   {
     q: "Сколько стоит подписка для организации?",
-    a: "От 2 500 ₽/мес или 25 500 ₽/год за всю организацию. Подписка распространяется на всех сотрудников. Доступен бесплатный пробный период на 7 дней."
+    a: "Базовая стоимость — 2 500 ₽/мес или 25 500 ₽/год за всю организацию. До 31 декабря 2026 года действует скидка 50%: 1 250 ₽/мес или 12 750 ₽/год. Подписка распространяется на всех сотрудников, доступен бесплатный пробный период на 7 дней."
   },
   {
     q: "Можно ли установить universum. на серверы организации (on-premise)?",
@@ -99,9 +100,10 @@ const organizationsFaq = [
 ];
 
 export default function ForOrganizations() {
+  const promoActive = isOrgPromoActive();
   useSeoMeta({
     title: "Автоматизация ППк для школ, ППМС-центров и ДОУ | universum.",
-    description: "Платформа для психолого-педагогических служб: протоколы ППк по приказу ДОНМ №666, журнал занятий, KPI специалистов, аналитика. ФЗ-152, on-premise и облако. От 2 500 ₽/мес.",
+    description: "Платформа для психолого-педагогических служб: протоколы ППк по приказу ДОНМ №666, журнал занятий, KPI специалистов, аналитика. ФЗ-152, on-premise и облако. Скидка 50% до конца 2026 года — от 1 250 ₽/мес.",
     canonical: "/for-organizations",
     keywords: "ППк автоматизация, ЦППМСП, ППМС-центр, психолого-педагогический консилиум, протоколы ППк школа, журнал занятий школьного психолога, ФЗ-152 школа, ОВЗ автоматизация, приказ ДОНМ 666, on-premise образование",
     jsonLd: [
@@ -115,7 +117,7 @@ export default function ForOrganizations() {
           {
             "@type": "Offer",
             name: "Ежемесячная подписка",
-            price: "2500",
+            price: "1250",
             priceCurrency: "RUB",
             url: "https://unvrsm.ru/for-organizations#pricing",
             availability: "https://schema.org/InStock"
@@ -123,7 +125,7 @@ export default function ForOrganizations() {
           {
             "@type": "Offer",
             name: "Годовая подписка",
-            price: "25500",
+            price: "12750",
             priceCurrency: "RUB",
             url: "https://unvrsm.ru/for-organizations#pricing",
             availability: "https://schema.org/InStock"
@@ -235,7 +237,15 @@ export default function ForOrganizations() {
       {/* Pricing */}
       <section id="pricing" className="py-16 px-4">
         <div className="container mx-auto max-w-3xl">
-          <h2 className="text-2xl font-bold mb-8 text-center">Стоимость подписки</h2>
+          <h2 className="text-2xl font-bold mb-2 text-center">Стоимость подписки</h2>
+          {promoActive && (
+            <p className="text-center text-sm mb-8">
+              <Badge className="bg-orange-600 hover:bg-orange-600">−50%</Badge>{" "}
+              <span className="text-muted-foreground">
+                скидка для организаций при оформлении подписки до {formatPromoDeadline()}
+              </span>
+            </p>
+          )}
           <div className="grid md:grid-cols-2 gap-6">
             {pricing.map((plan) => (
               <Card key={plan.title} className={`relative ${plan.badge ? "border-blue-500 border-2" : ""}`}>
@@ -248,8 +258,18 @@ export default function ForOrganizations() {
                   <CardTitle>{plan.title}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="pt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
+                    <span className="text-4xl font-bold">
+                      {getOrgPrice(plan.plan).toLocaleString("ru-RU")} ₽
+                    </span>
                     <span className="text-muted-foreground">{plan.period}</span>
+                    {promoActive && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <span className="line-through">
+                          {ORG_BASE_PRICES[plan.plan].toLocaleString("ru-RU")} ₽
+                        </span>{" "}
+                        без скидки
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -264,6 +284,7 @@ export default function ForOrganizations() {
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
             Подписка распространяется на всех сотрудников организации
+            {promoActive && ` • скидка 50% действует до ${formatPromoDeadline()}`}
           </p>
         </div>
       </section>
