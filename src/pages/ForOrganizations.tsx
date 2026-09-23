@@ -235,7 +235,15 @@ export default function ForOrganizations() {
       {/* Pricing */}
       <section id="pricing" className="py-16 px-4">
         <div className="container mx-auto max-w-3xl">
-          <h2 className="text-2xl font-bold mb-8 text-center">Стоимость подписки</h2>
+          <h2 className="text-2xl font-bold mb-2 text-center">Стоимость подписки</h2>
+          {promoActive && (
+            <p className="text-center text-sm mb-8">
+              <Badge className="bg-orange-600 hover:bg-orange-600">−50%</Badge>{" "}
+              <span className="text-muted-foreground">
+                скидка для организаций при оформлении подписки до {formatPromoDeadline()}
+              </span>
+            </p>
+          )}
           <div className="grid md:grid-cols-2 gap-6">
             {pricing.map((plan) => (
               <Card key={plan.title} className={`relative ${plan.badge ? "border-blue-500 border-2" : ""}`}>
@@ -248,8 +256,18 @@ export default function ForOrganizations() {
                   <CardTitle>{plan.title}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="pt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
+                    <span className="text-4xl font-bold">
+                      {getOrgPrice(plan.plan).toLocaleString("ru-RU")} ₽
+                    </span>
                     <span className="text-muted-foreground">{plan.period}</span>
+                    {promoActive && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <span className="line-through">
+                          {ORG_BASE_PRICES[plan.plan].toLocaleString("ru-RU")} ₽
+                        </span>{" "}
+                        без скидки
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -264,6 +282,7 @@ export default function ForOrganizations() {
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
             Подписка распространяется на всех сотрудников организации
+            {promoActive && ` • скидка 50% действует до ${formatPromoDeadline()}`}
           </p>
         </div>
       </section>
