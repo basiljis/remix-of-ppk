@@ -6,6 +6,7 @@ import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { CommercialOfferRequestForm } from "@/components/CommercialOfferRequestForm";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { ORG_BASE_PRICES, getOrgPrice, isOrgPromoActive, formatPromoDeadline } from "@/lib/promo";
 import { 
   Building2, Users, ClipboardList, Calendar, BarChart3, 
   Shield, FileText, UserCheck, CheckCircle, ArrowRight,
