@@ -8,6 +8,7 @@ import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { CheckCircle, ArrowRight, HelpCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocaleFormatter } from "@/hooks/useLocaleFormatter";
+import { getOrgPrice, isOrgPromoActive, formatPromoDeadline } from "@/lib/promo";
 
 const getPlans = (t: any, formatCurrency: any) => [
   {
@@ -44,7 +45,11 @@ const getPlans = (t: any, formatCurrency: any) => [
   },
   {
     name: t("pages:pricing.plans.org.name", "Организация"),
-    price: formatCurrency(2500),
+    price: formatCurrency(getOrgPrice("monthly")),
+    oldPrice: isOrgPromoActive() ? formatCurrency(2500) : undefined,
+    promoNote: isOrgPromoActive()
+      ? `Скидка 50% при оформлении до ${formatPromoDeadline()}`
+      : undefined,
     period: t("pages:pricing.plans.org.period", "/ мес"),
     description: t("pages:pricing.plans.org.description", "Для школ, ППМС-центров и ЦППМСП"),
     features: [
@@ -205,7 +210,15 @@ export default function Pricing() {
                           )}
                         </>
                       )}
+                      {(plan as any).oldPrice && (
+                        <span className="ml-2 text-sm text-muted-foreground line-through">
+                          {(plan as any).oldPrice}
+                        </span>
+                      )}
                     </div>
+                    {(plan as any).promoNote && (
+                      <p className="text-xs font-medium text-primary pt-1">{(plan as any).promoNote}</p>
+                    )}
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col">
                     <ul className="space-y-3 flex-1 mb-6">

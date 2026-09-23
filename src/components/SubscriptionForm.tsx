@@ -14,6 +14,12 @@ import { CreditCard, Building2, Calendar, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import {
+  ORG_BASE_PRICES,
+  getOrgPrice,
+  isOrgPromoActive,
+  formatPromoDeadline,
+} from "@/lib/promo";
 
 const legalEntitySchema = z.object({
   organizationName: z.string().min(3, "Введите название организации"),
@@ -45,7 +51,10 @@ export const SubscriptionForm = () => {
     },
   });
 
-  const amount = subscriptionType === "monthly" ? 2500 : 25500;
+  const promoActive = isOrgPromoActive();
+  const promoDeadline = formatPromoDeadline();
+  const basePrice = ORG_BASE_PRICES[subscriptionType];
+  const amount = getOrgPrice(subscriptionType);
 
   // Загрузка текущей подписки
   useEffect(() => {
@@ -93,9 +102,9 @@ export const SubscriptionForm = () => {
         body: {
           subscriptionId: subscription.id,
           amount,
-          description: subscriptionType === "monthly" 
-            ? "Подписка на 1 месяц" 
-            : "Подписка на 1 год (скидка 15%)",
+          description: `${subscriptionType === "monthly" ? "Подписка на 1 месяц" : "Подписка на 1 год"}${
+            promoActive ? ` (скидка 50% до ${promoDeadline})` : ""
+          }`,
         },
       });
 
@@ -221,6 +230,12 @@ export const SubscriptionForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+        {promoActive && (
+          <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm">
+            <span className="font-semibold text-primary">Скидка 50% для организаций</span>{" "}
+            — действует при оформлении подписки до {promoDeadline}. Цена пересчитывается автоматически.
+          </div>
+        )}
         {/* Выбор тарифа */}
         <div className="space-y-3">
           <label className="text-sm font-medium">Выберите тарифный план</label>
@@ -237,7 +252,12 @@ export const SubscriptionForm = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">2 500 ₽</p>
+                    <p className="font-bold">{getOrgPrice("monthly").toLocaleString()} ₽</p>
+                    {promoActive && (
+                      <p className="text-xs text-muted-foreground line-through">
+                        {ORG_BASE_PRICES.monthly.toLocaleString()} ₽
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">в месяц</p>
                   </div>
                 </div>
@@ -251,12 +271,16 @@ export const SubscriptionForm = () => {
                     <Calendar className="h-4 w-4" />
                     <div>
                       <p className="font-medium">Годовая подписка</p>
-                      <p className="text-xs text-primary font-medium">Экономия 15%</p>
+                      <p className="text-xs text-primary font-medium">
+                        {promoActive ? "Скидка 50% до конца года" : "Экономия 15%"}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">25 500 ₽</p>
-                    <p className="text-xs text-muted-foreground line-through">30 000 ₽</p>
+                    <p className="font-bold">{getOrgPrice("yearly").toLocaleString()} ₽</p>
+                    <p className="text-xs text-muted-foreground line-through">
+                      {(promoActive ? ORG_BASE_PRICES.yearly : 30000).toLocaleString()} ₽
+                    </p>
                   </div>
                 </div>
               </label>
