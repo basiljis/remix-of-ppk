@@ -8,6 +8,7 @@ import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { CheckCircle, ArrowRight, HelpCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocaleFormatter } from "@/hooks/useLocaleFormatter";
+import { getOrgPrice, isOrgPromoActive, formatPromoDeadline } from "@/lib/promo";
 
 const getPlans = (t: any, formatCurrency: any) => [
   {
@@ -44,7 +45,11 @@ const getPlans = (t: any, formatCurrency: any) => [
   },
   {
     name: t("pages:pricing.plans.org.name", "Организация"),
-    price: formatCurrency(2500),
+    price: formatCurrency(getOrgPrice("monthly")),
+    oldPrice: isOrgPromoActive() ? formatCurrency(2500) : undefined,
+    promoNote: isOrgPromoActive()
+      ? `Скидка 50% при оформлении до ${formatPromoDeadline()}`
+      : undefined,
     period: t("pages:pricing.plans.org.period", "/ мес"),
     description: t("pages:pricing.plans.org.description", "Для школ, ППМС-центров и ЦППМСП"),
     features: [
