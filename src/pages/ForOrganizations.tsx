@@ -99,6 +99,7 @@ const organizationsFaq = [
 ];
 
 export default function ForOrganizations() {
+  const promoActive = isOrgPromoActive();
   useSeoMeta({
     title: "Автоматизация ППк для школ, ППМС-центров и ДОУ | universum.",
     description: "Платформа для психолого-педагогических служб: протоколы ППк по приказу ДОНМ №666, журнал занятий, KPI специалистов, аналитика. ФЗ-152, on-premise и облако. От 2 500 ₽/мес.",
