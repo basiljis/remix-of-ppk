@@ -14,6 +14,12 @@ import { CreditCard, Building2, Calendar, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import {
+  ORG_BASE_PRICES,
+  getOrgPrice,
+  isOrgPromoActive,
+  formatPromoDeadline,
+} from "@/lib/promo";
 
 const legalEntitySchema = z.object({
   organizationName: z.string().min(3, "Введите название организации"),
@@ -45,7 +51,10 @@ export const SubscriptionForm = () => {
     },
   });
 
-  const amount = subscriptionType === "monthly" ? 2500 : 25500;
+  const promoActive = isOrgPromoActive();
+  const promoDeadline = formatPromoDeadline();
+  const basePrice = ORG_BASE_PRICES[subscriptionType];
+  const amount = getOrgPrice(subscriptionType);
 
   // Загрузка текущей подписки
   useEffect(() => {
