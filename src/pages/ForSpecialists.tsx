@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { formatFreeYearDeadline, isFreeYearPromoActive } from "@/lib/promo";
 import { 
   GraduationCap, ClipboardList, Calendar, FileText, 
   BarChart3, CheckCircle, ArrowRight, ChevronLeft,
@@ -328,6 +329,42 @@ export default function ForSpecialists() {
           </div>
         </div>
       </section>
+
+      {/* Бесплатный год */}
+      {isFreeYearPromoActive() && (
+        <section className="py-16 px-4">
+          <div className="container mx-auto max-w-3xl">
+            <Card className="border-2 border-orange-500/30">
+              <CardHeader>
+                <Badge className="w-fit bg-orange-600 hover:bg-orange-600 mb-2">Бесплатно</Badge>
+                <CardTitle className="text-2xl">Год бесплатного доступа для педагогов вне организации</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  Педагоги-психологи, логопеды и дефектологи, работающие вне образовательной организации,
+                  получают полный доступ к платформе на 12 месяцев бесплатно — сразу после регистрации,
+                  без заявок и оплаты.
+                </p>
+                <p>
+                  Акция действует до {formatFreeYearDeadline()}. Все, кто зарегистрировался до этой даты,
+                  сохраняют бесплатный год целиком — он отсчитывается от даты регистрации.
+                  После окончания бесплатного года подписка становится платной.
+                </p>
+                <p>
+                  При последующем присоединении к организации все данные работы специалиста
+                  сохраняются — при согласии педагога и организации.
+                </p>
+                <Link to="/blog/besplatnyj-god-dlya-pedagogov-vne-organizacii" className="inline-block pt-1">
+                  <Button variant="outline">
+                    Подробнее
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="py-16 px-4 bg-orange-500/5">
