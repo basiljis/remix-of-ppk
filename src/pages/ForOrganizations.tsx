@@ -66,13 +66,13 @@ const benefits = [
 const pricing = [
   {
     title: "Ежемесячная",
-    price: "2 500 ₽",
+    plan: "monthly" as const,
     period: "/ месяц",
     description: "Оплата помесячно"
   },
   {
     title: "Годовая",
-    price: "25 500 ₽",
+    plan: "yearly" as const,
     period: "/ год",
     description: "Экономия 15%",
     badge: "Выгодно"
