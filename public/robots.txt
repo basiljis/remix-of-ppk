@@ -5,6 +5,8 @@ Allow: /blog/
 Allow: /legal
 Allow: /legal/
 Allow: /guides/
+Allow: /templates
+Allow: /downloads/
 Allow: /zh/
 Allow: /en/
 Disallow: /app

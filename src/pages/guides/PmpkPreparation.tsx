@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import LandingFooter from "@/components/LandingFooter";
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { RelatedLinks, SITE_LINKS } from "@/components/seo/RelatedLinks";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { FileText, ClipboardList, Users, ShieldCheck, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -316,6 +317,10 @@ export default function PmpkPreparation() {
             </Accordion>
           </div>
         </section>
+
+        <RelatedLinks
+          links={[SITE_LINKS.conclusion, SITE_LINKS.protocol, SITE_LINKS.templates, SITE_LINKS.forParents]}
+        />
 
         {/* CTA */}
         <section className="py-16 px-4 bg-primary/5">

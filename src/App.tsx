@@ -66,6 +66,10 @@ const Instructions = lazyWithRetry(() => import("./pages/Instructions"));
 const Legal = lazyWithRetry(() => import("./pages/Legal"));
 const LegalSection = lazyWithRetry(() => import("./pages/LegalSection"));
 const PmpkPreparation = lazyWithRetry(() => import("./pages/guides/PmpkPreparation"));
+const PpkConclusion = lazyWithRetry(() => import("./pages/guides/PpkConclusion"));
+const PpkProtocol = lazyWithRetry(() => import("./pages/guides/PpkProtocol"));
+const WorkloadNorms = lazyWithRetry(() => import("./pages/guides/WorkloadNorms"));
+const Templates = lazyWithRetry(() => import("./pages/Templates"));
 const Blog = lazyWithRetry(() => import("./pages/Blog"));
 const BlogPost = lazyWithRetry(() => import("./pages/BlogPost"));
 
@@ -106,6 +110,10 @@ const App = () => {
                       <Route path="/blog/:slug" element={<BlogPost />} />
                       <Route path="/legal" element={<Legal />} />
                       <Route path="/guides/pmpk-preparation" element={<PmpkPreparation />} />
+                      <Route path="/guides/ppk-conclusion" element={<PpkConclusion />} />
+                      <Route path="/guides/ppk-protocol" element={<PpkProtocol />} />
+                      <Route path="/guides/workload-norms" element={<WorkloadNorms />} />
+                      <Route path="/templates" element={<Templates />} />
 
                       {/* Английская локализация */}
                       <Route path="/en" element={<RootGate />} />
