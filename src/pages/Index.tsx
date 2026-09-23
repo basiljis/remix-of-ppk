@@ -525,6 +525,11 @@ const Index = () => {
           <Footer activeTab={activeTab} onTabChange={setActiveTab} />
         </main>
         
+        {/* Новость при входе */}
+        <Suspense fallback={null}>
+          <LoginNewsDialog />
+        </Suspense>
+
         {/* PWA Install Prompt */}
         <Suspense fallback={null}>
           <InstallPrompt />
