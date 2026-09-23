@@ -396,13 +396,6 @@ export default function Blog() {
                           <h4 className="font-medium text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
                             {loc.title}
                           </h4>
-                          <Link
-                            to={`/blog/${n.slug}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="sr-only"
-                          >
-                            {loc.title}
-                          </Link>
                         </CardContent>
                       </Card>
                     </button>
@@ -412,6 +405,19 @@ export default function Blog() {
             )}
           </aside>
         </div>
+
+        {/* Ссылки на страницы новостей — для поисковых систем и навигации без JS */}
+        {newsPosts.length > 0 && (
+          <nav aria-label={isEn ? "All news" : "Все новости"} className="sr-only">
+            <ul>
+              {newsPosts.map((n) => (
+                <li key={`seo-${n.id}`}>
+                  <Link to={`/blog/${n.slug}`}>{localizedPost(n, lang).title}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
 
         <Dialog open={!!selectedNews} onOpenChange={(open) => !open && setSelectedNews(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
