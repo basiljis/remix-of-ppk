@@ -114,7 +114,7 @@ serve(async (req) => {
     console.log(`Fetching Metrika stats for period ${date1} to ${date2}`);
 
     // Fetch data in parallel
-    const [summaryResponse, dailyResponse, topPagesResponse] = await Promise.all([
+    const [summaryResponse, dailyResponse, topPagesResponse, sourcesResponse, homepageResponse] = await Promise.all([
       // Summary metrics
       fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:s:visits,ym:s:users,ym:s:pageviews,ym:s:bounceRate,ym:s:avgVisitDurationSeconds&date1=${date1}&date2=${date2}`, {
         headers: { 'Authorization': `OAuth ${token}` }
@@ -127,18 +127,29 @@ serve(async (req) => {
       fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:pv:pageviews&dimensions=ym:pv:URLPathFull&date1=${date1}&date2=${date2}&limit=10&sort=-ym:pv:pageviews`, {
         headers: { 'Authorization': `OAuth ${token}` }
       }),
+      // Traffic sources (search engines, direct, referrals, social)
+      fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:s:visits,ym:s:users&dimensions=ym:s:lastTrafficSource&date1=${date1}&date2=${date2}&limit=20&sort=-ym:s:visits`, {
+        headers: { 'Authorization': `OAuth ${token}` }
+      }),
+      // Homepage visits (entry page = /)
+      fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:s:visits,ym:s:users&dimensions=ym:s:startURLPath&filters=ym:s:startURLPath=='/'&date1=${date1}&date2=${date2}`, {
+        headers: { 'Authorization': `OAuth ${token}` }
+      }),
     ]);
 
     // Parse responses
-    const [summaryData, dailyData, topPagesData] = await Promise.all([
+    const [summaryData, dailyData, topPagesData, sourcesData, homepageData] = await Promise.all([
       summaryResponse.json(),
       dailyResponse.json(),
       topPagesResponse.json(),
+      sourcesResponse.json(),
+      homepageResponse.json(),
     ]);
 
     console.log('Summary response:', JSON.stringify(summaryData).substring(0, 500));
     console.log('Daily response:', JSON.stringify(dailyData).substring(0, 500));
     console.log('Top pages response:', JSON.stringify(topPagesData).substring(0, 500));
+    console.log('Sources response:', JSON.stringify(sourcesData).substring(0, 500));
 
     // Check for API errors
     if (summaryData.errors || dailyData.errors || topPagesData.errors) {
@@ -176,6 +187,26 @@ serve(async (req) => {
       views: Math.round(row.metrics?.[0] || 0),
     }));
 
+    // Extract traffic sources
+    const trafficSources = (sourcesData.data || []).map((row: any) => ({
+      source: row.dimensions?.[0]?.name || 'Другое',
+      visits: Math.round(row.metrics?.[0] || 0),
+      visitors: Math.round(row.metrics?.[1] || 0),
+    }));
+
+    // Visitors from search engines (organic traffic)
+    const searchVisitors = trafficSources
+      .filter((s: any) => /поисков|search engine/i.test(s.source))
+      .reduce((sum: number, s: any) => sum + s.visitors, 0);
+    const searchVisits = trafficSources
+      .filter((s: any) => /поисков|search engine/i.test(s.source))
+      .reduce((sum: number, s: any) => sum + s.visits, 0);
+
+    // Visitors who landed on the homepage
+    const homepageRow = homepageData.data?.[0]?.metrics || [0, 0];
+    const homepageVisits = Math.round(homepageRow[0] || 0);
+    const homepageVisitors = Math.round(homepageRow[1] || 0);
+
     const result = {
       visitors,
       pageViews,
@@ -184,6 +215,11 @@ serve(async (req) => {
       visits,
       topPages,
       dailyStats,
+      trafficSources,
+      searchVisitors,
+      searchVisits,
+      homepageVisits,
+      homepageVisitors,
       period,
       dateRange: { date1, date2 },
     };

@@ -84,17 +84,9 @@
           }
         };
         
-        w.ym = w.ym || function(){ (w.ym.a = w.ym.a || []).push(arguments) }; w.ym.l = 1*new Date();
+        // Основной счётчик 106893944 загружается в первом блоке после отрисовки страницы
+        function loadYandex() { /* намеренно пусто: дублирующий счётчик удалён */ }
         
-        function loadYandex() {
-          if (loaded.ym || d.getElementById('ym-tag-loaded')) return;
-          loaded.ym = true;
-          var s = d.createElement('script'); s.async = true; s.id='ym-tag-loaded';
-          s.src = 'https://mc.yandex.ru/metrika/tag.js?id=106637396';
-          s.onerror = function() {};
-          var a = d.getElementsByTagName('script')[0]; a.parentNode.insertBefore(s, a);
-          w.ym(106637396, 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: 'dataLayer', referrer: d.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true });
-        }
         
         w.TalkMe = w.TalkMe || function(){(w.TalkMe.q = w.TalkMe.q || []).push(arguments);};
         
@@ -165,7 +157,6 @@
 
   <body>
     <noscript><div><img src="https://mc.yandex.ru/watch/106893944" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <noscript><div><img src="https://mc.yandex.ru/watch/106637396" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <div id="root">
       <!-- Instant preloader shown before React hydrates -->
       <div class="preloader" id="initial-preloader">
