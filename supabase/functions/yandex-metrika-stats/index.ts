@@ -114,7 +114,7 @@ serve(async (req) => {
     console.log(`Fetching Metrika stats for period ${date1} to ${date2}`);
 
     // Fetch data in parallel
-    const [summaryResponse, dailyResponse, topPagesResponse] = await Promise.all([
+    const [summaryResponse, dailyResponse, topPagesResponse, sourcesResponse, homepageResponse] = await Promise.all([
       // Summary metrics
       fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:s:visits,ym:s:users,ym:s:pageviews,ym:s:bounceRate,ym:s:avgVisitDurationSeconds&date1=${date1}&date2=${date2}`, {
         headers: { 'Authorization': `OAuth ${token}` }
@@ -125,6 +125,14 @@ serve(async (req) => {
       }),
       // Top pages
       fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:pv:pageviews&dimensions=ym:pv:URLPathFull&date1=${date1}&date2=${date2}&limit=10&sort=-ym:pv:pageviews`, {
+        headers: { 'Authorization': `OAuth ${token}` }
+      }),
+      // Traffic sources (search engines, direct, referrals, social)
+      fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:s:visits,ym:s:users&dimensions=ym:s:lastTrafficSource&date1=${date1}&date2=${date2}&limit=20&sort=-ym:s:visits`, {
+        headers: { 'Authorization': `OAuth ${token}` }
+      }),
+      // Homepage visits (entry page = /)
+      fetch(`${METRIKA_API_BASE}?ids=${COUNTER_ID}&metrics=ym:s:visits,ym:s:users&dimensions=ym:s:startURLPath&filters=ym:s:startURLPath=='/'&date1=${date1}&date2=${date2}`, {
         headers: { 'Authorization': `OAuth ${token}` }
       }),
     ]);
