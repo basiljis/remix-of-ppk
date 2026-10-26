@@ -6,6 +6,7 @@ import {
   HeartPulse,
   Building2,
   Clock,
+  FlaskConical,
   type LucideIcon,
 } from "lucide-react";
 
