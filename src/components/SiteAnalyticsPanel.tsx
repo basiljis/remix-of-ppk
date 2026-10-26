@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, TrendingUp, TrendingDown, Users, Eye, Clock, MousePointerClick, Globe, BarChart3, Calendar, RefreshCw, Download, AlertTriangle } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Users, Eye, Clock, MousePointerClick, Globe, BarChart3, Calendar, RefreshCw, Download, AlertTriangle, Search, Home } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format, subDays, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -312,6 +312,79 @@ export function SiteAnalyticsPanel() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Traffic sources: search engines & homepage */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Пришли из поиска</CardTitle>
+            <Search className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <div className="text-2xl font-bold">{formatNumber(data?.searchVisitors || 0)}</div>
+              {comparisonQuery.data && renderChangeIndicator(data?.searchVisitors || 0, comparisonQuery.data.searchVisitors || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {data && data.visitors > 0
+                ? `${Math.round(((data.searchVisitors || 0) / data.visitors) * 100)}% всех посетителей · ${formatNumber(data.searchVisits || 0)} визитов`
+                : 'Посетители из поисковых систем'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Зашли на главную</CardTitle>
+            <Home className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <div className="text-2xl font-bold">{formatNumber(data?.homepageVisitors || 0)}</div>
+              {comparisonQuery.data && renderChangeIndicator(data?.homepageVisitors || 0, comparisonQuery.data.homepageVisitors || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {data && data.visitors > 0
+                ? `${Math.round(((data.homepageVisitors || 0) / data.visitors) * 100)}% всех посетителей · ${formatNumber(data.homepageVisits || 0)} визитов`
+                : 'Посетители, начавшие с главной страницы'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Traffic sources breakdown */}
+      {data?.trafficSources && data.trafficSources.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Источники трафика
+            </CardTitle>
+            <CardDescription>Откуда посетители приходят на сайт</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {data.trafficSources.slice(0, 8).map((s) => {
+                const total = data.trafficSources!.reduce((sum, x) => sum + x.visits, 0) || 1;
+                const pct = Math.round((s.visits / total) * 100);
+                return (
+                  <div key={s.source} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{s.source}</span>
+                      <span className="text-muted-foreground">
+                        {formatNumber(s.visitors)} посетителей · {pct}%
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Charts row */}
       <div className="grid gap-6 lg:grid-cols-2">
