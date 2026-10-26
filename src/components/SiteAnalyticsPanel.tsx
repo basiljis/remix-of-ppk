@@ -20,6 +20,11 @@ interface AnalyticsData {
   visits: number;
   topPages: { path: string; views: number }[];
   dailyStats: { date: string; visitors: number; pageViews: number; visits: number }[];
+  trafficSources?: { source: string; visits: number; visitors: number }[];
+  searchVisitors?: number;
+  searchVisits?: number;
+  homepageVisits?: number;
+  homepageVisitors?: number;
   period: string;
   dateRange: { date1: string; date2: string };
 }
@@ -174,14 +179,14 @@ export function SiteAnalyticsPanel() {
                 <p className="font-medium text-foreground mb-2">Для работы SMM аналитики необходимо:</p>
                 <p>✅ Быть авторизованным с ролью <strong>admin</strong></p>
                 <p>✅ Настроен токен <strong>YANDEX_METRIKA_TOKEN</strong></p>
-                <p>✅ Счётчик Яндекс.Метрики <strong>106637396</strong> должен быть активен</p>
+                <p>✅ Счётчик Яндекс.Метрики <strong>106893944</strong> должен быть активен</p>
               </div>
             )}
             {isMetrikaError && (
               <div className="text-sm text-muted-foreground space-y-1 text-left bg-muted/50 rounded-lg p-4">
                 <p className="font-medium text-foreground mb-2">Проблема с Яндекс.Метрикой:</p>
                 <p>• Проверьте токен <strong>YANDEX_METRIKA_TOKEN</strong> в настройках Supabase</p>
-                <p>• Токен должен иметь доступ к счётчику <strong>106637396</strong></p>
+                <p>• Токен должен иметь доступ к счётчику <strong>106893944</strong></p>
               </div>
             )}
             {!isAccessDenied && !isMetrikaError && (
