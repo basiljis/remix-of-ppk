@@ -138,15 +138,18 @@ serve(async (req) => {
     ]);
 
     // Parse responses
-    const [summaryData, dailyData, topPagesData] = await Promise.all([
+    const [summaryData, dailyData, topPagesData, sourcesData, homepageData] = await Promise.all([
       summaryResponse.json(),
       dailyResponse.json(),
       topPagesResponse.json(),
+      sourcesResponse.json(),
+      homepageResponse.json(),
     ]);
 
     console.log('Summary response:', JSON.stringify(summaryData).substring(0, 500));
     console.log('Daily response:', JSON.stringify(dailyData).substring(0, 500));
     console.log('Top pages response:', JSON.stringify(topPagesData).substring(0, 500));
+    console.log('Sources response:', JSON.stringify(sourcesData).substring(0, 500));
 
     // Check for API errors
     if (summaryData.errors || dailyData.errors || topPagesData.errors) {
