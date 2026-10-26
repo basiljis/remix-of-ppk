@@ -187,6 +187,26 @@ serve(async (req) => {
       views: Math.round(row.metrics?.[0] || 0),
     }));
 
+    // Extract traffic sources
+    const trafficSources = (sourcesData.data || []).map((row: any) => ({
+      source: row.dimensions?.[0]?.name || 'Другое',
+      visits: Math.round(row.metrics?.[0] || 0),
+      visitors: Math.round(row.metrics?.[1] || 0),
+    }));
+
+    // Visitors from search engines (organic traffic)
+    const searchVisitors = trafficSources
+      .filter((s: any) => /поисков|search engine/i.test(s.source))
+      .reduce((sum: number, s: any) => sum + s.visitors, 0);
+    const searchVisits = trafficSources
+      .filter((s: any) => /поисков|search engine/i.test(s.source))
+      .reduce((sum: number, s: any) => sum + s.visits, 0);
+
+    // Visitors who landed on the homepage
+    const homepageRow = homepageData.data?.[0]?.metrics || [0, 0];
+    const homepageVisits = Math.round(homepageRow[0] || 0);
+    const homepageVisitors = Math.round(homepageRow[1] || 0);
+
     const result = {
       visitors,
       pageViews,
@@ -195,6 +215,11 @@ serve(async (req) => {
       visits,
       topPages,
       dailyStats,
+      trafficSources,
+      searchVisitors,
+      searchVisits,
+      homepageVisits,
+      homepageVisitors,
       period,
       dateRange: { date1, date2 },
     };
