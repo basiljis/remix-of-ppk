@@ -69,6 +69,7 @@ const PmpkPreparation = lazyWithRetry(() => import("./pages/guides/PmpkPreparati
 const PpkConclusion = lazyWithRetry(() => import("./pages/guides/PpkConclusion"));
 const PpkProtocol = lazyWithRetry(() => import("./pages/guides/PpkProtocol"));
 const WorkloadNorms = lazyWithRetry(() => import("./pages/guides/WorkloadNorms"));
+const GuidePage = lazyWithRetry(() => import("./pages/guides/GuidePage"));
 const Templates = lazyWithRetry(() => import("./pages/Templates"));
 const Blog = lazyWithRetry(() => import("./pages/Blog"));
 const BlogPost = lazyWithRetry(() => import("./pages/BlogPost"));
@@ -113,6 +114,7 @@ const App = () => {
                       <Route path="/guides/ppk-conclusion" element={<PpkConclusion />} />
                       <Route path="/guides/ppk-protocol" element={<PpkProtocol />} />
                       <Route path="/guides/workload-norms" element={<WorkloadNorms />} />
+                      <Route path="/guides/:slug" element={<GuidePage />} />
                       <Route path="/templates" element={<Templates />} />
 
                       {/* Английская локализация */}
