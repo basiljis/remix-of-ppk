@@ -263,6 +263,23 @@ export default function Blog() {
           </div>
         </div>
 
+        <section aria-labelledby="blog-guides" className="mb-8">
+          <h2 id="blog-guides" className="text-xl font-semibold mb-3">Практические руководства</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { to: "/guides/ppk-conclusion", title: "Как оформить заключение ППк", topic: "Для специалистов" },
+              { to: "/guides/ppk-protocol", title: "Как вести протокол заседания ППк", topic: "Для специалистов" },
+              { to: "/guides/pmpk-preparation", title: "Как подготовить ребёнка к ПМПК", topic: "Для родителей" },
+              { to: "/guides/workload-norms", title: "Нормы часов и нагрузки специалистов", topic: "Для администраторов" },
+            ].map((g) => (
+              <Link key={g.to} to={g.to} className="rounded-lg border bg-card p-4 hover:border-primary transition-colors">
+                <span className="text-xs text-muted-foreground">{g.topic}</span>
+                <p className="font-medium text-sm mt-1">{g.title}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
           <div className="min-w-0">
 
