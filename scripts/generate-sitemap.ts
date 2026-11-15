@@ -37,6 +37,9 @@ const staticEntries: Entry[] = [
   { path: "/guides/ppk-conclusion", changefreq: "monthly", priority: "0.9" },
   { path: "/guides/ppk-protocol", changefreq: "monthly", priority: "0.9" },
   { path: "/guides/workload-norms", changefreq: "monthly", priority: "0.9" },
+  { path: "/guides/pmpk-characteristic", changefreq: "monthly", priority: "0.9" },
+  { path: "/guides/parent-refusal", changefreq: "monthly", priority: "0.9" },
+  { path: "/guides/iom", changefreq: "monthly", priority: "0.9" },
   { path: "/templates", changefreq: "monthly", priority: "0.9" },
 ];
 
