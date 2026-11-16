@@ -3,14 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
-// URL берём из .env — это позволяет переключаться между прямым адресом
-// Supabase и российским прокси (например, https://api.unvrsm.ru) без правки кода.
-// Фолбэк оставлен для совместимости со старыми сборками.
-const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL ?? "https://api.unvrsm.ru";
-const SUPABASE_PUBLISHABLE_KEY =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWptZXNsbm1oZXdscGd6bG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzMjE2MjEsImV4cCI6MjA2OTg5NzYyMX0.zqNt8Zj0ktRLY1HBKelEYJ0gXaLkyIc4l6PAwMod7Co";
+const SUPABASE_URL = "https://oxyjmeslnmhewlpgzlmf.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_D2Q46JS6yyk_xJTkW2BIdw_x0t0sxOl";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
