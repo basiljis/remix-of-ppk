@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function LanguageToggle() {
+  // Translation switcher hidden: translation is not working reliably.
+  return null;
   const { i18n, t } = useTranslation();
   const current = (i18n.resolvedLanguage || i18n.language || "ru").slice(0, 2).toUpperCase();
 
