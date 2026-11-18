@@ -1,0 +1,1 @@
+- New public guides: add an entry to src/data/extraGuides.ts (rendered by /guides/:slug) and to scripts/generate-sitemap.ts — keeps guides data-driven and listed in the blog.
