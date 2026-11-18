@@ -264,17 +264,6 @@ export default function Blog() {
           </div>
         </div>
 
-        <section aria-labelledby="blog-guides" className="mb-8">
-          <h2 id="blog-guides" className="text-xl font-semibold mb-3">Практические руководства</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {ALL_GUIDE_LINKS.map((g) => (
-              <Link key={g.to} to={g.to} className="rounded-lg border bg-card p-4 hover:border-primary transition-colors">
-                <span className="text-xs text-muted-foreground">{g.topic}</span>
-                <p className="font-medium text-sm mt-1">{g.title}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
 
         <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
           <div className="min-w-0">
@@ -431,6 +420,18 @@ export default function Blog() {
             </ul>
           </nav>
         )}
+
+        <section aria-labelledby="blog-guides" className="mt-12 pt-8 border-t">
+          <h2 id="blog-guides" className="text-xl font-semibold mb-3">Практические руководства</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {ALL_GUIDE_LINKS.map((g) => (
+              <Link key={g.to} to={g.to} className="rounded-lg border bg-card p-4 hover:border-primary transition-colors">
+                <span className="text-xs text-muted-foreground">{g.topic}</span>
+                <p className="font-medium text-sm mt-1">{g.title}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <Dialog open={!!selectedNews} onOpenChange={(open) => !open && setSelectedNews(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

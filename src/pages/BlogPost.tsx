@@ -1,3 +1,4 @@
+import { relatedGuides } from "@/data/extraGuides";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -421,6 +422,22 @@ export default function BlogPost() {
                       ))}
                     </ul>
                   </nav>
+                  {(() => {
+                    const rg = relatedGuides(`${post.title} ${description ?? ""} ${tags.join(" ")}`);
+                    return rg.length ? (
+                      <section className="mt-10 pt-6 border-t" aria-labelledby="post-guides">
+                        <h2 id="post-guides" className="text-lg font-semibold mb-3">Практические руководства по теме</h2>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {rg.map((g) => (
+                            <Link key={g.to} to={g.to} className="rounded-lg border bg-card p-4 hover:border-primary transition-colors">
+                              <span className="text-xs text-muted-foreground">{g.topic}</span>
+                              <p className="font-medium text-sm mt-1">{g.title}</p>
+                            </Link>
+                          ))}
+                        </div>
+                      </section>
+                    ) : null;
+                  })()}
                 </article>
 
                 {/* Sidebar: TOC + share */}

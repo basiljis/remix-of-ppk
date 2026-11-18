@@ -136,3 +136,21 @@ export const ALL_GUIDE_LINKS = [
   { to: "/guides/workload-norms", title: "Нормы часов и нагрузки специалистов", topic: "Для администраторов" },
   ...EXTRA_GUIDES.map((g) => ({ to: `/guides/${g.slug}`, title: g.title, topic: g.topic })),
 ];
+
+const GUIDE_KEYWORDS: Record<string, string[]> = {
+  "/guides/ppk-conclusion": ["заключени", "ппк", "консилиум"],
+  "/guides/ppk-protocol": ["протокол", "заседани"],
+  "/guides/pmpk-preparation": ["пмпк", "комисси", "подготов"],
+  "/guides/workload-norms": ["час", "нагрузк", "санпин", "норм"],
+};
+
+/** Guides matching an article's topic by keyword overlap. */
+export function relatedGuides(text: string, limit = 3) {
+  const t = text.toLowerCase();
+  return ALL_GUIDE_LINKS.map((g) => {
+    const extra = EXTRA_GUIDES.find((e) => `/guides/${e.slug}` === g.to);
+    const kws = GUIDE_KEYWORDS[g.to] ?? (extra ? extra.title.toLowerCase().split(/[^а-яёa-z]+/).filter((w) => w.length > 4).map((w) => w.slice(0, 6)) : []);
+    const score = kws.reduce((n, k) => n + (t.includes(k) ? 1 : 0), 0);
+    return { ...g, score };
+  }).filter((g) => g.score > 0).sort((a, b) => b.score - a.score).slice(0, limit);
+}
