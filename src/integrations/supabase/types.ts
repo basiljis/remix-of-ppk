@@ -3783,6 +3783,7 @@ export type Database = {
       get_user_organization_id: { Args: { user_id: string }; Returns: string }
       get_user_region: { Args: { _user_id: string }; Returns: string }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
+      has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_organization_subscription: {
         Args: { _user_id: string }
         Returns: boolean
