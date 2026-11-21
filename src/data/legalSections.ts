@@ -373,7 +373,7 @@ export const legalSections: LegalSection[] = [
         meta: "Нормативное требование · перечень средств обучения",
         description:
           "Утверждает перечень средств обучения и воспитания, необходимых для реализации образовательных программ, в том числе для коррекционной работы с обучающимися с ОВЗ, и требования к их количеству.",
-        url: "http://publication.pravo.gov.ru/Document/View/0001202211030019",
+        url: "http://publication.pravo.gov.ru/Document/View/0001202210130004",
         badge: "Приказ",
         audiences: ["admin", "specialists"],
       },
